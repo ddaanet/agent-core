@@ -1,0 +1,26 @@
+# Ruff configuration fragment
+# Shared linter configuration for agent projects
+# py312 baseline - override per project as needed
+
+[tool.ruff]
+# Code style
+line-length = 100
+target-version = "py312"
+
+# Enabled rules
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+]
+
+# Project-specific ignores will be added at composition time
+ignore = []
+
+[tool.ruff.isort]
+known-first-party = []  # Will be set per project

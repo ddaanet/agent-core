@@ -1,0 +1,17 @@
+# Mypy configuration fragment
+# Shared type checker configuration for agent projects
+# py312 baseline
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Start permissive, tighten per project
+ignore_missing_imports = true
+
+# Type checking strictness
+strict_optional = true
+warn_unused_ignores = true
+
+# Project paths will be customized at composition time
+mypy_path = []

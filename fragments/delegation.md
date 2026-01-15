@@ -1,36 +1,50 @@
-# Delegation Patterns
+## Delegation Principle
 
-Guidelines for delegating tasks and responsibilities:
+**Delegate everything.** The orchestrator (main agent) coordinates work but does not implement directly:
 
-## Task Delegation Criteria
+1. **Break down** complex requests into discrete tasks
+2. **Assign** each task to a specialized agent (role) or invoke a skill
+3. **Monitor** progress and handle exceptions
+4. **Synthesize** results for the user
 
-Delegate to another agent when:
-- Expertise in specialized domain is required
-- Parallel execution would improve efficiency
-- Task scope is well-defined and independent
-- Acceptance criteria are clear
+Specialized agents focus on their domain; the orchestrator maintains context and flow.
 
-## Handoff Protocol
+### Model Selection for Delegation
 
-When delegating:
-1. **Define scope clearly**: What is included/excluded
-2. **Specify acceptance criteria**: How to know it's complete
-3. **Provide context**: Reference files, background information
-4. **Agree on communication**: How to report progress
-5. **Set boundaries**: Decision authority, escalation points
+**Rule:** Match model cost to task complexity.
 
-## Task Dependencies
+- **Haiku:** Execution, implementation, simple edits, file operations
+- **Sonnet:** Default for most work, balanced capability
+- **Opus:** Architecture, planning, complex design decisions only
 
-- Identify blocking dependencies upfront
-- Order work to minimize blocking
-- Document dependency chains
-- Provide fallback options when dependencies are uncertain
+**Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
 
-## Quality Gates
+### Quiet Execution Pattern
 
-- Specify validation requirements
-- Define "done" explicitly
-- Include acceptance testing steps
-- Plan for integration points
+**Rule:** Execution agents report to files, not to orchestrator context.
 
-See tool-preferences.md for tool-specific delegation guidance.
+**For haiku execution tasks:**
+
+1. Specify output file path in task prompt (e.g., `tmp/execution-report.md` or `agents/reports/task-name.md`)
+2. Instruct agent to write detailed output to that file
+3. Agent returns only: filename (success) or error message (failure)
+4. Use second agent to read report and provide distilled summary to user
+
+**Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
+
+**Note:** Use `agents/` or `tmp/` directories in project for report files.
+
+### Task Agent Tool Usage
+
+**Rule:** Task agents must use specialized tools, not Bash one-liners.
+
+**When delegating tasks, remind agents to:**
+
+- Use **LS** instead of `ls`
+- Use **Grep** instead of `grep` or `rg`
+- Use **Glob** instead of `find`
+- Use **Read** instead of `cat`, `head`, `tail`
+- Use **Write** instead of `echo >` or `cat <<EOF`
+- Use **Edit** instead of `sed`, `awk`
+
+**Critical:** Always include this reminder in task prompts to prevent bash tool misuse.

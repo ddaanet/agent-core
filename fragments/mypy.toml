@@ -1,17 +1,38 @@
-# Mypy configuration fragment
-# Shared type checker configuration for agent projects
-# py312 baseline
+# Mypy configuration fragment - Shared settings
+#
+# This file contains the intersection of mypy configurations across agent projects.
+# All projects use strict type checking with test file exceptions.
+#
+# Template variables for customization:
+#   - python_version: Default is 3.12 (baseline), uncomment to override
+#   - files: Directory paths to type-check (customize per project)
+#   - mypy_path: Additional paths for module resolution (project-specific)
+#
+# Recommended project-specific additions:
+#   [[tool.mypy.overrides]]
+#   module = "tests.*"
+#   disallow_untyped_defs = false      # Tests don't need full type annotations
+#   disallow_incomplete_defs = false   # Tests can have incomplete annotations
 
 [tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = false  # Start permissive, tighten per project
-ignore_missing_imports = true
+# Python version - baseline is 3.12, uncomment to override
+# python_version = "3.12"
 
-# Type checking strictness
-strict_optional = true
-warn_unused_ignores = true
+# Core settings - all projects use these
+strict = true                    # Enable all strict type checking
+extra_checks = true              # Enable optional error messages
+error_summary = false            # Suppress error summary (detailed output preferred)
 
-# Project paths will be customized at composition time
-mypy_path = []
+# Experimental settings used across projects
+allow_redefinition_new = true    # Allow variable redefinition
+local_partial_types = true       # Infer partial types locally
+
+# Project-specific settings will be added at composition time:
+# [tool.mypy]
+# files = ["src", "tests"]       # Directories to check
+# mypy_path = []                 # Additional module paths
+#
+# [[tool.mypy.overrides]]
+# module = "tests.*"
+# disallow_untyped_defs = false
+# disallow_incomplete_defs = false

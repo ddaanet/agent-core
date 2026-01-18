@@ -99,33 +99,6 @@ Every plan MUST include this metadata section at the top:
 **Prerequisites**:
 - [Prerequisite 1] (✓ verified via [method])
 - [Prerequisite 2] (path: /absolute/path/to/resource)
-
-## Prerequisite Validation
-
-**Method**: [How to verify - Bash check, Read tool, Glob tool, curl, etc.]
-
-**Validation Checklist** (see fragments/prerequisite-validation.md for details):
-
-1. **File Resources** (reference all files in plan steps)
-   - [ ] File: [path] (✓ verified via [method])
-   - [ ] File: [path] (✓ verified via [method])
-
-2. **Directory Resources** (reference all output directories)
-   - [ ] Directory: [path] (✓ exists, writable)
-   - [ ] Directory: [path] (✓ exists, writable)
-
-3. **External Dependencies** (tools, services, APIs)
-   - [ ] Tool: [name] version [version] (✓ verified)
-   - [ ] Service: [name] (✓ accessible)
-
-4. **Environment** (variables, configuration, state)
-   - [ ] Variable: [name] = [value] (✓ set)
-   - [ ] Config: [file] (✓ exists, readable)
-
-**Verification Methods**:
-- Bash check: `test -f /path/to/file && echo "✓"` (planning phase)
-- Read tool: Use Read tool to verify file exists and is readable (execution phase)
-- Glob tool: Use Glob to discover resources (execution phase)
 ```
 
 **Critical Requirements:**
@@ -134,18 +107,8 @@ Every plan MUST include this metadata section at the top:
 - **Step Dependencies**: Enable orchestrator to parallelize when possible
 - **Error Escalation**: Clear triggers for when to escalate
 - **Success Criteria**: Overall plan success (step-level criteria go in step sections)
-- **Prerequisites**: Verified before execution starts (with method documented)
+- **Prerequisites**: Verified before execution starts
 - **Report Locations**: Where execution reports will be written
-- **Prerequisite Validation**: Explicit verification checklist with methods
-
-**Prerequisite Validation Integration:**
-
-Prerequisite validation during planning phase prevents ~80% of escalation-triggering errors. See `fragments/prerequisite-validation.md` for:
-- When to validate (planning phase recommended, execution phase defensive)
-- Full validation checklist (4 categories with examples)
-- Validation methods (Bash, Read tool, Glob tool, curl, etc.)
-- Common pitfalls (relative paths, assumptions, permissions)
-- Phase 2 example: File path mismatch detection and prevention
 
 **What DOES NOT belong in orchestrator metadata:**
 - Inline scripts or prose step descriptions (those go in step sections)
@@ -158,7 +121,6 @@ Prerequisite validation during planning phase prevents ~80% of escalation-trigge
 2. **Orchestrator trusts agents to report accurately** - no inline validation logic
 3. **Validation is delegated** - if needed, it's a separate plan step
 4. **Planning happens before execution** - orchestrator doesn't make decisions during execution
-5. **Prerequisites verified upfront** - prevents 80% of escalation-triggering errors
 
 ---
 
@@ -227,58 +189,11 @@ Return: "done: [summary]" or "error: [description]"
 
 ---
 
-### Point 4: Create Plan-Specific Agent and Split Plan into Steps
+### Point 4: Split Plan into Per-Step Files
 
-After plan is reviewed and ready, create plan-specific agent and per-step files for execution.
+After plan is reviewed and ready, create per-step files for execution.
 
-**Step 4A: Create Plan-Specific Agent**
-
-**Responsibility:** Planning agent creates plan-specific agent for cached context
-
-**Benefits of plan-specific agent** (see `pattern-plan-specific-agent.md` for full pattern):
-- Context caching (plan context reused across steps, not per-step transmission)
-- Token efficiency (~4250 tokens saved on 3-step plan vs per-step transmission)
-- Consistency (all steps reference same plan definition, no drift)
-- Clean execution (fresh agent per step, no transcript bloat)
-
-**Automated generation:**
-
-Use the script: `agent-core/scripts/create-plan-agent.sh`
-
-**Script Features:**
-- Combines baseline agent + plan context
-- Generates YAML frontmatter with plan-specific metadata
-- Creates agent file ready for invocation
-- Verifies output (frontmatter valid, file created)
-
-**Usage:**
-```bash
-./scripts/create-plan-agent.sh \
-  --plan <plan-name> \
-  --output .claude/agents \
-  <plan-file.md>
-```
-
-**Example:**
-```bash
-./scripts/create-plan-agent.sh \
-  --plan oauth2-auth \
-  --output .claude/agents \
-  plans/oauth2-auth/execution-plan.md
-```
-
-**Script Output:**
-- `.claude/agents/<plan-name>-task.md` - Plan-specific agent (frontmatter + baseline + plan context)
-
-**Verification:**
-- Confirm file created at `.claude/agents/<plan-name>-task.md`
-- Verify YAML frontmatter is valid
-- Spot-check: Plan sections present in file
-- Size check: File should be ~50KB+ (contains full plan context)
-
-**Step 4B: Split Plan into Per-Step Files**
-
-Use existing split script for step decomposition.
+**Use Existing Split Script:**
 
 The split script is located at: `agent-core/scripts/split-execution-plan.py`
 
@@ -315,11 +230,11 @@ Each step file should:
 - Define return format
 
 **Benefits of Splitting:**
+- Enables plan-specific agent pattern
 - Each step execution is isolated
 - Clear context boundaries
 - Easy to track progress
 - Supports parallel execution when dependencies allow
-- Enables per-step agent invocation with plan-specific agent
 
 ---
 
@@ -517,24 +432,8 @@ Ready for execution. Run steps with weak orchestrator using step files."
 
 ## References
 
-**Patterns and Fragments:**
-- `pattern-weak-orchestrator.md` - Overview of weak orchestrator pattern
-- `pattern-plan-specific-agent.md` - Plan-specific agent caching pattern
-- `fragments/error-classification.md` - Error categories and escalation paths
-- `fragments/prerequisite-validation.md` - Prerequisite validation checklist and methods
-
 **Example Plan**: `/Users/david/code/claudeutils/plans/unification/phase2-execution-plan.md`
 **Example Review**: `/Users/david/code/claudeutils/plans/unification/reports/phase2-plan-review.md`
-**Example Agent**: `/Users/david/code/claudeutils/.claude/agents/phase2-task.md`
-
-**Scripts:**
-- `agent-core/scripts/split-execution-plan.py` - Split plan into per-step files
-- `agent-core/scripts/create-plan-agent.sh` - Create plan-specific agent from baseline + plan
+**Split Script**: `/Users/david/code/agent-core/scripts/split-execution-plan.py`
 
 These demonstrate the complete 4-point process in practice.
-
-**Phase 2 Validation Evidence:**
-- Plans validated all 5 hypotheses of weak orchestrator pattern
-- Plan-specific agent saved ~4250 tokens on 3-step plan
-- Prerequisite validation could have prevented 1 escalation cycle
-- Pattern ready for production use on Phase 3+ plans

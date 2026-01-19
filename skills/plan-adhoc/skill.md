@@ -1,31 +1,35 @@
 ---
-description: Create execution plans for weak orchestrator agents using 4-point planning process
-allowed-tools: Task, Read, Write, Bash(mkdir:*)
+description: Create execution runbooks for weak orchestrator agents using 4-point planning process (oneshot workflow)
+allowed-tools: Task, Read, Write, Bash(mkdir:*, python3:*)
 user-invocable: true
 ---
 
-# Task Plan Skill
+# Plan Ad-hoc Skill
 
-Create detailed execution plans suitable for weak orchestrator agents using a formalized 4-point planning process. This skill transforms high-level tasks into structured plans that haiku or sonnet agents can execute with minimal judgment.
+Create detailed execution runbooks suitable for weak orchestrator agents using a formalized 4-point planning process. This skill transforms high-level tasks into structured runbooks that haiku or sonnet agents can execute with minimal judgment.
+
+**Workflow Context:** Part of oneshot workflow (design → planning → execution). Contrast with `/plan-tdd` (future, feature dev emphasis).
 
 ## When to Use
 
 **Use this skill when:**
-- Creating execution plans for multi-step tasks
+- Creating execution runbooks for multi-step tasks
 - Delegating work to weak orchestrator agents (haiku/sonnet)
 - Complex tasks need explicit design decisions documented
 - Tasks require clear error escalation and validation criteria
+- Ad-hoc oneshot work (vs iterative feature development)
 
 **Do NOT use when:**
 - Task is simple and can be executed directly
 - Task requires user input or interactive decisions
 - Plan already exists and just needs execution
+- Feature development requiring TDD approach (use `/plan-tdd` when available)
 
 ## 4-Point Planning Process
 
 ### Point 1: Evaluate Script vs Direct Execution
 
-For each task in the plan, decide on execution approach:
+For each task in the runbook, decide on execution approach:
 
 **1.1 Small Tasks (≤25 lines)**: Write complete script inline
 
@@ -73,7 +77,7 @@ Implementation:
 
 ### Point 2: Include Weak Orchestrator Metadata
 
-Every plan MUST include this metadata section at the top:
+Every runbook MUST include this metadata section at the top:
 
 ```markdown
 ## Weak Orchestrator Metadata
@@ -94,7 +98,7 @@ Every plan MUST include this metadata section at the top:
 
 **Report Locations**: [pattern for where reports go]
 
-**Success Criteria**: [overall plan success, not per-step]
+**Success Criteria**: [overall runbook success, not per-step]
 
 **Prerequisites**:
 - [Prerequisite 1] (✓ verified via [method])
@@ -106,7 +110,7 @@ Every plan MUST include this metadata section at the top:
 - **Execution Model**: Match model capability to task complexity
 - **Step Dependencies**: Enable orchestrator to parallelize when possible
 - **Error Escalation**: Clear triggers for when to escalate
-- **Success Criteria**: Overall plan success (step-level criteria go in step sections)
+- **Success Criteria**: Overall runbook success (step-level criteria go in step sections)
 - **Prerequisites**: Verified before execution starts
 - **Report Locations**: Where execution reports will be written
 
@@ -126,16 +130,16 @@ Every plan MUST include this metadata section at the top:
 
 ### Point 3: Plan Review by Sonnet
 
-Before finalizing the plan, delegate review to a sonnet task agent.
+Before finalizing the runbook, delegate review to a sonnet task agent.
 
 **Review Prompt Template:**
 
 ```
-Review the execution plan at [path] for weak orchestrator execution.
+Review the execution runbook at [path] for weak orchestrator execution.
 
 Evaluate:
 1. Completeness - All design decisions documented? Any missing choices?
-2. Executability - Can weak agents (haiku/sonnet) execute with just this plan?
+2. Executability - Can weak agents (haiku/sonnet) execute with just this runbook?
 3. Script vs Direct - Are complexity assessments appropriate (≤25 lines = inline)?
 4. Validation - Are success criteria measurable and specific?
 5. Error Handling - Are escalation triggers clear and actionable?
@@ -183,77 +187,102 @@ Return: "done: [summary]" or "error: [description]"
 **Revision Loop:**
 1. Read review report
 2. Address critical and major issues
-3. Update plan with fixes
+3. Update runbook with fixes
 4. Request re-review if changes are significant
 5. Iterate until assessment is READY
 
 ---
 
-### Point 4: Split Plan into Per-Step Files
+### Point 4: Prepare Runbook Artifacts
 
-**CRITICAL: This step is MANDATORY. Splitting creates isolated execution contexts.**
+**CRITICAL: This step is MANDATORY. Use `prepare-runbook.py` to create execution artifacts.**
 
-**Why splitting is fundamental:**
+**Why artifact preparation is fundamental:**
 
 The entire point of the plan-specific agent pattern is **context isolation**. Each step gets a fresh agent invocation with ONLY:
 - Common context (metadata, prerequisites, design decisions)
 - The specific step to execute
 - NO execution transcript from previous steps
 
-**Benefits of splitting:**
+**Benefits of preparation:**
 - Prevents context bloat from accumulating across steps
 - Each step starts with clean slate (no noise from previous steps)
 - Execution logs stay in report files, not in agent context
 - Enables plan-specific agent pattern with context caching
 - Sequential steps ESPECIALLY need splitting (to prevent cumulative bloat)
 
-**When NOT to split:**
-- Never. Always split. This is not negotiable.
+**When NOT to prepare:**
+- Never. Always prepare. This is not negotiable.
 
-After plan is reviewed and ready, create per-step files for execution.
+After runbook is reviewed and ready, use the preparation script to create artifacts.
 
-**Use Existing Split Script:**
+**Use prepare-runbook.py Script:**
 
-The split script is located at: `agent-core/scripts/split-execution-plan.py`
+The script is located at: `agent-core/bin/prepare-runbook.py`
 
 **Script Features:**
-- Auto-detects plan format (Phase or Step format)
-- Extracts common context and individual step/phase sections
-- Creates step files with context references
-- Generates index file (README.md) with usage instructions
+- Parses runbook with optional YAML frontmatter
+- Extracts Common Context section
+- Extracts individual Step sections (## Step N: or ## Step N.M:)
+- Creates plan-specific agent (baseline + common context)
+- Generates step files for execution
+- Creates orchestrator plan
+- Validates structure and reports errors clearly
 
 **Usage:**
 ```bash
-python agent-core/scripts/split-execution-plan.py <plan-file.md> <output-dir>
+python3 agent-core/bin/prepare-runbook.py <runbook-file.md>
 ```
 
 **Example:**
 ```bash
-python agent-core/scripts/split-execution-plan.py \
-    plans/oauth2-auth/execution-plan.md \
-    plans/oauth2-auth/steps
+python3 agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
 ```
 
+**Script automatically derives paths:**
+- Runbook name: From parent directory (e.g., `oauth2-auth` from `plans/oauth2-auth/runbook.md`)
+- Plan-specific agent: `.claude/agents/<runbook-name>-task.md`
+- Step files: `plans/<runbook-name>/steps/step-N.md` or `step-N-M.md`
+- Orchestrator plan: `plans/<runbook-name>/orchestrator-plan.md`
+
 **Script Output:**
-- `execution-context.md` or `consolidation-context.md` - Common context for all steps/phases
-- `step{N}.md` or `phase{N}.md` - Individual step/phase files
-- `README.md` - Index and usage instructions
+```
+✓ Created agent: .claude/agents/oauth2-auth-task.md
+✓ Created step: plans/oauth2-auth/steps/step-1.md
+✓ Created step: plans/oauth2-auth/steps/step-2.md
+✓ Created step: plans/oauth2-auth/steps/step-3.md
+✓ Created orchestrator: plans/oauth2-auth/orchestrator-plan.md
 
-**Per-Step File Structure:**
+Summary:
+  Runbook: oauth2-auth
+  Steps: 3
+  Model: haiku
+```
 
-Each step file should:
-- Reference main plan for context
-- Include complete step content
-- Provide execution instructions
-- Specify report path
-- Define return format
+**Runbook Format Requirements:**
 
-**Benefits of Splitting:**
-- Enables plan-specific agent pattern
-- Each step execution is isolated
-- Clear context boundaries
-- Easy to track progress
-- Supports parallel execution when dependencies allow
+**Optional YAML frontmatter:**
+```yaml
+---
+name: custom-name  # Override derived name
+model: sonnet      # Default model for plan-specific agent
+---
+```
+
+**Required sections:**
+- Steps: `## Step N:` or `## Step N.M:` headings
+- At least one step must be present
+
+**Optional sections:**
+- `## Common Context` - Shared context for all steps
+- `## Orchestrator Instructions` - Custom orchestrator guidance
+
+**Benefits of prepare-runbook.py:**
+- Automatic path derivation (no manual file creation)
+- Validation (fails on missing baseline, duplicate steps, etc.)
+- Idempotent (re-runnable after runbook updates)
+- Consistent artifact structure
+- Plan-specific agent with cached context
 
 ---
 
@@ -262,9 +291,9 @@ Each step file should:
 **Tool Usage:**
 - Use **Task** to delegate review and complex steps
 - Use **Read** to check existing files
-- Use **Write** to create plan and step files
-- Use **Bash** for mkdir only (NOT for file content manipulation)
-- Use **Edit** if modifying existing plans
+- Use **Write** to create runbook files
+- Use **Bash** for mkdir and python3 script execution
+- Use **Edit** if modifying existing runbooks
 
 **Model Selection:**
 - **Haiku**: Simple execution, scripted tasks, file operations
@@ -278,9 +307,11 @@ Each step file should:
 - Document recovery protocol
 
 **Output Locations:**
-- Execution logs: `plans/[plan-name]/reports/`
-- Analysis artifacts: `scratch/[context]/analysis/` or plan-specific directory
-- Per-step files: `plans/[plan-name]/steps/`
+- Runbook: `plans/[runbook-name]/runbook.md` or `[name]-plan.md`
+- Execution logs: `plans/[runbook-name]/reports/`
+- Step files: `plans/[runbook-name]/steps/` (created by script)
+- Plan-specific agent: `.claude/agents/[runbook-name]-task.md` (created by script)
+- Orchestrator plan: `plans/[runbook-name]/orchestrator-plan.md` (created by script)
 
 **Validation:**
 - Success criteria must be measurable
@@ -290,11 +321,11 @@ Each step file should:
 
 ## Example Execution Flow
 
-**User:** `/task-plan` for implementing authentication feature
+**User:** `/plan-adhoc` for implementing authentication feature
 
-**Agent:** "I'll help create an execution plan using the 4-point process.
+**Agent:** "I'll help create an execution runbook using the 4-point process.
 
-What is the plan for? (Brief description): "
+What is the runbook for? (Brief description): "
 
 **User:** "Implement OAuth2 authentication with Google provider"
 
@@ -310,11 +341,11 @@ Let me break this down:
 4. Create user profile integration (medium - prose description)
 5. Write integration tests (large - separate planning needed)
 
-**Point 2: Creating Plan with Metadata**
+**Point 2: Creating Runbook with Metadata**
 
-*Delegates to sonnet task agent to create initial plan draft*
+*Creates initial runbook draft with orchestrator metadata*
 
-**Point 3: Plan Review**
+**Point 3: Runbook Review**
 
 *Delegates to sonnet task agent for review*
 *Receives: "Review complete - 2 critical issues, 3 major issues - NEEDS_REVISION"*
@@ -322,27 +353,35 @@ Let me break this down:
 *Addresses issues and requests re-review*
 *Receives: "Re-review complete - All critical issues resolved - READY"*
 
-**Point 4: Split into Steps**
+**Point 4: Prepare Artifacts**
 
-*Writes Python script to split plan*
-*Executes script to create per-step files*
+*Runs prepare-runbook.py to create execution artifacts*
 
-Plan created:
-- Main plan: `plans/oauth2-auth/execution-plan.md`
-- Review: `plans/oauth2-auth/reports/plan-review.md`
-- Steps: `plans/oauth2-auth/steps/step1.md` through `step4.md`
+```bash
+python3 agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
+```
+
+Artifacts created:
+- Plan-specific agent: `.claude/agents/oauth2-auth-task.md`
+- Steps: `plans/oauth2-auth/steps/step-{1,2,3,4}.md`
+- Orchestrator plan: `plans/oauth2-auth/orchestrator-plan.md`
 - Note: Step 5 (tests) marked for separate planning session
 
-Ready for execution. Run steps with weak orchestrator using step files."
+Ready for execution. Use `/orchestrate` to execute the runbook."
 
-## Template Structure for Plans
+## Runbook Template Structure
 
-**Main Plan File:**
+**Main Runbook File:**
 
 ```markdown
-# [Plan Name] Execution Plan
+---
+name: runbook-name  # Optional: override directory-based name
+model: haiku        # Optional: default model for plan-specific agent
+---
 
-**Context**: [Brief description of what this plan accomplishes]
+# [Runbook Name]
+
+**Context**: [Brief description of what this runbook accomplishes]
 
 **Source**: [Reference to requirements, design docs, or parent plan]
 **Design**: [Reference to design decisions document if applicable]
@@ -360,7 +399,25 @@ Ready for execution. Run steps with weak orchestrator using step files."
 
 ---
 
-## Step 1.1: [Step Name]
+## Common Context
+
+[Shared information for all steps]
+
+**Key Constraints:**
+- [Constraint 1]
+- [Constraint 2]
+
+**Project Paths:**
+- [Path 1]: [Description]
+- [Path 2]: [Description]
+
+**Conventions:**
+- [Convention 1]
+- [Convention 2]
+
+---
+
+## Step 1: [Step Name]
 
 **Objective**: [Clear, concise objective]
 
@@ -395,6 +452,16 @@ Ready for execution. Run steps with weak orchestrator using step files."
 
 ---
 
+## Orchestrator Instructions
+
+[Optional: Custom instructions for weak orchestrator]
+
+Default behavior if omitted:
+- Execute steps sequentially using [runbook-name]-task agent
+- Stop on error and escalate to sonnet
+
+---
+
 ## Design Decisions
 
 [Document key decisions made during planning]
@@ -403,11 +470,11 @@ Ready for execution. Run steps with weak orchestrator using step files."
 
 ## Dependencies
 
-**Before This Plan**:
+**Before This Runbook**:
 - [Prerequisite 1]
 - [Prerequisite 2]
 
-**After This Plan**:
+**After This Runbook**:
 - [What can be done next]
 - [Artifacts available for downstream work]
 
@@ -438,6 +505,7 @@ Ready for execution. Run steps with weak orchestrator using step files."
 - Conflating execution logs and analysis artifacts
 - Using relative paths instead of absolute
 - Deferring validation to future phases
+- Forgetting to run prepare-runbook.py after review
 
 **Instead:**
 - Verify prerequisites explicitly
@@ -448,11 +516,27 @@ Ready for execution. Run steps with weak orchestrator using step files."
 - Separate execution logs from output artifacts
 - Use absolute paths consistently
 - Include validation in each step
+- Always run prepare-runbook.py to create artifacts
 
 ## References
 
-**Example Plan**: `/Users/david/code/claudeutils/plans/unification/phase2-execution-plan.md`
+**Example Runbook**: `/Users/david/code/claudeutils/plans/unification/phase2-execution-plan.md`
 **Example Review**: `/Users/david/code/claudeutils/plans/unification/reports/phase2-plan-review.md`
-**Split Script**: `/Users/david/code/agent-core/scripts/split-execution-plan.py`
+**Preparation Script**: `/Users/david/code/claudeutils/agent-core/bin/prepare-runbook.py`
+**Baseline Agent**: `/Users/david/code/claudeutils/agent-core/agents/quiet-task.md`
 
 These demonstrate the complete 4-point process in practice.
+
+## Integration with Oneshot Workflow
+
+**Workflow stages:**
+1. `/design` - Opus creates design document
+2. `/plan-adhoc` - Sonnet creates execution runbook (THIS SKILL)
+3. `/orchestrate` - Haiku executes runbook steps
+4. `/vet` - Review changes before commit
+5. Complete job
+
+**Handoff:**
+- Input: Design document from `/design` skill
+- Output: Ready-to-execute artifacts (agent, steps, orchestrator plan)
+- Next: User invokes `/orchestrate` to execute runbook

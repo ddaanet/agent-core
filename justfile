@@ -15,7 +15,7 @@ sync-to-parent:
     mkdir -p "$CLAUDE_DIR/skills"
     mkdir -p "$CLAUDE_DIR/agents"
 
-    # Sync skills (copy directories - Claude Code doesn't follow symlinks)
+    # Sync skills (copy directories - symlinks work but copying is safer)
     echo "Syncing skills..."
     for skill in skills/*/; do
         skill_name=$(basename "$skill")

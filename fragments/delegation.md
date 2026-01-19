@@ -25,14 +25,56 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **For haiku execution tasks:**
 
-1. Specify output file path in task prompt (e.g., `tmp/execution-report.md` or `agents/reports/task-name.md`)
+1. Specify output file path in task prompt (e.g., `tmp/execution-report.md` or `plans/[plan-name]/reports/task-name.md`)
 2. Instruct agent to write detailed output to that file
-3. Agent returns only: filename (success) or error message (failure)
+3. Agent returns ONLY:
+   - **Success:** Filename (absolute path or relative to working directory)
+   - **Failure:** Error message with diagnostic info
 4. Use second agent to read report and provide distilled summary to user
+
+**Return Format Specification:**
+
+**Success case:**
+```
+reports/step-1-execution.md
+```
+OR (absolute path):
+```
+/Users/david/code/project/reports/step-1-execution.md
+```
+
+**Failure case:**
+```
+Error: File not found - /Users/david/code/pytest-md/CLAUDE.md
+Details: Expected CLAUDE.md at specified path but file doesn't exist.
+Check: Directory listing shows AGENTS.md instead.
+Recommendation: Verify correct filename in plan step.
+```
 
 **Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
 
-**Note:** Use `agents/` or `tmp/` directories in project for report files.
+**Two-phase communication pattern:**
+
+```
+Phase 1 (Execution Agent):
+  Orchestrator delegates: "Execute step 3. Write report to reports/step-3.md"
+  Agent: Executes task, writes detailed report to file
+  Agent returns: "reports/step-3.md" (or error message)
+
+Phase 2 (Summary Agent - optional):
+  Orchestrator: If needed, delegate to summary agent
+  Summary agent: Reads reports/step-3.md
+  Summary agent returns: "Step 3 complete. [1-2 sentence summary]"
+
+Result: Orchestrator context: ~100 tokens
+         Detailed logs: Available in reports/ for inspection
+```
+
+**Note:** For plan execution, use `plans/[plan-name]/reports/` directory. For ad-hoc work, use project-local `tmp/` directory, not system `/tmp/`.
+
+**Integration with plan-specific agent:**
+
+Plan-specific agents enable quiet execution by having all context needed to run independently. See `pattern-plan-specific-agent.md` for integration details.
 
 ### Task Agent Tool Usage
 

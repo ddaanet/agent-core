@@ -15,21 +15,21 @@ sync-to-parent:
     mkdir -p "$CLAUDE_DIR/skills"
     mkdir -p "$CLAUDE_DIR/agents"
 
-    # Sync skills (create symlinks)
+    # Sync skills (copy directories - Claude Code doesn't follow symlinks)
     echo "Syncing skills..."
     for skill in skills/*/; do
         skill_name=$(basename "$skill")
         target="$CLAUDE_DIR/skills/$skill_name"
 
-        # Remove existing symlink or directory
+        # Remove existing directory or symlink
         rm -rf "$target"
 
-        # Create symlink
-        ln -s "$(pwd)/$skill" "$target"
+        # Copy skill directory
+        cp -r "$skill" "$target"
         echo "  ✓ $skill_name"
     done
 
-    # Sync agents (copy files - Claude Code doesn't follow symlinks for agents)
+    # Sync agents (copy files - Claude Code doesn't follow symlinks)
     echo "Syncing agents..."
     for agent in agents/*.md; do
         if [ -f "$agent" ]; then

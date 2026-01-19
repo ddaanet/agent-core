@@ -51,6 +51,31 @@ Write a concise handoff note with this structure:
 - If content would exceed, compact by summarizing (git history preserves details)
 - Only preserve what the next agent needs to know
 
+### 4. Session Size Check and Advice
+
+After updating session.md, check size and provide advice:
+
+**If session.md >150 lines OR all workflow tasks complete:**
+```
+"Session handoff complete.
+
+Recommendation: Consider clearing session (new chat) before continuing.
+Current session size: [X] lines (threshold: 150)
+
+[If workflow complete:]
+All workflow tasks complete. Start fresh session for new work.
+
+[If next task needs different model:]
+Next task ([task name]) requires [model name]. Switch model when starting new session."
+```
+
+**If next pending task needs different model:**
+- Design stage → Suggest Opus
+- Execution stage → Suggest Haiku
+- Planning/Review/Completion → Suggest Sonnet
+
+Example: "Next task: Design stage. Switch to Opus model for architectural work."
+
 ## Rules (from AGENTS.md)
 - session.md is for current work state, NOT persistent documentation
 - Focus on "what does the next agent need to know?"

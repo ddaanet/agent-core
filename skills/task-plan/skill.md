@@ -191,6 +191,25 @@ Return: "done: [summary]" or "error: [description]"
 
 ### Point 4: Split Plan into Per-Step Files
 
+**CRITICAL: This step is MANDATORY. Splitting creates isolated execution contexts.**
+
+**Why splitting is fundamental:**
+
+The entire point of the plan-specific agent pattern is **context isolation**. Each step gets a fresh agent invocation with ONLY:
+- Common context (metadata, prerequisites, design decisions)
+- The specific step to execute
+- NO execution transcript from previous steps
+
+**Benefits of splitting:**
+- Prevents context bloat from accumulating across steps
+- Each step starts with clean slate (no noise from previous steps)
+- Execution logs stay in report files, not in agent context
+- Enables plan-specific agent pattern with context caching
+- Sequential steps ESPECIALLY need splitting (to prevent cumulative bloat)
+
+**When NOT to split:**
+- Never. Always split. This is not negotiable.
+
 After plan is reviewed and ready, create per-step files for execution.
 
 **Use Existing Split Script:**

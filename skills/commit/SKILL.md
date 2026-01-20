@@ -1,6 +1,6 @@
 ---
 description: Create git commits for completed work with short, dense, structured messages
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit)
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
 ---
 
@@ -18,6 +18,25 @@ Create a git commit for the current changes using a consistent, high-quality com
 - Any other discrete, complete change
 
 **Manual invocation** when user requests a commit.
+
+## Validation Flags
+
+Control pre-commit validation level with optional flags:
+
+| Flag | Validation | Use Case |
+|------|------------|----------|
+| (none) | `just precommit` | Default - full validation |
+| `--test` | `just test` | TDD cycle commits before lint |
+| `--lint` | `just lint` | Post-lint, pre-complexity fixes |
+
+**Usage:**
+- `/commit` - full validation (default)
+- `/commit --test` - test only
+- `/commit --lint` - lint only
+
+**TDD workflow pattern:**
+- After GREEN phase: `/commit --test` for WIP commit
+- After REFACTOR complete: `/commit` for final amend
 
 ## Commit Message Style
 
@@ -81,8 +100,10 @@ Fix authentication bug in login flow
    - Add bullet details with quantifiable facts
 
 5. **Run pre-commit checks**
-   - Run `just precommit` to verify code quality
-   - If it fails, STOP and report the error (do not proceed with commit)
+   - If `--test` flag: Run `just test` only
+   - If `--lint` flag: Run `just lint` only
+   - Otherwise: Run `just precommit` (full validation)
+   - If checks fail, STOP and report the error (do not proceed with commit)
 
 6. **Stage changes**
    - Run `git add -A` to stage all changes

@@ -19,10 +19,8 @@ This enables consistent workflow execution across projects while allowing projec
 ```
 agent-core/
 ├── agents/              # Baseline agent templates
-│   ├── agent-task-baseline.md      # Base task execution agent
-│   ├── quiet-task.md               # Quiet execution pattern agent
-│   ├── tdd-task.md                 # TDD cycle execution agent
-│   └── task-execute.md             # General task execution agent
+│   ├── quiet-task.md               # Base task execution agent (quiet pattern)
+│   └── tdd-task.md                 # TDD cycle execution agent
 ├── bin/                 # Runbook preparation scripts
 │   └── prepare-runbook.py          # Runbook → step artifacts generator
 ├── docs/                # Workflow and pattern documentation

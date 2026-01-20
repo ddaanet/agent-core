@@ -23,6 +23,47 @@ Entry point for one-off, ad-hoc tasks that don't repeat.
 - New user-facing functionality requiring ongoing maintenance
 - Features needing comprehensive test coverage and documentation
 
+## Methodology Detection
+
+The oneshot skill detects appropriate workflow based on these signals:
+
+**TDD Methodology Signals:**
+- Project has test-first culture
+- User mentions "test", "TDD", "red/green"
+- Feature requires behavioral verification
+- Project is pytest-md or similar
+
+**General Methodology Signals:**
+- Infrastructure/migration work
+- Refactoring without behavior change
+- Prototype/exploration
+- Default if TDD signals absent
+
+**Workflow Routing:**
+- TDD path: `/design` (TDD mode) → `/plan-tdd` → `/orchestrate` → `/vet` → `/review-analysis`
+- General path: `/design` → `/plan-adhoc` → `/orchestrate` → `/vet`
+
+## Workflow Selection
+
+Based on methodology detection, oneshot routes to:
+
+**TDD Workflow** (feature development):
+- Design with spike test section
+- Plan as TDD cycles (RED/GREEN/REFACTOR)
+- Execute via tdd-task agent
+- Review process compliance
+
+**General Workflow** (oneshot work):
+- Design with implementation details
+- Plan as sequential steps
+- Execute via quiet-task agent
+- Review code quality
+
+## Workflow Documentation
+
+- TDD workflow: See `agent-core/agents/tdd-workflow.md`
+- General workflow: See `agent-core/agents/oneshot-workflow.md`
+
 ## Execution Flow
 
 ### 1. Gate Check: Oneshot vs Feature Development

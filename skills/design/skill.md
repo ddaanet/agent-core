@@ -8,6 +8,22 @@ user-invocable: true
 
 Create comprehensive design documents for complex tasks through thorough exploration and analysis. This skill uses Opus-level reasoning to examine the problem space, explore existing code, and produce dense design documents that guide implementation.
 
+## Design Mode Selection
+
+The design skill supports two modes based on methodology detection:
+
+**TDD Mode** - Triggered when:
+- Project has test-first culture
+- User mentions "test", "TDD", "red/green"
+- Feature requires behavioral verification
+- Project is pytest-md or similar
+
+**General Mode** - Triggered when:
+- Infrastructure/migration work
+- Refactoring without behavior change
+- Prototype/exploration work
+- Default if TDD signals absent
+
 ## When to Use
 
 **Use this skill when:**
@@ -167,6 +183,33 @@ Thoroughness: [quick / medium / very thorough]
 - **Complete:** Address all requirements and edge cases
 - **Actionable:** Implementation should be straightforward from this document
 
+### TDD Mode Specific Sections
+
+When operating in TDD mode, include these additional sections:
+
+**Spike Test Section**:
+- Verify current behavior
+- Document framework defaults
+- Identify what might already work
+
+**Confirmation Markers**:
+- Use `(REQUIRES CONFIRMATION)` for decisions needing user input
+
+**Flag Reference Table** (if adding CLI options):
+- Document new flags and their behavior
+
+**"What Might Already Work" Analysis**:
+- Identify existing functionality to leverage
+
+### General Mode Specific Sections
+
+When operating in general mode, include these additional sections:
+
+- Integration points
+- Edge cases
+- Risks and mitigations
+- Detailed implementation notes
+
 ### 5. Validate Design
 
 **Review checklist:**
@@ -192,4 +235,6 @@ Thoroughness: [quick / medium / very thorough]
 
 **Primary artifact:** `plans/<job-name>/design.md`
 
-**Handoff:** Design document serves as input to `/plan-adhoc` for creating execution runbook
+**Handoff:**
+- **TDD Mode:** Design document consumed by `/plan-tdd`
+- **General Mode:** Design document consumed by `/plan-adhoc`

@@ -70,21 +70,26 @@ Fix authentication bug in login flow
    - Run `git diff HEAD` to see all changes (staged and unstaged)
    - Analyze what changed and why
 
-3. **Draft commit message**
+3. **Update session.md if tasks completed**
+   - Only if `agents/session.md` exists AND tasks were completed since last commit
+   - Update handoff context to reflect current state (mark completed tasks, update blockers/notes)
+   - Skip if no session.md or no relevant task progress since last commit
+
+4. **Draft commit message**
    - Follow "short, dense, structured" format
    - Ensure title is imperative mood, 50-72 chars
    - Add bullet details with quantifiable facts
 
-4. **Run pre-commit checks**
+5. **Run pre-commit checks**
    - Run `just precommit` to verify code quality
    - If it fails, STOP and report the error (do not proceed with commit)
 
-5. **Stage changes**
+6. **Stage changes**
    - Run `git add -A` to stage all changes
    - Do NOT commit files with secrets (.env, credentials.json, etc.)
    - If secrets detected, ERROR and abort
 
-6. **Create commit**
+7. **Create commit**
    - Use multi-line quoted string format (NOT heredocs - sandbox blocks them):
    ```bash
    git commit -m "Title line here
@@ -95,7 +100,7 @@ Fix authentication bug in login flow
    ```
    - The entire message should be in a single quoted string with actual newlines
 
-7. **Verify success**
+8. **Verify success**
    - Run `git status` after commit
    - Confirm working tree is clean
 

@@ -5,19 +5,31 @@ A shared repository for unified agent rule fragments, configurations, and templa
 ## Purpose
 
 The `agent-core` repository provides a centralized location for:
-- Shared agent instruction fragments (AGENTS-framework.md)
-- Configuration templates (ruff, mypy)
-- Build automation (justfile recipes)
-- Communication and delegation guidelines
-- Tool preference documentation
-- Hashtag conventions
+- Workflow documentation (oneshot, TDD)
+- Baseline agent templates (task execution, TDD cycles)
+- Workflow skills (design, planning, execution, review)
+- Runbook preparation tooling
+- Pattern documentation (weak orchestrator, plan-specific agents)
+- Shared instruction fragments and configuration templates
 
-This enables consistent agent behavior across projects while allowing project-specific customization through composition and templating.
+This enables consistent workflow execution across projects while allowing project-specific customization.
 
 ## Directory Structure
 
 ```
 agent-core/
+├── agents/              # Baseline agent templates
+│   ├── agent-task-baseline.md      # Base task execution agent
+│   ├── quiet-task.md               # Quiet execution pattern agent
+│   ├── tdd-task.md                 # TDD cycle execution agent
+│   └── task-execute.md             # General task execution agent
+├── bin/                 # Runbook preparation scripts
+│   └── prepare-runbook.py          # Runbook → step artifacts generator
+├── docs/                # Workflow and pattern documentation
+│   ├── oneshot-workflow.md         # General implementation workflow
+│   ├── tdd-workflow.md             # TDD methodology workflow
+│   ├── pattern-weak-orchestrator.md # Weak orchestrator pattern
+│   └── pattern-plan-specific-agent.md # Plan-specific agent pattern
 ├── fragments/           # Reusable content fragments
 │   ├── justfile-base.just          # Base justfile recipes
 │   ├── ruff.toml                   # Ruff linter configuration
@@ -27,9 +39,15 @@ agent-core/
 │   ├── tool-preferences.md         # Tool usage preferences
 │   ├── hashtags.md                 # Hashtag conventions
 │   └── AGENTS-framework.md         # Framework for AGENTS.md files
-├── agents/              # Reserved for Phase 2 - composition logic
-├── composer/            # Reserved for future - composition tooling
-└── README.md           # This file
+├── skills/              # Workflow skills
+│   ├── design/          # Design session skill (TDD/general mode)
+│   ├── oneshot/         # Oneshot entry point skill
+│   ├── orchestrate/     # Runbook execution skill
+│   ├── plan-adhoc/      # General runbook planning skill
+│   ├── plan-tdd/        # TDD runbook planning skill
+│   ├── remember/        # Documentation update skill
+│   └── vet/             # Code review skill
+└── README.md            # This file
 ```
 
 ## Development Setup
@@ -44,26 +62,36 @@ This provides development-specific context that won't be loaded when agent-core 
 
 ## Usage
 
-Projects consume `agent-core` fragments in two ways:
+Projects consume `agent-core` via git submodule:
 
-1. **Git Submodule**: Add as a submodule for version tracking
-   ```bash
-   git submodule add ../agent-core agent-core
-   ```
+```bash
+git submodule add <agent-core-repo-url> agent-core
+```
 
-2. **Fragment Composition**: Use composition scripts to generate project-specific files
-   - Extract relevant fragments from `agent-core/fragments/`
-   - Customize with project-specific values
-   - Generate output files (AGENTS.md, justfile, configs)
+**Sync to project's .claude directory:**
+```bash
+cd agent-core
+just sync-to-parent
+```
 
-## Fragment Composition
+This copies skills and agents to the parent project's `.claude/` directory for Claude Code to discover.
 
-Each fragment is designed to be:
-- **Self-contained**: Can be understood independently
-- **Template-ready**: Supports variable substitution for project customization
-- **Version-tracked**: Submodule pinning ensures consistency
+**Workflows:**
+- Read `docs/oneshot-workflow.md` for general implementation tasks
+- Read `docs/tdd-workflow.md` for test-driven development
+- Use `/oneshot` skill as entry point (auto-detects methodology)
 
-See individual fragment files for composition points and customization options.
+## Documentation
+
+**Workflow guides** (read when executing):
+- `docs/oneshot-workflow.md` - General implementation workflow (6 stages)
+- `docs/tdd-workflow.md` - TDD methodology workflow (RED/GREEN/REFACTOR)
+
+**Pattern guides** (read when implementing similar patterns):
+- `docs/pattern-weak-orchestrator.md` - Weak orchestrator execution pattern
+- `docs/pattern-plan-specific-agent.md` - Plan-specific agent generation pattern
+
+**Skills** - Available via `/skill-name` in projects that sync agent-core
 
 ## Technical Decisions
 
@@ -74,13 +102,17 @@ See individual fragment files for composition points and customization options.
 
 ## Development
 
-This repository is part of the unified rules system. See the main claudeutils project for:
-- Unification design and planning
-- Test results and validation
-- Integration with consuming projects
+**Plan archival policy:** Plans are NOT archived to `plans/archive/`. Git is the archive. Delete completed plans after extracting key decisions to documentation.
 
-## References
+**Key decisions go to:**
+- Parent project's `agents/design-decisions.md` - Architectural patterns
+- This README - Structure and usage
+- Workflow docs - Process improvements
 
-- Phase 1 design: plans/unification/design.md
-- Execution context: plans/unification/steps/phase1-execution-context.md
-- Current implementation: claudeutils/agents/*
+## Adding New Workflows
+
+1. Create workflow doc in `docs/<workflow-name>-workflow.md`
+2. Create baseline agent template in `agents/<agent-type>-task.md`
+3. Update `bin/prepare-runbook.py` if new runbook structure needed
+4. Create planning skill in `skills/plan-<workflow-name>/`
+5. Update parent project's CLAUDE.md workflow selection section

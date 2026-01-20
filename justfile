@@ -1,5 +1,9 @@
 # Agent Core Justfile
 
+# Show available recipes
+help:
+    @just --list --unsorted
+
 # Sync skills and agents to parent project's .claude directory
 sync-to-parent:
     #!/usr/bin/env bash

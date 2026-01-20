@@ -3,7 +3,7 @@ name: quiet-task
 description: Execute plan steps with quiet execution pattern (reports to files, terse returns).
 model: haiku
 color: blue
-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Skill"]
 ---
 
 # Task Agent - Baseline Template

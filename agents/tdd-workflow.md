@@ -72,8 +72,18 @@ The TDD workflow follows this progression:
 
 **Skill:** `/plan-tdd`
 **Model:** Sonnet
+**Documentation:** `agent-core/skills/plan-tdd/skill.md`
 
-**Purpose:** Create TDD runbook with RED/GREEN/REFACTOR cycles.
+**Purpose:** Create TDD runbook with RED/GREEN/REFACTOR cycles from design document.
+
+**Process:**
+1. Read design document (from /design TDD mode)
+2. Analyze feature requirements and design decisions
+3. Decompose into atomic behavioral increments
+4. Generate RED/GREEN specifications per cycle
+5. Create runbook at `plans/<feature-name>/runbook.md`
+
+**Next step:** Run `prepare-runbook.py` to generate execution artifacts.
 
 **Runbook structure:**
 ```markdown
@@ -112,7 +122,17 @@ model: haiku
 - If GREEN fails after 2 attempts: [Action]
 ```
 
-**Output:** Prepared TDD runbook ready for execution.
+**Output:** TDD runbook at `plans/<feature-name>/runbook.md`
+
+**After /plan-tdd, run prepare-runbook.py:**
+```bash
+python3 agent-core/bin/prepare-runbook.py plans/<feature-name>/runbook.md
+```
+
+This generates:
+- `.claude/agents/<feature-name>-task.md` (plan-specific agent with TDD baseline)
+- `plans/<feature-name>/steps/cycle-{X}-{Y}.md` (individual cycle files)
+- `plans/<feature-name>/orchestrator-plan.md` (execution index)
 
 ---
 

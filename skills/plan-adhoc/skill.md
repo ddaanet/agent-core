@@ -128,68 +128,52 @@ Every runbook MUST include this metadata section at the top:
 
 ---
 
-### Point 3: Plan Review by Sonnet
+### Point 3: Plan Review by Quiet-Task Agent
 
-Before finalizing the runbook, delegate review to a sonnet task agent.
+Before finalizing the runbook, delegate review to a quiet-task agent that will invoke the `/vet` skill.
 
-**Review Prompt Template:**
+**Why this pattern:**
+- **Fresh eyes**: Sub-agent reviews with no orchestrator bias
+- **Leverages /vet skill**: Reuses existing review logic and criteria
+- **Clean delegation**: Agent invokes skill, returns assessment
+- **Contrast with /review**: The /review skill uses subagents to perform multiple reviews and cannot itself be delegated (no sub-sub-agents in Claude)
+
+**Delegation Pattern:**
 
 ```
-Review the execution runbook at [path] for weak orchestrator execution.
+Task(
+  subagent_type="quiet-task",
+  model="sonnet",
+  prompt="Use the /vet skill to review the runbook at [runbook-path].
 
-Evaluate:
-1. Completeness - All design decisions documented? Any missing choices?
-2. Executability - Can weak agents (haiku/sonnet) execute with just this runbook?
-3. Script vs Direct - Are complexity assessments appropriate (≤25 lines = inline)?
-4. Validation - Are success criteria measurable and specific?
-5. Error Handling - Are escalation triggers clear and actionable?
+  After /vet completes, write a summary of the assessment to: [review-path]
 
-Output format:
-- Overall Assessment: READY / NEEDS_REVISION
-- Critical Issues: [Must fix before execution]
-- Major Issues: [Strongly recommended to address]
-- Minor Issues: [Quality improvements]
-
-Write detailed review to: [review-path]
-Return: "done: [summary]" or "error: [description]"
+  Return only: 'READY: [summary]' or 'NEEDS_REVISION: [summary]' or 'error: [description]'"
+)
 ```
 
-**Review Criteria (from reference):**
+**Agent responsibilities:**
+1. Invoke `/vet` skill on the runbook file
+2. Capture /vet output (assessment and issues)
+3. Write review report to specified path
+4. Return overall assessment to orchestrator
 
-**Completeness:**
-- All design decisions made (no deferred choices)
-- Prerequisites verified (not just assumed)
-- Error conditions identified
-- Validation criteria specific
-
-**Executability:**
-- Model selection matches task complexity
-- Implementation guidance sufficient (scripts or clear prose)
-- No ambiguous instructions
-- File paths absolute and verified
-
-**Script vs Direct:**
-- ≤25 lines = inline script included
-- 25-100 lines = prose description
-- >100 lines = separate planning session
-- Rationale documented
-
-**Missing Decisions:**
-- Step dependencies (sequential/parallel)
-- Error recovery protocol (what happens after escalation)
-- Output format specifications (templates for analysis artifacts)
-- Unexpected result handling (what if reality differs from expected)
-
-**Assessment Criteria:**
-- **READY**: All critical items addressed, minor issues only
-- **NEEDS_REVISION**: Critical or major issues present
+**Orchestrator receives:**
+- `READY: 0 critical, 3 major, 5 minor issues - all design decisions documented`
+- `NEEDS_REVISION: 2 critical issues - missing prerequisites, ambiguous step 4`
+- `error: Runbook file not found at [path]`
 
 **Revision Loop:**
-1. Read review report
-2. Address critical and major issues
-3. Update runbook with fixes
-4. Request re-review if changes are significant
-5. Iterate until assessment is READY
+1. If assessment is `NEEDS_REVISION`:
+   - Read review report
+   - Address critical and major issues
+   - Update runbook with fixes
+   - Delegate re-review if changes are significant
+   - Iterate until assessment is `READY`
+2. If assessment is `READY`:
+   - Proceed to Point 4 (artifact preparation)
+3. If assessment is `error`:
+   - Escalate to user
 
 ---
 

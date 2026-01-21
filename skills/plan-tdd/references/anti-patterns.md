@@ -1,100 +1,15 @@
 # Anti-Patterns to Avoid
 
-This document catalogs common mistakes in TDD runbook creation and how to fix them.
+Common mistakes in TDD runbook creation and how to fix them.
 
 ---
 
-## Anti-Pattern 1: Setup-Only Cycles
-
-❌ **Bad:**
-```
-Cycle 1.1: Create test fixture (no test, just fixture code)
-```
-
-✅ **Good:**
-```
-Cycle 1.1: Test fixture works correctly
-- RED: Fixture doesn't exist
-- GREEN: Create fixture
-- Verify: Fixture behaves as expected
-```
-
----
-
-## Anti-Pattern 2: God Cycles
-
-❌ **Bad:**
-```
-Cycle 2.1: Implement entire authentication system
-- Test login works
-- Test logout works
-- Test token refresh works
-- Test password reset works
-- Test 2FA works
-```
-
-✅ **Good:**
-```
-Cycle 2.1: Test basic login
-Cycle 2.2: Test logout
-Cycle 2.3: Test token refresh
-Cycle 2.4: Test password reset
-Cycle 2.5: Test 2FA
-```
-
----
-
-## Anti-Pattern 3: Unclear RED Expectations
-
-❌ **Bad:**
-```
-**Expected failure:** Something will fail
-```
-
-✅ **Good:**
-```
-**Expected failure:**
-```
-ModuleNotFoundError: No module named 'auth'
-```
-
-**Why it fails:** Auth module not created yet
-```
-
----
-
-## Anti-Pattern 4: Missing Regression Verification
-
-❌ **Bad:**
-```
-**Verify GREEN:** Run pytest tests/test_new.py
-```
-
-✅ **Good:**
-```
-**Verify GREEN:** Run pytest tests/test_new.py
-- Must pass
-
-**Verify no regression:** Run pytest tests/
-- All existing tests must pass
-```
-
----
-
-## Anti-Pattern 5: Coupled Cycles
-
-❌ **Bad:**
-```
-Cycle 3.1: Modify shared state
-Cycle 3.2: Test that shared state was modified (implicit dependency)
-```
-
-✅ **Good:**
-```
-Cycle 3.1: Test state modification [sets up state]
-Cycle 3.2: Test state query [DEPENDS: 3.1]
-- Explicit dependency
-- Clear execution order
-```
+| Anti-Pattern | Bad Example | Good Example |
+|--------------|-------------|--------------|
+| **Setup-only cycles** | `Cycle 1.1: Create test fixture` (no test, just fixture) | `Cycle 1.1: Test fixture works correctly` - RED: Fixture doesn't exist, GREEN: Create fixture, Verify: Fixture behaves as expected |
+| **God cycles** | `Cycle 2.1: Implement entire auth system` - Tests login + logout + token refresh + password reset + 2FA | Split: `2.1: Basic login`, `2.2: Logout`, `2.3: Token refresh`, `2.4: Password reset`, `2.5: 2FA` |
+| **Unclear RED** | `Expected failure: Something will fail` | `Expected failure: ModuleNotFoundError: No module named 'auth'` + Why: Auth module not created yet |
+| **Missing regression** | `Verify GREEN: pytest tests/test_new.py` (stops here) | `Verify GREEN: pytest tests/test_new.py` (must pass) + `Verify no regression: pytest tests/` (all existing tests pass) |
+| **Coupled cycles** | `3.1: Modify shared state`, `3.2: Test that state was modified` (implicit dependency) | `3.1: Test state modification [sets up state]`, `3.2: Test state query [DEPENDS: 3.1]` - Explicit dependency, clear order |
 
 ---

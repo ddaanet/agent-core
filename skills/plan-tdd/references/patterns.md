@@ -1,44 +1,32 @@
 # TDD Runbook Patterns
 
-This document provides detailed guidance for decomposing features into atomic TDD cycles with proper granularity, numbering, and dependency management.
+Guidance for decomposing features into atomic TDD cycles with proper granularity, numbering, and dependencies.
 
 ---
 
 ## Granularity Criteria
 
 **Each cycle should have:**
-- **1-3 assertions** - Focused verification of specific behavior
-- **Clear RED failure expectation** - Predictable failure message/pattern
-- **Minimal GREEN implementation** - Smallest code change to pass test
-- **Independent verification** - Test doesn't rely on external state changes
+- 1-3 assertions (focused verification)
+- Clear RED failure expectation
+- Minimal GREEN implementation
+- Independent verification
 
-**Too granular (avoid):**
-- Single assertion that's trivial (e.g., "variable exists")
-- Setup-only cycles with no behavioral verification
-- Cycles that take <30 seconds to implement
+**Too granular (avoid):** Single trivial assertion, setup-only, <30 seconds to implement
 
-**Too coarse (split):**
-- >5 assertions in single test
-- Multiple distinct behaviors tested together
-- Complex setup + multiple verification steps
-- Implementation spans multiple modules/files
+**Too coarse (split):** >5 assertions, multiple distinct behaviors, complex setup + verification, spans multiple modules
 
 **Example - Just Right:**
 ```
 Cycle 2.1: Test -rp flag shows passed tests
 - Single assertion: "## Passes" section exists
-- Clear RED: Section not present
-- Minimal GREEN: Add passes section to output
 ```
 
-**Example - Too Coarse (should split):**
+**Example - Too Coarse:**
 ```
-Cycle 2.1: Implement complete pass reporting with formatting
-- Test passes section exists
-- Test passes have correct format
-- Test verbose mode shows passes
-- Test quiet mode hides passes
-→ Split into 4 cycles (2.1, 2.2, 2.3, 2.4)
+Cycle 2.1: Implement complete pass reporting
+- Passes section exists + format correct + verbose mode + quiet mode
+→ Split into 4 cycles
 ```
 
 ---
@@ -46,255 +34,78 @@ Cycle 2.1: Implement complete pass reporting with formatting
 ## Numbering Scheme
 
 **Format: X.Y**
+- **X (Phase):** Logical grouping (Core, Error handling, Edge cases, Integration)
+- **Y (Increment):** Sequential within phase, starts at 1
 
-**X (Phase number):**
-- Represents logical grouping of related functionality
-- Typically maps to design document phases
-- Examples:
-  - Phase 1: Core functionality
-  - Phase 2: Error handling
-  - Phase 3: Edge cases
-  - Phase 4: Integration
-
-**Y (Increment number):**
-- Represents sequential behavioral increment within phase
-- Starts at 1 for each phase
-- Increments sequentially (1, 2, 3, ...)
-
-**Numbering rules:**
+**Rules:**
 - Start at 1.1 (not 0.1 or 1.0)
 - Sequential within phase (1.1 → 1.2 → 1.3)
-- Gaps acceptable but discouraged (1.1, 1.2, 1.4 with note about skipped 1.3)
-- No duplicates (error condition)
+- Gaps acceptable but discouraged
+- No duplicates (error)
 
-**Example numbering:**
+**Example:**
 ```
-Phase 1: Separate Errors from Failures
-  Cycle 1.1: Add setup error test fixture
-  Cycle 1.2: Test errors in separate section
-  Cycle 1.3: Test default mode shows both
+Phase 1: Separate Errors
+  1.1: Add setup error fixture
+  1.2: Test errors in separate section
+  1.3: Test default mode shows both
 
 Phase 2: Pass Reporting
-  Cycle 2.1: Test -rp flag shows passes
-  Cycle 2.2: Test verbose mode shows passes
-
-Phase 3: Warnings
-  Cycle 3.1: Add warning fixture
-  Cycle 3.2: Test -rw flag shows warnings
+  2.1: Test -rp flag shows passes
+  2.2: Test verbose mode shows passes
 ```
 
 ---
 
 ## Dependency Management
 
-**Default: Sequential within phase**
+| Type | Marker | Usage |
+|------|--------|-------|
+| **Sequential (default)** | None | Within same phase: 1.1 → 1.2 → 1.3 |
+| **Cross-phase** | `[DEPENDS: X.Y]` | Requires cycle from different phase |
+| **Regression** | `[REGRESSION]` | Testing existing behavior, no RED expected |
 
-Cycles within same phase depend on previous cycle by default:
-- 1.1 → 1.2 → 1.3 (sequential)
-- Safe assumption for incremental development
-- Prevents parallelization issues
+**Invalid:** Circular (A→B→C→A), forward (2.1 depends on 3.1 without explicit marker), self-dependencies
 
-**Explicit dependencies: [DEPENDS: X.Y]**
-
-Use when cycle depends on cycle from different phase:
-```
-Cycle 2.1: Test -rp flag [DEPENDS: 1.3]
-- Requires error separation from Phase 1
-- Cannot execute until 1.3 complete
-```
-
-**Regression tests: [REGRESSION]**
-
-Use when testing existing behavior:
-```
-Cycle 2.2: Test verbose mode [REGRESSION]
-- Feature already exists
-- Creating test for coverage
-- No RED expected (should pass immediately)
-- No dependency on other cycles
-```
-
-**No circular dependencies (error):**
-```
-❌ Invalid:
-Cycle 2.1 [DEPENDS: 3.1]
-Cycle 3.1 [DEPENDS: 2.1]
-→ Circular dependency detected, STOP
-```
-
-**Dependency validation:**
-- All references must exist
-- No forward dependencies (2.1 can't depend on 3.1 unless 3.1 also specified)
-- No self-dependencies (2.1 can't depend on 2.1)
-- Topological sort must succeed
+**Validation:** All references exist, topological sort succeeds
 
 ---
 
-## Stop Conditions Generation
+## Stop Conditions
 
-**Standard template (use for all cycles):**
-
+**Standard template (all cycles):**
 ```markdown
-**Stop Conditions:**
-
 **STOP IMMEDIATELY if:**
 - Test passes on first run (expected RED failure)
-- Test failure message doesn't match expected
-- Test passes after partial GREEN implementation
-- Any existing test breaks (regression failure)
+- Failure message doesn't match expected
+- Partial implementation passes
+- Regression detected
 
-**Actions when stopped:**
-1. Document what happened in cycle notes
-2. If test passes unexpectedly:
-   - Investigate: Feature already implemented?
-   - If yes: Mark as [REGRESSION], proceed
-   - If no: Fix test to ensure RED, retry
-3. If regression detected:
-   - STOP execution
-   - Report broken tests
-   - Escalate to user
-4. If scope unclear:
-   - STOP execution
-   - Document ambiguity
-   - Request clarification
+**Actions:**
+1. Document in cycle notes
+2. Investigate unexpected results
+3. Mark [REGRESSION] if already implemented, or fix test
+4. Escalate regression failures
 ```
 
-**Custom conditions (add when needed):**
-
-Complex cycles may need additional stop conditions:
-
-```markdown
-**Additional stop conditions for Cycle 3.2 (Database Integration):**
-- Database connection fails → Check credentials in .env
-- Schema migration fails → Verify migration script syntax
-- Performance >100ms → Optimize query, document results
-- Transaction rollback fails → Check isolation level
-```
-
-**When to add custom conditions:**
-- External dependencies (database, API, filesystem)
-- Performance requirements
-- Security concerns
-- Complex setup/teardown
+**Custom conditions:** Add for external dependencies, performance requirements, security concerns, complex setup/teardown
 
 ---
 
 ## Common Patterns
 
-**Pattern 1: Basic CRUD Operations**
-
-**Structure:** 1 cycle per operation
-
-```
-Cycle 1.1: Create entity
-Cycle 1.2: Read entity
-Cycle 1.3: Update entity
-Cycle 1.4: Delete entity
-```
-
-**Why:** Each operation is independent behavioral increment.
-
----
-
-**Pattern 2: Feature Flag with Multiple Modes**
-
-**Structure:** 1 cycle per mode + 1 for default
-
-```
-Cycle 2.1: Test -rp flag (explicit enable)
-Cycle 2.2: Test default mode (flag absent)
-Cycle 2.3: Test -rN flag (explicit disable)
-```
-
-**Why:** Each mode has distinct behavior to verify.
-
----
-
-**Pattern 3: Authentication Flow**
-
-**Structure:** 1 cycle for happy path, 1+ for error cases
-
-```
-Cycle 3.1: Test successful authentication
-Cycle 3.2: Test invalid credentials error
-Cycle 3.3: Test expired token error
-Cycle 3.4: Test missing credentials error
-```
-
-**Why:** Happy path first (core functionality), then error handling.
-
----
-
-**Pattern 4: Integration with External Service**
-
-**Structure:** 1 cycle for connection, 1+ for data exchange
-
-```
-Cycle 4.1: Test API connection established
-Cycle 4.2: Test data retrieval
-Cycle 4.3: Test data submission
-Cycle 4.4: Test connection retry on failure
-```
-
-**Why:** Verify connection before data operations.
-
----
-
-**Pattern 5: Edge Cases and Boundary Conditions**
-
-**Structure:** Separate cycles for each boundary
-
-```
-Cycle 5.1: Test empty input
-Cycle 5.2: Test maximum length input
-Cycle 5.3: Test special characters in input
-Cycle 5.4: Test null/None input
-```
-
-**Why:** Each boundary condition is distinct test scenario.
-
----
-
-**Pattern 6: Refactoring Existing Code**
-
-**Structure:** Regression test first, then refactor
-
-```
-Cycle 6.1: Add regression tests for current behavior [REGRESSION]
-Cycle 6.2: Refactor implementation (tests should still pass)
-```
-
-**Why:** Ensure refactor doesn't break existing functionality.
-
----
-
-**Pattern 7: Multi-Step Feature with Setup**
-
-**Structure:** Setup cycle (if needed), then incremental cycles
-
-```
-Cycle 7.1: Add test fixture/helper (setup only, may not have full RED/GREEN)
-Cycle 7.2: Test core functionality using fixture
-Cycle 7.3: Test edge case using fixture
-```
-
-**Why:** Shared setup reduces duplication in later cycles.
+| Pattern | Structure | Example |
+|---------|-----------|---------|
+| **CRUD** | 1 cycle per operation | 1.1: Create, 1.2: Read, 1.3: Update, 1.4: Delete |
+| **Feature flag** | 1 per mode + default | 2.1: -rp (enable), 2.2: default, 2.3: -rN (disable) |
+| **Authentication** | Happy path + errors | 3.1: Success, 3.2: Invalid creds, 3.3: Expired token, 3.4: Missing creds |
+| **External service** | Connection + operations | 4.1: Connect, 4.2: Retrieve, 4.3: Submit, 4.4: Retry |
+| **Edge cases** | 1 per boundary | 5.1: Empty, 5.2: Max length, 5.3: Special chars, 5.4: Null |
+| **Refactoring** | Regression + refactor | 6.1: Regression tests [REGRESSION], 6.2: Refactor (tests pass) |
+| **Multi-step setup** | Setup + incremental | 7.1: Fixture (setup), 7.2: Core test, 7.3: Edge case |
+| **Composite** | Components + integration | 8.1: Component A, 8.2: Component B, 8.3: A+B [DEPENDS: 8.1,8.2] |
 
 **Note:** Minimize setup-only cycles. Prefer folding setup into first test cycle.
-
----
-
-**Pattern 8: Composite Functionality**
-
-**Structure:** Test individual components first, then integration
-
-```
-Cycle 8.1: Test component A works independently
-Cycle 8.2: Test component B works independently
-Cycle 8.3: Test A + B integration [DEPENDS: 8.1, 8.2]
-```
-
-**Why:** Isolate failures to specific component.
 
 ---
 
@@ -302,35 +113,33 @@ Cycle 8.3: Test A + B integration [DEPENDS: 8.1, 8.2]
 
 ```
 Does increment have testable behavior?
-├─ No → Fold into next increment (or skip cycle)
+├─ No → Fold into next increment or skip
 └─ Yes
-    ├─ How many assertions needed?
-        ├─ 1-3 → Good cycle
-        ├─ 4-5 → Acceptable, consider splitting
-        └─ >5 → Split into multiple cycles
+    ├─ Assertions?
+    │   ├─ 1-3 → Good cycle
+    │   ├─ 4-5 → Acceptable, consider splitting
+    │   └─ >5 → Split into multiple cycles
     └─ Implementation complexity?
-        ├─ Single function/method → Good cycle
+        ├─ Single function → Good cycle
         ├─ Multiple files → Consider splitting
         └─ Multiple modules → Definitely split
 ```
 
 ---
 
-## Cycle Breakdown Algorithm Summary
-
-**For each design document:**
+## Cycle Breakdown Algorithm
 
 1. **Identify phases** (major feature groupings)
-2. **Identify increments** within each phase (behavioral changes)
+2. **Identify increments** per phase (behavioral changes)
 3. **Number cycles** (X.Y format)
 4. **For each cycle:**
-   - Define RED: What to test, expected failure
-   - Define GREEN: Minimal implementation
+   - Define RED (what to test, expected failure)
+   - Define GREEN (minimal implementation)
    - Assign dependencies (default: sequential within phase)
    - Generate stop conditions (standard + custom if needed)
 5. **Validate:**
-   - Check granularity (1-3 assertions ideal)
-   - Verify dependencies (no cycles, all valid references)
-   - Confirm RED/GREEN completeness
+   - Granularity (1-3 assertions ideal)
+   - Dependencies (no cycles, valid references)
+   - RED/GREEN completeness
 
-**Result:** Well-structured TDD runbook with atomic, verifiable cycles.
+---

@@ -1,0 +1,145 @@
+# CLAUDE.local.md
+
+This file provides local development preferences for working with agent-core.
+
+## Project Overview
+
+Agent-core is a shared repository for unified agent rule fragments, configurations, and templates used across multiple projects.
+
+---
+
+## Documentation Structure
+
+**Progressive discovery:** Don't preload all documentation. Read specific guides only when needed.
+
+### Core Instructions
+- **CLAUDE.md** (this file) - Agent instructions, workflows, communication rules
+
+### Current Work
+- **agents/session.md** - Current session handoff context
+- **agents/context.md** - Active multi-step task context (if exists)
+
+---
+
+## Communication Rules
+
+1. **Stop on unexpected results** - If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
+2. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
+3. **Be explicit** - Ask clarifying questions if requirements unclear
+4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
+5. **Use /commit and /gitmoji skills** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` skill to select appropriate semantic emoji for commit messages
+6. **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
+
+## Error Handling
+
+**Errors should never pass silently.**
+
+- Do not swallow errors or suppress error output
+- Errors provide important diagnostic information
+- Report all errors explicitly to the user
+- Never use error suppression patterns (e.g., `|| true`, `2>/dev/null`, ignoring exit codes)
+- If a command fails, surface the failure - don't hide it
+
+## Session Management
+
+### Execute Rule (#execute)
+
+When asked to "#execute" or "execute":
+1. Load session context (same as #load)
+2. Immediately perform the next pending task
+
+This is the primary command for continuing work across sessions.
+
+### Load Rule (#load)
+
+When asked to "#load" or "load", read the session context files:
+- `agents/session.md` - Current work state, handoff context, decisions, blockers
+- `agents/context.md` - Active multi-step task context (if exists)
+
+Do not search for these files; read them directly at these paths.
+
+**After reading session.md, continue work automatically:**
+
+1. **If in-progress task exists:**
+   - Report status to user: "Continuing [task description]"
+   - Resume work on that task
+
+2. **If no in-progress task, but pending tasks exist:**
+   - Take first pending task
+   - Report to user: "Starting next task: [task description]"
+   - Begin work
+
+3. **If no pending tasks:**
+   - Report status to user: "Session loaded. No pending tasks."
+   - Wait for instructions
+
+**Task status notation in session.md:**
+- `- [ ]` = Pending task
+- `- [x]` = Completed task
+- `- [>]` = In-progress task (optional, or use bold/italics)
+
+This enables seamless multi-session workflows with automatic continuation.
+
+### Script-First Evaluation
+
+**Rule:** Before delegating a task to an agent, evaluate if it can be performed by a simple script.
+
+**Evaluation criteria:**
+- **≤25 lines**: Execute directly with Bash - don't delegate to agent
+  - Examples: File moves, directory creation, symlinks, simple diffs, basic git operations
+- **25-100 lines**: Consider delegating with prose description, or write script if logic is straightforward
+- **>100 lines or complex logic**: Delegate to agent with clear requirements
+
+**Critical:** Simple file operations (mv, cp, ln, mkdir, diff) should NEVER be delegated to agents. Execute them directly.
+
+**Examples:**
+- ❌ Wrong: Delegate "move files and create symlinks" to haiku agent
+- ✅ Correct: Execute `mkdir -p target/ && mv source/* target/ && ln -s ../target source/`
+
+**Why this matters:**
+- Agent invocations have overhead (context, prompting, potential errors)
+- Simple scripts are faster, more reliable, and easier to verify
+- Saves tokens and execution time
+- Reduces risk of misinterpretation
+
+### Model Selection for Delegation
+
+**Rule:** Match model cost to task complexity.
+
+- **Haiku:** Execution, implementation, simple edits, file operations
+- **Sonnet:** Default for most work, balanced capability
+- **Opus:** Architecture, planning, complex design decisions only
+
+**Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
+
+### Pre-Delegation Checkpoint
+
+Before invoking Task tool, verify:
+- Model matches stated plan (haiku/sonnet/opus)
+- If changing model, state reason explicitly
+
+### Task Agent Tool Usage
+
+**Rule:** Task agents must use specialized tools, not Bash one-liners.
+
+**When delegating tasks, remind agents to:**
+
+- Use **LS** instead of `ls`
+- Use **Grep** instead of `grep` or `rg`
+- Use **Glob** instead of `find`
+- Use **Read** instead of `cat`, `head`, `tail`
+- Use **Write** instead of `echo >` or `cat <<EOF`
+- Use **Edit** instead of `sed`, `awk`
+- **NEVER use heredocs** (`<<EOF`) in bash commands - sandbox blocks them
+- Use **tmp/** in project directory for temp files, NOT `/tmp/`
+
+**Critical:** Always include this reminder in task prompts to prevent bash tool misuse.
+
+### Skill Loading
+
+**Rule:** Do not use the Skill tool to load skills. Read them directly from the `skills/` directory.
+
+When you need to reference or work with skills:
+- Use **Read** tool to read files from `skills/` directory
+- This allows direct access to skill content for inspection and modification
+- Avoids the overhead of skill invocation when you just need to examine content

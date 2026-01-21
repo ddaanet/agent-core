@@ -32,6 +32,16 @@ agent-core/
 └── README.md           # This file
 ```
 
+## Development Setup
+
+When developing agent-core itself (not as a submodule), copy the local configuration template:
+
+```bash
+cp .claude/CLAUDE.local.md.example CLAUDE.local.md
+```
+
+This provides development-specific context that won't be loaded when agent-core is used as a submodule in other projects.
+
 ## Usage
 
 Projects consume `agent-core` fragments in two ways:

@@ -150,15 +150,34 @@ The script requires:
 - `jq` for processing JSON into plain text format
 - Internet connection to reach https://gitmoji.dev/api/gitmojis
 
+## Custom Gitmojis
+
+In addition to the official gitmoji database, this project may use custom gitmojis not in the standard database. These are documented in:
+
+```
+skills/gitmoji/custom-gitmojis.md
+```
+
+When selecting gitmojis:
+1. Check the official index first (`cache/gitmojis.txt`)
+2. If no match, check custom gitmojis (`custom-gitmojis.md`)
+3. Use custom gitmoji if it matches commit intent better
+
+Example custom gitmoji:
+- 🗜️ **compress** - Reducing file size, condensing content, or optimizing for brevity
+
+---
+
 ## Additional Resources
 
 ### Scripts
 
 - **`scripts/update-gitmoji-index.sh`** - Download and process gitmoji database into searchable index
 
-### Index File
+### Index Files
 
 - **`cache/gitmojis.txt`** - Plain text index of all gitmojis (emoji - name - description format)
+- **`custom-gitmojis.md`** - Custom gitmojis specific to this project
 
 ## Best Practices
 

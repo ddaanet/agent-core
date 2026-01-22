@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(claudeutils:*)"
     ],
     "deny": [
       "NotebookEdit",
@@ -13,5 +14,9 @@
     "commit": "",
     "pr": ""
   },
-  "plansDirectory": "plans/"
+  "plansDirectory": "plans/",
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  }
 }

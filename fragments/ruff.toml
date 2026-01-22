@@ -10,17 +10,17 @@
 #   - Projects may configure lint.per-file-ignores for test files
 #
 # Recommended project-specific additions:
-#   [tool.ruff.lint.per-file-ignores]
+#   [lint.per-file-ignores]
 #   "tests/**/*.py" = ["S101", "ARG", "SLF001"]
 #   "src/**/__init__.py" = ["F401"]  # Allow unused imports in __init__
 
-[tool.ruff]
+[ruff]
 # Code style - uncomment/customize as needed
 # line-length = 100  # Default: 100 (common across projects)
 # target-version = "py312"  # Default: py312 (baseline)
 
 # All projects use ALL rules with selective ignores
-[tool.ruff.lint]
+[lint]
 select = ["ALL"]
 ignore = [
     # Docstring format conflicts with various standards
@@ -51,11 +51,11 @@ ignore = [
     "ISC002",   # multi-line-implicit-string-concatenation
 ]
 
-[tool.ruff.lint.pydocstyle]
+[lint.pydocstyle]
 convention = "pep257"
 
 # Project-specific settings will be added at composition time:
-# [tool.ruff.lint.per-file-ignores]
+# [lint.per-file-ignores]
 # "tests/**/*.py" = [
 #     "S101",     # Assert statements
 #     "ARG",      # Unused function arguments

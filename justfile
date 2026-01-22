@@ -4,7 +4,7 @@
 help:
     @just --list --unsorted
 
-# Sync skills and agents to parent project's .claude directory
+# Sync skills and agents to parent project's .claude directory via symlinks
 sync-to-parent:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -12,14 +12,15 @@ sync-to-parent:
     # Determine parent project directory (one level up from agent-core)
     PARENT_DIR="$(cd .. && pwd)"
     CLAUDE_DIR="$PARENT_DIR/.claude"
+    AGENT_CORE_ABS="$(pwd)"
 
-    echo "Syncing agent-core to $PARENT_DIR/.claude"
+    echo "Syncing agent-core to $PARENT_DIR/.claude via symlinks"
 
     # Create .claude directories if they don't exist
     mkdir -p "$CLAUDE_DIR/skills"
     mkdir -p "$CLAUDE_DIR/agents"
 
-    # Sync skills (copy directories - symlinks work but copying is safer)
+    # Sync skills (create symlinks to skill directories)
     echo "Syncing skills..."
     for skill in skills/*/; do
         skill_name=$(basename "$skill")
@@ -28,18 +29,24 @@ sync-to-parent:
         # Remove existing directory or symlink
         rm -rf "$target"
 
-        # Copy skill directory
-        cp -r "$skill" "$target"
-        echo "  ✓ $skill_name"
+        # Create symlink to skill directory
+        ln -s "$AGENT_CORE_ABS/skills/$skill_name" "$target"
+        echo "  ✓ $skill_name → agent-core/skills/$skill_name"
     done
 
-    # Sync agents (copy files - Claude Code doesn't follow symlinks)
+    # Sync agents (create symlinks to agent files)
     echo "Syncing agents..."
     for agent in agents/*.md; do
         if [ -f "$agent" ]; then
             agent_name=$(basename "$agent")
-            cp "$agent" "$CLAUDE_DIR/agents/$agent_name"
-            echo "  ✓ $agent_name"
+            target="$CLAUDE_DIR/agents/$agent_name"
+
+            # Remove existing file or symlink
+            rm -f "$target"
+
+            # Create symlink to agent file
+            ln -s "$AGENT_CORE_ABS/agents/$agent_name" "$target"
+            echo "  ✓ $agent_name → agent-core/agents/$agent_name"
         fi
     done
 

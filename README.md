@@ -72,7 +72,7 @@ cd agent-core
 just sync-to-parent
 ```
 
-This copies skills and agents to the parent project's `.claude/` directory for Claude Code to discover.
+This creates symlinks in the parent project's `.claude/` directory pointing to skills and agents in `agent-core/`, allowing Claude Code to discover and use them. Symlinks ensure changes to agent-core are immediately reflected without re-syncing.
 
 **Workflows:**
 - Read `docs/oneshot-workflow.md` for general implementation tasks

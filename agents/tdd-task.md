@@ -1,3 +1,12 @@
+---
+name: tdd-task
+description: Execute TDD cycles with RED/GREEN/REFACTOR phases. Use for runbook cycle execution or standalone TDD tasks.
+
+model: haiku
+color: green
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+---
+
 # TDD Task Agent - Baseline Template
 
 ## Role and Purpose

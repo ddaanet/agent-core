@@ -128,10 +128,11 @@ Fix authentication bug in login flow
 ## Critical Constraints
 
 - **Multi-line quoted strings**: Use `git commit -m "multi\nline"` format, NOT heredocs
-- **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes
+- **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes (exception: token-efficient bash pattern - see `/token-efficient-bash` skill)
 - **Explicit errors**: If anything fails, report it clearly and stop
 - **No secrets**: Do not commit .env, credentials, keys, tokens, etc.
 - **Clean tree check**: Must error explicitly if nothing to commit
+- **Token-efficient bash**: When running 3+ sequential git commands, use `/token-efficient-bash` skill pattern for 40-60% token savings
 
 ## Context Gathering
 

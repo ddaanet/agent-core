@@ -81,7 +81,15 @@ The TDD workflow follows this progression:
 2. Analyze feature requirements and design decisions
 3. Decompose into atomic behavioral increments
 4. Generate RED/GREEN specifications per cycle
-5. Create runbook at `plans/<feature-name>/runbook.md`
+5. Create draft runbook at `plans/<feature-name>/runbook.md`
+6. **Delegate to clean sonnet agent for runbook review:**
+   - Completeness: All features from design covered
+   - Executability: Clear, actionable instructions
+   - Context sufficiency: Adequate information for isolated execution
+   - Test sequencing: Ensures new tests will RED (fail) before GREEN
+   - Implementation hints: Provides sequencing guidance if needed for correct test behavior
+7. Apply review feedback to runbook
+8. Final runbook ready for preparation
 
 **Next step:** Run `prepare-runbook.py` to generate execution artifacts.
 
@@ -122,9 +130,11 @@ model: haiku
 - If GREEN fails after 2 attempts: [Action]
 ```
 
-**Output:** TDD runbook at `plans/<feature-name>/runbook.md`
+**Output:** Reviewed TDD runbook at `plans/<feature-name>/runbook.md`
 
-**After /plan-tdd, run prepare-runbook.py:**
+**Review completed:** /plan-tdd automatically delegates review to clean sonnet agent before finalization.
+
+**After /plan-tdd (runbook reviewed and finalized), run prepare-runbook.py:**
 ```bash
 python3 agent-core/bin/prepare-runbook.py plans/<feature-name>/runbook.md
 ```

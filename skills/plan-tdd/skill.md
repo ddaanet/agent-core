@@ -24,7 +24,9 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 2. Decomposes features into atomic behavioral increments
 3. Generates RED-GREEN-REFACTOR cycles for each increment
 4. Creates structured runbook with numbered cycles (X.Y format)
-5. Produces output compatible with prepare-runbook.py
+5. Delegates to clean sonnet agent for comprehensive review
+6. Applies review feedback to ensure completeness and correct test sequencing
+7. Produces output compatible with prepare-runbook.py
 
 ### When to Use
 
@@ -42,12 +44,14 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 ### Workflow Integration
 
 ```
-/design (TDD mode) → /plan-tdd → prepare-runbook.py → /orchestrate
+/design (TDD mode) → /plan-tdd → [delegated review] → prepare-runbook.py → /orchestrate
 ```
+
+**Note:** /plan-tdd now includes automatic delegation to a clean sonnet agent for runbook review before finalization.
 
 ---
 
-## Process: Five-Phase Execution
+## Process: Five-Phase Execution (with Review)
 
 ### Phase 1: Intake
 
@@ -293,9 +297,9 @@ Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: 
 
 ---
 
-### Phase 5: Validation
+### Phase 5: Validation and Review
 
-**Objective:** Verify format and prepare-runbook.py compatibility.
+**Objective:** Verify format, delegate comprehensive review, and ensure prepare-runbook.py compatibility.
 
 **Actions:**
 
@@ -305,26 +309,69 @@ Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: 
    - Cycle headers match `## Cycle \d+\.\d+:` pattern
    - No duplicate cycle IDs
 
-2. **Check prepare-runbook.py:**
+2. **Delegate to clean sonnet agent for comprehensive review:**
+
+   **Review criteria:**
+   - **Completeness**: All features from design document are covered in cycles
+   - **Executability**: Instructions are clear, actionable, and unambiguous
+   - **Context sufficiency**: Each cycle has adequate information for isolated execution
+   - **Test sequencing**: New tests will RED (fail) before implementation exists
+   - **Implementation hints**: If sequencing is critical for correct RED behavior, provide hints
+
+   **Review process:**
+   - Use Task tool to spawn clean sonnet agent
+   - Provide runbook path and design path
+   - Agent checks each cycle for RED correctness (will test actually fail?)
+   - Agent identifies missing context or ambiguous instructions
+   - Agent suggests implementation sequencing hints if needed for proper RED/GREEN flow
+
+   **Example delegation:**
+   ```
+   Task(
+     subagent_type="general-purpose",
+     model="sonnet",
+     description="Review TDD runbook",
+     prompt="""Review the TDD runbook at plans/{name}/runbook.md against design at {design_path}.
+
+     Check:
+     1. Completeness - all design features covered
+     2. Executability - clear, actionable instructions
+     3. Context sufficiency - adequate info per cycle
+     4. Test sequencing - tests will RED before GREEN
+     5. Implementation hints - provide sequencing guidance if needed
+
+     Report findings and suggest improvements."""
+   )
+   ```
+
+3. **Apply review feedback:**
+   - Read review report
+   - Update runbook based on feedback
+   - Add implementation hints to cycles if sequencing matters
+   - Clarify ambiguous instructions
+   - Fill context gaps
+
+4. **Check prepare-runbook.py:**
    - Verify exists at `agent-core/bin/prepare-runbook.py`
    - If not found: WARNING (not fatal)
    - Simulate parsing: extract cycles, Common Context
 
-3. **Revalidate dependencies:** Run topological sort again
+5. **Revalidate dependencies:** Run topological sort again
 
-4. **Generate success report:**
+6. **Generate success report:**
 
 ```markdown
-TDD runbook created successfully!
+TDD runbook created and reviewed successfully!
 
 **Location**: {path}
 **Cycles**: {count}
 **Dependencies**: {structure}
+**Review**: Completed by clean sonnet agent
 
 **Next steps:**
-1. Review runbook: Read {path}
-2. Generate artifacts: python3 agent-core/bin/prepare-runbook.py {path}
-3. Execute: /orchestrate plans/{name}/orchestrator-plan.md
+1. Generate artifacts: python3 agent-core/bin/prepare-runbook.py {path}
+2. Execute: /orchestrate plans/{name}/orchestrator-plan.md
+3. Commit: Use /commit or /gitmoji + /commit
 
 **Tips:**
 - Follow stop conditions strictly
@@ -332,7 +379,7 @@ TDD runbook created successfully!
 - Regression failures require immediate attention
 ```
 
-5. **Report to user:** Display success report with path and next steps
+7. **Report to user:** Display success report with path and next steps
 
 **Outputs:** Success report displayed, runbook ready
 

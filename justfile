@@ -50,4 +50,24 @@ sync-to-parent:
         fi
     done
 
+    # Sync hooks (create symlinks to hook files)
+    if [ -d "hooks" ]; then
+        echo "Syncing hooks..."
+        mkdir -p "$CLAUDE_DIR/hooks"
+        for hook in hooks/*.sh; do
+            if [ -f "$hook" ]; then
+                hook_name=$(basename "$hook")
+                target="$CLAUDE_DIR/hooks/$hook_name"
+
+                # Remove existing file or symlink
+                rm -f "$target"
+
+                # Create symlink to hook file
+                ln -s "$AGENT_CORE_ABS/hooks/$hook_name" "$target"
+                chmod +x "$target"
+                echo "  ✓ $hook_name → agent-core/hooks/$hook_name"
+            fi
+        done
+    fi
+
     echo "Sync complete!"

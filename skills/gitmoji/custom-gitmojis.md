@@ -9,6 +9,7 @@ Non-standard gitmojis used in this project beyond the official gitmoji database.
 | Emoji | Name | Description |
 |-------|------|-------------|
 | 🗜️ | compress | Reducing file size, condensing content, or optimizing for brevity |
+| 🤖 | robot | Add or update agent skills, instructions, or guidance |
 
 ---
 
@@ -17,6 +18,7 @@ Non-standard gitmojis used in this project beyond the official gitmoji database.
 When creating commits that match these custom gitmojis, use the emoji character (not the code). For example:
 
 ```
+🤖 Enhance handoff skill with context preservation guidance
 🗜️ Reduce plan-tdd skill size by 60% with condensed format
 ```
 

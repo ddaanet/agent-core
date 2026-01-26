@@ -309,47 +309,26 @@ Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: 
    - Cycle headers match `## Cycle \d+\.\d+:` pattern
    - No duplicate cycle IDs
 
-2. **Delegate to clean sonnet agent for comprehensive review:**
+2. **Trigger tdd-plan-reviewer agent:**
 
-   **Review criteria:**
-   - **Completeness**: All features from design document are covered in cycles
-   - **Executability**: Instructions are clear, actionable, and unambiguous
-   - **Context sufficiency**: Each cycle has adequate information for isolated execution
-   - **Test sequencing**: New tests will RED (fail) before implementation exists
-   - **Implementation hints**: If sequencing is critical for correct RED behavior, provide hints
+   **What it checks:**
+   - Prescriptive code in GREEN phases (critical violation)
+   - RED/GREEN sequencing (will tests actually fail?)
+   - Behavior descriptions vs code prescriptions
+   - Incremental implementation (not all-at-once)
 
-   **Review process:**
-   - Use Task tool to spawn clean sonnet agent
-   - Provide runbook path and design path
-   - Agent checks each cycle for RED correctness (will test actually fail?)
-   - Agent identifies missing context or ambiguous instructions
-   - Agent suggests implementation sequencing hints if needed for proper RED/GREEN flow
+   **Agent output:**
+   - Writes report to plans/{name}/reports/runbook-review.md
+   - Returns summary: violations count or "PASS"
 
-   **Example delegation:**
-   ```
-   Task(
-     subagent_type="general-purpose",
-     model="sonnet",
-     description="Review TDD runbook",
-     prompt="""Review the TDD runbook at plans/{name}/runbook.md against design at {design_path}.
+   **Triggering phrase:**
+   "Review the TDD runbook at plans/{name}/runbook.md for prescriptive code and RED/GREEN violations."
 
-     Check:
-     1. Completeness - all design features covered
-     2. Executability - clear, actionable instructions
-     3. Context sufficiency - adequate info per cycle
-     4. Test sequencing - tests will RED before GREEN
-     5. Implementation hints - provide sequencing guidance if needed
-
-     Report findings and suggest improvements."""
-   )
-   ```
-
-3. **Apply review feedback:**
-   - Read review report
-   - Update runbook based on feedback
-   - Add implementation hints to cycles if sequencing matters
-   - Clarify ambiguous instructions
-   - Fill context gaps
+3. **Handle review outcome:**
+   - If PASS: Proceed to step 4
+   - If violations: Read report, STOP, show user
+   - User decides: apply fixes or approve anyway
+   - Do NOT auto-apply fixes (user judgment required)
 
 4. **Check prepare-runbook.py:**
    - Verify exists at `agent-core/bin/prepare-runbook.py`

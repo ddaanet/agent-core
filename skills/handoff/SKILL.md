@@ -1,6 +1,7 @@
 ---
 name: handoff
-description: This skill should be used when the user asks to "handoff", "update session", "end session", "prepare for next agent", "finish up", or mentions switching agents or completing work. Updates session.md with completed tasks, pending work, blockers, learnings, and next steps for seamless agent continuation.
+description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation.
+allowed-tools: Bash(python3:agent-core/bin/*)
 ---
 
 # Skill: handoff

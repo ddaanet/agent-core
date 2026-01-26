@@ -1,6 +1,7 @@
 ---
-description: Update agent documentation and rules
-allowed-tools: Read, Write, Edit, Bash(git:*)
+name: remember
+description: This skill should be used when the user asks to "remember this", "update rules", "add to documentation", "consolidate learnings", "#remember", or when workflow improvements are discovered. Processes pending learnings from session handoffs and updates CLAUDE.md, skill references, and documentation with rules and patterns.
+allowed-tools: Read, Write, Edit, Bash(git:*), Glob
 user-invocable: true
 ---
 

@@ -136,11 +136,12 @@ def extract_cycles(content):
     return cycles
 
 
-def validate_cycle_structure(cycle):
+def validate_cycle_structure(cycle, common_context=''):
     """Validate that cycle contains mandatory TDD sections.
 
     Args:
         cycle: Cycle dictionary with 'number', 'content' keys
+        common_context: Content from Common Context section (for inherited sections)
 
     Returns: List of error/warning messages (empty if valid)
     """
@@ -156,12 +157,13 @@ def validate_cycle_structure(cycle):
     if 'green' not in content:
         messages.append(f"ERROR: Cycle {cycle_num} missing required section: GREEN phase")
 
-    # Check for mandatory Stop Conditions
-    if 'stop condition' not in content:
+    # Check for mandatory Stop Conditions (can be in cycle OR Common Context)
+    common_lower = common_context.lower()
+    if 'stop condition' not in content and 'stop condition' not in common_lower:
         messages.append(f"ERROR: Cycle {cycle_num} missing required section: Stop Conditions")
 
-    # Warn if missing dependencies (non-critical)
-    if 'dependencies' not in content and 'dependency' not in content:
+    # Warn if missing dependencies (can be in cycle OR Common Context, non-critical)
+    if 'dependencies' not in content and 'dependency' not in content and 'dependencies' not in common_lower and 'dependency' not in common_lower:
         messages.append(f"WARNING: Cycle {cycle_num} missing dependencies section")
 
     return messages
@@ -506,11 +508,17 @@ def main():
                 print(error, file=sys.stderr)
             sys.exit(1)
 
+        # Extract Common Context for inherited section validation
+        common_context = ''
+        common_match = re.search(r'## Common Context\s*\n(.*?)(?=\n## |\Z)', body, re.DOTALL)
+        if common_match:
+            common_context = common_match.group(1)
+
         # Validate cycle structure (mandatory sections)
         all_messages = []
         critical_errors = []
         for cycle in cycles:
-            messages = validate_cycle_structure(cycle)
+            messages = validate_cycle_structure(cycle, common_context)
             all_messages.extend(messages)
             critical_errors.extend([m for m in messages if m.startswith('ERROR:')])
 

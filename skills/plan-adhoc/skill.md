@@ -25,7 +25,35 @@ Create detailed execution runbooks suitable for weak orchestrator agents using a
 - Plan already exists and just needs execution
 - Feature development requiring TDD approach (use `/plan-tdd` when available)
 
+## Point 0: Orchestration Assessment
+
+**Before creating a runbook, evaluate if orchestration overhead is justified.**
+
+### Implement Directly If:
+- Design is complete (no open decisions)
+- All components straightforward (<100 lines each)
+- Can implement + test in single session
+- No complex coordination needed
+- Total work: ~4-6 files or less
+
+**Action:** Implement directly, then invoke `/vet` for review.
+
+### Create Runbook If:
+- Multiple independent steps (parallelizable)
+- Steps need different models (haiku execution, sonnet analysis)
+- Long-running tasks benefit from isolation
+- Complex error recovery scenarios
+- Execution will span multiple sessions
+- Total work: >6 files or complex coordination
+
+**Action:** Proceed with 4-point planning process below.
+
+### When Uncertain:
+Ask user: "This task can be implemented directly (~N files, clear design). Create runbook for orchestration, or implement directly?"
+
 ## 4-Point Planning Process
+
+**Use this process only after Point 0 determines orchestration is needed.**
 
 ### Point 1: Evaluate Script vs Direct Execution
 
@@ -305,15 +333,43 @@ model: sonnet      # Default model for plan-specific agent
 
 ## Example Execution Flow
 
-**User:** `/plan-adhoc` for implementing authentication feature
+### Example 1: Direct Implementation (Point 0 Bypass)
 
-**Agent:** "I'll help create an execution runbook using the 4-point process.
-
-What is the runbook for? (Brief description): "
-
-**User:** "Implement OAuth2 authentication with Google provider"
+**User:** `/plan-adhoc` for learnings consolidation
 
 **Agent:**
+
+**Point 0: Orchestration Assessment**
+
+Analyzing task:
+- Design complete: `plans/learnings-consolidation/design.md`
+- Components: 4 files (directory, script, 2 skill updates)
+- All straightforward (<100 lines each)
+- No complex coordination
+- Can implement + test in single session
+
+**Assessment: Implement directly** (orchestration overhead not justified)
+
+Proceeding with direct implementation...
+
+*[Agent implements components directly]*
+*[Agent invokes `/vet` for review]*
+
+### Example 2: Runbook Creation (Orchestration Needed)
+
+**User:** `/plan-adhoc` for implementing authentication feature
+
+**Agent:**
+
+**Point 0: Orchestration Assessment**
+
+Analyzing task:
+- Multiple independent components (config, routes, session, profile, tests)
+- Steps could be parallelized
+- Tests require separate planning session
+- Long-running execution across multiple phases
+
+**Assessment: Create runbook** (orchestration justified)
 
 **Point 1: Evaluating Tasks**
 
@@ -481,6 +537,7 @@ Default behavior if omitted:
 ## Common Pitfalls
 
 **Avoid:**
+- Creating runbooks when direct implementation is better (skipping Point 0)
 - Assuming prerequisites are met without verification
 - Assigning semantic analysis tasks to haiku
 - Leaving design decisions for "during execution"

@@ -12,9 +12,8 @@ sync-to-parent:
     # Determine parent project directory (one level up from agent-core)
     PARENT_DIR="$(cd .. && pwd)"
     CLAUDE_DIR="$PARENT_DIR/.claude"
-    AGENT_CORE_ABS="$(pwd)"
 
-    echo "Syncing agent-core to $PARENT_DIR/.claude via symlinks"
+    echo "Syncing agent-core to $PARENT_DIR/.claude via relative symlinks"
 
     # Create .claude directories if they don't exist
     mkdir -p "$CLAUDE_DIR/skills"
@@ -29,9 +28,9 @@ sync-to-parent:
         # Remove existing directory or symlink
         rm -rf "$target"
 
-        # Create symlink to skill directory
-        ln -s "$AGENT_CORE_ABS/skills/$skill_name" "$target"
-        echo "  ✓ $skill_name → agent-core/skills/$skill_name"
+        # Create relative symlink to skill directory
+        ln -s "../../agent-core/skills/$skill_name" "$target"
+        echo "  ✓ $skill_name → ../../agent-core/skills/$skill_name"
     done
 
     # Sync agents (create symlinks to agent files)
@@ -44,9 +43,9 @@ sync-to-parent:
             # Remove existing file or symlink
             rm -f "$target"
 
-            # Create symlink to agent file
-            ln -s "$AGENT_CORE_ABS/agents/$agent_name" "$target"
-            echo "  ✓ $agent_name → agent-core/agents/$agent_name"
+            # Create relative symlink to agent file
+            ln -s "../../agent-core/agents/$agent_name" "$target"
+            echo "  ✓ $agent_name → ../../agent-core/agents/$agent_name"
         fi
     done
 
@@ -62,10 +61,10 @@ sync-to-parent:
                 # Remove existing file or symlink
                 rm -f "$target"
 
-                # Create symlink to hook file
-                ln -s "$AGENT_CORE_ABS/hooks/$hook_name" "$target"
+                # Create relative symlink to hook file
+                ln -s "../../agent-core/hooks/$hook_name" "$target"
                 chmod +x "$target"
-                echo "  ✓ $hook_name → agent-core/hooks/$hook_name"
+                echo "  ✓ $hook_name → ../../agent-core/hooks/$hook_name"
             fi
         done
     fi

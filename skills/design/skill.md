@@ -6,235 +6,65 @@ user-invocable: true
 
 # Design Skill
 
-Create comprehensive design documents for complex tasks through thorough exploration and analysis. This skill uses Opus-level reasoning to examine the problem space, explore existing code, and produce dense design documents that guide implementation.
+Produce dense design documents that guide implementation by downstream agents (Sonnet/Haiku).
 
-## Design Mode Selection
+## Mode Detection
 
-The design skill supports two modes based on methodology detection:
+**TDD Mode:** Test-first culture, user mentions TDD/tests, behavioral verification needed.
+**General Mode:** Infrastructure, refactoring, migrations, prototypes. Default.
 
-**TDD Mode** - Triggered when:
-- Project has test-first culture
-- User mentions "test", "TDD", "red/green"
-- Feature requires behavioral verification
-- Project is pytest-md or similar
+Mode determines downstream consumer: TDD → `/plan-tdd`, General → `/plan-adhoc`.
 
-**General Mode** - Triggered when:
-- Infrastructure/migration work
-- Refactoring without behavior change
-- Prototype/exploration work
-- Default if TDD signals absent
+## Process
 
-## When to Use
+### 1. Understand Request
 
-**Use this skill when:**
-- Requirements are unclear or ambiguous
-- Task involves multiple components or systems
-- Architectural decisions need to be made
-- Complex job requires upfront design thinking
-- Trade-offs need to be evaluated
+Read `agents/context.md` and `agents/design-decisions.md` for existing patterns. Clarify ambiguous requirements with user.
 
-**Do NOT use when:**
-- Task is well-defined and straightforward
-- Implementation approach is obvious
-- Simple bug fix or minor change
-- Plan already exists
+### 2. Explore Codebase
 
-## Design Process
+**CRITICAL: Delegate exploration. Opus must not grep/glob/browse directly.**
 
-### 1. Understand the Request
-
-**Read context:**
-- Review `agents/context.md` for current project state
-- Check `agents/design-decisions.md` for existing architectural patterns
-- Identify any related work or constraints
-
-**Clarify scope:**
-- Ask questions if requirements are ambiguous
-- Identify what's in scope and what's explicitly out of scope
-- Determine success criteria
-
-### 2. Explore the Codebase
-
-**CRITICAL: Delegate all exploration - Opus must not explore directly.**
-
-**Exploration delegation:**
-1. Try Task tool with subagent_type="quiet-explore"
-2. If that fails: fallback to subagent_type="Explore"
-
-**Never use directly during exploration:**
-- ❌ Grep for searching
-- ❌ Glob for finding files
-- ❌ Read for browsing code
-- ✅ Only use Read for specific files AFTER exploration identifies them
-
-**Exploration prompt template:**
-
-```
-Explore the codebase to understand: [specific exploration goal]
-
-Focus areas:
-- Existing implementations of similar features
-- Related components that will be affected
-- Patterns and conventions to follow
-- Potential integration points
-
-Provide:
-- File locations and their purposes
-- Key patterns or conventions identified
-- Integration points and dependencies
-- Relevant code snippets with file paths
-
-Thoroughness: [quick / medium / very thorough]
-```
-
-**After exploration:**
-- Use Read to examine specific files identified by exploration
-- Extract concrete details for design decisions
+Use Task tool with `subagent_type="Explore"` (or `"quiet-explore"`). Only use Read for specific files AFTER exploration identifies them.
 
 ### 3. Research (if needed)
 
-**External research:**
-- WebSearch for best practices and patterns
-- WebFetch for documentation or specifications
-- Look for similar implementations or approaches
-
-**Document findings:**
-- Summarize relevant information
-- Note applicable patterns or constraints
-- Identify trade-offs
+WebSearch/WebFetch for external patterns, prior art, or specifications.
 
 ### 4. Create Design Document
 
-**Document structure:**
+**Output:** `plans/<job-name>/design.md`
 
-```markdown
-# Design: <Task Name>
+**Content principles:**
+- Dense, not verbose - downstream agents are intelligent
+- Decisions with rationale, not just conclusions
+- Concrete file paths and integration points
+- Explicit scope boundaries (in/out)
 
-## Problem Statement
+**Structure guidance (adapt as needed):**
+- Problem statement
+- Requirements (functional, non-functional, out of scope)
+- Architecture/approach
+- Key design decisions with rationale
+- Implementation notes (affected files, testing strategy)
+- Next steps
 
-[2-3 sentences describing what needs to be built and why]
+**TDD mode additions:** Spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
 
-## Requirements
+## Output Expectations
 
-### Functional
-- [Clear, testable requirement]
-- [Another requirement]
+Design documents are consumed by planning agents (`/plan-tdd` or `/plan-adhoc`).
 
-### Non-Functional
-- [Performance, security, maintainability requirements]
+**Minimize designer output tokens** by relying on planner inference:
+- Omit obvious details planners can infer
+- Focus on non-obvious decisions and constraints
+- Provide enough context for autonomous planning
+- Flag areas requiring user confirmation
 
-### Out of Scope
-- [Explicitly state what's NOT being built]
+Large tasks require planning anyway - dense design output naturally aligns with planning needs.
 
-## Design
+## Constraints
 
-### Approach
-
-[High-level description of the solution approach]
-
-### Architecture
-
-[Component diagram, file structure, or system layout]
-
-### Key Design Decisions
-
-**Decision 1: [Title]**
-- **Problem:** [What decision needs to be made]
-- **Options:** [2-3 options considered]
-- **Choice:** [Selected option]
-- **Rationale:** [Why this option was chosen]
-
-[Repeat for other key decisions]
-
-### Integration Points
-
-[How this integrates with existing systems]
-
-### Edge Cases
-
-[Important edge cases to handle]
-
-## Implementation Notes
-
-### File Changes
-
-- `path/to/file.ext` - [Brief description of changes]
-- `path/to/new/file.ext` - [New file, what it does]
-
-### Testing Strategy
-
-[How to verify the implementation works]
-
-### Risks and Mitigations
-
-**Risk:** [Potential problem]
-**Mitigation:** [How to address it]
-
-## Next Steps
-
-1. [Immediate next action]
-2. [Following action]
-3. [Final action]
-```
-
-**Design principles:**
-- **Dense:** Pack information efficiently, avoid fluff
-- **Specific:** Use concrete examples, not abstractions
-- **Complete:** Address all requirements and edge cases
-- **Actionable:** Implementation should be straightforward from this document
-
-### TDD Mode Specific Sections
-
-When operating in TDD mode, include these additional sections:
-
-**Spike Test Section**:
-- Verify current behavior
-- Document framework defaults
-- Identify what might already work
-
-**Confirmation Markers**:
-- Use `(REQUIRES CONFIRMATION)` for decisions needing user input
-
-**Flag Reference Table** (if adding CLI options):
-- Document new flags and their behavior
-
-**"What Might Already Work" Analysis**:
-- Identify existing functionality to leverage
-
-### General Mode Specific Sections
-
-When operating in general mode, include these additional sections:
-
-- Integration points
-- Edge cases
-- Risks and mitigations
-- Detailed implementation notes
-
-### 5. Validate Design
-
-**Review checklist:**
-- All requirements addressed?
-- Design decisions documented with rationale?
-- Integration points identified?
-- Edge cases considered?
-- Next steps clear?
-
-**Output location:**
-- Save to `plans/<job-name>/design.md`
-- Create directory if needed
-
-## Critical Constraints
-
-- **Model:** This skill must use Opus for deep reasoning
-- **Thoroughness:** Don't skip exploration or research phases
-- **Density:** Design docs should be information-dense, not verbose
-- **Specificity:** Use concrete examples and file paths
-- **Completeness:** All design decisions must have documented rationale
-
-## Output
-
-**Primary artifact:** `plans/<job-name>/design.md`
-
-**Handoff:**
-- **TDD Mode:** Design document consumed by `/plan-tdd`
-- **General Mode:** Design document consumed by `/plan-adhoc`
+- High-capability model only (deep reasoning required)
+- Delegate exploration (cost/context management)
+- Dense output (minimize designer output tokens)

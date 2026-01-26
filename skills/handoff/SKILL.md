@@ -5,17 +5,7 @@ description: This skill should be used when the user asks to "handoff", "update 
 
 # Skill: handoff
 
-Update session.md for agent handoff, preserving critical context for the next agent.
-
-## When to Use
-
-Invoke this skill when:
-- User says "handoff" or "update session"
-- Completing work before switching agents or models
-- Ending a work session
-- Preparing context for next agent to continue
-
-The handoff protocol ensures next agent has complete context without reading full conversation history.
+Update session.md for agent handoff, preserving critical context for the next agent. The handoff protocol ensures next agent has complete context without reading full conversation history.
 
 ## Target Model
 Haiku (simple file update)
@@ -31,68 +21,7 @@ When invoked, immediately update `session.md` with:
 
 ### 2. Update session.md
 
-Write a handoff note with this structure:
-
-```markdown
-# Session Handoff: [Date]
-
-**Status:** [Brief 1-line summary]
-
-## Completed This Session
-
-**[Category/Feature]:**
-- Item with specifics (commit: abc123f, file: plans/x/report.md)
-- Item with context (metrics, root cause, why decisions made)
-
-**[Another Category]:**
-- Item with traceability
-
-## Pending Tasks
-
-- [ ] **Task name** (PRIORITY)
-  - Specific requirement or detail
-  - Reference: file/path.md:line-numbers
-
-- [ ] **Another task** (AFTER X)
-  - Dependencies or prerequisites
-  - Context needed for execution
-
-## Blockers / Gotchas
-
-**[Issue description]:**
-- Root cause: [why it happened]
-- Impact: [what's affected]
-- Resolution: [how to fix or work around]
-
-**Key learning:** [Important pattern or anti-pattern discovered]
-
-## Next Steps
-
-[1-2 sentences on immediate next action with file references]
-
----
-
-## Recent Learnings
-
-**[Pattern/Process/Insight]:**
-- Anti-pattern: [what NOT to do with example]
-- Correct pattern: [what TO do with example]
-- Rationale: [why this matters]
-
-**[Another learning category]:**
-- Discovery or process improvement
-- Specific criteria or checklist discovered
-```
-
-**Use sub-headers to group related work:**
-- Group completed work by feature/category
-- Use bold headers for visual scanning
-- Keep related bullets together
-
-**Use sub-bullets for complex tasks:**
-- Main bullet: Task name with priority
-- Sub-bullets: Specific steps, file references, prerequisites
-- Checkboxes `- [ ]` for pending tasks
+Write a handoff note following the template structure. See **`references/template.md`** for complete template and formatting guidelines.
 
 ### 3. Context Preservation
 
@@ -127,35 +56,7 @@ Write a handoff note with this structure:
 
 ### 4. Process Learnings to Staging Area
 
-If the session has learnings in the "Recent Learnings" section, stage them using add-learning.py:
-
-**For each learning:**
-1. Extract title and content (anti-pattern, correct pattern, rationale)
-2. Generate slug from title (lowercase, hyphenated)
-3. Call script: `python3 agent-core/bin/add-learning.py "slug" "content"`
-4. Script creates `agents/learnings/{date}-{slug}.md` and updates `pending.md`
-
-**Update session.md:**
-- Replace "Recent Learnings" section with reference: `@agents/learnings/pending.md`
-- This enables @ chain expansion: session.md → pending.md → individual learning files
-
-**Learning content format:**
-```markdown
-**[Title]:**
-- Anti-pattern: [what NOT to do]
-- Correct pattern: [what TO do]
-- Rationale: [why]
-```
-
-**Example:**
-```bash
-python3 agent-core/bin/add-learning.py "tool-batching" "**Tool batching:**
-- Anti-pattern: Sequential tool calls when operations are independent
-- Correct pattern: Batch independent operations in single message
-- Rationale: Reduces latency and improves efficiency"
-```
-
-**Line count:** Follow @ chain for size check (session.md + pending.md + learnings/*.md)
+If the session has learnings in the "Recent Learnings" section, stage them using add-learning.py. See **`references/learnings-staging.md`** for complete staging protocol and examples.
 
 ### 5. Session Size Check and Advice
 
@@ -203,4 +104,12 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 
 ## Additional Resources
 
-See `examples/good-handoff.md` for a real-world example demonstrating best practices.
+### Reference Files
+
+For detailed protocols and templates:
+- **`references/template.md`** - Session handoff template structure and formatting guidelines
+- **`references/learnings-staging.md`** - Learnings staging protocol with add-learning.py script usage
+
+### Example Files
+
+- **`examples/good-handoff.md`** - Real-world example demonstrating best practices

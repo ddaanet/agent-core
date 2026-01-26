@@ -74,41 +74,33 @@ If `agents/learnings/pending.md` exists and contains @ references:
 
 ## Rule Management
 
-### Tiering (Critical First)
-**Tier 1** (~20%, top): Violations cause immediate problems • Non-negotiable • Critical constraints
-**Tier 2** (~60%, middle): Quality-important • Standard practices • Regular reference
-**Tier 3** (~20%, bottom): Nice-to-have • Edge cases • Style • Optional guidance
-
-**Rationale**: Recency bias → place must-follow rules early
-
-### Budgeting
-**Target**: CLAUDE.md ~40-60 rules. Fewer better. Strong models → terse explanations.
-
-**Add if**: Necessary? Can't combine? Specific/actionable? Will agents follow?
-**Remove if**: Obsolete? Never violated? Redundant? Too vague?
-
-### Maintenance
-**Promote**: Repeated violations • Severe impacts • Steep learning curve
-**Demote**: Edge cases only • Never violated • Obvious to strong models
-**Delete**: Obsolete • Redundant • Never referenced
-**Refine**: Vague→examples • Specific→generalize • Long→distill • Abstract→application
+For guidance on tiering, budgeting, and maintaining rules in CLAUDE.md, see **`references/rule-management.md`**.
 
 ## Tool Constraints
 - **Read** current docs • **Edit** existing (preferred) • **Write** new only • **Bash** git ops
 - Minimal scope/diffs • Preserve structure • Verify actionable+concrete • Imperative tone
 
-## Patterns
+## Common Patterns
 
-**Error handling after failure**: Read section → Add constraint+example → Commit w/failure context
-**Workflow improvement**: Read section → Add/update description → Before/after if major → Update context.md if affects current
-**Design decision**: Check design-decisions.md exists → Create if needed → Add problem/options/choice/rationale → Reference from CLAUDE.md if affects rules
-**Remove obsolete**: Verify obsolete → Check dependencies → Edit remove → Commit w/reason
-**Process pending learnings**: Read `agents/learnings/pending.md` → For each learning: infer target skill, ask user if uncertain → Append to `.claude/skills/{skill}/references/learnings.md` → Remove @ reference from pending.md → Delete processed learning file
+For detailed usage patterns (error handling, workflow improvement, design decisions, pending learnings), see **`examples/remember-patterns.md`**.
 
 ## Integration
 **Invocations**: During work (#remember [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
 **Related**: `/vet` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows remember)
 
-## References
-**Targets**: `/Users/david/code/claudeutils/CLAUDE.md` • `agents/context.md` • `agents/design-decisions.md`
+## Additional Resources
+
+### Reference Files
+
+For detailed guidance:
+- **`references/rule-management.md`** - Tiering, budgeting, and maintenance strategies for CLAUDE.md rules
+
+### Example Files
+
+Working patterns for common scenarios:
+- **`examples/remember-patterns.md`** - Error handling, workflow improvements, design decisions, pending learnings consolidation
+
+### Target Files
+
+**Primary targets**: `/Users/david/code/claudeutils/CLAUDE.md` • `agents/context.md` • `agents/design-decisions.md`
 **Historical**: `agents/role-remember.md` (git: 56929e2^)

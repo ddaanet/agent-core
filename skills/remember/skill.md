@@ -16,6 +16,25 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 ## Execution Protocol
 
+### 0. Check for Pending Learnings (Optional)
+
+If `agents/learnings/pending.md` exists and contains @ references:
+
+**Process each learning:**
+1. Read the learning file content
+2. Infer target skill from keywords:
+   - Handoff/session → handoff skill
+   - Planning/runbook → plan-adhoc/plan-tdd skills
+   - Commit/git → commit skill
+   - Tool usage/sandbox → relevant tool skills
+3. If target unclear, ask user: "Where should this learning be consolidated? [skill names]"
+4. Append learning to `.claude/skills/{skill}/references/learnings.md` (create if needed)
+5. Remove @ reference from `pending.md`
+6. Delete processed learning file
+7. Commit: "Consolidate learning: [title] to {skill} skill"
+
+**If no pending learnings:** Proceed to step 1.
+
 ### 1. Understand Learning
 - Problem/gap? Solution/rule? Why important? Category?
 - Read: `agents/context.md` (state) • `CLAUDE.md` (rules) • `agents/design-decisions.md` (architecture, if exists)
@@ -84,6 +103,7 @@ Transform session learnings into persistent, actionable documentation. Updates C
 **Workflow improvement**: Read section → Add/update description → Before/after if major → Update context.md if affects current
 **Design decision**: Check design-decisions.md exists → Create if needed → Add problem/options/choice/rationale → Reference from CLAUDE.md if affects rules
 **Remove obsolete**: Verify obsolete → Check dependencies → Edit remove → Commit w/reason
+**Process pending learnings**: Read `agents/learnings/pending.md` → For each learning: infer target skill, ask user if uncertain → Append to `.claude/skills/{skill}/references/learnings.md` → Remove @ reference from pending.md → Delete processed learning file
 
 ## Integration
 **Invocations**: During work (#remember [rule]) • After completion (capture learnings) • After failure (prevent recurrence)

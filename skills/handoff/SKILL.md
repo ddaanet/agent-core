@@ -125,7 +125,39 @@ Write a handoff note with this structure:
 - Next agent should understand: what happened, why, what's next
 - Next agent should NOT need to: search for files, re-discover root causes, repeat failed approaches
 
-### 4. Session Size Check and Advice
+### 4. Process Learnings to Staging Area
+
+If the session has learnings in the "Recent Learnings" section, stage them using add-learning.py:
+
+**For each learning:**
+1. Extract title and content (anti-pattern, correct pattern, rationale)
+2. Generate slug from title (lowercase, hyphenated)
+3. Call script: `python3 agent-core/bin/add-learning.py "slug" "content"`
+4. Script creates `agents/learnings/{date}-{slug}.md` and updates `pending.md`
+
+**Update session.md:**
+- Replace "Recent Learnings" section with reference: `@agents/learnings/pending.md`
+- This enables @ chain expansion: session.md → pending.md → individual learning files
+
+**Learning content format:**
+```markdown
+**[Title]:**
+- Anti-pattern: [what NOT to do]
+- Correct pattern: [what TO do]
+- Rationale: [why]
+```
+
+**Example:**
+```bash
+python3 agent-core/bin/add-learning.py "tool-batching" "**Tool batching:**
+- Anti-pattern: Sequential tool calls when operations are independent
+- Correct pattern: Batch independent operations in single message
+- Rationale: Reduces latency and improves efficiency"
+```
+
+**Line count:** Follow @ chain for size check (session.md + pending.md + learnings/*.md)
+
+### 5. Session Size Check and Advice
 
 After updating session.md, check size and provide advice:
 

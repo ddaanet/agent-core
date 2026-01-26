@@ -287,6 +287,9 @@ model: sonnet      # Default model for plan-specific agent
 
 **Optional sections:**
 - `## Common Context` - Shared context for all steps
+  - **Output optimization:** Factorize repetitive content (stop conditions, dependencies, conventions) to Common Context
+  - Reduces planner token output by eliminating per-step boilerplate
+  - Steps inherit context automatically during runbook compilation
 - `## Orchestrator Instructions` - Custom orchestrator guidance
 
 **Benefits of prepare-runbook.py:**

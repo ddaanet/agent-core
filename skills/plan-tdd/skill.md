@@ -256,6 +256,16 @@ Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: 
 - Report errors explicitly (never suppress)
 - Write notes to plans/{name}/reports/cycle-{X}-{Y}-notes.md
 
+**Stop Conditions (all cycles):**
+STOP IMMEDIATELY if: RED phase test passes (expected failure) • RED phase failure message doesn't match expected • GREEN phase tests don't pass after implementation • Any phase existing tests break (regression)
+
+Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test passes unexpectedly → Investigate if feature exists 3) Regression → STOP, report broken tests 4) Scope unclear → STOP, document ambiguity
+
+**Dependencies (all cycles):**
+{sequential|parallel|per-cycle-specific - factorize if all cycles share pattern}
+
+**Output Optimization Note:** Factorize repetitive content (stop conditions, dependencies, conventions, common patterns) to Common Context. Cycles inherit context during runbook compilation. Reduces planner token output by eliminating per-cycle boilerplate.
+
 ## Cycle {X.Y}: {Name} {[DEPENDS: A.B]} {[REGRESSION]}
 
 **Objective**: {goal}
@@ -271,8 +281,6 @@ Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: 
 {GREEN_phase}
 
 ---
-
-{Stop_conditions}
 
 **Expected Outcome**: GREEN verification, no regressions
 **Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP

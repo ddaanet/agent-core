@@ -44,10 +44,15 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 ### Workflow Integration
 
 ```
-/design (TDD mode) → /plan-tdd → [delegated review] → prepare-runbook.py → /orchestrate
+/design (TDD mode) → /plan-tdd → [tdd-plan-reviewer] → [apply fixes] → prepare-runbook.py → /orchestrate
 ```
 
-**Note:** /plan-tdd now includes automatic delegation to a clean sonnet agent for runbook review before finalization.
+**CRITICAL:** After runbook generation and review:
+1. If violations found: Apply fixes to runbook
+2. **MUST run prepare-runbook.py** before /orchestrate - generates step files and execution artifacts
+3. Do NOT skip prepare-runbook.py - /orchestrate requires its output
+
+**Note:** /plan-tdd now includes automatic delegation to tdd-plan-reviewer agent for prescriptive code detection.
 
 ---
 
@@ -345,17 +350,21 @@ TDD runbook created and reviewed successfully!
 **Location**: {path}
 **Cycles**: {count}
 **Dependencies**: {structure}
-**Review**: Completed by clean sonnet agent
+**Review**: Completed by tdd-plan-reviewer agent
 
 **Next steps:**
-1. Generate artifacts: python3 agent-core/bin/prepare-runbook.py {path}
-2. Execute: /orchestrate plans/{name}/orchestrator-plan.md
+1. **MANDATORY**: Run prepare-runbook.py to generate execution artifacts
+   ```bash
+   python3 agent-core/bin/prepare-runbook.py {path}
+   ```
+2. Execute with /orchestrate (requires prepare-runbook.py output)
 3. Commit: Use /commit or /gitmoji + /commit
 
-**Tips:**
-- Follow stop conditions strictly
+**CRITICAL:**
+- Do NOT skip prepare-runbook.py - /orchestrate requires step files
+- If review found violations and you applied fixes, run prepare-runbook.py after fixing
+- Follow stop conditions strictly during execution
 - Document unexpected results in cycle notes
-- Regression failures require immediate attention
 ```
 
 7. **Report to user:** Display success report with path and next steps

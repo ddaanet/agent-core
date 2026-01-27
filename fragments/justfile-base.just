@@ -7,7 +7,6 @@
 #   VENV - path to virtual environment (usually '.venv')
 
 # Sandbox detection for Claude Code environment
-# When in Claude Code sandbox, uv run crashes on system config access
 [private]
 sandboxed := shell('[ -w /tmp ] && echo "0" || echo "1"')
 
@@ -15,11 +14,11 @@ sandboxed := shell('[ -w /tmp ] && echo "0" || echo "1"')
 [private]
 _sync := if sandboxed == "1" { '' } else { 'uv sync -q' }
 [private]
-_pytest := if sandboxed == "1" { '{{VENV}}/bin/pytest' } else { "uv run pytest" }
+_pytest := '{{VENV}}/bin/pytest'
 [private]
-_ruff := if sandboxed == "1" { '{{VENV}}/bin/ruff' } else { "uv run ruff" }
+_ruff := '{{VENV}}/bin/ruff'
 [private]
-_mypy := if sandboxed == "1" { '{{VENV}}/bin/mypy' } else { "uv run mypy" }
+_mypy := '{{VENV}}/bin/mypy'
 
 # Bash helper definitions for consistent output formatting
 [private]

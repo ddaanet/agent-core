@@ -58,13 +58,44 @@ Write a handoff note following the template structure. See **`references/templat
 
 ### 4. Process Learnings to Staging Area
 
-If the session has learnings in the "Recent Learnings" section, stage them using add-learning.py. See **`references/learnings-staging.md`** for complete staging protocol and examples.
+If the session has learnings in the "Recent Learnings" section, stage them using add-learning.py script.
+
+**Staging procedure:**
+
+For each learning:
+1. Extract title and content (anti-pattern, correct pattern, rationale)
+2. Generate slug from title (lowercase, hyphenated)
+3. Call script: `python3 agent-core/bin/add-learning.py "slug" "content"`
+4. Script creates `agents/learnings/{date}-{slug}.md` and updates `pending.md`
+
+**Example:**
+```bash
+python3 agent-core/bin/add-learning.py "tool-batching" "**Tool batching:**
+- Anti-pattern: Sequential tool calls when operations are independent
+- Correct pattern: Batch independent operations in single message
+- Rationale: Reduces latency and improves efficiency"
+```
+
+**Update session.md after staging:**
+- Replace "Recent Learnings" section with reference: `@agents/learnings/pending.md`
+- This enables @ chain expansion: session.md → pending.md → individual learning files
+- Keeps session.md lean while preserving all learning content
 
 ### 5. Session Size Check and Advice
 
-After updating session.md, check size and provide advice:
+After updating session.md, check size and provide advice.
 
-**If session.md >150 lines OR all workflow tasks complete:**
+**Session size measurement:**
+Follow @ chain for complete size: session.md + pending.md + learnings/*.md
+
+Count lines across the chain:
+```bash
+wc -l agents/session.md agents/learnings/pending.md agents/learnings/*.md
+```
+
+The @ reference keeps session.md lean while preserving all learning content.
+
+**If session size >150 lines OR all workflow tasks complete:**
 ```
 "Session handoff complete.
 

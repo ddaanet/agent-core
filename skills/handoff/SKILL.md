@@ -9,7 +9,7 @@ allowed-tools: Bash(python3:agent-core/bin/*)
 Update session.md for agent handoff, preserving critical context for the next agent. The handoff protocol ensures next agent has complete context without reading full conversation history.
 
 ## Target Model
-Haiku (simple file update)
+Standard (Sonnet)
 
 ## Protocol
 
@@ -19,6 +19,7 @@ When invoked, immediately update `session.md` with:
 - Review conversation to identify completed tasks
 - Identify any pending/remaining tasks
 - Note any blockers or gotchas discovered
+- If reviewing an efficient-model handoff (handoff-lite), process Session Notes for learnings
 
 ### 2. Update session.md
 
@@ -102,6 +103,12 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - No separate archive files needed
 - Handoff preserves actionable context, not full history
 - File references point to detailed content when needed
+
+**Reviewing efficient-model handoffs**
+- When following a handoff-lite session, Session Notes contain raw observations
+- Process Session Notes to extract learnings (anti-patterns, process improvements)
+- Move validated learnings to Recent Learnings section
+- Apply judgment that efficient model skipped
 
 ## Additional Resources
 

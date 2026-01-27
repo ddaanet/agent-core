@@ -80,19 +80,20 @@ Fix authentication bug in login flow
 
 ## Execution Steps
 
-1. **Check for changes**
+1. **Perform handoff**
+   - Run `/handoff` skill to update session.md
+   - This ensures session.md stays in sync with git history
+   - Prevents need to squash separate handoff commits later
+   - Handoff happens before commit to capture completed work
+
+2. **Check for changes**
    - Run `git status`
    - ERROR if working tree is clean (errors should never pass silently)
    - Identify staged and unstaged changes
 
-2. **Review changes**
+3. **Review changes**
    - Run `git diff HEAD` to see all changes (staged and unstaged)
    - Analyze what changed and why
-
-3. **Update session.md if tasks completed**
-   - Only if `agents/session.md` exists AND tasks were completed since last commit
-   - Update handoff context to reflect current state (mark completed tasks, update blockers/notes)
-   - Skip if no session.md or no relevant task progress since last commit
 
 4. **Draft commit message**
    - Follow "short, dense, structured" format

@@ -95,15 +95,16 @@ Fix authentication bug in login flow
 
 ## Execution Steps
 
-1. **Use conversation context**
+1. **Perform handoff**
+   - Run `/handoff` skill to update session.md
+   - This ensures session.md stays in sync with git history
+   - Prevents need to squash separate handoff commits later
+   - Handoff happens before commit to capture completed work
+
+2. **Use conversation context**
    - Agent already knows what files changed from conversation
    - Agent already analyzed changes
    - NO `git status` or `git diff` needed
-
-2. **Update session.md if tasks completed**
-   - Only if `agents/session.md` exists AND tasks were completed since last commit
-   - Update handoff context to reflect current state (mark completed tasks, update blockers/notes)
-   - Skip if no session.md or no relevant task progress since last commit
 
 3. **Draft commit message**
    - Follow "short, dense, structured" format

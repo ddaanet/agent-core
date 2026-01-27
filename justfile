@@ -70,3 +70,7 @@ sync-to-parent:
     fi
 
     echo "Sync complete!"
+
+# Stub precommit validation (agent-core has no validation requirements)
+precommit:
+    @echo "✓ Precommit OK"

@@ -38,13 +38,16 @@ If `agents/learnings/pending.md` exists and contains @ references:
 
 ### 1. Understand Learning
 - Problem/gap? Solution/rule? Why important? Category?
-- Read: `agents/design-decisions.md` (architecture, if exists)
+- Read: `agents/decisions/*.md` (relevant domain doc, if exists)
 
 ### 2. File Selection
 
-**CLAUDE.md**: Communication rules • Error handling • Session mgmt • Delegation • Tool usage • Project structure • Hashtags
+**CLAUDE.md**: Cross-cutting rules • Communication • Error handling • Session mgmt • Delegation • Bash scripting • Tool usage
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
-**agents/design-decisions.md**: Tech choices+rationale • Design patterns • Tradeoffs • Long-term architecture
+**agents/decisions/cli.md**: CLI patterns • Output formats • Entry points
+**agents/decisions/testing.md**: Test organization • Mock patterns • TDD approach
+**agents/decisions/workflows.md**: Oneshot workflow • TDD workflow • Runbook patterns
+**agents/decisions/architecture.md**: Module structure • Path handling • Data models • Code quality
 **Other**: `.claude/skills/*/skill.md` • `.claude/agents/*.md` • Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
 

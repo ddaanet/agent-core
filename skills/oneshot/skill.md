@@ -97,8 +97,6 @@ Which would you prefer?"
 
 ### 2. Check Session State
 
-Read `agents/session.md`:
-
 **If session has significant pending work (>5 pending tasks) OR >100 lines:**
 ```
 "Session has existing pending work. Should I shelve the current work first?
@@ -305,11 +303,10 @@ Agent: Continues with complexity assessment and workflow setup.
 
 ## Session Continuation
 
-When agent loads session.md and finds oneshot workflow:
+When continuing an in-progress oneshot workflow:
 
-1. Read session.md to understand current state
-2. Identify in-progress task or first pending task
-3. Continue from that point
-4. Update task status (mark completed when done, mark next as in-progress)
+1. Identify in-progress task or first pending task
+2. Continue from that point
+3. Update task status (mark completed when done, mark next as in-progress)
 
 This enables natural multi-session workflow with model switching.

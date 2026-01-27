@@ -19,7 +19,7 @@ Mode determines downstream consumer: TDD → `/plan-tdd`, General → `/plan-adh
 
 ### 1. Understand Request
 
-Read `agents/context.md` and `agents/design-decisions.md` for existing patterns. Clarify ambiguous requirements with user.
+Read `agents/design-decisions.md` for existing patterns. Clarify ambiguous requirements with user.
 
 ### 2. Explore Codebase
 

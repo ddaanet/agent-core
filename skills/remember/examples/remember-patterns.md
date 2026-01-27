@@ -31,14 +31,14 @@ Commit: "Add file system rule: Use project tmp/ not system /tmp
 1. Read the relevant workflow section
 2. Add or update description
 3. Include before/after if major change
-4. Update context.md if affects current work
+4. Update session.md if affects current work
 
 **Example**:
 ```
 Discovered tool batching improves efficiency.
 Read Tool Usage section.
 Add: "Batch independent tool calls in single message"
-Update context.md: Note batching pattern for current task
+Update session.md: Note batching pattern for current task
 Commit: "Add tool batching guidance"
 ```
 

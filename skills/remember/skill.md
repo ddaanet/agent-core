@@ -38,12 +38,12 @@ If `agents/learnings/pending.md` exists and contains @ references:
 
 ### 1. Understand Learning
 - Problem/gap? Solution/rule? Why important? Category?
-- Read: `agents/context.md` (state) • `CLAUDE.md` (rules) • `agents/design-decisions.md` (architecture, if exists)
+- Read: `agents/design-decisions.md` (architecture, if exists)
 
 ### 2. File Selection
 
 **CLAUDE.md**: Communication rules • Error handling • Session mgmt • Delegation • Tool usage • Project structure • Hashtags
-**agents/context.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
+**agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
 **agents/design-decisions.md**: Tech choices+rationale • Design patterns • Tradeoffs • Long-term architecture
 **Other**: `.claude/skills/*/skill.md` • `.claude/agents/*.md` • Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
@@ -71,7 +71,7 @@ If `agents/learnings/pending.md` exists and contains @ references:
 
 ### 5. Document
 **Commit**: `Update [file]: [what]\n\n- [change 1]\n- [change 2]\n- [rationale]`
-**Handoff** (if context.md): Note update, explain significance, reference commit
+**Handoff** (if session.md): Note update, explain significance, reference commit
 
 ## Rule Management
 
@@ -103,5 +103,5 @@ Working patterns for common scenarios:
 
 ### Target Files
 
-**Primary targets**: `/Users/david/code/claudeutils/CLAUDE.md` • `agents/context.md` • `agents/design-decisions.md`
+**Primary targets**: `/Users/david/code/claudeutils/CLAUDE.md` • `agents/session.md` • `agents/design-decisions.md`
 **Historical**: `agents/role-remember.md` (git: 56929e2^)

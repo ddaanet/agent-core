@@ -46,10 +46,13 @@ If `agents/learnings/pending.md` exists and contains @ references:
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
 **agents/decisions/cli.md**: CLI patterns • Output formats • Entry points
 **agents/decisions/testing.md**: Test organization • Mock patterns • TDD approach
-**agents/decisions/workflows.md**: Oneshot workflow • TDD workflow • Runbook patterns
-**agents/decisions/architecture.md**: Module structure • Path handling • Data models • Code quality
-**Other**: `.claude/skills/*/skill.md` • `.claude/agents/*.md` • Plan files (historical only)
+**agents/decisions/workflows.md**: Oneshot workflow • TDD workflow • Runbook patterns • Handoff patterns
+**agents/decisions/architecture.md**: Module structure • Path handling • Data models • Code quality • Rule files • Model terminology
+**Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
+**Other**: `.claude/agents/*.md` • Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
+
+**For detailed routing guidance**, see `references/consolidation-patterns.md`
 
 ### 3. Draft Update
 
@@ -98,6 +101,7 @@ For detailed usage patterns (error handling, workflow improvement, design decisi
 
 For detailed guidance:
 - **`references/rule-management.md`** - Tiering, budgeting, and maintenance strategies for CLAUDE.md rules
+- **`references/consolidation-patterns.md`** - Routing learnings to appropriate documentation, progressive disclosure, anti-patterns
 
 ### Example Files
 

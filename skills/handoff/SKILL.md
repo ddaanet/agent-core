@@ -1,7 +1,6 @@
 ---
 name: handoff
 description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation.
-allowed-tools: Bash(python3:agent-core/bin/*)
 ---
 
 # Skill: handoff
@@ -56,44 +55,43 @@ Write a handoff note following the template structure. See **`references/templat
 - Next agent should understand: what happened, why, what's next
 - Next agent should NOT need to: search for files, re-discover root causes, repeat failed approaches
 
-### 4. Process Learnings to Staging Area
+### 4. Include Recent Learnings
 
-If the session has learnings in the "Recent Learnings" section, stage them using add-learning.py script.
+If the session has learnings, include them in the "Recent Learnings" section of session.md.
 
-**Staging procedure:**
+**Learning format:**
 
-For each learning:
-1. Extract title and content (anti-pattern, correct pattern, rationale)
-2. Generate slug from title (lowercase, hyphenated)
-3. Call script: `python3 agent-core/bin/add-learning.py "slug" "content"`
-4. Script creates `agents/learnings/{date}-{slug}.md` and updates `pending.md`
+```markdown
+## Recent Learnings
 
-**Example:**
-```bash
-python3 agent-core/bin/add-learning.py "tool-batching" "**Tool batching:**
-- Anti-pattern: Sequential tool calls when operations are independent
-- Correct pattern: Batch independent operations in single message
-- Rationale: Reduces latency and improves efficiency"
+**[Learning title]:**
+- Anti-pattern: [what NOT to do]
+- Correct pattern: [what TO do]
+- Rationale: [why]
+
+**[Another learning]:**
+- Anti-pattern: [what NOT to do]
+- Correct pattern: [what TO do]
+- Rationale: [why]
 ```
 
-**Update session.md after staging:**
-- Replace "Recent Learnings" section with reference: `@agents/learnings/pending.md`
-- This enables @ chain expansion: session.md → pending.md → individual learning files
-- Keeps session.md lean while preserving all learning content
+**Keep learnings inline:**
+- Write learnings directly in session.md for easy editing
+- All learnings stay in session.md (no separate files)
+- Inline format makes it simple to add, update, or refine learnings
+- Next agent can easily modify learnings without script complexity
 
 ### 5. Session Size Check and Advice
 
 After updating session.md, check size and provide advice.
 
 **Session size measurement:**
-Follow @ chain for complete size: session.md + pending.md + learnings/*.md
-
-Count lines across the chain:
+Count lines in session.md only:
 ```bash
-wc -l agents/session.md agents/learnings/pending.md agents/learnings/*.md
+wc -l agents/session.md
 ```
 
-The @ reference keeps session.md lean while preserving all learning content.
+Recent learnings are included inline, making session.md self-contained.
 
 **If session size >150 lines OR all workflow tasks complete:**
 ```
@@ -128,6 +126,8 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - Capture anti-patterns and correct patterns discovered
 - Document process improvements and workflow insights
 - Provide concrete examples for clarity
+- Write learnings inline for easy editing and updating
+- All learnings stay in session.md (self-contained)
 - These learnings inform future work across projects
 
 **Git history is the archive**
@@ -147,7 +147,6 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 
 For detailed protocols and templates:
 - **`references/template.md`** - Session handoff template structure and formatting guidelines
-- **`references/learnings-staging.md`** - Learnings staging protocol with add-learning.py script usage
 
 ### Example Files
 

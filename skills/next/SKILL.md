@@ -28,38 +28,47 @@ Check locations in order, stopping immediately when pending work is found:
 ### 1. Check Initial Context (Zero tool calls)
 
 Look for pending work in files already loaded via @file directives (CLAUDE.md, session.md):
-- Look for "Pending Tasks" sections
+- Look for "Pending Tasks" sections with actual tasks (NOT "None" or "No pending tasks")
 - Look for task list items marked `- [ ]` (pending) or `- [>]` (in-progress)
-- Check "Next Steps", "Handoff", or "Ready for Implementation" sections
+- Check "Next Steps", "Handoff", or "Ready for Implementation" sections with actual work items
 - Check "Blockers" that might need attention
 
-If work found: Report it and STOP.
+**What qualifies as pending work:**
+- Specific tasks or work items listed
+- In-progress tasks needing completion
+- NOT: "None", "No pending tasks", "Ready for new work", or similar empty states
+
+If actual pending work found: Report it and STOP.
+If no pending work (empty/none): Continue to step 2.
 
 ### 2. Check agents/shelf/
 
 List and read files in `agents/shelf/`:
 - Look for frontmatter with `status: incomplete`
-- Check "Pending Tasks" or "Next Steps" sections in shelved sessions
+- Check "Pending Tasks" or "Next Steps" sections with actual work items (NOT "None")
 - Report most recent incomplete shelved work
 
-If work found: Report it and STOP.
+If actual pending work found: Report it and STOP.
+If no pending work: Continue to step 3.
 
 ### 3. Check agents/todo.md
 
 Read `agents/todo.md`:
-- Look for items in "Backlog" section
+- Look for actual items in "Backlog" section
 - Check priority markers (High/Medium/Low)
 - Report highest priority uncompleted items
 
-If work found: Report it and STOP.
+If actual pending work found: Report it and STOP.
+If no pending work: Continue to step 4.
 
 ### 4. Check agents/ROADMAP.md
 
 Read `agents/ROADMAP.md`:
-- Look for items marked "(Priority)"
+- Look for actual items marked "(Priority)"
 - Report future enhancement ideas
 
-If work found: Report it and STOP.
+If actual pending work found: Report it and STOP.
+If no pending work: Continue to step 5.
 
 ### 5. No Work Found
 
@@ -91,7 +100,7 @@ Next action: Create the three rule files as specified in the designs.
 
 ## Important Notes
 
-**Stop early**: Do not continue checking once work is found. The goal is efficiency.
+**Stop early**: Do not continue checking once actual pending work is found. "None", "No pending tasks", or "Ready for new work" are NOT pending work - continue checking when you see these. The goal is efficiency.
 
 **Zero tool calls when possible**: Most sessions have work in CLAUDE.md or session.md, which are loaded via @file directives. Check these first without any tool calls.
 

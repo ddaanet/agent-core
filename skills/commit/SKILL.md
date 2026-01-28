@@ -80,51 +80,43 @@ Fix authentication bug in login flow
 
 ## Execution Steps
 
-1. **Perform handoff**
-   - Run `/handoff` skill to update session.md
-   - This ensures session.md stays in sync with git history
-   - Prevents need to squash separate handoff commits later
-   - Handoff happens before commit to capture completed work
-
-2. **Check for changes**
-   - Run `git status`
-   - ERROR if working tree is clean (errors should never pass silently)
-   - Identify staged and unstaged changes
-
-3. **Review changes**
-   - Run `git diff HEAD` to see all changes (staged and unstaged)
-   - Analyze what changed and why
-
-4. **Draft commit message**
-   - Follow "short, dense, structured" format
-   - Ensure title is imperative mood, 50-72 chars
-   - Add bullet details with quantifiable facts
-
-5. **Run pre-commit checks**
-   - If `--test` flag: Run `just test` only
-   - If `--lint` flag: Run `just lint` only
-   - Otherwise: Run `just precommit` (full validation)
-   - If checks fail, STOP and report the error (do not proceed with commit)
-
-6. **Stage changes**
-   - Run `git add -A` to stage all changes
-   - Do NOT commit files with secrets (.env, credentials.json, etc.)
-   - If secrets detected, ERROR and abort
-
-7. **Create commit**
-   - Use multi-line quoted string format (NOT heredocs - sandbox blocks them):
+1. **Pre-commit + discovery** (single bash block, fail fast)
    ```bash
-   git commit -m "Title line here
+   exec 2>&1
+   set -xeuo pipefail
+   just precommit  # or: just test (--test) / just lint (--lint)
+   git status -vv
+   ```
+   - Precommit first: if it fails, no verbose output bloat
+   - Shows: file status + staged diffs + unstaged diffs
+   - Note what's already staged vs unstaged (preserve staging state)
+   - ERROR if working tree is clean
+
+2. **Perform handoff**
+   - Run `/handoff` skill to update session.md
+
+3. **Draft commit message**
+   - Based on discovery output, follow "short, dense, structured" format
+
+4. **Select gitmoji**
+   - Invoke `/gitmoji` skill to select appropriate emoji
+   - Prefix commit message title with selected gitmoji
+   - Skip if `--no-gitmoji` flag provided
+
+5. **Stage, commit, verify** (single bash block)
+   ```bash
+   exec 2>&1
+   set -xeuo pipefail
+   git add file1.txt file2.txt
+   git commit -m "🐛 Fix authentication bug
 
    - Detail 1
-   - Detail 2
-   - Detail 3"
+   - Detail 2"
+   git status
    ```
-   - The entire message should be in a single quoted string with actual newlines
-
-8. **Verify success**
-   - Run `git status` after commit
-   - Confirm working tree is clean
+   - Stage specific files only (not `git add -A`)
+   - Preserve already-staged files
+   - Do NOT commit secrets (.env, credentials.json, etc.)
 
 ## Critical Constraints
 

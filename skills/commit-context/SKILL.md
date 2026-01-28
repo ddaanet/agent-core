@@ -112,32 +112,25 @@ Fix authentication bug in login flow
    - Add bullet details with quantifiable facts
    - Use conversation context to inform message
 
-4. **Run pre-commit checks**
-   - If `--test` flag: Run `just test` only
-   - If `--lint` flag: Run `just lint` only
-   - Otherwise: Run `just precommit` (full validation)
-   - If checks fail, STOP and report the error (do not proceed with commit)
+4. **Select gitmoji**
+   - Invoke `/gitmoji` skill to select appropriate emoji
+   - Prefix commit message title with selected gitmoji
+   - Skip if `--no-gitmoji` flag provided
 
-5. **Stage specific files**
-   - Run `git add <file1> <file2> ...` for specific files from context
-   - Do NOT use `git add -A` (be explicit based on context)
-   - Do NOT commit files with secrets (.env, credentials.json, etc.)
-   - If secrets detected, ERROR and abort
-
-6. **Create commit**
-   - Use multi-line quoted string format (NOT heredocs - sandbox blocks them):
+5. **Stage, commit, verify** (single bash block)
    ```bash
-   git commit -m "Title line here
+   exec 2>&1
+   set -xeuo pipefail
+   just precommit
+   git add file1.txt file2.txt
+   git commit -m "🐛 Fix bug
 
-   - Detail 1
-   - Detail 2
-   - Detail 3"
+   - Detail 1"
+   git status
    ```
-   - The entire message should be in a single quoted string with actual newlines
-
-7. **Verify success**
-   - Run `git status` after commit
-   - Confirm working tree is clean or show remaining unstaged files
+   - Precommit in bash block catches any issues before commit
+   - Stage specific files only (not `git add -A`)
+   - Do NOT commit secrets (.env, credentials.json, etc.)
 
 ## Critical Constraints
 

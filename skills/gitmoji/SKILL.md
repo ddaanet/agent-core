@@ -14,9 +14,8 @@ Semantic gitmoji selection for commit messages. Reads gitmoji index, analyzes co
 
 ## Execution Protocol
 
-### 1. Read Gitmoji Indices
-**Official index**: Read `skills/gitmoji/cache/gitmojis.txt` (~75 entries, format: `emoji - name - description`)
-**Custom index**: Read `skills/gitmoji/custom-gitmojis.md` (project-specific gitmojis)
+### 1. Read Gitmoji Index
+**Index**: Read `skills/gitmoji/cache/gitmojis.txt` (~75 entries, format: `emoji - name - description`)
 
 If index missing, run: `skills/gitmoji/scripts/update-gitmoji-index.sh`
 
@@ -36,11 +35,6 @@ Understand semantic meaning:
 - Multiple matches → prefer most significant aspect
 - Avoid generic when specific available
 - Consider project conventions
-
-**Lookup order:**
-1. Official index (`cache/gitmojis.txt`) first
-2. Custom index (`custom-gitmojis.md`) if no match
-3. Use custom if better semantic match
 
 ### 4. Return Format
 Return emoji character only (not name/code): `🐛` ✓ • `:bug:` ✗ • `"bug"` ✗
@@ -80,7 +74,7 @@ Return emoji character only (not name/code): `🐛` ✓ • `:bug:` ✗ • `"bu
 
 **Files:**
 - `cache/gitmojis.txt` - Official gitmoji index (75 entries)
-- `custom-gitmojis.md` - Project-specific gitmojis
 - `scripts/update-gitmoji-index.sh` - Index updater
 
 **Limitations**: Internet for initial download • Manual updates • jq dependency • One gitmoji per commit • No git diff analysis
+

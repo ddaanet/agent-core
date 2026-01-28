@@ -64,3 +64,14 @@ Use this structure when updating session.md for agent handoff:
 - Main bullet: Task name with priority
 - Sub-bullets: Specific steps, file references, prerequisites
 - Checkboxes `- [ ]` for pending tasks
+
+## Retention Guidelines
+
+**Completed tasks are trimmed on handoff if BOTH:**
+1. From a previous conversation (not current)
+2. AND already committed
+
+**Always preserved:**
+- Tasks completed in current conversation
+- Uncommitted tasks from any conversation
+- Learnings

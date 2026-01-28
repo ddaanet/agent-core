@@ -11,5 +11,6 @@ Common mistakes in TDD runbook creation and how to fix them.
 | **Unclear RED** | `Expected failure: Something will fail` | `Expected failure: ModuleNotFoundError: No module named 'auth'` + Why: Auth module not created yet |
 | **Missing regression** | `Verify GREEN: pytest tests/test_new.py` (stops here) | `Verify GREEN: pytest tests/test_new.py` (must pass) + `Verify no regression: pytest tests/` (all existing tests pass) |
 | **Coupled cycles** | `3.1: Modify shared state`, `3.2: Test that state was modified` (implicit dependency) | `3.1: Test state modification [sets up state]`, `3.2: Test state query [DEPENDS: 3.1]` - Explicit dependency, clear order |
+| **Presentation tests** | `Cycle 1.1: Test help text contains "recursively"` - RED: Word not in help, GREEN: Add word to help | Skip cycle entirely. Help text is presentation, not behavior. Test that `--recursive` flag works, not that help mentions it. |
 
 ---

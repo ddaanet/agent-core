@@ -398,6 +398,66 @@ TDD runbook created and reviewed successfully!
 
 ---
 
+## What NOT to Test (Presentation vs Behavior)
+
+TDD tests **behavior**, not **presentation**. Avoid generating cycles for:
+
+| Category | Skip Testing | Test Instead |
+|----------|--------------|--------------|
+| CLI help text | Exact phrasing, word presence | Command parses correctly, options work |
+| Error messages | Exact wording | Error raised, exit code, error type |
+| Log output | Format, phrasing | Logged events occur, data captured |
+| Documentation | Generated content | Generation process works |
+
+**Heuristic:** If users see output directly and quality is self-evident, don't test exact phrasing.
+
+**Valid exceptions:**
+- Regulatory/legal requirements (must include specific warnings)
+- Complex generated content (logic produces correct structure)
+- Machine-parsed output (API responses, serialization formats)
+
+---
+
+## Checkpoints
+
+Checkpoints are verification points inserted between cycles. They validate accumulated work and create commit points.
+
+**Process (two steps):**
+
+1. **Fix** - Get tests passing
+   - Run `just dev`
+   - If failures: sonnet quiet-task diagnoses and fixes
+   - Escalate if >2 attempts fail
+   - Commit when passing
+
+2. **Vet** - Quality review
+   - Sonnet reviews accumulated changes (presentation, clarity, design alignment)
+   - Fix any findings
+   - Commit
+
+**Placement guidelines:**
+- NOT every cycle (too expensive)
+- NOT all at end (misses early issues)
+- At natural boundaries: phase transitions, user-facing changes, risky integrations
+
+**Example:**
+```markdown
+## Cycle 2.3: Add --verbose flag
+[standard RED/GREEN phases]
+
+---
+
+**Checkpoint**
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Vet: Review `--help` clarity, `--verbose` output quality. Commit fixes.
+
+---
+
+## Cycle 2.4: Add error handling
+```
+
+---
+
 ## Constraints and Error Handling
 
 **Tool usage:**

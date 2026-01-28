@@ -1,0 +1,15 @@
+# Docformatter configuration fragment - Shared settings
+#
+# This file contains common docformatter settings across agent projects.
+# Projects should include this in their pyproject.toml [tool.docformatter] section.
+#
+# All projects use consistent docstring formatting:
+#   - Recursive processing of all directories
+#   - In-place modification
+#   - 80-character wrap for summaries and descriptions
+
+[tool.docformatter]
+recursive = true
+in-place = true
+wrap-summaries = 80
+wrap-descriptions = 80

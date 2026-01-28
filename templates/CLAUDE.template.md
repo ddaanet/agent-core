@@ -30,10 +30,11 @@
 
 @agent-core/fragments/token-economy.md
 
+@agent-core/fragments/commit-skill-usage.md
+
+@agent-core/fragments/no-estimates.md
+
 <!-- CUSTOMIZE: Add project-specific communication rules if needed -->
-**Additional communication rules:**
-- **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
-- **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
 
 @agent-core/fragments/error-handling.md
 

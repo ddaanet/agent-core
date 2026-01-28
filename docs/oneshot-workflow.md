@@ -312,7 +312,7 @@ Run `prepare-runbook.py` to create:
 
 **What it does:**
 - Updates CLAUDE.md with new rules/constraints
-- Updates agents/context.md with pattern learnings
+- Updates agents/session.md with pattern learnings
 - Documents workflow improvements
 - Adds constraints after discovering issues
 
@@ -492,7 +492,7 @@ Git tracks all changes to runbook and artifacts.
 ## Related Documentation
 
 - **CLAUDE.md**: Agent instructions, communication rules, patterns
-- **agents/context.md**: Current task context and architecture
+- **agents/session.md**: Current task context and architecture
 - **agents/design-decisions.md**: Architectural decisions and rationale
 - **agents/session.md**: Current session handoff context
 

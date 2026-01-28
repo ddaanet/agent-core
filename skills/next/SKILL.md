@@ -10,7 +10,7 @@ This skill systematically checks for pending work across multiple project locati
 
 ## Purpose
 
-Find the next pending work item by checking project tracking locations in order of priority. Most of the time, pending work exists in session.md or context.md, requiring zero tool calls.
+Find the next pending work item by checking project tracking locations in order of priority. Most of the time, pending work exists in session.md, requiring zero tool calls.
 
 ## When to Use
 
@@ -27,7 +27,7 @@ Check locations in order, stopping immediately when pending work is found:
 
 ### 1. Check Initial Context (Zero tool calls)
 
-Look for pending work in files already loaded via @file directives (CLAUDE.md, session.md, context.md):
+Look for pending work in files already loaded via @file directives (CLAUDE.md, session.md):
 - Look for "Pending Tasks" sections
 - Look for task list items marked `- [ ]` (pending) or `- [>]` (in-progress)
 - Check "Next Steps", "Handoff", or "Ready for Implementation" sections
@@ -77,7 +77,7 @@ When pending work is found, provide:
 
 **Example response:**
 ```
-Found pending work in agents/context.md:
+Found pending work in agents/session.md:
 
 **Pre-edit rule files** (3 files to create):
 - .claude/rules/skill-development.md
@@ -93,10 +93,10 @@ Next action: Create the three rule files as specified in the designs.
 
 **Stop early**: Do not continue checking once work is found. The goal is efficiency.
 
-**Zero tool calls when possible**: Most sessions have work in CLAUDE.md, session.md, or context.md, which are loaded via @file directives. Check these first without any tool calls.
+**Zero tool calls when possible**: Most sessions have work in CLAUDE.md or session.md, which are loaded via @file directives. Check these first without any tool calls.
 
 **Report location**: Always tell the user where the work was found so they understand the project's organization.
 
-**Respect handoff warnings**: If context.md or session.md contains "⚠️ STOP: Do not execute tasks below unless user explicitly requests it", report the work but remind the user that explicit approval is needed.
+**Respect handoff warnings**: If session.md contains "⚠️ STOP: Do not execute tasks below unless user explicitly requests it", report the work but remind the user that explicit approval is needed.
 
 **Prioritize correctly**: The check order reflects priority - active session work comes before shelved work, which comes before backlog items.

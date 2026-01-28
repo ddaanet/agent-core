@@ -37,7 +37,7 @@ Route learnings to appropriate documentation based on domain.
 
 **Always loaded (use sparingly):**
 - CLAUDE.md - Cross-cutting concerns, critical constraints
-- Context.md - Current work only (temporary)
+- Session.md - Current work only (temporary)
 
 **Loaded by path trigger:**
 - decisions/ files - Via path-based rule files

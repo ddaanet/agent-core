@@ -17,25 +17,6 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 ## Execution Protocol
 
-### 0. Check for Pending Learnings (Optional)
-
-If `agents/learnings/pending.md` exists and contains @ references:
-
-**Process each learning:**
-1. Read the learning file content
-2. Infer target skill from keywords:
-   - Handoff/session → handoff skill
-   - Planning/runbook → plan-adhoc/plan-tdd skills
-   - Commit/git → commit skill
-   - Tool usage/sandbox → relevant tool skills
-3. If target unclear, ask user: "Where should this learning be consolidated? [skill names]"
-4. Append learning to `.claude/skills/{skill}/references/learnings.md` (create if needed)
-5. Remove @ reference from `pending.md`
-6. Delete processed learning file
-7. Commit: "Consolidate learning: [title] to {skill} skill"
-
-**If no pending learnings:** Proceed to step 1.
-
 ### 1. Understand Learning
 - Problem/gap? Solution/rule? Why important? Category?
 - Read: `agents/decisions/*.md` (relevant domain doc, if exists)
@@ -44,10 +25,7 @@ If `agents/learnings/pending.md` exists and contains @ references:
 
 **CLAUDE.md**: Cross-cutting rules • Communication • Error handling • Session mgmt • Delegation • Bash scripting • Tool usage
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
-**agents/decisions/cli.md**: CLI patterns • Output formats • Entry points
-**agents/decisions/testing.md**: Test organization • Mock patterns • TDD approach
-**agents/decisions/workflows.md**: Oneshot workflow • TDD workflow • Runbook patterns • Handoff patterns
-**agents/decisions/architecture.md**: Module structure • Path handling • Data models • Code quality • Rule files • Model terminology
+**agents/decisions/**: Domain-specific decisions (consult `agents/decisions/README.md` for domain → file routing)
 **Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
 **Other**: `.claude/agents/*.md` • Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
@@ -110,5 +88,5 @@ Working patterns for common scenarios:
 
 ### Target Files
 
-**Primary targets**: `/Users/david/code/claudeutils/CLAUDE.md` • `agents/session.md` • `agents/design-decisions.md`
+**Primary targets**: Project's `CLAUDE.md` • `agents/session.md` • Domain-specific files per routing config
 **Historical**: `agents/role-remember.md` (git: 56929e2^)

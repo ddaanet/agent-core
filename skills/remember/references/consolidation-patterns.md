@@ -4,49 +4,17 @@ Guidance for consolidating session learnings into permanent documentation.
 
 ## Target Selection by Domain
 
-Route learnings to appropriate documentation based on domain:
+Route learnings to appropriate documentation based on domain.
 
-### Workflow Patterns → decisions/workflows.md
+**Project-specific routing:** Consult `agents/decisions/README.md` for domain → file mappings. Each project defines its own documentation structure and target files.
 
-**Examples:**
-- Handoff workflow changes
-- Planning methodology improvements
-- TDD cycle patterns
-- Design phase optimization
-- Commit squashing strategies
+**Common domain categories:**
+- Workflow patterns (handoff, planning methodology, TDD cycles, design optimization)
+- Architecture decisions (module structure, path handling, rule systems, terminology, code quality)
+- CLI patterns (command-line conventions, flag handling, output formatting, error reporting)
+- Testing patterns (test structure, assertion patterns, mock strategies, coverage requirements)
 
-**Pattern:** Document as decision with date, rationale, implementation, and impact
-
-### Architecture Decisions → decisions/architecture.md
-
-**Examples:**
-- Module structure changes
-- Path handling algorithms
-- Rule file systems
-- Model terminology standards
-- Code quality standards
-
-**Pattern:** Document as decision with date, rationale, and impact
-
-### CLI Patterns → decisions/cli.md
-
-**Examples:**
-- Command-line interface conventions
-- Flag handling patterns
-- Output formatting decisions
-- Error reporting standards
-
-**Pattern:** Document as decision with date, rationale, and impact
-
-### Testing Patterns → decisions/testing.md
-
-**Examples:**
-- Test structure decisions
-- Assertion patterns
-- Mock/fixture strategies
-- Coverage requirements
-
-**Pattern:** Document as decision with date, rationale, and impact
+**Documentation pattern:** Document as decision with date, rationale, implementation, and impact
 
 ### Skill-Specific → skill references/
 
@@ -74,6 +42,7 @@ Route learnings to appropriate documentation based on domain:
 **Loaded by path trigger:**
 - decisions/ files - Via path-based rule files
 - Triggered by editing specific file types
+- Consult project's `agents/decisions/README.md` for routing
 
 **Loaded by skill trigger:**
 - Skill references/ - Via skill invocation

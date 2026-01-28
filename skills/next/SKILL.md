@@ -1,6 +1,6 @@
 ---
 name: next
-description: This skill should be used ONLY when the user asks "what's next?" and there is NO pending work in already-loaded context (CLAUDE.md, session.md). Check context first before loading this skill. If pending work exists in context, report it directly without invoking this skill.
+description: This skill should be used ONLY when the user asks "what's next?", "next?", "what should I work on?", or "any pending work?" and there is NO pending work in already-loaded context (CLAUDE.md, session.md). Check context first before loading this skill. If pending work exists in context, report it directly without invoking this skill.
 version: 0.1.0
 ---
 

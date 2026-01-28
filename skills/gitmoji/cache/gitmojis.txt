@@ -73,3 +73,5 @@
 🦺 - safety-vest - Add or update code related to validation.
 ✈️ - airplane - Improve offline support.
 🦖 - t-rex - Code that adds backwards compatibility.
+🗜️ - compress - Reducing file size, condensing content, or optimizing for brevity
+🤖 - robot - Add or update agent skills, instructions, or guidance

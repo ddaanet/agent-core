@@ -1,6 +1,6 @@
 ---
 name: next
-description: This skill should be used when the user asks "what's next?", "next?", "what should I work on?", "any pending work?", or similar questions about what to do next. Provides a systematic check of all work tracking locations, stopping as soon as pending work is found.
+description: This skill should be used ONLY when the user asks "what's next?" and there is NO pending work in already-loaded context (CLAUDE.md, session.md). Check context first before loading this skill. If pending work exists in context, report it directly without invoking this skill.
 version: 0.1.0
 ---
 
@@ -10,38 +10,31 @@ This skill systematically checks for pending work across multiple project locati
 
 ## Purpose
 
-Find the next pending work item by checking project tracking locations in order of priority. Most of the time, pending work exists in session.md, requiring zero tool calls.
+Find pending work in secondary locations (shelf, todo.md, ROADMAP.md) after confirming no work exists in primary context (session.md, CLAUDE.md). This skill should only be invoked when context is empty.
 
 ## When to Use
 
-Invoke this skill when the user asks about what to do next:
-- "what's next?"
-- "next?"
-- "what should I work on?"
-- "any pending work?"
-- "what's the status?"
+**Check context first, THEN decide:**
+
+1. User asks: "what's next?", "next?", "what should I work on?", "any pending work?"
+2. Check already-loaded context (CLAUDE.md, session.md) for pending work
+3. **If work found in context**: Report it directly, DO NOT load this skill
+4. **If no work in context**: THEN invoke this skill to check other locations
+
+## When NOT to Use
+
+**Do NOT invoke this skill if:**
+- Pending work exists in session.md (report it directly)
+- In-progress tasks exist in context (report them directly)
+- You can see specific tasks in already-loaded files (report them directly)
+
+**The skill is for finding work in OTHER locations** (shelf, todo.md, ROADMAP.md) when context is empty.
 
 ## How It Works
 
-Check locations in order, stopping immediately when pending work is found:
+**Important**: By the time this skill is loaded, the agent has already checked context (CLAUDE.md, session.md) and found no pending work. This skill checks additional locations:
 
-### 1. Check Initial Context (Zero tool calls)
-
-Look for pending work in files already loaded via @file directives (CLAUDE.md, session.md):
-- Look for "Pending Tasks" sections with actual tasks (NOT "None" or "No pending tasks")
-- Look for task list items marked `- [ ]` (pending) or `- [>]` (in-progress)
-- Check "Next Steps", "Handoff", or "Ready for Implementation" sections with actual work items
-- Check "Blockers" that might need attention
-
-**What qualifies as pending work:**
-- Specific tasks or work items listed
-- In-progress tasks needing completion
-- NOT: "None", "No pending tasks", "Ready for new work", or similar empty states
-
-If actual pending work found: Report it and STOP.
-If no pending work (empty/none): Continue to step 2.
-
-### 2. Check agents/shelf/
+### 1. Check agents/shelf/
 
 List and read files in `agents/shelf/`:
 - Look for frontmatter with `status: incomplete`
@@ -49,9 +42,9 @@ List and read files in `agents/shelf/`:
 - Report most recent incomplete shelved work
 
 If actual pending work found: Report it and STOP.
-If no pending work: Continue to step 3.
+If no pending work: Continue to step 2.
 
-### 3. Check agents/todo.md
+### 2. Check agents/todo.md
 
 Read `agents/todo.md`:
 - Look for actual items in "Backlog" section
@@ -59,18 +52,18 @@ Read `agents/todo.md`:
 - Report highest priority uncompleted items
 
 If actual pending work found: Report it and STOP.
-If no pending work: Continue to step 4.
+If no pending work: Continue to step 3.
 
-### 4. Check agents/ROADMAP.md
+### 3. Check agents/ROADMAP.md
 
 Read `agents/ROADMAP.md`:
 - Look for actual items marked "(Priority)"
 - Report future enhancement ideas
 
 If actual pending work found: Report it and STOP.
-If no pending work: Continue to step 5.
+If no pending work: Continue to step 4.
 
-### 5. No Work Found
+### 4. No Work Found
 
 If all checks complete with no pending work found:
 - Report: "No pending work found. All tracked locations are clear."
@@ -100,9 +93,9 @@ Next action: Create the three rule files as specified in the designs.
 
 ## Important Notes
 
-**Stop early**: Do not continue checking once actual pending work is found. "None", "No pending tasks", or "Ready for new work" are NOT pending work - continue checking when you see these. The goal is efficiency.
+**Check context before loading**: Agent must check session.md BEFORE invoking this skill. Most sessions have pending work in context, so this skill should rarely be needed.
 
-**Zero tool calls when possible**: Most sessions have work in CLAUDE.md or session.md, which are loaded via @file directives. Check these first without any tool calls.
+**Stop early**: Do not continue checking once actual pending work is found. "None", "No pending tasks", or "Ready for new work" are NOT pending work - continue checking when you see these. The goal is efficiency.
 
 **Report location**: Always tell the user where the work was found so they understand the project's organization.
 

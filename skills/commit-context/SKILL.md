@@ -10,11 +10,25 @@ Create a git commit using conversation context, skipping git discovery steps. Us
 
 ## When to Use
 
-Use this skill instead of `/commit` when:
+Use this skill instead of `/commit` when you have conversation context about changes.
+
+**Interactive sessions (user present):**
+- **Only commit when:**
+  - User explicitly requests (`/commit-context`)
+  - At natural breakpoints: end of multi-step task, before switching major context
+  - After completing a cohesive set of related changes
+- **Batch related changes** - don't commit after each individual file edit or small fix
+- **Wait for user direction** - when in doubt, wait for explicit commit request
+
+**Automated workflows (runbook execution, /orchestrate):**
+- Auto-commit after completing each logical unit of work defined in the plan
+- Checkpoint commits at specified intervals in the runbook
+- Each step completion typically warrants a commit
+
+**Context requirements:**
 - Just wrote or edited files in the conversation
 - Already analyzed what changed and why
 - Want to skip redundant git status/diff discovery
-- Have conversation context about the changes
 
 **Do NOT use when:**
 - Uncertain what files changed

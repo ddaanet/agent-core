@@ -10,14 +10,24 @@ Create a git commit for the current changes using a consistent, high-quality com
 
 ## When to Use
 
-**Auto-commit** after completing a logical unit of work:
-- Implementing a feature
-- Fixing a bug
-- Refactoring code
-- Updating documentation
-- Any other discrete, complete change
+**Interactive sessions (user present):**
+- **Only commit when:**
+  - User explicitly requests (`/commit`)
+  - At natural breakpoints: end of multi-step task, before switching major context
+  - After completing a cohesive set of related changes
+- **Batch related changes** - don't commit after each individual file edit or small fix
+- **Wait for user direction** - when in doubt, wait for explicit commit request
 
-**Manual invocation** when user requests a commit.
+**Automated workflows (runbook execution, /orchestrate):**
+- Auto-commit after completing each logical unit of work defined in the plan
+- Checkpoint commits at specified intervals in the runbook
+- Each step completion typically warrants a commit
+
+**Examples of logical units:**
+- Implementing a complete feature (not each file in the feature)
+- Fixing a bug (all related changes together)
+- Completing a refactoring pass (not mid-refactor)
+- Updating documentation (related doc changes together)
 
 ## Validation Flags
 

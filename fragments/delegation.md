@@ -9,6 +9,30 @@
 
 Specialized agents focus on their domain; the orchestrator maintains context and flow.
 
+### Script-First Evaluation
+
+**Rule:** Before delegating a task to an agent, evaluate if it can be performed by a simple script.
+
+**Evaluation criteria:**
+- **≤25 lines**: Execute directly with Bash - don't delegate to agent
+  - Examples: File moves, directory creation, symlinks, simple diffs, basic git operations
+- **25-100 lines**: Consider delegating with prose description, or write script if logic is straightforward
+- **>100 lines or complex logic**: Delegate to agent with clear requirements
+
+**Critical:** Simple file operations (mv, cp, ln, mkdir, diff) should NEVER be delegated to agents. Execute them directly.
+
+**Examples:**
+- ❌ Wrong: Delegate "move files and create symlinks" to haiku agent
+- ✅ Correct: Execute `mkdir -p target/ && mv source/* target/ && ln -s ../target source/`
+
+**Why this matters:**
+- Agent invocations have overhead (context, prompting, potential errors)
+- Simple scripts are faster, more reliable, and easier to verify
+- Saves tokens and execution time
+- Reduces risk of misinterpretation
+
+**Reference:** See `/plan-adhoc` skill Point 1 for detailed script evaluation guidance.
+
 ### Model Selection for Delegation
 
 **Rule:** Match model cost to task complexity.
@@ -18,6 +42,12 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 - **Opus:** Architecture, planning, complex design decisions only
 
 **Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
+
+### Pre-Delegation Checkpoint
+
+Before invoking Task tool, verify:
+- Model matches stated plan (haiku/sonnet/opus)
+- If changing model, state reason explicitly
 
 ### Quiet Execution Pattern
 

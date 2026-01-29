@@ -38,7 +38,7 @@ Cycle 2.1: Implement complete pass reporting
 - **Y (Increment):** Sequential within phase, starts at 1
 
 **Rules:**
-- Start at 1.1 (not 0.1 or 1.0)
+- Start at 1.1 (0.x optionally used for pre-implementation spikes)
 - Sequential within phase (1.1 → 1.2 → 1.3)
 - Gaps acceptable but discouraged
 - No duplicates (error)

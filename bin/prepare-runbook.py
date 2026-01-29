@@ -140,22 +140,33 @@ def validate_cycle_structure(cycle, common_context=''):
     """Validate that cycle contains mandatory TDD sections.
 
     Args:
-        cycle: Cycle dictionary with 'number', 'content' keys
+        cycle: Cycle dictionary with 'number', 'content', 'title', 'major' keys
         common_context: Content from Common Context section (for inherited sections)
 
     Returns: List of error/warning messages (empty if valid)
     """
     content = cycle['content'].lower()
     cycle_num = cycle['number']
+    title = cycle.get('title', '')
     messages = []
 
-    # Check for mandatory RED phase
-    if 'red' not in content:
-        messages.append(f"ERROR: Cycle {cycle_num} missing required section: RED phase")
+    # Detect cycle type from conventions
+    is_spike = cycle['major'] == 0
+    is_regression = '[regression]' in title.lower()
 
-    # Check for mandatory GREEN phase
-    if 'green' not in content:
-        messages.append(f"ERROR: Cycle {cycle_num} missing required section: GREEN phase")
+    # Spike cycles (0.x): no RED/GREEN required
+    if is_spike:
+        pass  # Skip RED/GREEN validation for exploratory cycles
+    # Regression cycles: GREEN only, no RED expected
+    elif is_regression:
+        if 'green' not in content:
+            messages.append(f"ERROR: Cycle {cycle_num} missing required section: GREEN phase")
+    # Standard cycles: both RED and GREEN required
+    else:
+        if 'red' not in content:
+            messages.append(f"ERROR: Cycle {cycle_num} missing required section: RED phase")
+        if 'green' not in content:
+            messages.append(f"ERROR: Cycle {cycle_num} missing required section: GREEN phase")
 
     # Check for mandatory Stop Conditions (can be in cycle OR Common Context)
     common_lower = common_context.lower()
@@ -189,8 +200,8 @@ def validate_cycle_numbering(cycles):
 
     # Check major numbers are sequential
     major_nums = sorted(set(c['major'] for c in cycles))
-    if major_nums[0] != 1:
-        errors.append(f"ERROR: First cycle must start at 1.x, found {major_nums[0]}.x")
+    if major_nums[0] not in (0, 1):
+        errors.append(f"ERROR: First cycle must start at 0.x or 1.x, found {major_nums[0]}.x")
 
     for i in range(len(major_nums) - 1):
         if major_nums[i+1] != major_nums[i] + 1:

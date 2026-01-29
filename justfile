@@ -19,6 +19,17 @@ sync-to-parent:
     mkdir -p "$CLAUDE_DIR/skills"
     mkdir -p "$CLAUDE_DIR/agents"
 
+    # Remove stale skill symlinks (source deleted in agent-core)
+    echo "Cleaning stale skill symlinks..."
+    for target in "$CLAUDE_DIR/skills"/*/; do
+        [ -d "$target" ] || continue
+        skill_name=$(basename "$target")
+        if [ -L "${target%/}" ] && [ ! -d "skills/$skill_name" ]; then
+            rm -f "${target%/}"
+            echo "  ✗ $skill_name (stale, removed)"
+        fi
+    done
+
     # Sync skills (create symlinks to skill directories)
     echo "Syncing skills..."
     for skill in skills/*/; do

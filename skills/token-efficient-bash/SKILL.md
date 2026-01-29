@@ -10,20 +10,24 @@ Write bash scripts that provide automatic progress diagnostics and fail-fast err
 
 ## The Pattern
 
-For sequential bash commands (3+ steps), use this header:
+For sequential bash commands (3+ steps), use this header with intent comment:
 
 ```bash
+# Intent: high-level description of what this block does
 exec 2>&1
 set -xeuo pipefail
 
 # Script commands here
 ```
 
-## No Comments Needed
+**Intent comment required:** First line must be a comment explaining the block's purpose (before `exec 2>&1`). This provides context for why the script exists, while `set -x` handles per-command tracing.
 
-The `set -x` flag eliminates the need for WHAT comments - the traced output documents what the script does:
+## Per-Command Comments Not Needed
+
+The `set -x` flag eliminates the need for per-command WHAT comments - the traced output documents what each command does:
 
 ```bash
+# Reorganize source files into target directory
 exec 2>&1
 set -xeuo pipefail
 
@@ -39,9 +43,12 @@ ln -s ../target source
 + ln -s ../target source
 ```
 
-Each command is printed before execution. No need for `# Create directory` or `# Move files` comments. The traced output IS the documentation.
+Each command is printed before execution. No need for `# Create directory` or `# Move files` comments after each line. The traced output IS the per-command documentation.
 
-**Exception:** Complex logic may still warrant comments explaining WHY (business logic, non-obvious decisions), not WHAT (commands being run).
+**Two types of comments:**
+- **Intent comment (required):** First line explains overall purpose of the block
+- **Per-command comments (not needed):** Individual WHAT comments eliminated by `set -x` tracing
+- **Exception:** Complex logic may still warrant inline comments explaining WHY (business logic, non-obvious decisions), not WHAT (commands being run)
 
 ## Token Economy Benefits
 
@@ -61,6 +68,7 @@ echo "Complete"
 **Solution:** Token-efficient pattern (automatic tracing):
 
 ```bash
+# Reorganize source files into target directory
 exec 2>&1
 set -xeuo pipefail
 
@@ -154,6 +162,7 @@ Some commands have expected non-zero exits that would trigger `set -e`. Handle w
 **`grep` - exits 1 when no match:**
 
 ```bash
+# Search for pattern and continue processing
 exec 2>&1
 set -xeuo pipefail
 
@@ -167,6 +176,7 @@ echo "Processing complete"
 **`diff` - exits 1 when files differ:**
 
 ```bash
+# Compare files and continue with other operations
 exec 2>&1
 set -xeuo pipefail
 
@@ -187,6 +197,7 @@ diff file1.txt file2.txt || true
 **Problem:** `(( ))` returns exit status equal to the expression value.
 
 ```bash
+# Increment counter (BROKEN)
 exec 2>&1
 set -xeuo pipefail
 
@@ -197,6 +208,7 @@ count=0
 **Solution 1:** Use `|| true`
 
 ```bash
+# Increment counter with let
 exec 2>&1
 set -xeuo pipefail
 
@@ -207,6 +219,7 @@ let count++ || true  # Safe
 **Solution 2:** Use `$(( ))` (arithmetic substitution, not expansion)
 
 ```bash
+# Increment counter with arithmetic substitution
 exec 2>&1
 set -xeuo pipefail
 
@@ -219,6 +232,7 @@ count=$((count + 1))  # Safe - always succeeds
 When a command failure is part of normal flow:
 
 ```bash
+# Check configuration and branch on result
 exec 2>&1
 set -xeuo pipefail
 
@@ -250,6 +264,7 @@ important_operation || true
 
 **Right (handling expected exits):**
 ```bash
+# Search for optional pattern
 exec 2>&1
 set -xeuo pipefail
 
@@ -266,6 +281,7 @@ The script still fails fast on unexpected errors due to `set -e`. Using `|| true
 ### Example 1: File Operations
 
 ```bash
+# Move log files to backup directory and create symlink
 exec 2>&1
 set -xeuo pipefail
 
@@ -292,6 +308,7 @@ chmod 644 target/backup/*.log
 ### Example 2: Git Workflow
 
 ```bash
+# Stage, commit, and push documentation updates
 exec 2>&1
 set -xeuo pipefail
 
@@ -327,6 +344,7 @@ To github.com:user/repo.git
 ### Example 3: Setup with Expected Failures
 
 ```bash
+# Set up directories and process input files
 exec 2>&1
 set -xeuo pipefail
 
@@ -373,6 +391,7 @@ Debug mode enabled
 When changing directories, use `trap` to restore original directory on exit:
 
 ```bash
+# Work in different directory, restore on exit
 exec 2>&1
 set -xeuo pipefail
 
@@ -395,6 +414,7 @@ cd /some/other/directory
 **Alternative: Use subshell (simpler for one-off commands):**
 
 ```bash
+# Work in different directory using subshell
 exec 2>&1
 set -xeuo pipefail
 
@@ -413,7 +433,8 @@ Subshell auto-restores directory without trap, but creates new process.
 ### Don't Mix with Manual Error Handling
 
 ```bash
-# BAD - redundant with set -e
+# BAD - redundant manual error handling
+# Create target directory
 exec 2>&1
 set -xeuo pipefail
 
@@ -426,19 +447,21 @@ The `set -e` already handles errors. Manual error traps add token overhead witho
 
 ```bash
 # BAD - overhead for single command
+# List directory contents
 exec 2>&1
 set -xeuo pipefail
 ls -la
 ```
 
-**Better:** Just run `ls -la` directly via Bash tool.
+**Better:** Just run `ls -la` directly via Bash tool without the pattern.
 
 **When to use pattern:** 3+ sequential commands.
 
 ### Don't Suppress All Errors
 
 ```bash
-# BAD - defeats purpose of set -e
+# BAD - suppressing all errors defeats set -e
+# Run multiple commands
 exec 2>&1
 set -xeuo pipefail
 
@@ -454,6 +477,7 @@ command3 || true  # Why use set -e at all?
 The `/commit` skill can use this pattern when staging and committing:
 
 ```bash
+# Stage changes, commit with message, verify result
 exec 2>&1
 set -xeuo pipefail
 
@@ -463,21 +487,24 @@ git status
 ```
 
 No need for:
-- `echo "Staging changes..."`
+- Per-command echo statements like `echo "Staging changes..."`
 - `|| { echo "Error"; exit 1; }` after each command
 - Manual success reporting
 
-The tracing output provides all necessary diagnostics.
+The intent comment provides overall context, and tracing output provides per-command diagnostics.
 
 ## Summary
 
 **Pattern:**
 ```bash
+# Intent: what this block does
 exec 2>&1
 set -xeuo pipefail
 ```
 
 **Use for:** 3+ sequential bash commands
+
+**Intent comment required:** First line must explain the block's overall purpose
 
 **Token savings:** 40-60% reduction by eliminating echo/error statements
 

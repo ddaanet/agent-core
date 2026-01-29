@@ -92,11 +92,13 @@ Fix authentication bug in login flow
 
 1. **Pre-commit + discovery** (single bash block, fail fast)
    ```bash
+   # Run validation and discover staged/unstaged changes
    exec 2>&1
    set -xeuo pipefail
    just precommit  # or: just test (--test) / just lint (--lint)
    git status -vv
    ```
+   - Intent comment required as first line (before exec)
    - Precommit first: if it fails, no verbose output bloat
    - Shows: file status + staged diffs + unstaged diffs
    - Note what's already staged vs unstaged (preserve staging state)
@@ -115,6 +117,7 @@ Fix authentication bug in login flow
 
 5. **Stage, commit, verify** (single bash block)
    ```bash
+   # Stage specific files, commit with message, verify result
    exec 2>&1
    set -xeuo pipefail
    git add file1.txt file2.txt
@@ -124,6 +127,7 @@ Fix authentication bug in login flow
    - Detail 2"
    git status
    ```
+   - Intent comment required as first line (before exec)
    - Stage specific files only (not `git add -A`)
    - Preserve already-staged files
    - Do NOT commit secrets (.env, credentials.json, etc.)

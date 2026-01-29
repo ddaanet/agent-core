@@ -133,6 +133,7 @@ Fix authentication bug in login flow
 
 5. **Stage, commit, verify** (single bash block)
    ```bash
+   # Run validation, stage files, commit with message, verify result
    exec 2>&1
    set -xeuo pipefail
    just precommit
@@ -142,6 +143,7 @@ Fix authentication bug in login flow
    - Detail 1"
    git status
    ```
+   - Intent comment required as first line (before exec)
    - Precommit in bash block catches any issues before commit
    - Stage specific files only (not `git add -A`)
    - Do NOT commit secrets (.env, credentials.json, etc.)

@@ -90,6 +90,8 @@ Fix authentication bug in login flow
 
 ## Execution Steps
 
+**Note:** This skill does not update session.md. Run `/handoff` separately before committing if session context needs updating.
+
 1. **Pre-commit + discovery** (single bash block, fail fast)
    ```bash
    # Run validation and discover staged/unstaged changes
@@ -104,18 +106,15 @@ Fix authentication bug in login flow
    - Note what's already staged vs unstaged (preserve staging state)
    - ERROR if working tree is clean
 
-2. **Perform handoff**
-   - Run `/handoff` skill to update session.md
-
-3. **Draft commit message**
+2. **Draft commit message**
    - Based on discovery output, follow "short, dense, structured" format
 
-4. **Select gitmoji**
+3. **Select gitmoji**
    - Invoke `/gitmoji` skill to select appropriate emoji
    - Prefix commit message title with selected gitmoji
    - Skip if `--no-gitmoji` flag provided
 
-5. **Stage, commit, verify** (single bash block)
+4. **Stage, commit, verify** (single bash block)
    ```bash
    # Stage specific files, commit with message, verify result
    exec 2>&1
@@ -130,6 +129,7 @@ Fix authentication bug in login flow
    - Intent comment required as first line (before exec)
    - Stage specific files only (not `git add -A`)
    - Preserve already-staged files
+   - Include `agents/session.md` and `plans/` files if they have uncommitted changes
    - Do NOT commit secrets (.env, credentials.json, etc.)
 
 ## Critical Constraints

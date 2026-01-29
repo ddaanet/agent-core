@@ -18,7 +18,7 @@ When invoked, immediately update `session.md` with:
 - Review conversation to identify completed tasks
 - Identify any pending/remaining tasks
 - Note any blockers or gotchas discovered
-- If reviewing an efficient-model handoff (handoff-lite), process Session Notes for learnings
+- If reviewing an efficient-model handoff (handoff-haiku), process Session Notes for learnings
 
 ### 2. Update session.md
 
@@ -169,7 +169,7 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - Git log: Injected at conversation start, provides commit history
 
 **Reviewing efficient-model handoffs**
-- When following a handoff-lite session, Session Notes contain raw observations
+- When following a handoff-haiku session, Session Notes contain raw observations
 - Process Session Notes to extract learnings (anti-patterns, process improvements)
 - Move validated learnings to Recent Learnings section
 - Apply judgment that efficient model skipped

@@ -1,11 +1,12 @@
 ---
-name: handoff-lite
-description: This skill should be used when efficient models (Haiku) need to "end session", "handoff", or "update session context" without learnings judgment. Mechanical preservation for quick orchestrator handoffs.
+name: handoff-haiku
+description: Internal skill for Haiku model orchestrators only. Not for Sonnet or Opus — use /handoff instead. Mechanical session context preservation without learnings judgment.
+user-invocable: false
 ---
 
-# Skill: handoff-lite
+# Skill: handoff-haiku
 
-Mechanical session handoff for efficient models (Haiku). Preserves context without judgment calls. For full handoff protocol with learnings processing, use `/handoff` skill with Sonnet.
+Mechanical session handoff for Haiku models. Preserves context without judgment calls. For full handoff protocol with learnings processing, use `/handoff` skill (Sonnet/Opus).
 
 **Target Model:** Haiku (mechanical preservation)
 
@@ -18,13 +19,21 @@ When invoked, update session.md mechanically:
 - Identify pending/remaining tasks
 - Note any blockers or gotchas
 
-### 2. Write session.md
-Use this embedded template:
+### 2. Update session.md
 
-```markdown
-# Session Handoff: [DATE]
+**Merge rules — read current session.md first, then apply:**
+- **REPLACE** these sections with fresh content: "Completed This Session", "Pending Tasks", "Blockers / Gotchas", "Next Steps"
+- **ADD** "Session Notes" section if new observations to record
+- **PRESERVE UNCHANGED** all other existing sections (especially "Recent Learnings", "Reference Files", any "Prior Session" content)
 
-**Status**: [Brief status]
+**How to apply:**
+1. Read current session.md
+2. Update header (date, status line)
+3. Replace ONLY the sections listed under REPLACE with fresh content
+4. Add Session Notes section if new observations exist
+5. Keep everything else exactly as-is
+
+**Template for sections being replaced/added:**
 
 ## Completed This Session
 [Bullet list of completed work with commit hashes/file refs]
@@ -42,9 +51,8 @@ Use this embedded template:
 ## Next Steps
 [Immediate next action]
 
----
-*Handoff by efficient model. Session notes preserved for learnings review.*
-```
+**CRITICAL:** Do NOT delete existing sections not shown above. session.md may contain
+sections from prior handoffs (Recent Learnings, Reference Files, etc.) that MUST be preserved.
 
 ### 3. Report Completion
 Report line count: "Session handoff complete. [X] lines."

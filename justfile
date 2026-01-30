@@ -60,11 +60,21 @@ sync-to-parent:
         fi
     done
 
-    # Sync hooks (create symlinks to hook files)
+    # Sync hooks (create symlinks to hook files and hooks.json)
     if [ -d "hooks" ]; then
         echo "Syncing hooks..."
         mkdir -p "$CLAUDE_DIR/hooks"
-        for hook in hooks/*.sh; do
+
+        # Sync hooks.json if it exists
+        if [ -f "hooks/hooks.json" ]; then
+            target="$CLAUDE_DIR/hooks/hooks.json"
+            rm -f "$target"
+            ln -s "../../agent-core/hooks/hooks.json" "$target"
+            echo "  ✓ hooks.json → ../../agent-core/hooks/hooks.json"
+        fi
+
+        # Sync hook scripts (.sh and .py files)
+        for hook in hooks/*.sh hooks/*.py; do
             if [ -f "$hook" ]; then
                 hook_name=$(basename "$hook")
                 target="$CLAUDE_DIR/hooks/$hook_name"

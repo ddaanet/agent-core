@@ -1,6 +1,6 @@
 ---
 description: Create execution runbooks for weak orchestrator agents using 4-point planning process (oneshot workflow)
-allowed-tools: Task, Read, Write, Bash(mkdir:*, python3:*)
+allowed-tools: Task, Read, Write, Bash(mkdir:*, agent-core/bin/prepare-runbook.py)
 user-invocable: true
 ---
 
@@ -243,12 +243,12 @@ The script is located at: `agent-core/bin/prepare-runbook.py`
 
 **Usage:**
 ```bash
-python3 agent-core/bin/prepare-runbook.py <runbook-file.md>
+agent-core/bin/prepare-runbook.py <runbook-file.md>
 ```
 
 **Example:**
 ```bash
-python3 agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
+agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
 ```
 
 **Script automatically derives paths:**
@@ -401,7 +401,7 @@ Let me break this down:
 *Runs prepare-runbook.py to create execution artifacts*
 
 ```bash
-python3 agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
+agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
 ```
 
 Artifacts created:

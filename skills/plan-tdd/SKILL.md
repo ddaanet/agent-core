@@ -2,6 +2,7 @@
 name: plan-tdd
 description: Create TDD runbook with RED/GREEN/REFACTOR cycles from design document
 model: sonnet
+allowed-tools: Task, Read, Write, Bash(mkdir:*, agent-core/bin/prepare-runbook.py)
 requires:
   - Design document from /design (TDD mode)
   - CLAUDE.md for project conventions (if exists)
@@ -363,7 +364,7 @@ TDD runbook created and reviewed successfully!
 **Next steps:**
 1. **MANDATORY**: Run prepare-runbook.py to generate execution artifacts
    ```bash
-   python3 agent-core/bin/prepare-runbook.py {path}
+   agent-core/bin/prepare-runbook.py {path}
    ```
 2. Execute with /orchestrate (requires prepare-runbook.py output)
 3. Commit: Use /commit or /gitmoji + /commit
@@ -482,7 +483,7 @@ Checkpoints are verification points inserted between cycles. They validate accum
 
 After /plan-tdd generates runbook:
 
-1. User runs: `python3 agent-core/bin/prepare-runbook.py plans/{name}/runbook.md`
+1. User runs: `agent-core/bin/prepare-runbook.py plans/{name}/runbook.md`
 2. Script detects `type: tdd`, uses `agent-core/agents/tdd-task.md` baseline
 3. Script generates:
    - `.claude/agents/{name}-task.md` (baseline + Common Context)

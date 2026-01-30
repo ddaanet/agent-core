@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: Warn when git operations risk submodule cwd confusion.
+PreToolUse hook: Warn when working directory is not project root.
 
 Detects:
-1. Git operations in project root that reference submodule paths
-2. Git operations while inside a submodule
+1. ANY Bash command executed when cwd != project root
+2. Git operations in project root that reference submodule paths
 
 Provides non-blocking warnings to prevent common mistakes:
-- Forgetting to cd into submodule before git add/commit
-- Forgetting to cd back to project root after submodule operations
+- Forgetting to return to project root after operations in subdirectories
+- Forgetting to use subshell pattern to preserve cwd
 """
 
 import json
@@ -44,57 +44,42 @@ def detect_submodule_reference(command: str) -> list[str]:
     return list(set(referenced))  # Deduplicate
 
 
-def is_inside_submodule(cwd: str) -> str | None:
-    """Check if cwd is inside a submodule. Returns submodule name or None."""
-    cwd_path = Path(cwd)
-
-    # Common submodules in this project
-    submodules = ['agent-core', 'pytest-md', 'tuick']
-
-    for submodule in submodules:
-        # Check if cwd contains the submodule name as a path component
-        if submodule in cwd_path.parts:
-            return submodule
-
-    return None
-
-
-def main():
+def main() -> None:
+    """Execute hook to warn about non-project-root working directory."""
     # Read hook input from stdin
     hook_input = json.load(sys.stdin)
 
     command = hook_input.get('tool_input', {}).get('command', '')
     cwd = hook_input.get('cwd', '')
-
-    # Skip if not a git operation
-    if not detect_git_operation(command):
-        print(json.dumps({
-            "continue": True,
-            "suppressOutput": True
-        }))
-        return
-
-    # Check for submodule cwd issues
-    current_submodule = is_inside_submodule(cwd)
-    referenced_submodules = detect_submodule_reference(command)
+    project_dir = os.environ.get('CLAUDE_PROJECT_DIR', '')
 
     warnings = []
 
-    # Case 1: In project root, referencing submodule paths
-    if not current_submodule and referenced_submodules:
-        for submodule in referenced_submodules:
-            warnings.append(
-                f"⚠️  Git operation references '{submodule}/' from project root.\n"
-                f"   Consider: (cd {submodule} && git ...) to avoid path confusion.\n"
-                f"   Subshell preserves parent cwd automatically."
-            )
+    # Case 1: Not at project root (for ANY Bash command)
+    if cwd != project_dir:
+        cwd_path = Path(cwd)
+        project_path = Path(project_dir)
+        relative_cwd = (
+            cwd_path.relative_to(project_path)
+            if project_dir and cwd.startswith(project_dir)
+            else cwd_path
+        )
 
-    # Case 2: Inside a submodule
-    if current_submodule:
-        warnings.append(
-            f"⚠️  You are in submodule '{current_submodule}'.\n"
-            f"   After this git operation, remember to cd back to project root.\n"
-            f"   OR use subshell: (cd {current_submodule} && git ...) to preserve cwd."
+        msg = (
+            f"⚠️  Working directory is not project root: {relative_cwd}\n"
+            f"   After this command, consider returning to project root.\n"
+            f"   OR use subshell: (cd {relative_cwd} && ...) to preserve cwd."
+        )
+        warnings.append(msg)
+
+    # Case 2: Git operation from project root referencing submodule paths
+    if detect_git_operation(command) and cwd == project_dir:
+        referenced_submodules = detect_submodule_reference(command)
+        warnings.extend(
+            f"⚠️  Git operation references '{submodule}/' from project root.\n"
+            f"   Consider: (cd {submodule} && git ...) to avoid path confusion.\n"
+            f"   Subshell preserves parent cwd automatically."
+            for submodule in referenced_submodules
         )
 
     # Output warnings if any

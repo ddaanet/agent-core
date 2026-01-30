@@ -1,10 +1,11 @@
 {
   "PreToolUse": [
     {
+      "matcher": "Write",
       "hooks": [
         {
           "type": "command",
-          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-block-tmp.sh"
+          "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/pretooluse-block-tmp.sh"
         }
       ]
     },
@@ -13,7 +14,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/submodule-safety.py"
+          "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/submodule-safety.py"
         }
       ]
     }

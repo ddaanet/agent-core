@@ -51,6 +51,28 @@ WebSearch/WebFetch for external patterns, prior art, or specifications.
 
 **TDD mode additions:** Spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
 
+### 5. Vet Design
+
+**CRITICAL: Delegate to opus subagent for review.**
+
+Use Task tool with `subagent_type="general-purpose"`, `model="opus"`:
+
+```
+Review plans/<job-name>/design.md for:
+1. Completeness - Missing requirements or edge cases?
+2. Clarity - Ambiguous decisions or insufficient rationale?
+3. Feasibility - Implementation complexity realistic?
+4. Consistency - Conflicts with existing patterns?
+
+Return concise feedback with actionable fixes.
+```
+
+### 6. Apply Fixes
+
+**Address all high and medium priority feedback from vet review.**
+
+Update design.md with corrections. Low priority items can be deferred or documented as known limitations.
+
 ## Output Expectations
 
 Design documents are consumed by planning agents (`/plan-tdd` or `/plan-adhoc`).

@@ -85,7 +85,7 @@ def extract_cycles(content):
         - title: str (cycle name)
         - content: str (full cycle markdown content)
     """
-    cycle_pattern = r'^## Cycle\s+(\d+)\.(\d+):\s*(.*)'
+    cycle_pattern = r'^###? Cycle\s+(\d+)\.(\d+):\s*(.*)'
     lines = content.split('\n')
 
     cycles = []
@@ -114,15 +114,13 @@ def extract_cycles(content):
             }
             current_content = [line]
 
-        # Check for next H2 (non-cycle section)
-        elif line.startswith('## ') and current_cycle is not None:
-            # Check if it's a special section
-            if line in ['## Common Context', '## Orchestrator Instructions', '## Design Decisions', '## Dependencies', '## Notes']:
-                # End current cycle
-                current_cycle['content'] = '\n'.join(current_content).strip()
-                cycles.append(current_cycle)
-                current_cycle = None
-                current_content = []
+        # Check for next H2/H3 (non-cycle section) - terminates current cycle
+        elif (line.startswith('## ') or line.startswith('### ')) and current_cycle is not None:
+            # End current cycle - any H2/H3 that's not a cycle terminates the current cycle
+            current_cycle['content'] = '\n'.join(current_content).strip()
+            cycles.append(current_cycle)
+            current_cycle = None
+            current_content = []
 
         # Accumulate content
         elif current_cycle is not None:

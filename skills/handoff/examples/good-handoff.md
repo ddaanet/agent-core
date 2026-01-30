@@ -54,23 +54,4 @@
 **After revision:** Commit revised runbook, run prepare-runbook.py, execute with /orchestrate.
 
 ---
-
-## Recent Learnings
-
-**Delegated review process (new):**
-- /plan-tdd now includes automatic review by clean sonnet agent before finalization
-- Review catches RED/GREEN violations, missing context, ambiguous instructions
-- Implementation hints ensure correct sequencing for proper test-first behavior
-- This session validated the review process - caught 6 critical issues before execution
-
-**TDD runbook anti-pattern identified:**
-- **Anti-pattern**: Implementing complete function signatures with all params/options in first cycle
-- **Correct pattern**: Start with absolute minimum (1-2 params, happy path), add features one cycle at a time
-- Example: compose(fragments, output) in Cycle 3.1, then add title in 3.2, adjust_headers in 3.3, etc.
-
-**Review criteria for TDD runbooks:**
-1. Completeness - all design features covered
-2. Executability - clear, actionable instructions
-3. Context sufficiency - adequate info for isolated execution
-4. Test sequencing - tests RED before GREEN (critical!)
-5. Implementation hints - sequencing guidance when critical
+*Handoff by Opus. Design review complete — feedback-fixes patched and ready for execution.*

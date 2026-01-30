@@ -1,7 +1,21 @@
 {
   "PreToolUse": [
     {
-      "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-block-tmp.sh"
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-block-tmp.sh"
+        }
+      ]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/submodule-safety.py"
+        }
+      ]
     }
   ]
 }

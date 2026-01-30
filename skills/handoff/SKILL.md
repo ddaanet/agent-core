@@ -26,6 +26,15 @@ Write a handoff note following the template structure. See **`references/templat
 
 ### 3. Context Preservation
 
+**session.md allowed sections:**
+- `## Completed This Session`
+- `## Pending Tasks`
+- `## Blockers / Gotchas`
+- `## Reference Files`
+- `## Next Steps`
+
+**NEVER create other sections.** No "Learnings", "New Learnings", "Recent Learnings", or "Key Design Decisions". Learnings and design decisions go to `agents/learnings.md`. Session.md is work state only.
+
 **Target: 75-150 lines**
 - Below 75 lines: Likely missing important context
 - 75-150 lines: Sweet spot for rich context without bloat
@@ -72,6 +81,8 @@ If the session has learnings, append them to `agents/learnings.md` (not session.
 - Correct pattern: [what TO do]
 - Rationale: [why]
 ```
+
+**Design decisions are learnings.** When the session produced significant design decisions (architectural choices, trade-offs, anti-patterns discovered), write them to `agents/learnings.md` using the standard learning format. learnings.md is a staging area — `/remember` consolidates to permanent locations (fragments/, decisions/, skill references/).
 
 **Learnings file is append-only:**
 - Append new learnings to `agents/learnings.md` (do NOT overwrite)
@@ -134,10 +145,11 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 
 **Why this works:** Claude Code injects recent git log at session start. Completed tasks from previous conversations that are already committed are redundant.
 
-**Do NOT:**
+**Do NOT list:**
 - Create "Previous Session" headers
 - Delete tasks completed in the current conversation
 - Archive to separate files
+- Create "commit this" or "commit changes" as a pending task (commits don't update session.md to mark done)
 
 ## Principles
 

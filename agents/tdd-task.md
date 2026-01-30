@@ -101,7 +101,11 @@ just lint  # includes reformatting
 Create WIP commit as rollback point:
 
 ```bash
+# Create WIP commit with staged changes
+exec 2>&1
+set -xeuo pipefail
 git commit -m "WIP: Cycle X.Y [name]"
+git log -1 --oneline
 ```
 
 - Use exact cycle number and name from cycle spec
@@ -117,7 +121,7 @@ just precommit  # validates green state before changes
 ```
 
 - This surfaces complexity warnings and line limit issues
-- If no warnings: Skip to Step 7 (amend commit)
+- If no warnings: Skip to Step 5 (write log entry)
 - If warnings present: Proceed to Step 4
 
 ### Step 4: Escalate Refactoring
@@ -129,78 +133,9 @@ If quality check found warnings:
 
 Do not evaluate warning severity or choose refactoring strategy
 
-### Step 6: Post-Refactoring Updates
+### Step 5: Write Structured Log Entry
 
-Update all references to refactored code in documentation:
-
-1. **Plans directory** - All designs and runbooks
-   ```bash
-   grep -r "old_reference" plans/
-   ```
-   Update any references found
-
-2. **Agent documentation** - Files in `agents/` directory
-   - Architecture patterns (`design-decisions.md`)
-   - Workflow documentation (`*-workflow.md`)
-   - Implementation patterns (if applicable)
-
-3. **CLAUDE.md** - Only if behavioral rules affected
-   - Skip if refactoring is purely structural
-   - Update only if agent behavior rules changed
-
-4. **Regenerate step files** - If runbook.md changed
-   ```bash
-   python agent-core/bin/prepare-runbook.py plans/<runbook-name>/runbook.md
-   ```
-
-Verification:
-```bash
-grep -r "old_reference" plans/ agents/ CLAUDE.md
-```
-Should return no results.
-
-### Step 7: Amend Commit
-
-Safety check before amending:
-
-```bash
-current_msg=$(git log -1 --format=%s)
-if [[ "$current_msg" != WIP:* ]]; then
-  echo "ERROR: Expected WIP commit, found: $current_msg"
-  exit 1
-fi
-```
-
-If safety check passes, amend and reword:
-
-```bash
-git commit --amend -m "Cycle X.Y: [name]"
-```
-
-**Goal:** Only precommit-validated states in commit history.
-
-### Step 8: Post-Commit Sanity Check
-
-Verify cycle produced a clean, complete commit:
-
-1. Tree must be clean:
-   ```bash
-   git status --porcelain
-   ```
-   - If non-empty: stage missing files, amend commit, re-check
-   - If still dirty after amend: escalate
-
-2. Last commit must contain both source changes AND execution report:
-   ```bash
-   git diff-tree --no-commit-id --name-only -r HEAD
-   ```
-   - Must include at least one file in `src/` or `tests/`
-   - Must include the cycle's report file
-   - If report missing: STOP — report written but not staged
-
-## Structured Log Entry
-
-After each cycle completes (success or stop condition), append to execution report:
+After cycle completes (success or stop condition), append to execution report:
 
 ```markdown
 ### Cycle X.Y: [name] [timestamp]
@@ -224,6 +159,41 @@ After each cycle completes (success or stop condition), append to execution repo
 - Files modified: All files changed in this cycle
 - Stop condition: Reason for stopping, or "none"
 - Decision made: Any architectural decisions, or "none"
+
+### Step 6: Amend Commit
+
+Verify WIP commit exists, stage all changes, amend with final message:
+
+```bash
+# Verify WIP commit exists, stage all changes, amend with final message
+exec 2>&1
+set -xeuo pipefail
+current_msg=$(git log -1 --format=%s)
+[[ "$current_msg" == WIP:* ]]
+git add -A
+git commit --amend -m "Cycle X.Y: [name]"
+```
+
+**Goal:** Only precommit-validated states in commit history.
+
+### Step 7: Post-Commit Sanity Check
+
+Verify cycle produced a clean, complete commit:
+
+```bash
+# Verify tree is clean and commit contains expected files
+exec 2>&1
+set -xeuo pipefail
+git status --porcelain
+git diff-tree --no-commit-id --name-only -r HEAD
+```
+
+**Verification criteria:**
+1. Tree must be clean (git status returns empty)
+2. Last commit must contain both source changes AND execution report:
+   - Must include at least one file in `src/` or `tests/`
+   - Must include the cycle's report file
+   - If report missing: STOP — report written but not staged (code bug)
 
 ## Stop Conditions and Escalation
 

@@ -458,42 +458,58 @@ TDD tests **behavior**, not **presentation**. Avoid generating cycles for:
 
 ## Checkpoints
 
-Checkpoints are verification points inserted between cycles. They validate accumulated work and create commit points.
+Checkpoints are verification points inserted between phases. They validate accumulated work and create commit points.
 
-**Process (three steps):**
+**Two checkpoint tiers:**
 
-1. **Fix** - Get tests passing
-   - Run `just dev`
-   - If failures: sonnet quiet-task diagnoses and fixes
-   - Commit when passing
+**Light checkpoint** (Fix + Functional):
+- **Placement:** Every phase boundary
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes failures, commit when passing
+  2. **Functional:** Sonnet reviews implementations against design
+     - Check: Are implementations real or stubs? Do functions compute or return constants?
+     - Check: Are I/O operations mocked and tested, or just exit-code tested?
+     - If stubs found: STOP, report which implementations need real behavior
+     - If all functional: Proceed to next phase
 
-2. **Vet** - Quality review
-   - Sonnet reviews accumulated changes (presentation, clarity, design alignment)
-   - Fix findings, commit
+**Full checkpoint** (Fix + Vet + Functional):
+- **Placement:** Final phase boundary, or phases marked `checkpoint: full` in runbook
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes failures, commit when passing
+  2. **Vet:** Sonnet reviews accumulated changes (presentation, clarity, design alignment)
+     - **REQUIRED:** Apply all high and medium priority fixes
+     - Commit when complete
+  3. **Functional:** Sonnet reviews implementations against design (same checks as light checkpoint)
 
-3. **Functional review** - Behavioral completeness check
-   - Sonnet reviews implementations from this phase against design document
-   - Checks: Are implementations real or stubs? Do functions compute or return constants?
-   - Checks: Are I/O operations mocked and tested, or just exit-code tested?
-   - If stubs found: STOP, report which implementations need real behavior
-   - If all functional: Proceed to next phase
+**When to mark `checkpoint: full` during planning:**
+- Phase introduces new public API surface or contract
+- Phase crosses module boundaries (changes span 3+ packages)
+- Runbook expected to exceed 20 cycles total
 
-**Placement:** At every phase boundary (mandatory)
+**Rationale:** Light checkpoints catch dangerous issues (broken tests, stubs) at low cost. Full checkpoints catch quality debt (naming, duplication, abstraction) at boundaries where accumulated changes justify the vet review cost.
 
 **Example:**
 ```markdown
-## Cycle 2.3: Add --verbose flag
+## Cycle 2.3: Add --verbose flag (final cycle of Phase 2)
 [standard RED/GREEN phases]
 
 ---
 
-**Checkpoint**
+**Light Checkpoint** (end of Phase 2)
 1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
-2. Vet: Review `--help` clarity, `--verbose` output quality. Commit fixes.
+2. Functional: Review Phase 2 implementations against design. Check for stubs.
 
 ---
 
-## Cycle 2.4: Add error handling
+## Cycle 3.1: Add error handling (Phase 3 begins)
+[standard RED/GREEN phases]
+
+---
+
+**Full Checkpoint** (end of Phase 3 - final phase)
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Vet: Review all changes for quality, clarity, design alignment. Apply high/medium fixes. Commit.
+3. Functional: Review all implementations against design. Check for stubs.
 ```
 
 ---

@@ -95,36 +95,41 @@ git status --porcelain
 - If dirty: STOP, report "Step N left uncommitted changes" with file list
 - Do NOT clean up on behalf of the step — escalate
 
-**3.4 Checkpoint execution (phase boundaries and vet points):**
+**3.4 Checkpoint execution (tiered approach):**
 
-If the step indicates a checkpoint (phase boundary or explicit vet point):
+**Two checkpoint tiers:**
 
-**Three-step checkpoint process:**
+**Light checkpoint** (Fix + Functional):
+- Runs at: Every phase boundary
+- Steps:
+  1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
+  2. **Functional:** Check for stubs/hardcoded values against design
+     - If STUBS_FOUND: STOP orchestration, report to user
+     - If FUNCTIONAL: Continue
 
-1. **Fix:** Get tests passing
-   - Delegate to sonnet quiet-task: "Run `just dev` or equivalent. Fix any failures. Commit when passing."
-   - If failures persist: STOP orchestration, report to user
+**Full checkpoint** (Fix + Vet + Functional):
+- Runs at: Final phase boundary, or explicit `checkpoint: full` markers in runbook
+- Steps:
+  1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
+  2. **Vet:** Quality review of accumulated changes
+     - Delegate to sonnet quiet-task: "Use `/vet` to review accumulated changes. Write review to plans/{name}/reports/checkpoint-{N}-vet.md"
+     - **REQUIRED:** Apply all high and medium priority fixes found by vet
+     - Delegate fixes to sonnet quiet-task: "Apply high/medium priority fixes from vet report. Commit when complete."
+     - Low-priority issues: Optional (can defer)
+     - **NEVER** proceed with unaddressed high/medium issues
+  3. **Functional:** Check for stubs/hardcoded values against design
+     - If STUBS_FOUND: STOP orchestration, report to user
+     - If FUNCTIONAL: Continue
 
-2. **Vet:** Quality review
-   - Delegate to sonnet quiet-task: "Use `/vet` to review accumulated changes. Write review to plans/{name}/reports/checkpoint-{N}-vet.md"
-   - **REQUIRED:** Apply all high and medium priority fixes found by vet
-   - Delegate fixes to sonnet quiet-task: "Apply high/medium priority fixes from vet report. Commit when complete."
-   - Low-priority issues: Optional (can defer)
-   - **NEVER** proceed with unaddressed high/medium issues
+**Checkpoint selection:**
+- Default: Light checkpoint at every phase, full checkpoint at final phase
+- Runbook can specify `checkpoint: full` at specific phases for additional full checkpoints
+- Criteria for additional full checkpoints during planning:
+  - Phase introduces new public API surface or contract
+  - Phase crosses module boundaries (changes span 3+ packages)
+  - Runbook expected to exceed 20 cycles total
 
-3. **Functional review:** Behavioral completeness
-   - Delegate to sonnet quiet-task:
-     "Review implementations from Phase N against design at [design-path].
-      Check for stub implementations, hardcoded values, missing I/O integration.
-      Write report to plans/{name}/reports/phase-{N}-functional-review.md
-      Return: 'FUNCTIONAL: [summary]' or 'STUBS_FOUND: [list of stubs]'"
-   - If STUBS_FOUND: STOP orchestration, report to user
-   - If FUNCTIONAL: Continue to next phase
-
-**Checkpoint triggers:**
-- Phase boundaries (mandatory)
-- Explicit checkpoint markers in runbook (if present)
-- After every N cycles (if specified in orchestrator plan)
+**Rationale:** Fix + Functional catches dangerous issues (broken tests, stubs) cheaply. Vet catches quality debt (naming, duplication, abstraction) best at meaningful boundaries where accumulated changes justify the cost.
 
 **3.5 On success:**
 - Log step completion

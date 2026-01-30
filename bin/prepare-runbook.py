@@ -439,16 +439,16 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     agent_path.write_text(agent_content)
     print(f"✓ Created agent: {agent_path}")
 
-    # Generate step or cycle files based on runbook type
+    # Generate step files (uniform naming for all runbook types)
     if runbook_type == 'tdd':
-        # Generate cycle files
+        # Generate step files for TDD cycles
         for cycle in sorted(cycles, key=lambda c: (c['major'], c['minor'])):
-            cycle_file_name = f"cycle-{cycle['major']}-{cycle['minor']}.md"
-            cycle_path = steps_dir / cycle_file_name
+            step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
+            step_path = steps_dir / step_file_name
 
-            cycle_file_content = generate_cycle_file(cycle, str(runbook_path))
-            cycle_path.write_text(cycle_file_content)
-            print(f"✓ Created cycle: {cycle_path}")
+            step_file_content = generate_cycle_file(cycle, str(runbook_path))
+            step_path.write_text(step_file_content)
+            print(f"✓ Created step: {step_path}")
     else:
         # Generate step files
         for step_num in sorted(sections['steps'].keys(), key=lambda x: tuple(map(int, x.split('.')))):
@@ -474,7 +474,7 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     print(f"  Runbook: {runbook_name}")
     print(f"  Type: {runbook_type}")
     if runbook_type == 'tdd':
-        print(f"  Cycles: {len(cycles)}")
+        print(f"  Steps: {len(cycles)}")
     else:
         print(f"  Steps: {len(sections['steps'])}")
     print(f"  Model: {model}")

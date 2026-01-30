@@ -15,20 +15,11 @@ file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 if [[ "$tool_name" == "Write" ]]; then
   # Check if path starts with /tmp/ or /private/tmp/
   if [[ "$file_path" =~ ^(/tmp/|/private/tmp/) ]]; then
-    # Block the operation
-    cat <<EOF
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "deny"
-  },
-  "systemMessage": "🚫 **BLOCKED: Do not write to /tmp/. Use project-local tmp/ instead.**"
-}
-EOF
-    exit 0
+    # Block the operation - output plain message to stderr and exit 2
+    echo "🚫 **BLOCKED: Do not write to /tmp/. Use project-local tmp/ instead.**" >&2
+    exit 2
   fi
 fi
 
-# Allow operation (return empty JSON)
-echo "{}"
+# Allow operation
 exit 0

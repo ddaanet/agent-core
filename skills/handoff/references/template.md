@@ -40,17 +40,7 @@ Use this structure when updating session.md for agent handoff:
 [1-2 sentences on immediate next action with file references]
 
 ---
-
-## Recent Learnings
-
-**[Pattern/Process/Insight]:**
-- Anti-pattern: [what NOT to do with example]
-- Correct pattern: [what TO do with example]
-- Rationale: [why this matters]
-
-**[Another learning category]:**
-- Discovery or process improvement
-- Specific criteria or checklist discovered
+*Handoff by [Model]. [Brief status note.]*
 ```
 
 ## Formatting Guidelines
@@ -74,4 +64,5 @@ Use this structure when updating session.md for agent handoff:
 **Always preserved:**
 - Tasks completed in current conversation
 - Uncommitted tasks from any conversation
-- Learnings
+
+**Note:** Learnings are written to separate `agents/learnings.md` file (not session.md)

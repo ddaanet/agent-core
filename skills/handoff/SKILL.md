@@ -55,15 +55,13 @@ Write a handoff note following the template structure. See **`references/templat
 - Next agent should understand: what happened, why, what's next
 - Next agent should NOT need to: search for files, re-discover root causes, repeat failed approaches
 
-### 4. Include Recent Learnings
+### 4. Write Learnings to Separate File
 
-If the session has learnings, include them in the "Recent Learnings" section of session.md.
+If the session has learnings, append them to `agents/learnings.md` (not session.md).
 
 **Learning format:**
 
 ```markdown
-## Recent Learnings
-
 **[Learning title]:**
 - Anti-pattern: [what NOT to do]
 - Correct pattern: [what TO do]
@@ -75,23 +73,23 @@ If the session has learnings, include them in the "Recent Learnings" section of 
 - Rationale: [why]
 ```
 
-**Keep learnings inline:**
-- Write learnings directly in session.md for easy editing
-- All learnings stay in session.md (no separate files)
-- Inline format makes it simple to add, update, or refine learnings
-- Next agent can easily modify learnings without script complexity
+**Learnings file is append-only:**
+- Append new learnings to `agents/learnings.md` (do NOT overwrite)
+- Never trim or remove learnings (separate from session.md lifecycle)
+- Learnings accumulate across sessions as institutional knowledge
+- When file reaches 80+ lines, note to user: "Learnings file at X/80 lines. Consider running /remember to consolidate."
 
 ### 5. Session Size Check and Advice
 
-After updating session.md, check size and provide advice.
+After updating session.md and learnings.md, check sizes and provide advice.
 
 **Session size measurement:**
-Count lines in session.md only:
+Count lines in both files:
 ```bash
-wc -l agents/session.md
+wc -l agents/session.md agents/learnings.md
 ```
 
-Recent learnings are included inline, making session.md self-contained.
+Session.md contains volatile state; learnings.md contains institutional knowledge.
 
 **If session size >150 lines after trimming OR all workflow tasks complete:**
 ```
@@ -131,9 +129,8 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 
 **Always keep:**
 - Pending Tasks, Blockers, Next Steps
-- Recent Learnings
 
-**Extract learnings first:** Before deleting, check if completed tasks contain patterns worth preserving as learnings.
+**Extract learnings first:** Before deleting, check if completed tasks contain patterns worth preserving. Append learnings to `agents/learnings.md`, never to session.md.
 
 **Why this works:** Claude Code injects recent git log at session start. Completed tasks from previous conversations that are already committed are redundant.
 
@@ -150,12 +147,12 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - Omit verbose execution logs (git history preserves everything)
 - Balance: Complete context without bloat
 
-**Recent Learnings section is critical**
+**Learnings file is critical**
 - Capture anti-patterns and correct patterns discovered
 - Document process improvements and workflow insights
 - Provide concrete examples for clarity
-- Write learnings inline for easy editing and updating
-- All learnings stay in session.md (self-contained)
+- Append learnings to `agents/learnings.md` (never overwrite, never trim)
+- Learnings accumulate across sessions as institutional knowledge
 - These learnings inform future work across projects
 
 **Git history is the archive**
@@ -163,15 +160,15 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - Handoff preserves actionable context, not full history
 - File references point to detailed content when needed
 
-**session.md is working memory, git is archive**
-- Completed tasks: Kept until committed AND conversation ends
-- Learnings: Preserved across conversations (semantic memory)
+**session.md is working memory, learnings.md is semantic memory, git is archive**
+- Completed tasks (session.md): Kept until committed AND conversation ends
+- Learnings (learnings.md): Preserved across conversations, never trimmed
 - Git log: Injected at conversation start, provides commit history
 
 **Reviewing efficient-model handoffs**
 - When following a handoff-haiku session, Session Notes contain raw observations
 - Process Session Notes to extract learnings (anti-patterns, process improvements)
-- Move validated learnings to Recent Learnings section
+- Append validated learnings to `agents/learnings.md`
 - Apply judgment that efficient model skipped
 
 ## Additional Resources

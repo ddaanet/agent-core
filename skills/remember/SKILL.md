@@ -19,13 +19,15 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 ### 1. Understand Learning
 - Problem/gap? Solution/rule? Why important? Category?
+- Read: `agents/learnings.md` for recent learnings to consolidate
 - Read: `agents/decisions/*.md` (relevant domain doc, if exists)
 
 ### 2. File Selection
 
-**CLAUDE.md**: Cross-cutting rules • Communication • Error handling • Session mgmt • Delegation • Bash scripting • Tool usage
+**Behavioral rules** → `agent-core/fragments/*.md`: Workflow patterns • Anti-patterns • Directive conflicts • Agent behavior
+**Technical details** → `agents/decisions/*.md`: Architecture • Implementation patterns • Technology choices (consult `agents/decisions/README.md` for domain → file routing)
+**Implementation patterns** → `agents/implementation-notes.md`: Mock patterns • Python quirks • API details
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
-**agents/decisions/**: Domain-specific decisions (consult `agents/decisions/README.md` for domain → file routing)
 **Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
 **Other**: `.claude/agents/*.md` • Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
@@ -52,6 +54,7 @@ Transform session learnings into persistent, actionable documentation. Updates C
 ### 4. Apply + Verify
 - **Edit** for modifications • **Write** for new files only (Read first if exists)
 - Read updated section → Check formatting → Verify placement
+- **After consolidation**: Remove consolidated learnings from `agents/learnings.md`, but keep the 3-5 most recent learnings (at bottom of file) for continuity
 
 ### 5. Document
 **Commit**: `Update [file]: [what]\n\n- [change 1]\n- [change 2]\n- [rationale]`

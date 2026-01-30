@@ -143,6 +143,25 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 - If passes, STOP - feature may exist
 ```
 
+   **Assertion Quality Requirements:**
+
+   RED phase tests MUST verify **behavior**, not just **structure**:
+
+   | Weak (structural) | Strong (behavioral) |
+   |---|---|
+   | `assert result.exit_code == 0` | `assert "Mode: plan" in result.output` |
+   | `assert "KEY" in env_vars` | `assert env_vars["KEY"] != ""` or mock keychain |
+   | `assert hasattr(obj, "method")` | `assert obj.method(input) == expected` |
+   | `assert isinstance(result, dict)` | `assert result["field"] == expected_value` |
+
+   **For I/O-dependent behavior:**
+   - Mock external dependencies (filesystem, keychain, APIs)
+   - Use fixtures (tmp_path) for state simulation
+   - Assert on interaction (mock.assert_called_with) or output content
+   - Never test I/O behavior with exit-code-only assertions
+
+   **Validation rule:** If a RED test can pass with a stub that returns a constant/empty value, the test is too weak. Add content or mock assertions.
+
    **Logic:**
    - Parse increment for expected behavior
    - Infer test location (tests/, test_*.py)
@@ -181,7 +200,13 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
    - **Regression:** `[REGRESSION]` for existing behavior tests
    - **Parallel:** Only if truly independent
 
-5. **Generate stop conditions:**
+5. **Verify integration coverage:**
+   - For each component that reads external state (files, keychain, APIs): at least one cycle mocks and tests the real interaction
+   - For each CLI command: at least one cycle asserts on output content
+   - If components are created separately and need wiring: plan explicit integration cycles
+   - Metadata cycle count MUST equal actual cycles defined
+
+6. **Generate stop conditions:**
 
 ```markdown
 **Stop Conditions:**
@@ -322,6 +347,8 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
    - Required sections exist (Weak Orchestrator Metadata, Common Context)
    - Cycle headers match `## Cycle \d+\.\d+:` pattern
    - No duplicate cycle IDs
+   - Metadata "Total Steps" matches actual cycle count
+   - Every CLI command has at least one cycle with content assertions
 
 2. **Trigger tdd-plan-reviewer agent:**
 
@@ -390,6 +417,11 @@ TDD runbook created and reviewed successfully!
 - Minimal GREEN implementation
 - Sequential dependencies within phase (default)
 
+**Cycle ordering:**
+- Start with simplest happy path, not empty/degenerate case
+- Only test empty case if it requires special-casing that wouldn't arise naturally from list processing or normal control flow
+- Anti-pattern: Cycle 1 tests empty input → GREEN returns `[]` → stub never replaced
+
 **Dependency markers:**
 - **Sequential (default):** 1.1 → 1.2 → 1.3
 - **[DEPENDS: X.Y]:** Cross-phase dependency
@@ -423,23 +455,25 @@ TDD tests **behavior**, not **presentation**. Avoid generating cycles for:
 
 Checkpoints are verification points inserted between cycles. They validate accumulated work and create commit points.
 
-**Process (two steps):**
+**Process (three steps):**
 
 1. **Fix** - Get tests passing
    - Run `just dev`
    - If failures: sonnet quiet-task diagnoses and fixes
-   - Escalate if >2 attempts fail
    - Commit when passing
 
 2. **Vet** - Quality review
    - Sonnet reviews accumulated changes (presentation, clarity, design alignment)
-   - Fix any findings
-   - Commit
+   - Fix findings, commit
 
-**Placement guidelines:**
-- NOT every cycle (too expensive)
-- NOT all at end (misses early issues)
-- At natural boundaries: phase transitions, user-facing changes, risky integrations
+3. **Functional review** - Behavioral completeness check
+   - Sonnet reviews implementations from this phase against design document
+   - Checks: Are implementations real or stubs? Do functions compute or return constants?
+   - Checks: Are I/O operations mocked and tested, or just exit-code tested?
+   - If stubs found: STOP, report which implementations need real behavior
+   - If all functional: Proceed to next phase
+
+**Placement:** At every phase boundary (mandatory)
 
 **Example:**
 ```markdown

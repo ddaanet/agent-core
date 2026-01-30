@@ -41,6 +41,7 @@ Options:
 3. "Current branch" - Review all commits since branched from main
 4. "Specific files" - Review only specified files
 5. "Everything" - Uncommitted + recent commits
+6. "Design conformity" - Review changes against design document
 ```
 
 **Common patterns:**
@@ -85,6 +86,20 @@ git diff HEAD <file1> <file2> ...
 - Error handling
 - Code clarity and readability
 - Appropriate abstractions (not over/under-engineered)
+
+**Design Conformity (when design doc available):**
+- Implementation matches design specifications
+- All design-specified behaviors actually implemented (not stubbed)
+- Integration between components matches design architecture
+- No hardcoded values where design specifies dynamic behavior
+- Check: grep for hardcoded return values in functions that should compute
+
+**Functional Completeness:**
+- CLI commands produce meaningful output (not just "OK" or empty)
+- Functions return computed values (not empty strings or hardcoded constants)
+- Components that should read external state actually do so
+- Check: look for stub patterns: `return ""`, `return {}`, hardcoded constructors
+- Integration: components that exist separately are wired together
 
 **Project Standards:**
 - Follows existing patterns and conventions

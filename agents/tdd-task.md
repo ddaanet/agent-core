@@ -57,7 +57,6 @@ Execute the GREEN phase following this exact sequence:
    - Implement exactly what's needed to make test pass
    - Follow "Minimal" guidance from cycle spec
    - Use file paths from cycle spec
-   - Prefer simplest solution (hardcoded values acceptable initially)
 
 2. **Run test suite**
    ```bash
@@ -121,43 +120,14 @@ just precommit  # validates green state before changes
 - If no warnings: Skip to Step 7 (amend commit)
 - If warnings present: Proceed to Step 4
 
-### Step 4: Refactoring Assessment
+### Step 4: Escalate Refactoring
 
-Analyze warnings and determine handler:
+If quality check found warnings:
+- **STOP** execution
+- Report warnings to orchestrator
+- Orchestrator routes to refactor agent (sonnet)
 
-| Warning Type | Handler | Action |
-|--------------|---------|--------|
-| Common (split module, simplify function, reduce nesting) | Sonnet | Design and execute refactoring |
-| Architectural (new abstraction, multi-module impact) | Opus | Design refactoring, decide escalation |
-| New abstraction introduced | Opus | **Always escalate to human** |
-
-**Refactoring tiers:**
-
-| Tier | Criteria | Execution |
-|------|----------|-----------|
-| 1: Script-based | Mechanical transformation, single pattern, no judgment | Write script, execute directly |
-| 2: Simple steps | 2-5 steps, minor judgment needed | Inline step list, sequential execution |
-| 3: Full runbook | 5+ steps, design decisions embedded | Create runbook, use /orchestrate |
-
-**Script-first principle:** Prefer scripted transformations to prevent token churn and ensure repeatability.
-
-### Step 5: Execute Refactoring
-
-- **Tier 1:** Write transformation script, execute, verify
-- **Tier 2:** Execute steps sequentially, verify after each
-- **Tier 3:** Create runbook, delegate to /orchestrate
-
-Verification after refactoring:
-```bash
-just precommit  # must pass after refactoring
-```
-
-**If precommit fails:**
-- **STOP** immediately
-- Do NOT attempt auto-reset or rollback
-- Keep current state for diagnostic
-- Escalate with: "Refactoring failed precommit validation"
-- Include: Warning addressed, refactoring performed, failure message
+Do not evaluate warning severity or choose refactoring strategy
 
 ### Step 6: Post-Refactoring Updates
 
@@ -208,6 +178,25 @@ git commit --amend -m "Cycle X.Y: [name]"
 ```
 
 **Goal:** Only precommit-validated states in commit history.
+
+### Step 8: Post-Commit Sanity Check
+
+Verify cycle produced a clean, complete commit:
+
+1. Tree must be clean:
+   ```bash
+   git status --porcelain
+   ```
+   - If non-empty: stage missing files, amend commit, re-check
+   - If still dirty after amend: escalate
+
+2. Last commit must contain both source changes AND execution report:
+   ```bash
+   git diff-tree --no-commit-id --name-only -r HEAD
+   ```
+   - Must include at least one file in `src/` or `tests/`
+   - Must include the cycle's report file
+   - If report missing: STOP — report written but not staged
 
 ## Structured Log Entry
 

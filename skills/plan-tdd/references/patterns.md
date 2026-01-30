@@ -16,6 +16,12 @@ Guidance for decomposing features into atomic TDD cycles with proper granularity
 
 **Too coarse (split):** >5 assertions, multiple distinct behaviors, complex setup + verification, spans multiple modules
 
+**Cycle ordering within phase:**
+- Start with simplest happy path
+- Add complexity incrementally (error handling, edge cases, validation)
+- Empty/degenerate case: only if requires distinct code path
+- Anti-pattern: empty-first ordering produces stubs that persist
+
 **Example - Just Right:**
 ```
 Cycle 2.1: Test -rp flag shows passed tests

@@ -114,6 +114,38 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 **Why it fails**: Function doesn't exist yet
 ```
 
+### 5. Weak RED Phase Assertions (CRITICAL)
+
+**Violation:** RED test only verifies structure, not behavior
+
+**Indicators:**
+- Test only checks `exit_code == 0` or `exit_code != 0`
+- Test only checks key existence (`"KEY" in dict`) without value verification
+- Test only checks class/method existence (would pass with `pass` body)
+- Test has no mocking for I/O-dependent behavior
+
+**Check:** For each RED phase, ask: "Would a stub that returns a constant/empty value pass this test?" If yes → VIOLATION: weak assertion
+
+**Correct pattern:**
+- Assert on output content, mock interactions, or computed values
+- Mock external dependencies and verify interaction
+- Use fixtures for filesystem state
+
+### 6. Metadata Accuracy
+
+**Check:** `Total Steps` in Weak Orchestrator Metadata matches actual cycle count
+- Count all `## Cycle X.Y:` or `### Cycle X.Y:` headers
+- Compare to metadata value
+- If mismatch → VIOLATION: metadata inaccurate
+
+### 7. Empty-First Cycle Ordering
+
+**Warning:** First cycle in a phase tests empty/degenerate case
+
+**Check:** Does Cycle X.1 test empty input, no-op, or missing data?
+- If empty case requires special handling → acceptable
+- If empty case arises naturally from list processing → WARNING: reorder to test simplest happy path first
+
 ---
 
 ## Review Process

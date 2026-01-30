@@ -85,11 +85,32 @@ Use Task tool with:
 - Missing report file
 - Unexpected results mentioned
 
-**3.3 On success:**
+**3.3 Post-step tree check:**
+
+After agent returns success:
+```bash
+git status --porcelain
+```
+- If clean: proceed
+- If dirty: STOP, report "Step N left uncommitted changes" with file list
+- Do NOT clean up on behalf of the step — escalate
+
+**3.4 Phase boundary check:**
+
+If the completed step is the last cycle of a phase:
+- Delegate functional review to sonnet:
+  "Review implementations from Phase N against design at [design-path].
+   Check for stub implementations, hardcoded values, missing I/O integration.
+   Write report to plans/{name}/reports/phase-{N}-functional-review.md
+   Return: 'FUNCTIONAL: [summary]' or 'STUBS_FOUND: [list of stubs]'"
+- If STUBS_FOUND: STOP orchestration, report to user
+- If FUNCTIONAL: Continue to next phase
+
+**3.5 On success:**
 - Log step completion
 - Continue to next step
 
-**3.4 On failure:**
+**3.6 On failure:**
 - Read error report
 - Determine escalation level
 - Escalate according to orchestrator plan
@@ -98,7 +119,14 @@ Use Task tool with:
 
 **Escalation levels (from orchestrator metadata):**
 
-**Level 1: Haiku → Sonnet**
+**Level 1: Haiku → Sonnet (Refactor Agent)**
+- Triggers: Quality check warnings from TDD cycles
+- Action: Delegate to refactor agent (sonnet) for evaluation and execution
+- Refactor agent evaluates severity and handles or escalates to opus
+- If refactor agent fixes: Resume execution
+- If refactor agent escalates: Route to opus or user as appropriate
+
+**Level 1b: Haiku → Sonnet (Diagnostic)**
 - Triggers: Unexpected file states, permission errors, script execution failures
 - Action: Delegate diagnostic and fix to sonnet task agent
 - If sonnet fixes: Resume execution

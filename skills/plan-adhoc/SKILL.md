@@ -545,6 +545,7 @@ Default behavior if omitted:
 - Assigning semantic analysis tasks to haiku
 - Leaving design decisions for "during execution"
 - Vague success criteria ("analysis complete" vs "analysis has 6 sections with line numbers")
+- Writing success criteria that only check structure ("file exists", "exit code 0") when the step should produce functional output. Verify content/behavior, not just existence.
 - Missing error escalation triggers
 - Conflating execution logs and analysis artifacts
 - Using relative paths instead of absolute

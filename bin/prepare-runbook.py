@@ -390,14 +390,47 @@ def generate_cycle_file(cycle, runbook_path):
 """
 
 
-def generate_default_orchestrator(runbook_name):
-    """Generate default orchestrator instructions."""
-    return f"""# Orchestrator Plan: {runbook_name}
+def generate_default_orchestrator(runbook_name, cycles=None):
+    """Generate default orchestrator instructions.
+
+    Args:
+        runbook_name: Name of the runbook
+        cycles: Optional list of cycles (for TDD runbooks) to detect phase boundaries
+
+    Returns:
+        Orchestrator plan content with phase boundary markers
+    """
+    content = f"""# Orchestrator Plan: {runbook_name}
 
 Execute steps sequentially using {runbook_name}-task agent.
 
 Stop on error and escalate to sonnet for diagnostic/fix.
 """
+
+    # Add phase boundary markers for TDD runbooks
+    if cycles:
+        content += "\n## Step Execution Order\n\n"
+        prev_major = None
+        for i, cycle in enumerate(sorted(cycles, key=lambda c: (c['major'], c['minor']))):
+            step_num = f"{cycle['major']}-{cycle['minor']}"
+
+            # Check if this is a phase boundary (last cycle of a phase)
+            is_phase_boundary = False
+            if i + 1 < len(cycles):
+                next_cycle = sorted(cycles, key=lambda c: (c['major'], c['minor']))[i + 1]
+                if next_cycle['major'] != cycle['major']:
+                    is_phase_boundary = True
+            elif i + 1 == len(cycles):
+                # Last cycle is also a phase boundary
+                is_phase_boundary = True
+
+            if is_phase_boundary:
+                content += f"## Step {step_num} (Cycle {cycle['number']}) — PHASE_BOUNDARY\n"
+                content += f"[Last cycle of phase {cycle['major']}. Insert functional review checkpoint before Phase {cycle['major'] + 1}.]\n\n"
+            else:
+                content += f"## Step {step_num} (Cycle {cycle['number']})\n\n"
+
+    return content
 
 
 def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_dir, orchestrator_path, metadata, cycles=None):
@@ -462,7 +495,7 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     if sections['orchestrator']:
         orchestrator_content = sections['orchestrator']
     else:
-        orchestrator_content = generate_default_orchestrator(runbook_name)
+        orchestrator_content = generate_default_orchestrator(runbook_name, cycles)
 
     orchestrator_path.write_text(orchestrator_content)
     print(f"✓ Created orchestrator: {orchestrator_path}")

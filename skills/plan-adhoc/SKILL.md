@@ -194,7 +194,7 @@ Task(
 **Revision Loop:**
 1. If assessment is `NEEDS_REVISION`:
    - Read review report
-   - Address critical and major issues
+   - **REQUIRED:** Apply all high and medium priority fixes
    - Update runbook with fixes
    - Delegate re-review if changes are significant
    - Iterate until assessment is `READY`
@@ -202,6 +202,11 @@ Task(
    - Proceed to Point 4 (artifact preparation)
 3. If assessment is `error`:
    - Escalate to user
+
+**Fix Application Policy:**
+- High and medium priority issues MUST be fixed before proceeding
+- Low priority issues are optional (document as future improvements if skipped)
+- Never proceed with unaddressed high/medium issues
 
 ---
 

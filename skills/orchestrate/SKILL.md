@@ -95,16 +95,36 @@ git status --porcelain
 - If dirty: STOP, report "Step N left uncommitted changes" with file list
 - Do NOT clean up on behalf of the step — escalate
 
-**3.4 Phase boundary check:**
+**3.4 Checkpoint execution (phase boundaries and vet points):**
 
-If the completed step is the last cycle of a phase:
-- Delegate functional review to sonnet:
-  "Review implementations from Phase N against design at [design-path].
-   Check for stub implementations, hardcoded values, missing I/O integration.
-   Write report to plans/{name}/reports/phase-{N}-functional-review.md
-   Return: 'FUNCTIONAL: [summary]' or 'STUBS_FOUND: [list of stubs]'"
-- If STUBS_FOUND: STOP orchestration, report to user
-- If FUNCTIONAL: Continue to next phase
+If the step indicates a checkpoint (phase boundary or explicit vet point):
+
+**Three-step checkpoint process:**
+
+1. **Fix:** Get tests passing
+   - Delegate to sonnet quiet-task: "Run `just dev` or equivalent. Fix any failures. Commit when passing."
+   - If failures persist: STOP orchestration, report to user
+
+2. **Vet:** Quality review
+   - Delegate to sonnet quiet-task: "Use `/vet` to review accumulated changes. Write review to plans/{name}/reports/checkpoint-{N}-vet.md"
+   - **REQUIRED:** Apply all high and medium priority fixes found by vet
+   - Delegate fixes to sonnet quiet-task: "Apply high/medium priority fixes from vet report. Commit when complete."
+   - Low-priority issues: Optional (can defer)
+   - **NEVER** proceed with unaddressed high/medium issues
+
+3. **Functional review:** Behavioral completeness
+   - Delegate to sonnet quiet-task:
+     "Review implementations from Phase N against design at [design-path].
+      Check for stub implementations, hardcoded values, missing I/O integration.
+      Write report to plans/{name}/reports/phase-{N}-functional-review.md
+      Return: 'FUNCTIONAL: [summary]' or 'STUBS_FOUND: [list of stubs]'"
+   - If STUBS_FOUND: STOP orchestration, report to user
+   - If FUNCTIONAL: Continue to next phase
+
+**Checkpoint triggers:**
+- Phase boundaries (mandatory)
+- Explicit checkpoint markers in runbook (if present)
+- After every N cycles (if specified in orchestrator plan)
 
 **3.5 On success:**
 - Log step completion

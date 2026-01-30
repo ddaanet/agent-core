@@ -367,9 +367,14 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
 3. **Handle review outcome:**
    - If PASS: Proceed to step 4
-   - If violations: Read report, STOP, show user
-   - User decides: apply fixes or approve anyway
-   - Do NOT auto-apply fixes (user judgment required)
+   - If violations found:
+     - Read review report
+     - **REQUIRED:** Apply all high and medium priority fixes
+     - Update runbook with corrections
+     - Re-run tdd-plan-reviewer if changes are significant
+     - Iterate until PASS or only low-priority issues remain
+   - Low-priority issues: Optional (document as future improvements if skipped)
+   - **NEVER** proceed with unaddressed high/medium violations
 
 4. **Check prepare-runbook.py:**
    - Verify exists at `agent-core/bin/prepare-runbook.py`

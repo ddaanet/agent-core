@@ -1,5 +1,5 @@
 ---
-description: Create git commits for completed work with short, dense, structured messages
+description: Create git commits for completed work with short, dense, structured messages. Use --context flag when you already know what changed from conversation.
 allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
 ---
@@ -7,6 +7,8 @@ user-invocable: true
 # Commit Skill
 
 Create a git commit for the current changes using a consistent, high-quality commit message format.
+
+**Note:** This skill does not update session.md. Run `/handoff` separately before committing if session context needs updating.
 
 ## When to Use
 
@@ -29,20 +31,24 @@ Create a git commit for the current changes using a consistent, high-quality com
 - Completing a refactoring pass (not mid-refactor)
 - Updating documentation (related doc changes together)
 
-## Validation Flags
+## Flags
 
-Control pre-commit validation level with optional flags:
+**Context mode:**
+- `--context` - Skip git discovery (status/diff) when you already know what changed from conversation
 
-| Flag | Validation | Use Case |
-|------|------------|----------|
-| (none) | `just precommit` | Default - full validation |
-| `--test` | `just test` | TDD cycle commits before lint |
-| `--lint` | `just lint` | Post-lint, pre-complexity fixes |
+**Validation level:**
+- (none) - `just precommit` (default, full validation)
+- `--test` - `just test` only (TDD cycle commits before lint)
+- `--lint` - `just lint` only (post-lint, pre-complexity fixes)
 
-**Usage:**
-- `/commit` - full validation (default)
-- `/commit --test` - test only
-- `/commit --lint` - lint only
+**Gitmoji:**
+- `--no-gitmoji` - Skip gitmoji selection
+
+**Usage examples:**
+- `/commit` - full discovery + validation + gitmoji
+- `/commit --context` - skip discovery, use conversation context
+- `/commit --test` - TDD GREEN phase commit (test-only validation)
+- `/commit --context --no-gitmoji` - skip discovery and gitmoji
 
 **TDD workflow pattern:**
 - After GREEN phase: `/commit --test` for WIP commit
@@ -90,47 +96,77 @@ Fix authentication bug in login flow
 
 ## Execution Steps
 
-**Note:** This skill does not update session.md. Run `/handoff` separately before committing if session context needs updating.
+### 1. Pre-commit validation + discovery
 
-1. **Pre-commit + discovery** (single bash block, fail fast)
-   ```bash
-   # Run validation and discover staged/unstaged changes
-   exec 2>&1
-   set -xeuo pipefail
-   just precommit  # or: just test (--test) / just lint (--lint)
-   git status -vv
-   ```
-   - Intent comment required as first line (before exec)
-   - Precommit first: if it fails, no verbose output bloat
-   - Shows: file status + staged diffs + unstaged diffs
-   - Note what's already staged vs unstaged (preserve staging state)
-   - ERROR if working tree is clean
+**Non-context mode** (default):
+```bash
+# Run validation and discover staged/unstaged changes
+exec 2>&1
+set -xeuo pipefail
+just precommit  # or: just test (--test) / just lint (--lint)
+git status -vv
+```
+- Intent comment required as first line (before exec)
+- Precommit first: if it fails, no verbose output bloat
+- Shows: file status + staged diffs + unstaged diffs
+- Note what's already staged vs unstaged (preserve staging state)
+- ERROR if working tree is clean
 
-2. **Draft commit message**
-   - Based on discovery output, follow "short, dense, structured" format
+**Context mode** (`--context` flag):
+```bash
+# Run validation only (skip discovery)
+exec 2>&1
+set -xeuo pipefail
+just precommit  # or: just test (--test) / just lint (--lint)
+```
+- Skip `git status -vv` - you already know what changed from conversation
+- ERROR if you don't have clear context about what changed
+- Use when you just wrote/edited files and know the changes
 
-3. **Select gitmoji**
-   - Invoke `/gitmoji` skill to select appropriate emoji
-   - Prefix commit message title with selected gitmoji
-   - Skip if `--no-gitmoji` flag provided
+### 2. Draft commit message
 
-4. **Stage, commit, verify** (single bash block)
-   ```bash
-   # Stage specific files, commit with message, verify result
-   exec 2>&1
-   set -xeuo pipefail
-   git add file1.txt file2.txt
-   git commit -m "🐛 Fix authentication bug
+- Based on discovery output (non-context) or conversation context (context mode)
+- Follow "short, dense, structured" format
+- Ensure title is imperative mood, 50-72 chars
+- Add bullet details with quantifiable facts
 
-   - Detail 1
-   - Detail 2"
-   git status
-   ```
-   - Intent comment required as first line (before exec)
-   - Stage specific files only (not `git add -A`)
-   - Preserve already-staged files
-   - Include `agents/session.md` and `plans/` files if they have uncommitted changes
-   - Do NOT commit secrets (.env, credentials.json, etc.)
+### 3. Select gitmoji
+
+**Read references/gitmoji-index.txt** (~78 entries, format: `emoji - name - description`).
+
+Analyze commit message semantics (type, scope, impact). Select most specific emoji matching primary intent:
+- 🐛 bug - Fix a bug
+- ✨ sparkles - Introduce new features
+- 📝 memo - Add or update documentation
+- ♻️ recycle - Refactor code
+- ⚡️ zap - Improve performance
+- 🔥 fire - Remove code or files
+- 🎨 art - Improve structure / format of the code
+- 🤖 robot - Add or update agent skills, instructions, or guidance
+- (see full index for all 78 options)
+
+Prefix commit title with selected emoji.
+
+**Skip if `--no-gitmoji` flag provided.**
+
+### 4. Stage, commit, verify
+
+```bash
+# Stage specific files, commit with message, verify result
+exec 2>&1
+set -xeuo pipefail
+git add file1.txt file2.txt
+git commit -m "🐛 Fix authentication bug
+
+- Detail 1
+- Detail 2"
+git status
+```
+- Intent comment required as first line (before exec)
+- Stage specific files only (not `git add -A`)
+- Preserve already-staged files
+- **Include `agents/session.md` and `plans/` files if they have uncommitted changes**
+- Do NOT commit secrets (.env, credentials.json, etc.)
 
 ## Critical Constraints
 
@@ -140,12 +176,13 @@ Fix authentication bug in login flow
 - **No secrets**: Do not commit .env, credentials, keys, tokens, etc.
 - **Clean tree check**: Must error explicitly if nothing to commit
 - **Token-efficient bash**: When running 3+ sequential git commands, use `/token-efficient-bash` skill pattern for 40-60% token savings
+- **Context mode requirement**: When using `--context`, error if you don't have clear context about what changed
 
-## Context Gathering
+## Context Gathering (Non-Context Mode)
 
 **Run these commands:**
 - `git status` - See what files changed
-- `git diff HEAD` - See the actual changes
+- `git diff HEAD` - See the actual changes (note: `git diff HEAD` separately - staged/unstaged diffs shown in `git status -vv` output)
 - `git branch --show-current` - Current branch name
 
 **Do NOT run:**

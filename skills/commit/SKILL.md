@@ -151,6 +151,8 @@ Prefix commit title with selected emoji.
 
 ### 4. Stage, commit, verify
 
+Use literal newlines inside double-quoted strings for multiline commit messages:
+
 ```bash
 # Stage specific files, commit with message, verify result
 exec 2>&1
@@ -162,6 +164,8 @@ git commit -m "🐛 Fix authentication bug
 - Detail 2"
 git status
 ```
+
+**Guidelines:**
 - Intent comment required as first line (before exec)
 - Stage specific files only (not `git add -A`)
 - Preserve already-staged files
@@ -170,7 +174,7 @@ git status
 
 ## Critical Constraints
 
-- **Multi-line quoted strings**: Use `git commit -m "multi\nline"` format, NOT heredocs
+- **Multi-line commit messages**: Use literal newlines in double quotes. Do NOT use `\n` (backslash-n is not interpreted by bash)
 - **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes (exception: token-efficient bash pattern - see `/token-efficient-bash` skill)
 - **Explicit errors**: If anything fails, report it clearly and stop
 - **No secrets**: Do not commit .env, credentials, keys, tokens, etc.

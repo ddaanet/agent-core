@@ -2,7 +2,7 @@
 name: plan-tdd
 description: Create TDD runbook with RED/GREEN/REFACTOR cycles from design document
 model: sonnet
-allowed-tools: Task, Read, Write, Bash(mkdir:*, agent-core/bin/prepare-runbook.py)
+allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
 requires:
   - Design document from /design (TDD mode)
   - CLAUDE.md for project conventions (if exists)
@@ -50,8 +50,8 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 
 **CRITICAL:** After runbook generation and review:
 1. If violations found: Apply fixes to runbook
-2. **MUST run prepare-runbook.py** before /orchestrate - generates step files and execution artifacts
-3. Do NOT skip prepare-runbook.py - /orchestrate requires its output
+2. prepare-runbook.py runs **automatically** (Phase 5 step 5) — no manual invocation needed
+3. Skill auto-commits, hands off, and copies `/orchestrate {name}` to clipboard
 
 **Note:** /plan-tdd now includes automatic delegation to tdd-plan-reviewer agent for prescriptive code detection.
 
@@ -384,41 +384,31 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
    - Low-priority issues: Optional (document as future improvements if skipped)
    - **NEVER** proceed with unaddressed high/medium violations
 
-4. **Check prepare-runbook.py:**
-   - Verify exists at `agent-core/bin/prepare-runbook.py`
-   - If not found: WARNING (not fatal)
-   - Simulate parsing: extract cycles, Common Context
+4. **Revalidate dependencies:** Run topological sort again
 
-5. **Revalidate dependencies:** Run topological sort again
-
-6. **Generate success report:**
-
-```markdown
-TDD runbook created and reviewed successfully!
-
-**Location**: {path}
-**Cycles**: {count}
-**Dependencies**: {structure}
-**Review**: Completed by tdd-plan-reviewer agent
-
-**Next steps:**
-1. **MANDATORY**: Run prepare-runbook.py to generate execution artifacts
+5. **Run prepare-runbook.py** (automated, with sandbox bypass):
    ```bash
-   agent-core/bin/prepare-runbook.py {path}
+   agent-core/bin/prepare-runbook.py plans/{name}/runbook.md
+   # MUST use dangerouslyDisableSandbox: true (writes to .claude/agents/)
    ```
-2. Execute with /orchestrate (requires prepare-runbook.py output)
-3. Commit: Use /commit or /gitmoji + /commit
+   - If script fails: STOP and report error to user
 
-**CRITICAL:**
-- Do NOT skip prepare-runbook.py - /orchestrate requires step files
-- If review found violations and you applied fixes, run prepare-runbook.py after fixing
-- Follow stop conditions strictly during execution
-- Document unexpected results in cycle notes
-```
+6. **Copy orchestrate command to clipboard:**
+   ```bash
+   echo -n "/orchestrate {name}" | pbcopy
+   ```
 
-7. **Report to user:** Display success report with path and next steps
+7. **Tail-call `/handoff --commit`**
 
-**Outputs:** Success report displayed, runbook ready
+   As the **final action** of this skill, invoke `/handoff --commit`. This:
+   - Hands off session context (marks planning complete, adds orchestration as pending)
+   - Then tail-calls `/commit` which commits everything and displays the next pending task
+
+   The next pending task (written by handoff) will instruct: "Restart session, switch to haiku model, paste `/orchestrate {name}` from clipboard."
+
+   **Why restart:** prepare-runbook.py creates a new agent in `.claude/agents/`. Claude Code only discovers agents at session start.
+
+**Outputs:** Artifacts created, clipboard loaded, then handoff + commit via tail-call chain
 
 ---
 
@@ -544,26 +534,28 @@ Checkpoints are verification points inserted between phases. They validate accum
 
 ### prepare-runbook.py Processing
 
-After /plan-tdd generates runbook:
+After /plan-tdd generates and reviews runbook, prepare-runbook.py runs **automatically**:
 
-1. User runs: `agent-core/bin/prepare-runbook.py plans/{name}/runbook.md`
-2. Script detects `type: tdd`, uses `agent-core/agents/tdd-task.md` baseline
-3. Script generates:
+1. Script detects `type: tdd`, uses `agent-core/agents/tdd-task.md` baseline
+2. Script generates:
    - `.claude/agents/{name}-task.md` (baseline + Common Context)
-   - `plans/{name}/steps/cycle-{X}-{Y}.md` (individual cycles)
+   - `plans/{name}/steps/step-{X}-{Y}.md` (individual cycles)
    - `plans/{name}/orchestrator-plan.md` (execution index)
-4. Orchestrator executes cycles with plan-specific agent, isolated context, stop conditions
+3. Skill commits artifacts, hands off session, copies orchestrate command to clipboard
+4. User restarts session, switches to haiku, pastes `/orchestrate {name}`
 
 ### Workflow After Generation
 
 ```
-/plan-tdd → runbook.md
+/plan-tdd → runbook.md → tdd-plan-reviewer → fixes → prepare-runbook.py (auto) → pbcopy
 ↓
-User reviews
+tail: /handoff --commit → updates session.md
 ↓
-prepare-runbook.py → Execution artifacts
+tail: /commit → commits everything → displays next pending task
 ↓
-/orchestrate → Automated execution (or manual cycle-by-cycle)
+User restarts session, switches to haiku, pastes from clipboard
+↓
+/orchestrate → Automated execution
 ↓
 Feature implemented with test coverage
 ```

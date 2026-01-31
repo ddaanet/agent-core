@@ -1,6 +1,6 @@
 ---
 description: Create git commits for completed work with short, dense, structured messages. Use --context flag when you already know what changed from conversation.
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
+allowed-tools: Read, Skill, Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
 ---
 
@@ -181,6 +181,23 @@ git status
 - **Clean tree check**: Must error explicitly if nothing to commit
 - **Token-efficient bash**: When running 3+ sequential git commands, use `/token-efficient-bash` skill pattern for 40-60% token savings
 - **Context mode requirement**: When using `--context`, error if you don't have clear context about what changed
+
+## Post-Commit: Display Next Task
+
+**This applies to ALL commits**, whether invoked directly or via tail-call from `/handoff --commit`.
+
+After a successful commit, read `agents/session.md` and check for pending tasks (first `- [ ]` item).
+
+**If pending tasks exist** — display the next one:
+```
+Committed: <commit subject line>
+
+Next: <first pending task description>
+```
+
+**If no pending tasks** — tail-call `/next` to find work from broader context (todo.md, etc.).
+
+**Why:** This enables tail-call composition. When `/commit` is tail-called from `/handoff --commit` (which is tail-called from `/plan-tdd` or `/plan-adhoc`), the user sees the next action without manual inspection. For post-planning workflows, this displays "Restart session, switch to haiku model, paste `/orchestrate {name}` from clipboard." When all pending work is done, `/next` finds the next thing.
 
 ## Context Gathering (Non-Context Mode)
 

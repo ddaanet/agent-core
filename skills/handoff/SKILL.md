@@ -1,6 +1,8 @@
 ---
 name: handoff
 description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation. NOT for Haiku model orchestrators - use /handoff-haiku instead.
+allowed-tools: Read, Write, Edit, Bash(wc:*), Skill
+user-invocable: true
 ---
 
 # Skill: handoff
@@ -11,6 +13,10 @@ Update session.md for agent handoff, preserving critical context for the next ag
 Standard (Sonnet)
 
 **CRITICAL:** This skill is for standard agent handoffs. If you are a Haiku orchestrator, use `/handoff-haiku` instead.
+
+## Flags
+
+- `--commit` — After completing handoff, tail-call `/commit` as the final action. Use when changes need committing after session handoff (e.g., post-planning workflows).
 
 ## Protocol
 
@@ -187,6 +193,18 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - Process Session Notes to extract learnings (anti-patterns, process improvements)
 - Append validated learnings to `agents/learnings.md`
 - Apply judgment that efficient model skipped
+
+## Tail-Call: --commit Flag
+
+**If `--commit` flag was provided:** As the **final action** of this skill, invoke `/commit` using the Skill tool.
+
+This is a tail-call — handoff is complete, and `/commit` takes over. The commit skill will:
+- Commit all staged/unstaged changes
+- Display the next pending task from session.md
+
+**If `--commit` flag was NOT provided:** Do not invoke `/commit`. End normally.
+
+**Why tail-calls work:** Skills terminate when another skill is invoked. A tail-call (invoking a skill as the very last action) is safe because the current skill was done anyway. This enables skill composition without the mid-execution termination problem.
 
 ## Additional Resources
 

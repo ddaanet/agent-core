@@ -9,13 +9,14 @@ The `/oneshot` skill auto-detects methodology and complexity, routing to appropr
 
 **TDD workflow** - Feature development with test-first methodology:
 - **Signals:** Test-first culture, user mentions "test/TDD/red-green", behavioral verification needed
-- **Route:** `/design` (TDD mode) → `/plan-tdd` → [tdd-plan-reviewer] → [apply fixes if needed] → **prepare-runbook.py** → `/orchestrate` → `/vet`
+- **Route:** `/design` (TDD mode) → `/plan-tdd` → [tdd-plan-reviewer] → [apply fixes] → prepare-runbook.py (auto) → tail: `/handoff --commit` → tail: `/commit` → restart → `/orchestrate` → `/vet`
 - **Review:** tdd-plan-reviewer agent checks for prescriptive code and RED/GREEN violations
-- **CRITICAL:** Must run prepare-runbook.py after review (and fixes) before `/orchestrate` - generates step files and execution artifacts
+- **Post-planning:** Automated via tail-call chain: prepare-runbook.py runs, orchestrate command copied to clipboard, then `/handoff --commit` → `/commit` → displays next pending task (restart instructions)
 
 **Oneshot workflow** - General implementation tasks:
 - **Signals:** Infrastructure, refactoring, prototyping, migrations, default case
-- **Route:** `/design` → `/plan-adhoc` → `/orchestrate` → `/vet`
+- **Route:** `/design` → `/plan-adhoc` → prepare-runbook.py (auto) → tail: `/handoff --commit` → tail: `/commit` → restart → `/orchestrate` → `/vet`
+- **Post-planning:** Automated via tail-call chain: prepare-runbook.py runs, orchestrate command copied to clipboard, then `/handoff --commit` → `/commit` → displays next pending task (restart instructions)
 - **Detailed guide:** `agent-core/agents/oneshot-workflow.md` (read when executing oneshot workflow)
 
 **Progressive discovery:** Don't preload all workflow documentation. Read detailed guides only when executing that specific workflow type. Use references as needed during execution.

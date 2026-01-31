@@ -1,6 +1,6 @@
 ---
 description: Create execution runbooks for weak orchestrator agents using 4-point planning process (oneshot workflow)
-allowed-tools: Task, Read, Write, Bash(mkdir:*, agent-core/bin/prepare-runbook.py)
+allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
 user-invocable: true
 ---
 
@@ -280,20 +280,6 @@ agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
 - Step files: `plans/<runbook-name>/steps/step-N.md` or `step-N-M.md`
 - Orchestrator plan: `plans/<runbook-name>/orchestrator-plan.md`
 
-**Script Output:**
-```
-✓ Created agent: .claude/agents/oauth2-auth-task.md
-✓ Created step: plans/oauth2-auth/steps/step-1.md
-✓ Created step: plans/oauth2-auth/steps/step-2.md
-✓ Created step: plans/oauth2-auth/steps/step-3.md
-✓ Created orchestrator: plans/oauth2-auth/orchestrator-plan.md
-
-Summary:
-  Runbook: oauth2-auth
-  Steps: 3
-  Model: haiku
-```
-
 **Runbook Format Requirements:**
 
 **Optional YAML frontmatter:**
@@ -321,6 +307,32 @@ model: sonnet      # Default model for plan-specific agent
 - Idempotent (re-runnable after runbook updates)
 - Consistent artifact structure
 - Plan-specific agent with cached context
+
+### 4.1: Automated Post-Processing
+
+**After prepare-runbook.py succeeds, perform these steps automatically.**
+
+**Step 1: Run prepare-runbook.py** with sandbox bypass:
+```bash
+agent-core/bin/prepare-runbook.py plans/{name}/runbook.md
+# MUST use dangerouslyDisableSandbox: true (writes to .claude/agents/)
+```
+- If script fails: STOP and report error to user
+
+**Step 2: Copy orchestrate command to clipboard:**
+```bash
+echo -n "/orchestrate {name}" | pbcopy
+```
+
+**Step 3: Tail-call `/handoff --commit`**
+
+As the **final action** of this skill, invoke `/handoff --commit`. This:
+- Hands off session context (marks planning complete, adds orchestration as pending)
+- Then tail-calls `/commit` which commits everything and displays the next pending task
+
+The next pending task (written by handoff) will instruct: "Restart session, switch to haiku model, paste `/orchestrate {name}` from clipboard."
+
+**Why restart:** prepare-runbook.py creates a new agent in `.claude/agents/`. Claude Code only discovers agents at session start.
 
 ---
 
@@ -600,12 +612,15 @@ These demonstrate the complete 4-point process in practice.
 
 **Workflow stages:**
 1. `/design` - Opus creates design document
-2. `/plan-adhoc` - Sonnet creates execution runbook (THIS SKILL)
-3. `/orchestrate` - Haiku executes runbook steps
-4. `/vet` - Review changes before commit
-5. Complete job
+2. `/plan-adhoc` - Sonnet creates execution runbook (THIS SKILL) → auto-runs prepare-runbook.py → tail-calls `/handoff --commit`
+3. `/handoff` updates session.md → tail-calls `/commit`
+4. `/commit` commits everything → displays next pending task (restart instructions)
+5. User restarts session, switches to haiku, pastes `/orchestrate {name}` from clipboard
+6. `/orchestrate` - Haiku executes runbook steps
+7. `/vet` - Review changes before commit
+8. Complete job
 
 **Handoff:**
 - Input: Design document from `/design` skill
-- Output: Ready-to-execute artifacts (agent, steps, orchestrator plan)
-- Next: User invokes `/orchestrate` to execute runbook
+- Output: Ready-to-execute artifacts (agent, steps, orchestrator plan), committed and handed off
+- Next: User restarts session and pastes orchestrate command from clipboard

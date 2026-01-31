@@ -93,9 +93,14 @@ After agent returns success:
 ```bash
 git status --porcelain
 ```
-- If clean: proceed
-- If dirty: STOP, report "Step N left uncommitted changes" with file list
-- Do NOT clean up on behalf of the step — escalate
+- If clean (no output): proceed to next step
+- If ANY output: **STOP orchestration immediately**
+  - Report: "Step N left uncommitted changes: [file list]"
+  - Do NOT proceed regardless of whether changes look expected
+  - Do NOT clean up on behalf of the step
+  - Escalate to user
+
+**There are no exceptions.** Every step must leave a clean tree. If a step generates output files, the step itself must commit them. Report files, artifacts, and any other changes must be committed by the step agent before returning success.
 
 **3.4 Checkpoint execution (tiered approach):**
 
@@ -363,11 +368,6 @@ Next: Run `/vet` to review changes before committing."
 - Action: Check task status with TaskOutput tool
 - If hanging: Kill task and escalate to user
 - If still running: Wait and check periodically
-
-**Scenario: Step succeeds but git shows unexpected changes**
-- Action: Continue execution (don't inspect changes during orchestration)
-- Reason: `/vet` skill reviews changes after execution
-- Trust agent unless it reports error
 
 ## Integration with Oneshot Workflow
 

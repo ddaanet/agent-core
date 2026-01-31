@@ -32,6 +32,7 @@ Example (TDD):
 import sys
 import re
 import os
+import subprocess
 from pathlib import Path
 
 
@@ -472,6 +473,9 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     if sections['common_context']:
         agent_content += "\n---\n# Runbook-Specific Context\n\n" + sections['common_context']
 
+    # Add clean-tree contract for orchestrated execution
+    agent_content += "\n\n---\n\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
+
     agent_path.write_text(agent_content)
     print(f"✓ Created agent: {agent_path}")
 
@@ -514,6 +518,14 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     else:
         print(f"  Steps: {len(sections['steps'])}")
     print(f"  Model: {model}")
+
+    # Stage all generated artifacts
+    paths_to_stage = [str(agent_path), str(steps_dir), str(orchestrator_path)]
+    result = subprocess.run(['git', 'add'] + paths_to_stage, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"⚠ git add failed: {result.stderr.strip()}")
+        return False
+    print(f"✓ Staged artifacts for commit")
 
     return True
 

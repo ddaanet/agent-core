@@ -112,6 +112,19 @@ git status -vv
 - Note what's already staged vs unstaged (preserve staging state)
 - ERROR if working tree is clean
 
+### 1b. Check submodules
+
+If `git status` shows modified submodules (e.g., `M agent-core`):
+
+1. Enter submodule: check `git status` inside it
+2. If submodule has uncommitted changes: commit them first with a message generated from the submodule's own diff, following standard commit message style. Do NOT prefix the message with the submodule name — the commit lives inside the submodule repo where it would be redundant
+3. Stage the submodule pointer in parent: `git add <submodule-path>`
+4. Continue with parent commit
+
+**Scope:** Single-level submodules only. Nested submodules not used in this repo.
+
+**Why:** Submodule pointer updates are invisible unless the submodule is committed first. A parent commit with a dirty submodule creates sync issues.
+
 **Context mode** (`--context` flag):
 ```bash
 # Run validation only (skip discovery)
@@ -169,7 +182,7 @@ git status
 - Intent comment required as first line (before exec)
 - Stage specific files only (not `git add -A`)
 - Preserve already-staged files
-- **Include `agents/session.md` and `plans/` files if they have uncommitted changes**
+- **Include `agents/session.md`, `plans/` files, and submodule pointer updates if they have uncommitted changes**
 - Do NOT commit secrets (.env, credentials.json, etc.)
 
 ## Critical Constraints

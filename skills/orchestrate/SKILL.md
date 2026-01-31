@@ -233,9 +233,31 @@ Current status: Blocked on Step 3
 ### 6. Completion
 
 **When all steps successful:**
+
+**For TDD runbooks** (runbook frontmatter has `type: tdd`):
+1. Delegate to vet-fix-agent for quality review
+2. After vet completes, delegate to review-tdd-process agent for process analysis
+3. Report overall success with links to both reports
+4. Next action: `/commit` to commit changes
+
+**TDD completion delegation:**
+```
+Task(subagent_type="vet-fix-agent",
+     prompt="Review all changes from TDD execution. Write report to plans/<name>/reports/vet-review.md",
+     description="Vet review of TDD execution")
+
+# After vet completes:
+Task(subagent_type="review-tdd-process",
+     prompt="Analyze TDD execution for runbook: plans/<name>/runbook.md
+             Commit range: <start-commit>..<end-commit>
+             Write report to: plans/<name>/reports/tdd-process-review.md",
+     description="TDD process quality analysis")
+```
+
+**For general runbooks:**
 - Report overall success
 - List created artifacts
-- Suggest next action (e.g., delegate to vet-fix-agent to review changes, `/commit` to commit)
+- Suggest next action: delegate to vet-fix-agent to review changes, then `/commit`
 
 **When blocked:**
 - Report which step failed
@@ -369,19 +391,28 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 - If hanging: Kill task and escalate to user
 - If still running: Wait and check periodically
 
-## Integration with Oneshot Workflow
+## Integration with Workflows
 
-**Workflow stages:**
+**Oneshot workflow:**
 1. `/design` - Opus creates design document
 2. `/plan-adhoc` - Sonnet creates runbook and artifacts
 3. `/orchestrate` - Haiku executes runbook (THIS SKILL)
 4. vet-fix-agent - Review and fix changes before commit
 5. Complete job
 
+**TDD workflow:**
+1. `/design` (TDD mode) - Opus creates design with TDD sections
+2. `/plan-tdd` - Sonnet creates TDD runbook and artifacts
+3. `/orchestrate` - Haiku executes TDD cycles (THIS SKILL)
+4. vet-fix-agent - Review and fix changes
+5. review-tdd-process - Analyze TDD process quality
+6. Complete job
+
 **Handoff:**
-- Input: Prepared artifacts from `/plan-adhoc`
+- Input: Prepared artifacts from `/plan-adhoc` or `/plan-tdd`
 - Output: Executed steps with reports
-- Next: Delegate to vet-fix-agent to review and fix changes
+- Next (oneshot): Delegate to vet-fix-agent to review and fix changes
+- Next (TDD): Delegate to vet-fix-agent, then review-tdd-process for process analysis
 
 ## References
 

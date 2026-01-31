@@ -11,19 +11,21 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 ### Script-First Evaluation
 
-**Rule:** Before delegating a task to an agent, evaluate if it can be performed by a simple script.
+**Rule:** Before delegating a task to an agent, evaluate if it can be performed by a simple script. Before writing an ad-hoc script, check if a project recipe already handles the operation (`just --list`).
 
 **Evaluation criteria:**
-- **≤25 lines**: Execute directly with Bash - don't delegate to agent
-  - Examples: File moves, directory creation, symlinks, simple diffs, basic git operations
+- **Project recipe exists** (`just <recipe>`, project script): Use it — always preferred over ad-hoc commands
+- **≤25 lines, no recipe**: Execute directly with Bash - don't delegate to agent
+  - Examples: File moves, directory creation, simple diffs, basic git operations
 - **25-100 lines**: Consider delegating with prose description, or write script if logic is straightforward
 - **>100 lines or complex logic**: Delegate to agent with clear requirements
 
-**Critical:** Simple file operations (mv, cp, ln, mkdir, diff) should NEVER be delegated to agents. Execute them directly.
+**Critical:** Simple file operations (mv, cp, ln, mkdir, diff) should NEVER be delegated to agents. But check for project recipes first — e.g., use `just sync-to-parent` instead of manual `ln -sf` commands.
 
 **Examples:**
-- ❌ Wrong: Delegate "move files and create symlinks" to haiku agent
-- ✅ Correct: Execute `mkdir -p target/ && mv source/* target/ && ln -s ../target source/`
+- ❌ Wrong: Delegate "create symlinks" to haiku agent
+- ❌ Wrong: `ln -sf agent-core/agents/foo.md .claude/agents/foo.md` (when `just sync-to-parent` exists)
+- ✅ Correct: `just sync-to-parent` (project recipe handles symlink management)
 
 **Why this matters:**
 - Agent invocations have overhead (context, prompting, potential errors)

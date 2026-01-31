@@ -20,40 +20,77 @@ Create detailed execution runbooks suitable for weak orchestrator agents using a
 - Ad-hoc oneshot work (vs iterative feature development)
 
 **Do NOT use when:**
-- Task is simple and can be executed directly
 - Task requires user input or interactive decisions
 - Plan already exists and just needs execution
 - Feature development requiring TDD approach (use `/plan-tdd` when available)
 
-## Point 0: Orchestration Assessment
+## Three-Tier Assessment
 
-**Before creating a runbook, evaluate if orchestration overhead is justified.**
+**Evaluate implementation complexity before proceeding. Assessment runs first, before any other work.**
 
-### Implement Directly If:
-- Design is complete (no open decisions)
-- All components straightforward (<100 lines each)
-- Can implement + test in single session
-- No complex coordination needed
-- Total work: ~4-6 files or less
+### Assessment Criteria
 
-**Action:** Implement directly, then invoke `/vet` for review.
+Analyze the task and produce explicit assessment output:
 
-### Create Runbook If:
+```
+**Tier Assessment:**
+- Files affected: ~N
+- Open decisions: none / [list]
+- Components: N (sequential / parallel / mixed)
+- Model requirements: single / multiple
+- Session span: single / multi
+
+**Tier: [1/2/3] — [Direct Implementation / Lightweight Delegation / Full Runbook]**
+**Rationale:** [1-2 sentences]
+```
+
+When uncertain between tiers, prefer the lower tier (less overhead). Ask user only if genuinely ambiguous.
+
+### Tier 1: Direct Implementation
+
+**Criteria:**
+- Design complete (no open decisions)
+- All edits straightforward (<100 lines each)
+- Total scope: <6 files
+- Single session, single model
+- No parallelization benefit
+
+**Sequence:**
+1. Implement changes directly using Read/Write/Edit tools
+2. Delegate to vet agent for review
+3. Apply high/medium priority fixes
+4. Tail-call `/handoff --commit`
+
+### Tier 2: Lightweight Delegation
+
+**Criteria:**
+- Design complete, scope moderate (6-15 files or 2-4 logical components)
+- Work benefits from agent isolation (context management) but not full orchestration
+- Components are sequential (no parallelization benefit)
+- No model switching needed
+
+**Sequence:**
+1. Delegate work via `Task(subagent_type="quiet-task", model="haiku", prompt="...")` with relevant context from design included in prompt (file paths, design decisions, conventions). Single agent for cohesive work; break into 2-4 components only if logically distinct.
+2. After delegation complete: delegate to vet agent for review
+3. Apply fixes
+4. Tail-call `/handoff --commit`
+
+**Key distinction from Tier 3:** No prepare-runbook.py, no orchestrator plan, no plan-specific agent. The planner acts as ad-hoc orchestrator, delegating directly via Task tool.
+
+### Tier 3: Full Runbook
+
+**Criteria:**
 - Multiple independent steps (parallelizable)
-- Steps need different models (haiku execution, sonnet analysis)
-- Long-running tasks benefit from isolation
-- Complex error recovery scenarios
-- Execution will span multiple sessions
-- Total work: >6 files or complex coordination
+- Steps need different models
+- Long-running / multi-session execution
+- Complex error recovery
+- >15 files or complex coordination
 
-**Action:** Proceed with 4-point planning process below.
+**Sequence:** 4-point process (see below) — existing pipeline unchanged.
 
-### When Uncertain:
-Ask user: "This task can be implemented directly (~N files, clear design). Create runbook for orchestration, or implement directly?"
+## 4-Point Planning Process (Tier 3 Only)
 
-## 4-Point Planning Process
-
-**Use this process only after Point 0 determines orchestration is needed.**
+**Use this process only after assessment determines Tier 3 is needed.**
 
 ### Point 0.5: Discover Codebase Structure (REQUIRED)
 

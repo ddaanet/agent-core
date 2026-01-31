@@ -39,7 +39,6 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 **Do NOT use when:**
 - Design is exploratory or requires iteration
 - Implementation approach is unclear
-- Feature is simple without TDD overhead
 - Use /plan-adhoc for general runbooks
 
 ### Workflow Integration
@@ -59,7 +58,50 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 
 ## Process: Five-Phase Execution (with Review)
 
-### Phase 1: Intake
+### Phase 0: Tier Assessment
+
+**Objective:** Evaluate implementation complexity before proceeding.
+
+**Actions:**
+
+Analyze the task and produce explicit assessment output:
+
+```
+**Tier Assessment:**
+- Files affected: ~N
+- Open decisions: none / [list]
+- Cycles estimated: ~N (rough count from design requirements/phases)
+- Model requirements: single / multiple
+- Session span: single / multi
+
+**Tier: [1/2/3] — [Direct TDD / Lightweight TDD / Full Runbook]**
+**Rationale:** [1-2 sentences]
+```
+
+**Cycle estimation (rough):** Scan design's requirements/phases sections — count major behavioral increments without full Phase 2-3 decomposition.
+
+When uncertain between tiers, prefer the lower tier (less overhead). Ask user only if genuinely ambiguous.
+
+**Tier 1: Direct TDD** (~1-3 cycles estimated, single test file, single source file)
+- Write tests and implementation directly (RED/GREEN discipline still applies)
+- Delegate to vet agent for review
+- Apply fixes, tail-call `/handoff --commit`
+
+**Tier 2: Lightweight TDD** (~4-10 cycles estimated, 2-3 test files)
+- Plan cycle descriptions (lightweight — no full runbook format)
+- For each cycle: delegate via `Task(subagent_type="tdd-task", model="haiku", prompt="...")` with context included in prompt (file paths, design decisions, project conventions, stop conditions specific to this feature)
+- Intermediate checkpoints: every 3-5 delegated cycles, run tests and review accumulated changes
+- Delegate to vet agent for final review
+- Apply fixes, tail-call `/handoff --commit`
+
+**Tier 3: Full Runbook** (>10 cycles estimated, multiple phases, cross-component dependencies)
+- Proceed to Phase 1-5 below
+
+**Output:** Tier decision with rationale.
+
+---
+
+### Phase 1: Intake (Tier 3 Only)
 
 **Objective:** Load design and project conventions.
 
@@ -80,7 +122,7 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 
 ---
 
-### Phase 2: Analysis
+### Phase 2: Analysis (Tier 3 Only)
 
 **Objective:** Extract feature info and validate completeness.
 
@@ -121,7 +163,7 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 
 ---
 
-### Phase 3: Cycle Planning
+### Phase 3: Cycle Planning (Tier 3 Only)
 
 **Objective:** Generate cycle definitions with RED/GREEN/Stop Conditions.
 
@@ -244,7 +286,7 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 
 ---
 
-### Phase 4: Runbook Generation
+### Phase 4: Runbook Generation (Tier 3 Only)
 
 **Objective:** Create runbook file with all sections.
 
@@ -344,7 +386,7 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
 ---
 
-### Phase 5: Validation and Review
+### Phase 5: Validation and Review (Tier 3 Only)
 
 **Objective:** Verify format, delegate comprehensive review, and ensure prepare-runbook.py compatibility.
 

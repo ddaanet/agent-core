@@ -266,12 +266,12 @@ Run `prepare-runbook.py` to create:
 **Use when:** Ready to create implementation steps
 
 **What it does:**
-- Executes 4-point runbook prep process
-- Delegates review to validation sub-agent
-- Invokes `prepare-runbook.py` to create execution artifacts
-- Primes session.md for orchestrator handoff
+- Starts with tier assessment (evaluates complexity)
+- **Tier 1** (Direct): Implements directly, vets, commits
+- **Tier 2** (Lightweight): Delegates to quiet-task agents, vets, commits
+- **Tier 3** (Full Runbook): Executes 4-point runbook prep process, delegates review, invokes `prepare-runbook.py` to create execution artifacts, primes session.md for orchestrator handoff
 
-**Future:** Will be complemented by `/plan-tdd` for feature development.
+**Complemented by:** `/plan-tdd` for feature development with TDD methodology.
 
 ---
 

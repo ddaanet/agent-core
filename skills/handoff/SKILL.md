@@ -116,28 +116,6 @@ wc -l agents/session.md agents/learnings.md
 
 Session.md contains volatile state; learnings.md contains institutional knowledge.
 
-**If session size >150 lines after trimming OR all workflow tasks complete:**
-```
-"Session handoff complete.
-
-[If still >150 lines after trimming:]
-session.md is [X] lines (threshold: 150) after trimming completed tasks.
-Review pending tasks and learnings for further reduction.
-
-[If workflow complete:]
-All workflow tasks complete. Start fresh session for new work.
-
-[If next task needs different model:]
-Next task ([task name]) requires [model name]. Switch model when starting new session."
-```
-
-**If next pending task needs different model:**
-- Design stage → Suggest Opus
-- Execution stage → Suggest Haiku
-- Planning/Review/Completion → Suggest Sonnet
-
-Example: "Next task: Design stage. Switch to Opus model for architectural work."
-
 ### 6. Trim Completed Tasks
 
 **Rule:** Delete completed tasks only if BOTH conditions are true:
@@ -163,6 +141,33 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - Create "Previous Session" headers
 - Delete tasks completed in the current conversation
 - Archive to separate files
+
+### 7. Display STATUS (unless --commit)
+
+**If `--commit` flag was NOT specified:**
+
+Display STATUS listing as final output. Read session.md Pending Tasks section and format:
+
+```
+Next: <first pending task name>
+  `<command to start it>`
+  Model: <recommended model> | Restart: <yes/no>
+
+Pending:
+- <task 2 name> (<model if non-default>)
+- <task 3 name>
+- ...
+```
+
+**Graceful degradation:**
+- Missing session.md or no Pending Tasks → "No pending tasks."
+- Old format (no metadata) → use defaults (sonnet, no restart)
+
+**If `--commit` flag WAS specified:**
+
+Skip STATUS display. The `/commit` skill will show it after committing.
+
+**Rationale:** STATUS replaces the old session size advice. Model recommendations are now shown in STATUS display's "Model:" field.
 
 ## Principles
 

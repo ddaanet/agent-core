@@ -164,17 +164,20 @@ Prefix commit title with selected emoji.
 
 ### 4. Stage, commit, verify
 
-Use literal newlines inside double-quoted strings for multiline commit messages:
+Use heredoc syntax for multiline commit messages:
 
 ```bash
 # Stage specific files, commit with message, verify result
 exec 2>&1
 set -xeuo pipefail
 git add file1.txt file2.txt
-git commit -m "🐛 Fix authentication bug
+git commit -m "$(cat <<'EOF'
+🐛 Fix authentication bug
 
 - Detail 1
-- Detail 2"
+- Detail 2
+EOF
+)"
 git status
 ```
 
@@ -187,7 +190,7 @@ git status
 
 ## Critical Constraints
 
-- **Multi-line commit messages**: Use literal newlines in double quotes. Do NOT use `\n` (backslash-n is not interpreted by bash)
+- **Multi-line commit messages**: Use heredoc syntax with `git commit -m "$(cat <<'EOF' ... EOF)"` for clean formatting
 - **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes (exception: token-efficient bash pattern - see `/token-efficient-bash` skill)
 - **Explicit errors**: If anything fails, report it clearly and stop
 - **No secrets**: Do not commit .env, credentials, keys, tokens, etc.

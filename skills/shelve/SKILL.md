@@ -86,7 +86,6 @@ Report to user:
 - **Read first**: Must read existing files before modifying
 - **Use tools**: Read, Write, Edit for file operations (NOT bash cat/echo)
 - **Bash only for**: mkdir, cp commands
-- **No heredocs**: Sandbox blocks `<<EOF` syntax
 - **Metadata**: Always add archive metadata header to shelved files
 - **Date format**: YYYY-MM-DD (e.g., 2026-01-18)
 - **Error handling**: Report errors explicitly, do not suppress

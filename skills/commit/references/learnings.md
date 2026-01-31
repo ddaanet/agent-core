@@ -6,16 +6,10 @@ Accumulated patterns and best practices for commit workflow.
 
 **Anti-pattern:** Using `"...\n..."` for multiline git commit messages (backslash-n not interpreted by bash).
 
-**Correct pattern:** Use literal newlines inside double quotes or heredoc:
+**Correct pattern:** Use heredoc syntax (preferred) or literal newlines in double quotes:
 
 ```bash
-# Literal newlines in double quotes
-git commit -m "Title
-
-- Detail 1
-- Detail 2"
-
-# Or heredoc (only works outside sandbox)
+# Heredoc (preferred for clean formatting)
 git commit -m "$(cat <<'EOF'
 Title
 
@@ -23,6 +17,12 @@ Title
 - Detail 2
 EOF
 )"
+
+# Alternative: literal newlines in double quotes
+git commit -m "Title
+
+- Detail 1
+- Detail 2"
 ```
 
 **Issue:** Opus blindly followed buggy skill instruction despite knowing correct syntax.

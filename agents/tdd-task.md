@@ -255,7 +255,7 @@ Context: [relevant details]
 ### Critical Constraints
 
 - **Always use absolute paths** - Working directory resets between Bash calls
-- **Never use heredocs** - Sandbox restriction blocks `<<EOF` syntax
+- **Use heredocs for multiline commit messages** - Preferred format: `git commit -m "$(cat <<'EOF' ... EOF)"`
 - **Never suppress errors** - Report all errors explicitly (`|| true` forbidden)
 - **Use project tmp/** - Never use system `/tmp/` directory
 - **Use specialized tools** - Prefer Read/Write/Edit over cat/echo

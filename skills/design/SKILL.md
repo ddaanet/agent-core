@@ -95,6 +95,19 @@ Return concise feedback with actionable fixes.
 
 Update design.md with corrections. Low priority items can be deferred or documented as known limitations.
 
+### 7. Handoff and Commit
+
+**CRITICAL: As the final action, invoke `/handoff --commit`.**
+
+This tail-call chains:
+1. `/handoff` updates session.md with completed design work
+2. Tail-calls `/commit` which commits the design document
+3. `/commit` displays STATUS showing next pending task
+
+The next pending task will typically be the planning phase (`/plan-adhoc` or `/plan-tdd`).
+
+**Why:** Universal tail behavior ensures consistent workflow termination. User always sees what's next.
+
 ## Output Expectations
 
 Design documents are consumed by planning agents (`/plan-tdd` or `/plan-adhoc`).

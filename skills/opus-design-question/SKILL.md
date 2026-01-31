@@ -1,6 +1,11 @@
 ---
 name: opus-design-question
-description: This skill should be used when facing a design decision or architectural choice that would normally require user input, but where an Opus subagent consultation would provide expert guidance without blocking the user. Use when questions like "Should I use approach A or B?", "How should I structure this?", "What's the best way to handle X?" arise during implementation.
+description: >
+  REQUIRED instead of AskUserQuestion for design/architectural decisions.
+  When you face a choice between approaches (A vs B), trade-off analysis,
+  pattern selection, or structural decisions — use this skill to consult
+  Opus instead of asking the user. Only ask the user for subjective
+  preferences, business logic, scope changes, or unclear requirements.
 user-invocable: false
 ---
 

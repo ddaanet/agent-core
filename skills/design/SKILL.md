@@ -21,6 +21,8 @@ Mode determines downstream consumer: TDD → `/plan-tdd`, General → `/plan-adh
 
 Read `agents/design-decisions.md` for existing patterns. Clarify ambiguous requirements with user.
 
+**Design decision escalation:** When facing architectural choices between approaches (e.g., "approach A vs B"), use `/opus-design-question` to consult an Opus subagent instead of asking the user. Only ask the user for subjective preferences, business logic, or scope changes.
+
 ### 2. Explore Codebase
 
 **CRITICAL: Delegate exploration. Opus must not grep/glob/browse directly.**

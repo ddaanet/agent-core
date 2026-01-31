@@ -1,11 +1,5 @@
 watch_file .env
 [[ -f .venv/bin/activate ]] && source .venv/bin/activate
-watch_file ~/.claude/claude-env
-dotenv_if_exists ~/.claude/claude-env
 dotenv_if_exists
 
-# Override CLAUDE_CODE_TMPDIR to use project-local tmp directory
-# Prevents "operation not permitted: /tmp/claude-501/cwd-*" errors
-# Aligns with CLAUDE.md: temp files belong in project-local tmp/, not system /tmp/
-export CLAUDE_CODE_TMPDIR="$PWD/tmp/claude"
-mkdir -p "$CLAUDE_CODE_TMPDIR"
+source agent-core/configs/claude-env.sh

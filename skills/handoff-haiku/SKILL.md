@@ -22,16 +22,30 @@ When invoked, update session.md mechanically:
 ### 2. Update session.md
 
 **Merge rules — read current session.md first, then apply:**
-- **REPLACE** these sections with fresh content: "Completed This Session", "Pending Tasks", "Blockers / Gotchas", "Next Steps"
+- **REPLACE** these sections with fresh content: "Completed This Session", "Next Steps"
+- **MERGE** these sections (carry forward unresolved items + add new): "Pending Tasks", "Blockers / Gotchas"
 - **ADD** "Session Notes" section if new observations to record
 - **PRESERVE UNCHANGED** all other existing sections (especially "Recent Learnings", "Reference Files", any "Prior Session" content)
 
 **How to apply:**
 1. Read current session.md
 2. Update header (date, status line)
-3. Replace ONLY the sections listed under REPLACE with fresh content
-4. Add Session Notes section if new observations exist
-5. Keep everything else exactly as-is
+3. Replace sections listed under REPLACE with fresh content
+4. For MERGE sections: preserve unresolved items from previous session, add new items, mark completed items with [x]
+5. Add Session Notes section if new observations exist
+6. Keep everything else exactly as-is
+
+**MERGE semantics for Pending Tasks:**
+- Review all pending tasks from previous session.md
+- Keep all unresolved tasks (mark with [ ] or carry forward as-is)
+- Add new pending tasks from current session
+- Mark completed tasks with [x] if they were completed in current session
+
+**MERGE semantics for Blockers / Gotchas:**
+- Review all blockers/gotchas from previous session.md
+- Keep items that are still relevant (unresolved blockers, active gotchas)
+- Add new blockers/gotchas discovered in current session
+- Drop items that were resolved in current session (document resolution in Completed or Session Notes if significant)
 
 **Template for sections being replaced/added:**
 

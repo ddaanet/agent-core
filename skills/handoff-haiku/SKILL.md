@@ -41,6 +41,28 @@ When invoked, update session.md mechanically:
 - Add new pending tasks from current session
 - Mark completed tasks with [x] if they were completed in current session
 
+**Task metadata format:**
+
+Use this convention when writing tasks:
+
+```
+- [ ] **Task Name** — `command` | model | restart?
+```
+
+Examples:
+```
+- [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
+- [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/problem.md` | opus | restart
+```
+
+**Field rules:**
+- Command: Backtick-wrapped command to start the task
+- Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
+- Restart: Optional flag - only include if restart needed (omit = no restart)
+
+**Mechanical merge:**
+Preserve metadata format verbatim when carrying forward unresolved items. No judgment needed - copy unchanged.
+
 **MERGE semantics for Blockers / Gotchas:**
 - Review all blockers/gotchas from previous session.md
 - Keep items that are still relevant (unresolved blockers, active gotchas)

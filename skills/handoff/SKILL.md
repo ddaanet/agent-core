@@ -66,6 +66,10 @@ Write a handoff note following the template structure. See **`references/templat
 - Next agent should understand: what happened, why, what's next
 - Next agent should NOT need to: search for files, re-discover root causes, repeat failed approaches
 
+**NEVER include in Pending Tasks or Next Steps:**
+- Commit tasks ("commit changes", "commit fix") — commits don't update session.md, so task can never be marked done
+- Obvious mechanical steps (restart, paste command) — only track substantive work
+
 ### 4. Write Learnings to Separate File
 
 If the session has learnings, append them to `agents/learnings.md` (not session.md).
@@ -151,7 +155,6 @@ Example: "Next task: Design stage. Switch to Opus model for architectural work."
 - Create "Previous Session" headers
 - Delete tasks completed in the current conversation
 - Archive to separate files
-- Create "commit this" or "commit changes" as a pending task (commits don't update session.md to mark done)
 
 ## Principles
 

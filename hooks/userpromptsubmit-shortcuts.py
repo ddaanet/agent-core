@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#\!/usr/bin/env python3
 """
 UserPromptSubmit hook: Expand workflow shortcuts.
 
@@ -15,33 +15,49 @@ import json
 import re
 import sys
 
-
 # Tier 1: Command shortcuts (exact match)
 COMMANDS = {
-    's': ('[SHORTCUT: #status] List pending tasks with metadata from session.md. '
-          'Display in STATUS format. Wait for instruction.'),
-    'x': ('[SHORTCUT: #execute] Smart execute: if an in-progress task exists, resume it. '
-          'Otherwise start the first pending task from session.md. Drive to completion, then stop.'),
-    'xc': ('[SHORTCUT: #execute --commit] Execute task to completion, then handoff → commit → status display.'),
-    'r': ('[SHORTCUT: #resume] Strict resume: continue in-progress task only. '
-          'Error if no in-progress task exists.'),
-    'h': '[SHORTCUT: /handoff] Update session.md with current context, then display status.',
+    's': (
+        '[SHORTCUT: #status] List pending tasks with metadata from session.md. '
+        'Display in STATUS format. Wait for instruction.'
+    ),
+    'x': (
+        '[SHORTCUT: #execute] Smart execute: if an in-progress task exists, '
+        'resume it. Otherwise start the first pending task from session.md. '
+        'Drive to completion, then stop.'
+    ),
+    'xc': (
+        '[SHORTCUT: #execute --commit] Execute task to completion, '
+        'then handoff → commit → status display.'
+    ),
+    'r': (
+        '[SHORTCUT: #resume] Strict resume: continue in-progress task only. '
+        'Error if no in-progress task exists.'
+    ),
+    'h': '[SHORTCUT: /handoff] Update session.md with current context, '
+         'then display status.',
     'hc': '[SHORTCUT: /handoff --commit] Handoff → commit → status display.',
     'ci': '[SHORTCUT: /commit] Commit changes → status display.'
 }
 
 # Tier 2: Directive shortcuts (colon prefix)
 DIRECTIVES = {
-    'd': ('[DIRECTIVE: DISCUSS] Discussion mode. Analyze and discuss only — '
-          'do not execute, implement, or invoke workflow skills. '
-          "The user's topic follows in their message."),
-    'p': ('[DIRECTIVE: PENDING] Record pending task. Append to session.md Pending Tasks section '
-          'using metadata format: `- [ ] **Name** — `command` | model | restart?`. '
-          'Infer defaults if not specified. Do NOT execute the task.')
+    'd': (
+        '[DIRECTIVE: DISCUSS] Discussion mode. Analyze and discuss only — '
+        'do not execute, implement, or invoke workflow skills. '
+        "The user's topic follows in their message."
+    ),
+    'p': (
+        '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
+        'Pending Tasks section using metadata format: '
+        '`- [ ] **Name** — `command` | model | restart?`. '
+        'Infer defaults if not specified. Do NOT execute the task.'
+    )
 }
 
 
-def main():
+def main() -> None:
+    """Expand workflow shortcuts in user prompts."""
     # Read hook input
     hook_input = json.load(sys.stdin)
     prompt = hook_input.get('prompt', '').strip()

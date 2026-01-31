@@ -100,16 +100,24 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
    - Use Grep for: `(REQUIRES CONFIRMATION)`, `(TBD)`, `(TODO: decide)`, `[DECIDE:]`, `???`
    - If found: STOP, report with line numbers and context
 
-4. **Identify structure:**
+4. **Discover codebase structure (REQUIRED):**
+   - Use Glob to find existing test files: `tests/test_*.py`, `tests/**/test_*.py`
+   - Use Glob to find source modules referenced by design
+   - Map design components → actual file paths (source and test)
+   - Record file mapping in working notes for Phase 3
+   - STOP if expected files not found: report missing files to user
+   - **NEVER infer file paths from conventions alone** — always verify with Glob/Grep
+
+5. **Identify structure:**
    - **Phases (X):** Look for `## Phase N:` or major sections
    - **Increments (Y):** Look for H3 subsections, bullet lists, test scenarios
    - Heuristics: action verbs (Add, Implement, Create, Test) = potential increments
 
-5. **Estimate cycles:**
+6. **Estimate cycles:**
    - `estimated_cycles = base_increments + setup_cycles`
    - If >20: WARN "Large runbook ({N} cycles). Continue?"
 
-**Outputs:** goal, feature_name, design_decisions, phases, increments, cycle_estimate
+**Outputs:** goal, feature_name, design_decisions, phases, increments, cycle_estimate, file_mapping
 
 ---
 
@@ -164,10 +172,10 @@ Create detailed TDD runbooks with RED-GREEN-REFACTOR cycles from design document
 
    **Logic:**
    - Parse increment for expected behavior
-   - Infer test location (tests/, test_*.py)
+   - Use file mapping from Phase 2 step 4 (discovered via Glob, not inferred)
    - Generate assertion from behavior
    - Predict failure message
-   - Provide specific test command
+   - Provide specific test command with actual file path
 
 3. **Generate GREEN specifications:**
 

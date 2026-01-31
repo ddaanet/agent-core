@@ -146,6 +146,25 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 - If empty case requires special handling → acceptable
 - If empty case arises naturally from list processing → WARNING: reorder to test simplest happy path first
 
+### 8. File Reference Validation (CRITICAL)
+
+**Violation:** Runbook references file paths that don't exist in the codebase
+
+**Check:** Extract all file paths from:
+- Common Context "Project Paths" section
+- RED phase "Verify RED" commands (e.g., `pytest tests/test_foo.py`)
+- GREEN phase "Changes" file references
+- GREEN phase "Verify GREEN" and "Verify no regression" commands
+
+**For each path:** Use Glob to verify the file exists. If not found, try fuzzy match (e.g., `tests/test_account*.py` when `tests/test_account.py` is referenced).
+
+**Classification:**
+- File doesn't exist and no similar file found → CRITICAL: path fabricated
+- File doesn't exist but similar files found → CRITICAL: wrong path (suggest correct files)
+- Test function referenced doesn't exist in target file → CRITICAL: function not found (use Grep to locate)
+
+**Why this matters:** Runbooks with wrong file paths fail immediately at execution. This is a complete blocker, not a quality issue.
+
 ---
 
 ## Review Process
@@ -163,7 +182,18 @@ Use Grep tool to find code blocks in GREEN phases:
 2. Check if it's in GREEN phase
 3. Mark as VIOLATION
 
-### Phase 2: Analyze Cycles
+### Phase 2: Validate File References
+
+Extract all file paths referenced in the runbook (Common Context, RED/GREEN phases, verify commands). For each path:
+
+1. Use Glob to check existence
+2. If not found, search for similar files (e.g., `tests/test_account*.py`)
+3. Use Grep to verify referenced test functions exist in their target files
+4. Mark missing paths as CRITICAL violations with suggested corrections
+
+**This phase catches runbooks generated with stale or assumed file paths.**
+
+### Phase 3: Analyze Cycles
 
 **For each cycle (X.Y):**
 
@@ -176,7 +206,7 @@ Use Grep tool to find code blocks in GREEN phases:
 - If cycle X.1 includes all features → VIOLATION
 - If "minimal implementation" has 10+ lines → WARNING
 
-### Phase 3: Generate Report
+### Phase 4: Generate Report
 
 **Structure:**
 

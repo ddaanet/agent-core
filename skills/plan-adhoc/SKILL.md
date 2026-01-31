@@ -55,6 +55,21 @@ Ask user: "This task can be implemented directly (~N files, clear design). Creat
 
 **Use this process only after Point 0 determines orchestration is needed.**
 
+### Point 0.5: Discover Codebase Structure (REQUIRED)
+
+**Before writing any runbook content, verify actual file locations:**
+
+- Use Glob to find source files referenced by the design
+- Use Glob to find test files: `tests/test_*.py`, `tests/**/test_*.py`
+- Use Grep to find specific functions, classes, or patterns mentioned in the design
+- Record actual file paths for use in runbook steps
+- **NEVER assume file paths from conventions alone** — always verify with Glob/Grep
+- STOP if expected files not found: report missing files to user
+
+**Why:** Runbooks with fabricated file paths fail immediately at execution. This is a complete blocker.
+
+---
+
 ### Point 1: Evaluate Script vs Direct Execution
 
 For each task in the runbook, decide on execution approach:
@@ -173,6 +188,9 @@ Task(
   subagent_type="quiet-task",
   model="sonnet",
   prompt="Use the /vet skill to review the runbook at [runbook-path].
+
+  CRITICAL: Also validate all file paths referenced in the runbook exist in the codebase.
+  Use Glob to verify each path. Flag missing files as critical issues.
 
   After /vet completes, write a summary of the assessment to: [review-path]
 
@@ -546,6 +564,7 @@ Default behavior if omitted:
 
 **Avoid:**
 - Creating runbooks when direct implementation is better (skipping Point 0)
+- Assuming file paths from conventions without Glob/Grep verification (skipping Point 0.5)
 - Assuming prerequisites are met without verification
 - Assigning semantic analysis tasks to haiku
 - Leaving design decisions for "during execution"

@@ -202,16 +202,30 @@ git status
 
 **This applies to ALL commits**, whether invoked directly or via tail-call from `/handoff --commit`.
 
-After a successful commit, read `agents/session.md` and check for pending tasks (first `- [ ]` item).
+After a successful commit, read `agents/session.md` and display STATUS.
 
-**If pending tasks exist** — display the next one:
+**STATUS display format:**
+
 ```
 Committed: <commit subject line>
 
-Next: <first pending task description>
+Next: <first pending task name>
+  `<command to start it>`
+  Model: <recommended model> | Restart: <yes/no>
+
+Pending:
+- <task 2 name> (<model if non-default>)
+- <task 3 name>
+- ...
 ```
 
-**If no pending tasks** — tail-call `/next` to find work from broader context (todo.md, etc.).
+**Graceful degradation:**
+- Missing session.md or no Pending Tasks → "No pending tasks."
+- Old format (no metadata) → use defaults (model=sonnet, restart=no)
+- Missing model field → default to sonnet
+- Missing restart field → default to no
+
+**If no pending tasks** — display "No pending tasks." and optionally suggest `/next` to find work from todo.md.
 
 **Why:** This enables tail-call composition. When `/commit` is tail-called from `/handoff --commit` (which is tail-called from `/plan-tdd` or `/plan-adhoc`), the user sees the next action without manual inspection. For post-planning workflows, this displays "Restart session, switch to haiku model, paste `/orchestrate {name}` from clipboard." When all pending work is done, `/next` finds the next thing.
 

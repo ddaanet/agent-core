@@ -72,8 +72,10 @@ Write a handoff note following the template structure. See **`references/templat
 - Next agent should understand: what happened, why, what's next
 - Next agent should NOT need to: search for files, re-discover root causes, repeat failed approaches
 
-**NEVER include in Pending Tasks or Next Steps:**
-- Commit tasks ("commit changes", "commit fix") — commits don't update session.md, so task can never be marked done
+**NEVER reference commits as pending anywhere in session.md:**
+- Not in Pending Tasks, Next Steps, Status line, or footer
+- No "ready to commit", "pending commit", "commit changes" language
+- When `--commit` flag is used, the tail-call makes commit atomic with handoff — write status assuming commit succeeds
 - Obvious mechanical steps (restart, paste command) — only track substantive work
 
 ### 4. Write Learnings to Separate File

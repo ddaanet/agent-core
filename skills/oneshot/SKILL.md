@@ -143,36 +143,29 @@ Analyze the job and determine complexity level:
 
 Update `agents/session.md` with workflow structure.
 
+Use the standard session.md template (see handoff skill `references/template.md`). Express workflow stages as flat pending tasks with inline metadata.
+
 **For Moderate complexity:**
 
 ```markdown
 # Session Handoff: [Date]
 
-**Status:** Oneshot workflow initiated - [one-line job description]
-
-## Current Work
-
-**Job:** [Job description from user]
-
-**Type:** One-off task (oneshot workflow)
-
-**Complexity:** Moderate
+**Status:** Oneshot workflow initiated — [one-line job description]
 
 ## Pending Tasks
 
-### Workflow: [job name]
-- [ ] Planning - Create runbook with implementation steps (/plan-adhoc)
-- [ ] Execution - Run runbook steps (/orchestrate)
-- [ ] Review - Verify changes and identify issues (vet-fix-agent)
-- [ ] Completion - Update documentation, finalize work
+- [ ] **Create runbook** — /plan-adhoc [design-doc-path] | sonnet
+- [ ] **Execute runbook** — /orchestrate [plan-name] | sonnet | restart
+- [ ] **Review changes** — vet-fix-agent | sonnet
+- [ ] **Finalize** — update docs, cleanup | sonnet
 
-## Key Context
+## Blockers / Gotchas
 
 [Any important context gathered during assessment]
 
 ## Next Steps
 
-Start with Planning stage using /plan-adhoc.
+Start with /plan-adhoc.
 ```
 
 **For Complex complexity:**
@@ -180,32 +173,23 @@ Start with Planning stage using /plan-adhoc.
 ```markdown
 # Session Handoff: [Date]
 
-**Status:** Oneshot workflow initiated - [one-line job description]
-
-## Current Work
-
-**Job:** [Job description from user]
-
-**Type:** One-off task (oneshot workflow)
-
-**Complexity:** Complex (architectural decisions needed)
+**Status:** Oneshot workflow initiated — [one-line job description]
 
 ## Pending Tasks
 
-### Workflow: [job name]
-- [ ] Design - Explore architecture and make key decisions (/design - requires Opus)
-- [ ] Planning - Create runbook with implementation steps (/plan-adhoc)
-- [ ] Execution - Run runbook steps (/orchestrate)
-- [ ] Review - Verify changes and identify issues (vet-fix-agent)
-- [ ] Completion - Update documentation, finalize work
+- [ ] **Design architecture** — /design [problem-doc-path] | opus
+- [ ] **Create runbook** — /plan-adhoc [design-doc-path] | sonnet
+- [ ] **Execute runbook** — /orchestrate [plan-name] | sonnet | restart
+- [ ] **Review changes** — vet-fix-agent | sonnet
+- [ ] **Finalize** — update docs, cleanup | sonnet
 
-## Key Context
+## Blockers / Gotchas
 
 [Any important context gathered during assessment, including why design stage is needed]
 
 ## Next Steps
 
-Start with Design stage using /design. Switch to Opus model for design work.
+Start with /design. Requires Opus model.
 ```
 
 ### 5. Begin First Stage

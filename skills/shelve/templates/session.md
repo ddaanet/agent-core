@@ -1,42 +1,15 @@
-# Session
+# Session Handoff: [Date]
 
-## Current Work
+**Status:** [Brief 1-line summary]
 
-**Branch:**
+## Pending Tasks
 
-**Task:**
+- [ ] **Task name** — description | model
 
-**Status:**
-
-## Progress Summary
-
-**This Session:**
--
-
-**Previous Sessions:**
--
-
-## Handoff to Next Session
-
-**Key files:**
--
-
-**Execution pattern:**
--
-
-## Blockers
+## Blockers / Gotchas
 
 None.
 
-## Decisions
+## Next Steps
 
-## Lessons Learned
-
-**What worked:**
--
-
-**What failed:**
--
-
-**New Constraints Discovered:**
--
+[1-2 sentences on immediate next action]

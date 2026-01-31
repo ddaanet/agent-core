@@ -451,6 +451,11 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     agent_path.parent.mkdir(parents=True, exist_ok=True)
     steps_dir.mkdir(parents=True, exist_ok=True)
 
+    # Clean steps directory to prevent orphaned files from previous runs
+    if steps_dir.exists():
+        for step_file in steps_dir.glob('*.md'):
+            step_file.unlink()
+
     # Verify writable
     try:
         agent_path.parent.touch(exist_ok=True)

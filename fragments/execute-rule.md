@@ -85,6 +85,7 @@ Strict resume: continue in-progress task only. Error if no in-progress task exis
 | `h` | /handoff | Update session.md → status |
 | `hc` | /handoff --commit | Handoff → commit → status |
 | `ci` | /commit | Commit → status |
+| `?` | #help | List shortcuts, keywords, entry skills |
 
 ### Tier 2 - Directives (colon prefix)
 

@@ -3,7 +3,7 @@
 UserPromptSubmit hook: Expand workflow shortcuts.
 
 Tier 1 - Commands (exact match, entire message):
-  s, x, xc, r, h, hc, ci
+  s, x, xc, r, h, hc, ci, ?
 
 Tier 2 - Directives (colon prefix):
   d:, p:
@@ -37,7 +37,13 @@ COMMANDS = {
     'h': '[SHORTCUT: /handoff] Update session.md with current context, '
          'then display status.',
     'hc': '[SHORTCUT: /handoff --commit] Handoff → commit → status display.',
-    'ci': '[SHORTCUT: /commit] Commit changes → status display.'
+    'ci': '[SHORTCUT: /commit] Commit changes → status display.',
+    '?': (
+        '[SHORTCUT: #help] List all workflow shortcuts (both tiers), '
+        'workflow keywords (y/go/continue), and entry point skills '
+        '(/design, /commit, /handoff, /orchestrate, /remember, /shelve, /vet). '
+        'Format as a compact reference table.'
+    )
 }
 
 # Tier 2: Directive shortcuts (colon prefix)

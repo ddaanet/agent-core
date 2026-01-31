@@ -4,7 +4,7 @@
 
 ## Overview
 
-The TDD workflow implements the RED/GREEN/REFACTOR cycle for building features incrementally with test-first development. This workflow integrates with the oneshot workflow through shared orchestration infrastructure while maintaining TDD-specific protocols.
+The TDD workflow implements the RED/GREEN/REFACTOR cycle for building features incrementally with test-first development. This workflow integrates with the general workflow through shared orchestration infrastructure while maintaining TDD-specific protocols.
 
 ### When to Use TDD Workflow
 
@@ -14,13 +14,13 @@ The TDD workflow implements the RED/GREEN/REFACTOR cycle for building features i
 - Feature requires behavioral verification
 - Project is pytest-md or similar test-focused codebase
 
-**Use oneshot workflow instead when:**
+**Use general workflow instead when:**
 - Infrastructure/migration work
 - Refactoring without behavior change
 - Prototype/exploration
 - One-time fixes or cleanup tasks
 
-### Integration with Oneshot Workflow
+### Integration with General Workflow
 
 Both workflows share:
 - `/design` skill (with mode-specific sections)
@@ -32,7 +32,7 @@ Both workflows share:
 
 ### Methodology Detection Signals
 
-The `/oneshot` skill automatically detects TDD methodology based on:
+The workflow automatically detects TDD methodology based on:
 
 | TDD Signal | General Signal |
 |------------|----------------|
@@ -477,9 +477,9 @@ Agent stops and reports when encountering:
 
 ## Integration Points
 
-### Differences from Oneshot Workflow
+### Differences from General Workflow
 
-| Aspect | Oneshot Workflow | TDD Workflow |
+| Aspect | General Workflow | TDD Workflow |
 |--------|------------------|--------------|
 | **Unit of work** | Steps | Cycles (RED/GREEN/REFACTOR) |
 | **Planning skill** | `/plan-adhoc` | `/plan-tdd` |
@@ -497,7 +497,7 @@ Agent stops and reports when encountering:
 - Behavioral verification needed
 - Incremental feature building
 
-**Use oneshot workflow for:**
+**Use general workflow for:**
 - Infrastructure setup
 - Data migrations
 - Refactoring existing code
@@ -506,15 +506,15 @@ Agent stops and reports when encountering:
 
 ### Transition Between Workflows
 
-**From TDD to Oneshot:**
+**From TDD to General:**
 - Complete TDD execution and process review
-- Switch to oneshot for infrastructure/migration work
-- Use `/oneshot` to start new oneshot task
+- Switch to general workflow for infrastructure/migration work
+- Use `/design` to start new task
 
-**From Oneshot to TDD:**
-- Complete oneshot execution and review
+**From General to TDD:**
+- Complete general workflow execution and review
 - Switch to TDD for feature development
-- Use `/oneshot` (detects TDD methodology) or `/design` (TDD mode)
+- Use `/design` (auto-detects TDD methodology)
 
 ---
 
@@ -546,7 +546,7 @@ This structured format enables:
 ## Related Documentation
 
 - **CLAUDE.md**: Agent instructions, communication rules, patterns
-- **agents/oneshot-workflow.md**: Oneshot workflow documentation
+- **docs/general-workflow.md**: General workflow documentation
 - **agents/session.md**: Current task context and architecture
 - **agents/design-decisions.md**: Architectural decisions and rationale
 - **agents/session.md**: Current session handoff context

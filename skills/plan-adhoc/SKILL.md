@@ -1,5 +1,5 @@
 ---
-description: Create execution runbooks for weak orchestrator agents using 4-point planning process (oneshot workflow)
+description: Create execution runbooks for weak orchestrator agents using 4-point planning process (general workflow)
 allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
 user-invocable: true
 ---
@@ -8,7 +8,7 @@ user-invocable: true
 
 Create detailed execution runbooks suitable for weak orchestrator agents using a formalized 4-point planning process. This skill transforms high-level tasks into structured runbooks that haiku or sonnet agents can execute with minimal judgment.
 
-**Workflow Context:** Part of oneshot workflow (design → planning → execution). Contrast with `/plan-tdd` (future, feature dev emphasis).
+**Workflow Context:** Part of general workflow (design → planning → execution). Contrast with `/plan-tdd` (TDD feature dev emphasis).
 
 ## When to Use
 
@@ -17,7 +17,7 @@ Create detailed execution runbooks suitable for weak orchestrator agents using a
 - Delegating work to weak orchestrator agents (haiku/sonnet)
 - Complex tasks need explicit design decisions documented
 - Tasks require clear error escalation and validation criteria
-- Ad-hoc oneshot work (vs iterative feature development)
+- Ad-hoc one-off work (vs iterative feature development)
 
 **Do NOT use when:**
 - Task requires user input or interactive decisions
@@ -645,7 +645,7 @@ Default behavior if omitted:
 
 These demonstrate the complete 4-point process in practice.
 
-## Integration with Oneshot Workflow
+## Integration with General Workflow
 
 **Workflow stages:**
 1. `/design` - Opus creates design document

@@ -28,7 +28,7 @@ Templates for new projects using agent-core as a submodule.
 The template includes @file references to these shared fragments:
 
 **Core workflow and terminology:**
-- `workflows-terminology.md` - Workflow selection (oneshot/TDD) and terminology table
+- `workflows-terminology.md` - Workflow selection (general/TDD) and terminology table
 
 **Communication patterns:**
 - `communication.md` - Core behavioral rules (stop on unexpected, wait for instruction, etc.)

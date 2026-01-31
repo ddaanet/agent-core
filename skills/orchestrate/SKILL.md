@@ -393,7 +393,7 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 
 ## Integration with Workflows
 
-**Oneshot workflow:**
+**General workflow:**
 1. `/design` - Opus creates design document
 2. `/plan-adhoc` - Sonnet creates runbook and artifacts
 3. `/orchestrate` - Haiku executes runbook (THIS SKILL)
@@ -411,7 +411,7 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 **Handoff:**
 - Input: Prepared artifacts from `/plan-adhoc` or `/plan-tdd`
 - Output: Executed steps with reports
-- Next (oneshot): Delegate to vet-fix-agent to review and fix changes
+- Next (general): Delegate to vet-fix-agent to review and fix changes
 - Next (TDD): Delegate to vet-fix-agent, then review-tdd-process for process analysis
 
 ## References

@@ -5,7 +5,7 @@ A shared repository for unified agent rule fragments, configurations, and templa
 ## Purpose
 
 The `agent-core` repository provides a centralized location for:
-- Workflow documentation (oneshot, TDD)
+- Workflow documentation (general, TDD)
 - Baseline agent templates (task execution, TDD cycles)
 - Workflow skills (design, planning, execution, review)
 - Runbook preparation tooling
@@ -24,7 +24,7 @@ agent-core/
 ├── bin/                 # Runbook preparation scripts
 │   └── prepare-runbook.py          # Runbook → step artifacts generator
 ├── docs/                # Workflow and pattern documentation
-│   ├── oneshot-workflow.md         # General implementation workflow
+│   ├── general-workflow.md         # General implementation workflow
 │   ├── tdd-workflow.md             # TDD methodology workflow
 │   ├── pattern-weak-orchestrator.md # Weak orchestrator pattern
 │   └── pattern-plan-specific-agent.md # Plan-specific agent pattern
@@ -39,7 +39,6 @@ agent-core/
 │   └── AGENTS-framework.md         # Framework for AGENTS.md files
 ├── skills/              # Workflow skills
 │   ├── design/          # Design session skill (TDD/general mode)
-│   ├── oneshot/         # Oneshot entry point skill
 │   ├── orchestrate/     # Runbook execution skill
 │   ├── plan-adhoc/      # General runbook planning skill
 │   ├── plan-tdd/        # TDD runbook planning skill
@@ -75,14 +74,14 @@ just sync-to-parent
 This creates symlinks in the parent project's `.claude/` directory pointing to skills and agents in `agent-core/`, allowing Claude Code to discover and use them. Symlinks ensure changes to agent-core are immediately reflected without re-syncing.
 
 **Workflows:**
-- Read `docs/oneshot-workflow.md` for general implementation tasks
+- Read `docs/general-workflow.md` for general implementation tasks
 - Read `docs/tdd-workflow.md` for test-driven development
-- Use `/oneshot` skill as entry point (auto-detects methodology)
+- Use `/design` skill as entry point (auto-detects methodology)
 
 ## Documentation
 
 **Workflow guides** (read when executing):
-- `docs/oneshot-workflow.md` - General implementation workflow (6 stages)
+- `docs/general-workflow.md` - General implementation workflow (6 stages)
 - `docs/tdd-workflow.md` - TDD methodology workflow (RED/GREEN/REFACTOR)
 
 **Pattern guides** (read when implementing similar patterns):

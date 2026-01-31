@@ -17,7 +17,7 @@ Review in-progress work for quality, correctness, and adherence to project stand
 - Want to check recent commits for issues
 - Need quality check on partial branch work
 - Unsure if changes are ready for commit
-- After completing runbook execution (oneshot workflow)
+- After completing runbook execution (general workflow)
 
 **Do NOT use when:**
 - Reviewing a pull request (use built-in `/review`)
@@ -280,7 +280,7 @@ Found changes in 5 files:
 - agent-core/agents/quiet-task.md (new file)
 - agent-core/bin/prepare-runbook.py (new file)
 - CLAUDE.md (modified)
-- plans/oneshot-workflow/design.md (modified)
+- plans/general-workflow/design.md (modified)
 - .claude/agents/unification-task.md (new file)
 
 Analyzing changes...
@@ -339,7 +339,7 @@ Full review written to: scratch/reviews/vet-review-2026-01-19-142530.md
 - Don't nitpick every line
 - Suggest breaking into smaller reviewable chunks if not committed yet
 
-## Integration with Oneshot Workflow
+## Integration with General Workflow
 
 **This skill is the protocol used by vet agents.** In workflow contexts, prefer agent delegation over direct skill invocation:
 

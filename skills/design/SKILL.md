@@ -1,5 +1,5 @@
 ---
-description: Opus design session for complex jobs with uncertain requirements
+description: Entry point for implementation tasks. Triages complexity (simple/moderate/complex), then produces design documents for complex jobs or routes to planning for moderate ones.
 allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 user-invocable: true
 ---
@@ -16,6 +16,26 @@ Produce dense design documents that guide implementation by downstream agents (S
 Mode determines downstream consumer: TDD → `/plan-tdd`, General → `/plan-adhoc`.
 
 ## Process
+
+### 0. Complexity Triage
+
+Before doing design work, assess whether design is actually needed:
+
+**Simple (no design needed):**
+- Single file, obvious implementation, no architectural decisions
+- → Execute directly. Update session.md with what was done.
+
+**Moderate (planning needed, not design):**
+- Clear requirements, no architectural uncertainty, well-defined scope
+- → Skip design. Route to `/plan-adhoc` (or `/plan-tdd` in TDD mode), which has its own tier assessment.
+
+**Complex (design needed):**
+- Architectural decisions, multiple valid approaches, uncertain requirements, significant codebase impact
+- → Proceed with steps 1-6 below.
+
+**Session state check:** If session has significant pending work (>5 tasks), suggest `/shelve` before proceeding.
+
+---
 
 ### 1. Understand Request
 

@@ -1,32 +1,32 @@
-# Oneshot Workflow Guide
+# General Workflow Guide
 
 **Purpose:** Execute one-off, ad-hoc tasks that don't repeat.
 
-## What is a "Oneshot" Task?
+## What is a "General Workflow" Task?
 
-**Oneshot tasks** are one-time operations that don't require ongoing maintenance:
+**General workflow tasks** are one-time operations that don't require ongoing maintenance:
 - **Migrations** - Database migrations, data transformations, format conversions
 - **Refactoring** - Code cleanup, architecture improvements, technical debt
 - **Prototypes** - Experimental implementations, proof-of-concepts
 - **Infrastructure** - One-time config changes, deployment updates, tooling setup
 - **Fixes** - Legacy code updates, one-time bug fixes, cleanup tasks
 
-**NOT oneshot** (use feature development workflow instead):
+**NOT general workflow** (use feature development workflow instead):
 - **Repeatable features** - User-facing functionality with ongoing maintenance
 - **Production features** - Require comprehensive tests and documentation
 - **Business logic** - Features that will be used repeatedly and modified over time
 
-**Key distinction:** If it needs ongoing maintenance, comprehensive tests, and user-facing documentation → **feature development**. If it's a one-time change → **oneshot**.
+**Key distinction:** If it needs ongoing maintenance, comprehensive tests, and user-facing documentation → **feature development**. If it's a one-time change → **general workflow**.
 
-## Entry Point: `/oneshot` Skill
+## Entry Point: `/design` Skill
 
-The easiest way to start a oneshot task:
+The recommended way to start a task:
 ```
-/oneshot "migrate database from SQLite to PostgreSQL"
+/design "migrate database from SQLite to PostgreSQL"
 ```
 
-The `/oneshot` skill will:
-1. Verify this is a oneshot task (not feature development)
+The `/design` skill will:
+1. Verify this is a one-off task (not feature development)
 2. Assess complexity (simple/moderate/complex)
 3. Set up workflow stages in `session.md` as pending tasks
 4. Begin executing the first stage
@@ -50,7 +50,7 @@ The `/oneshot` skill will:
 
 ## Workflow Overview
 
-The oneshot workflow has 6 stages:
+The general workflow has 6 stages:
 
 ```
 Discussion → [Design] → Planning → Execution → Review → Completion
@@ -230,19 +230,18 @@ Run `prepare-runbook.py` to create:
 
 ## Skills Reference
 
-### `/oneshot`
+### `/design`
 **Stage:** Entry point (any)
-**Model:** Sonnet (orchestrator)
-**Use when:** Starting a new one-off task
+**Model:** Opus (for complex) or Sonnet (delegates to Opus when needed)
+**Use when:** Starting a new task
 
 **What it does:**
-- Verifies task is oneshot (not feature development)
-- Checks session.md state, offers to shelve if needed
-- Assesses complexity (simple/moderate/complex)
-- Sets up workflow stages as pending tasks in session.md
-- Begins first stage automatically
+- Assesses complexity and creates design document
+- Routes to appropriate workflow based on methodology detection
+- Handles both general workflow and TDD workflow
+- Auto-detects methodology based on project context
 
-**Why use it:** Single command to start oneshot workflow. No docs needed.
+**Why use it:** Single command to start any workflow. Handles complexity triage automatically.
 
 ---
 
@@ -328,11 +327,11 @@ Run `prepare-runbook.py` to create:
 
 ## Multi-Session Workflow
 
-The oneshot workflow is designed for natural multi-session execution with model switching.
+The general workflow is designed for natural multi-session execution with model switching.
 
 ### How It Works
 
-1. **Start with `/oneshot`** - Sets up workflow in `session.md`
+1. **Start with `/design`** - Creates design document and assesses complexity
 2. **Work continues** - Agent executes stages, updates `session.md`
 3. **Session break** - Agent calls `/handoff`, advises on model switch if needed
 4. **User starts new session** - Types `#load` or just describes next step
@@ -341,10 +340,10 @@ The oneshot workflow is designed for natural multi-session execution with model 
 
 ### Example Multi-Session Flow
 
-**Session 1 (Sonnet):**
+**Session 1 (Opus or Sonnet):**
 ```
-User: /oneshot "refactor auth system to support OAuth providers"
-Agent: Assesses as complex oneshot task
+User: /design "refactor auth system to support OAuth providers"
+Agent: Assesses as complex task requiring design
 Agent: Sets up workflow in session.md:
        - [ ] Design - Explore architecture (/design - Opus)
        - [ ] Planning - Create runbook (/plan-adhoc)
@@ -500,6 +499,29 @@ Git tracks all changes to runbook and artifacts.
 
 ---
 
+## Plan Lifecycle
+
+### 1. Creation
+- Start with `/design` skill (auto-detects workflow and complexity)
+- OR create design doc manually in `plans/<project-name>/`
+
+### 2. Active Development
+- Update design documents as work progresses
+- Generate execution artifacts via `prepare-runbook.py`
+- Track progress in `agents/session.md`
+
+### 3. Execution
+- Use `/orchestrate` skill for runbook execution
+- Write reports to `plans/<name>/reports/`
+- Update session.md with progress
+
+### 4. Completion
+- Extract valuable decisions to `agents/design-decisions.md`
+- Delete plan-specific agent
+- Archive or delete plan directory (per project convention)
+
+---
+
 ## Script: `prepare-runbook.py`
 
 **Location:** `agent-core/bin/prepare-runbook.py`
@@ -544,4 +566,5 @@ model: sonnet  # default model for steps
 
 ## Change Log
 
-**2026-01-19**: Initial workflow documentation (oneshot pattern formalized)
+**2026-01-19**: Initial workflow documentation (general workflow pattern formalized)
+**2026-01-31**: Renamed from "oneshot workflow" to "general workflow" (oneshot skill superseded by `/design`)

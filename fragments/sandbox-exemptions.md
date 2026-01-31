@@ -1,36 +1,20 @@
 ## Sandbox Exemptions
 
-**Commands requiring `dangerouslyDisableSandbox: true`**
+### Exempt Commands (use directly, no sandbox override needed)
 
-These commands write to paths outside the sandbox allowlist and must run with sandbox disabled:
+**Rule:** When a command is in `excludedCommands` or `permissions.allow`, invoke it with the **exact prefix** that matches the exemption. Do NOT add `python3` or other interpreter prefixes — this breaks the pattern match and triggers unnecessary permission prompts.
 
 **prepare-runbook.py:**
-- Writes to `.claude/agents/[plan-name]-task.md`
-- Already configured in `excludedCommands` in settings.json
-- Used by plan-tdd and plan-adhoc skills
+- Exempted in settings.json: `excludedCommands` and `permissions.allow`
+- Invocation: `agent-core/bin/prepare-runbook.py <runbook>` (has shebang, runs directly)
+- Do NOT use: `python3 agent-core/bin/prepare-runbook.py` (breaks exemption match)
+
+### Commands Requiring `dangerouslyDisableSandbox: true`
 
 **General pattern:**
 - Commands writing to `.claude/` directory (except `.claude/debug/`)
 - Commands writing to system config locations
 - Commands requiring network access to non-whitelisted hosts
 
-**How to use:**
-```python
-{
-  "command": "python scripts/prepare-runbook.py ...",
-  "description": "Generate runbook artifacts",
-  "dangerouslyDisableSandbox": true
-}
-```
-
 **Settings exemption (persistent):**
-Add to `.claude/settings.json`:
-```json
-{
-  "excludedCommands": [
-    "python scripts/prepare-runbook.py"
-  ]
-}
-```
-
-This avoids the failed-call → retry cycle for known sandbox-sensitive commands.
+Add to `.claude/settings.json` `excludedCommands` array, then invoke with matching prefix.

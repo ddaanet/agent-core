@@ -25,7 +25,7 @@ The TDD workflow implements the RED/GREEN/REFACTOR cycle for building features i
 Both workflows share:
 - `/design` skill (with mode-specific sections)
 - `/orchestrate` execution engine (with runbook type detection)
-- `/vet` review process
+- Vet review process (vet-agent / vet-fix-agent)
 - Common orchestration patterns (weak orchestrator, plan-specific agents)
 
 **Key difference:** TDD uses cycles (RED/GREEN/REFACTOR) instead of generic steps.
@@ -48,7 +48,7 @@ The `/oneshot` skill automatically detects TDD methodology based on:
 The TDD workflow follows this progression:
 
 ```
-/design (TDD mode) → /plan-tdd → /orchestrate → /vet → Apply fixes → /review-analysis
+/design (TDD mode) → /plan-tdd → /orchestrate → [vet-fix-agent] → /review-analysis
 ```
 
 ### Stage 1: Design Session (TDD Mode)
@@ -171,7 +171,7 @@ This generates:
 
 ### Stage 4: Review
 
-**Skill:** `/vet`
+**Agent:** vet-fix-agent
 **Model:** Sonnet
 
 **Purpose:** Review uncommitted changes before finalization.
@@ -179,13 +179,12 @@ This generates:
 **Scope:** All uncommitted changes from TDD execution.
 
 **Activities:**
-- Review all changes
-- Identify issues (critical/major/minor)
-- Classify fixes by urgency
+- Delegate to vet-fix-agent (orchestrator has no implementation context)
+- Agent reviews all changes and applies critical/major fixes directly
+- Agent writes detailed report with FIXED/UNFIXABLE status per issue
 
-**Fix application:**
-- Critical/major issues → Apply fixes immediately
-- Re-run `/vet` if significant changes made
+**Post-review:**
+- Check report for UNFIXABLE critical/major issues → escalate to user
 - Minor issues → Document for future
 
 ---
@@ -488,7 +487,7 @@ Agent stops and reports when encountering:
 | **Execution focus** | Sequential steps | Test-first development |
 | **Refactoring** | Optional | Mandatory per cycle |
 | **Commit strategy** | Per step or milestone | WIP + amend per cycle |
-| **Post-execution** | `/vet` only | `/vet` + `/review-analysis` |
+| **Post-execution** | vet-fix-agent | vet-fix-agent + `/review-analysis` |
 
 ### When to Use Each Workflow
 

@@ -119,11 +119,11 @@ git status --porcelain
 - Steps:
   1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
   2. **Vet:** Quality review of accumulated changes
-     - Delegate to sonnet quiet-task: "Use `/vet` to review accumulated changes. Write review to plans/{name}/reports/checkpoint-{N}-vet.md"
-     - **REQUIRED:** Apply all high and medium priority fixes found by vet
-     - Delegate fixes to sonnet quiet-task: "Apply high/medium priority fixes from vet report. Commit when complete."
-     - Low-priority issues: Optional (can defer)
-     - **NEVER** proceed with unaddressed high/medium issues
+     - Delegate to vet-fix-agent: "Review accumulated changes. Write review to plans/{name}/reports/checkpoint-{N}-vet.md"
+     - Agent reviews AND applies critical/major fixes directly (has Edit tool)
+     - Read review report: check for UNFIXABLE issues
+     - Minor-priority issues: Optional (can defer)
+     - **NEVER** proceed with UNFIXABLE critical/major issues — escalate to user
   3. **Functional:** Check for stubs/hardcoded values against design
      - If STUBS_FOUND: STOP orchestration, report to user
      - If FUNCTIONAL: Continue
@@ -235,7 +235,7 @@ Current status: Blocked on Step 3
 **When all steps successful:**
 - Report overall success
 - List created artifacts
-- Suggest next action (e.g., `/vet` to review changes, `/commit` to commit)
+- Suggest next action (e.g., delegate to vet-fix-agent to review changes, `/commit` to commit)
 
 **When blocked:**
 - Report which step failed
@@ -345,7 +345,7 @@ Reports:
 - plans/oauth2-auth/reports/step-3-diagnostic.md (escalation)
 - plans/oauth2-auth/reports/step-4-execution.md
 
-Next: Run `/vet` to review changes before committing."
+Next: Delegate to vet-fix-agent to review and fix changes before committing."
 
 ## Handling Common Scenarios
 
@@ -375,13 +375,13 @@ Next: Run `/vet` to review changes before committing."
 1. `/design` - Opus creates design document
 2. `/plan-adhoc` - Sonnet creates runbook and artifacts
 3. `/orchestrate` - Haiku executes runbook (THIS SKILL)
-4. `/vet` - Review changes before commit
+4. vet-fix-agent - Review and fix changes before commit
 5. Complete job
 
 **Handoff:**
 - Input: Prepared artifacts from `/plan-adhoc`
 - Output: Executed steps with reports
-- Next: User invokes `/vet` to review changes
+- Next: Delegate to vet-fix-agent to review and fix changes
 
 ## References
 

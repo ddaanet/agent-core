@@ -40,8 +40,8 @@ The oneshot skill detects appropriate workflow based on these signals:
 - Default if TDD signals absent
 
 **Workflow Routing:**
-- TDD path: `/design` (TDD mode) → `/plan-tdd` → `/orchestrate` → `/vet` → `/review-analysis`
-- General path: `/design` → `/plan-adhoc` → `/orchestrate` → `/vet`
+- TDD path: `/design` (TDD mode) → `/plan-tdd` → `/orchestrate` → [vet-fix-agent] → `/review-analysis`
+- General path: `/design` → `/plan-adhoc` → `/orchestrate` → [vet-fix-agent]
 
 ## Workflow Selection
 
@@ -163,7 +163,7 @@ Update `agents/session.md` with workflow structure.
 ### Workflow: [job name]
 - [ ] Planning - Create runbook with implementation steps (/plan-adhoc)
 - [ ] Execution - Run runbook steps (/orchestrate)
-- [ ] Review - Verify changes and identify issues (/vet)
+- [ ] Review - Verify changes and identify issues (vet-fix-agent)
 - [ ] Completion - Update documentation, finalize work
 
 ## Key Context
@@ -196,7 +196,7 @@ Start with Planning stage using /plan-adhoc.
 - [ ] Design - Explore architecture and make key decisions (/design - requires Opus)
 - [ ] Planning - Create runbook with implementation steps (/plan-adhoc)
 - [ ] Execution - Run runbook steps (/orchestrate)
-- [ ] Review - Verify changes and identify issues (/vet)
+- [ ] Review - Verify changes and identify issues (vet-fix-agent)
 - [ ] Completion - Update documentation, finalize work
 
 ## Key Context
@@ -297,7 +297,7 @@ Agent: Continues with complexity assessment and workflow setup.
 - **`/design`** - Invoked for complex tasks requiring architectural decisions
 - **`/plan-adhoc`** - Invoked for moderate/complex tasks to create runbook
 - **`/orchestrate`** - Invoked during execution stage
-- **`/vet`** - Invoked during review stage
+- **vet-fix-agent** - Delegated during review stage (reviews + applies fixes)
 - **`/shelve`** - Invoked if session needs reset before starting new work
 - **`/handoff`** - Used between stages for session handoff
 

@@ -58,7 +58,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Sequence:**
 1. Implement changes directly using Read/Write/Edit tools
 2. Delegate to vet agent for review
-3. Apply high/medium priority fixes
+3. Apply critical/major priority fixes from vet review
 4. Tail-call `/handoff --commit`
 
 ### Tier 2: Lightweight Delegation
@@ -72,7 +72,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Sequence:**
 1. Delegate work via `Task(subagent_type="quiet-task", model="haiku", prompt="...")` with relevant context from design included in prompt (file paths, design decisions, conventions). Single agent for cohesive work; break into 2-4 components only if logically distinct.
 2. After delegation complete: delegate to vet agent for review
-3. Apply fixes
+3. Apply critical/major priority fixes from vet review
 4. Tail-call `/handoff --commit`
 
 **Key distinction from Tier 3:** No prepare-runbook.py, no orchestrator plan, no plan-specific agent. The planner acts as ad-hoc orchestrator, delegating directly via Task tool.
@@ -208,60 +208,60 @@ Every runbook MUST include this metadata section at the top:
 
 ---
 
-### Point 3: Plan Review by Quiet-Task Agent
+### Point 3: Plan Review by Vet Agent
 
-Before finalizing the runbook, delegate review to a quiet-task agent that will invoke the `/vet` skill.
+Before finalizing the runbook, delegate review to the vet agent.
 
-**Why this pattern:**
+**Why vet agent:**
 - **Fresh eyes**: Sub-agent reviews with no orchestrator bias
-- **Leverages /vet skill**: Reuses existing review logic and criteria
-- **Clean delegation**: Agent invokes skill, returns assessment
-- **Contrast with /review**: The /review skill uses subagents to perform multiple reviews and cannot itself be delegated (no sub-sub-agents in Claude)
+- **Autonomous fixing**: Agent applies high/medium fixes directly (not just reports)
+- **Quiet execution**: Writes detailed review to file, returns terse result
+- **Specialized**: Dedicated agent with vet review protocol built-in
 
 **Delegation Pattern:**
 
 ```
 Task(
-  subagent_type="quiet-task",
+  subagent_type="vet-agent",
   model="sonnet",
-  prompt="Use the /vet skill to review the runbook at [runbook-path].
+  prompt="Review the runbook at [runbook-path] for completeness, correctness, and executability.
 
   CRITICAL: Also validate all file paths referenced in the runbook exist in the codebase.
   Use Glob to verify each path. Flag missing files as critical issues.
 
-  After /vet completes, write a summary of the assessment to: [review-path]
+  Write detailed review to: [review-path]
 
-  Return only: 'READY: [summary]' or 'NEEDS_REVISION: [summary]' or 'error: [description]'"
+  Return only the filepath on success, or 'Error: [description]' on failure."
 )
 ```
 
 **Agent responsibilities:**
-1. Invoke `/vet` skill on the runbook file
-2. Capture /vet output (assessment and issues)
+1. Review runbook file using vet protocol
+2. Validate all referenced file paths exist
 3. Write review report to specified path
-4. Return overall assessment to orchestrator
+4. Return filepath or error to orchestrator
 
 **Orchestrator receives:**
-- `READY: 0 critical, 3 major, 5 minor issues - all design decisions documented`
-- `NEEDS_REVISION: 2 critical issues - missing prerequisites, ambiguous step 4`
-- `error: Runbook file not found at [path]`
+- Filepath: `plans/foo/reports/runbook-review.md` (success)
+- Error: `Error: Runbook file not found at [path]` (failure)
 
 **Revision Loop:**
-1. If assessment is `NEEDS_REVISION`:
-   - Read review report
-   - **REQUIRED:** Apply all high and medium priority fixes
+1. Read review report from filepath
+2. Check assessment status (Ready / Needs Minor Changes / Needs Significant Changes)
+3. If "Needs Minor Changes" or "Needs Significant Changes":
+   - **REQUIRED:** Apply all critical and major priority fixes
    - Update runbook with fixes
    - Delegate re-review if changes are significant
-   - Iterate until assessment is `READY`
-2. If assessment is `READY`:
+   - Iterate until assessment is "Ready"
+4. If "Ready":
    - Proceed to Point 4 (artifact preparation)
-3. If assessment is `error`:
+5. If error returned:
    - Escalate to user
 
 **Fix Application Policy:**
-- High and medium priority issues MUST be fixed before proceeding
-- Low priority issues are optional (document as future improvements if skipped)
-- Never proceed with unaddressed high/medium issues
+- Critical and major priority issues MUST be fixed before proceeding
+- Minor priority issues are optional (document as future improvements if skipped)
+- Never proceed with unaddressed critical/major issues
 
 ---
 
@@ -428,7 +428,7 @@ Analyzing task:
 Proceeding with direct implementation...
 
 *[Agent implements components directly]*
-*[Agent invokes `/vet` for review]*
+*[Agent delegates to vet agent for review]*
 
 ### Example 2: Runbook Creation (Orchestration Needed)
 
@@ -654,7 +654,7 @@ These demonstrate the complete 4-point process in practice.
 4. `/commit` commits everything → displays next pending task (restart instructions)
 5. User restarts session, switches to haiku, pastes `/orchestrate {name}` from clipboard
 6. `/orchestrate` - Haiku executes runbook steps
-7. `/vet` - Review changes before commit
+7. vet-fix-agent - Review and fix changes before commit
 8. Complete job
 
 **Handoff:**

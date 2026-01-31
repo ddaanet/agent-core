@@ -341,21 +341,20 @@ Full review written to: scratch/reviews/vet-review-2026-01-19-142530.md
 
 ## Integration with Oneshot Workflow
 
+**This skill is the protocol used by vet agents.** In workflow contexts, prefer agent delegation over direct skill invocation:
+
+- `vet-agent` — review only (Tier 1/2, caller applies fixes)
+- `vet-fix-agent` — review + apply fixes (Tier 3 orchestration)
+
+**Direct `/vet` invocation** is still valid when the user explicitly requests a review in conversation.
+
 **Workflow stages:**
 1. `/design` - Opus creates design document
 2. `/plan-adhoc` - Sonnet creates runbook
 3. `/orchestrate` - Haiku executes runbook
-4. `/vet` - Review changes before commit (THIS SKILL)
+4. vet-fix-agent - Review and fix changes before commit
 5. `/commit` - Commit changes
 6. Complete job
-
-**Typical invocation:**
-After `/orchestrate` completes, user runs `/vet` to review all changes before committing.
-
-**Handoff:**
-- Input: Uncommitted changes from runbook execution
-- Output: Review report with issues and recommendations
-- Next: User fixes critical/major issues, then commits
 
 ## References
 

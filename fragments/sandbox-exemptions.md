@@ -28,6 +28,13 @@ When a command is in `permissions.allow`, invoke it with the **exact prefix** th
 - Requires `dangerouslyDisableSandbox: true` (writes to `.claude/agents/`)
 - Do NOT use: `python3 agent-core/bin/prepare-runbook.py` (breaks permission match)
 
+### just sync-to-parent
+
+- Recipe: `just sync-to-parent` (in agent-core/ directory)
+- Invocation: `just sync-to-parent` (no arguments)
+- Requires `dangerouslyDisableSandbox: true` (creates/updates symlinks in `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`)
+- Fails in sandbox with: "Operation not permitted"
+
 ### Commands Requiring `dangerouslyDisableSandbox: true`
 
 - Commands writing to `.claude/` directory (except `.claude/debug/`)

@@ -24,7 +24,7 @@ COMMANDS = {
     'x': (
         '[SHORTCUT: #execute] Smart execute: if an in-progress task exists, '
         'resume it. Otherwise start the first pending task from session.md. '
-        'Drive to completion, then stop.'
+        'Complete the task, then stop. Do NOT commit or handoff.'
     ),
     'xc': (
         '[SHORTCUT: #execute --commit] Execute task to completion, '

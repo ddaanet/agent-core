@@ -6,14 +6,19 @@
 
 **Settings-level hooks:**
 - Location: `.claude/settings.json`
-- Format: Direct `{event: [...]}` structure
+- Format: Nested structure with optional `matcher` and `hooks` array
 ```json
 {
   "hooks": {
     "PreToolUse": [
       {
-        "name": "PreToolUse:Bash",
-        "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse.py"
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/pretooluse.py"
+          }
+        ]
       }
     ]
   }
@@ -71,4 +76,4 @@
 - CLAUDE.md absolute path guidance targets sub-agents
 
 **Hook enforcement:**
-- `submodule-safety` hook warns about non-root cwd in sub-agents
+- `submodule-safety` hook blocks commands when cwd != project root

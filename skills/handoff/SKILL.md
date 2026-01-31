@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation.
+description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation. NOT for Haiku model orchestrators - use /handoff-haiku instead.
 ---
 
 # Skill: handoff
@@ -9,6 +9,8 @@ Update session.md for agent handoff, preserving critical context for the next ag
 
 ## Target Model
 Standard (Sonnet)
+
+**CRITICAL:** This skill is for standard agent handoffs. If you are a Haiku orchestrator, use `/handoff-haiku` instead.
 
 ## Protocol
 

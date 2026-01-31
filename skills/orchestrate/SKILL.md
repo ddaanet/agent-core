@@ -68,7 +68,9 @@ Read plans/<runbook-name>/orchestrator-plan.md
 ```
 Use Task tool with:
 - subagent_type: "<runbook-name>-task"
-- prompt: "Execute step from: plans/<runbook-name>/steps/step-N.md"
+- prompt: "Execute step from: plans/<runbook-name>/steps/step-N.md
+
+CRITICAL: For session handoffs, use /handoff-haiku, NOT /handoff."
 - description: "Execute step N of runbook"
 - model: [from orchestrator metadata, typically haiku]
 ```

@@ -64,11 +64,13 @@ def main() -> None:
 
     # Tier 1: Exact match for commands
     if prompt in COMMANDS:
+        expansion = COMMANDS[prompt]
         output = {
             'hookSpecificOutput': {
                 'hookEventName': 'UserPromptSubmit',
-                'additionalContext': COMMANDS[prompt]
-            }
+                'additionalContext': expansion
+            },
+            'systemMessage': expansion
         }
         print(json.dumps(output))
         return
@@ -78,11 +80,13 @@ def main() -> None:
     if match:
         directive_key = match.group(1)
         if directive_key in DIRECTIVES:
+            expansion = DIRECTIVES[directive_key]
             output = {
                 'hookSpecificOutput': {
                     'hookEventName': 'UserPromptSubmit',
-                    'additionalContext': DIRECTIVES[directive_key]
-                }
+                    'additionalContext': expansion
+                },
+                'systemMessage': expansion
             }
             print(json.dumps(output))
             return

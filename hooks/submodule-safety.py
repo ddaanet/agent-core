@@ -83,7 +83,8 @@ def handle_posttooluse(cwd: str, project_dir: str) -> None:
         'hookSpecificOutput': {
             'hookEventName': 'PostToolUse',
             'additionalContext': warning
-        }
+        },
+        'systemMessage': warning
     }
 
     print(json.dumps(output))

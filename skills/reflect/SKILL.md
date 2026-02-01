@@ -1,7 +1,7 @@
 ---
 name: reflect
 description: This skill should be used when the user asks to "reflect", "diagnose deviation", "root cause", "why did you do X", "RCA", or after interrupting an agent that deviated from rules. Performs structured root cause analysis of agent behavior deviations within the current session context.
-allowed-tools: Read, Write, Edit, Grep, Glob, Skill
+allowed-tools: Read, Write, Edit, Grep, Glob
 user-invocable: true
 ---
 
@@ -113,7 +113,7 @@ Choose exit path based on context budget and fix scope:
 2. Append learning to `agents/learnings.md` (anti-pattern / correct pattern / rationale format)
 3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
 4. Update memory index if systemic fix
-5. Tail-call `/handoff --commit`
+5. Stop and return control to user
 
 #### Exit Path 2: RCA Complete, Handoff for Fixes
 
@@ -128,7 +128,8 @@ Choose exit path based on context budget and fix scope:
    - **Slug format:** kebab-case description of deviation type (e.g., `orchestrator-dirty-tree`, `tool-misuse-grep`)
 2. Append learning to `agents/learnings.md`
 3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
-4. Tail-call `/handoff --commit` with fix tasks as pending
+4. Document fix tasks for user (what needs to be done)
+5. Stop and return control to user
 
 **RCA report template:** See `references/rca-template.md` for structure
 
@@ -143,9 +144,10 @@ Choose exit path based on context budget and fix scope:
 1. Document partial findings (what we know so far)
 2. Append learning to `agents/learnings.md` if pattern identified
 3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
-4. Tail-call `/handoff --commit` with two pending tasks:
+4. Document pending tasks for user:
    - Fix upstream doc
    - Resume RCA after upstream fix
+5. Stop and return control to user
 
 ### Output Artifacts
 
@@ -175,7 +177,6 @@ Choose exit path based on context budget and fix scope:
 - **Edit:** Fix rules/fragments/skills in-session
 - **Grep:** Find rule references, search for patterns
 - **Glob:** Locate relevant documentation files
-- **Skill:** Tail-call `/handoff --commit` on all exit paths
 
 **Model selection:**
 - Use current model (expected to be opus after user switch)
@@ -190,7 +191,7 @@ Choose exit path based on context budget and fix scope:
 - User asks "why did you X?"
 - User notices rule violation
 
-**Exit:** All paths tail-call `/handoff --commit`
+**Exit:** Stop and return control to user after completing RCA work
 
 **Related skills:**
 - `/remember` — Consolidates learnings from RCA
@@ -212,11 +213,11 @@ Emitting the diagnostic-mode framing block is the first action, not optional. Wi
 
 ### Three Exit Paths
 
-Context budget varies. Sometimes the deviation is simple (fix a rule, 5 minutes). Sometimes root cause is a bad design requiring a new session. The skill supports graceful exit at any point with proper context preservation via `/handoff`.
+Context budget varies. Sometimes the deviation is simple (fix a rule, 5 minutes). Sometimes root cause is a bad design requiring a new session. The skill supports graceful exit at any point, returning control to user.
 
-### Tail-Calls Handoff on All Paths
+### Returns Control After RCA
 
-Consistent with universal workflow termination pattern. Handoff captures RCA findings, learnings, and pending fix tasks. Then tail-calls commit to preserve state.
+The skill runs in opus model (after user switches). Once RCA work is complete (fixes applied, reports written, or findings documented), it returns control to the user. This allows the user to switch back to their original model and continue working. User invokes `/handoff` and `/commit` manually when ready.
 
 ## Additional Resources
 
@@ -237,7 +238,7 @@ User interrupts agent that committed despite dirty submodule. Agent rationalized
 - Proximal cause: Agent misinterpreted "commit submodule first" as optional
 - Classification: Behavioral + Rule fix (language not strong enough)
 - Fix: Edit `agent-core/fragments/commit-delegation.md` to add "MUST" and "no exceptions" language
-- Append learning, tail-call `/handoff --commit`
+- Append learning, return control to user
 
 **Upstream Input Error (Partial RCA, Handoff)**
 
@@ -249,7 +250,7 @@ User interrupts agent implementing a step that contradicts design doc.
 - Classification: Input fix (bad runbook)
 - Partial RCA: Runbook author misread design
 - Pending tasks: (1) Fix runbook step, (2) Resume RCA if pattern recurs
-- Append learning, tail-call `/handoff --commit`
+- Append learning, return control to user
 
 **Systemic Pattern (RCA Complete, Handoff for Fixes)**
 
@@ -262,4 +263,4 @@ User interrupts orchestrator that continued past failed step.
 - Classification: Systemic (needs fragment + memory index entry)
 - RCA report written to `plans/reflect-rca-success-criteria/rca.md`
 - Pending tasks: Create `agent-core/fragments/success-criteria.md`, update memory index
-- Append learning, tail-call `/handoff --commit`
+- Append learning, return control to user

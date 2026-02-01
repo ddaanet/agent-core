@@ -79,7 +79,7 @@ Add one-line entry to `agent-core/fragments/memory-index.md` in the appropriate 
 - Tier assessment determines runbook vs direct implementation → `agents/decisions/workflows.md`
 ```
 
-**Soft limit: 100 entries.** When approaching limit, consolidate related entries or remove obsolete ones.
+**Append-only.** Never remove or consolidate entries. Each entry provides keyword discovery surface for on-demand knowledge — removal loses ambient awareness.
 
 ### 2. Discovery Routing
 

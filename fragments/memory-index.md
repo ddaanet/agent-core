@@ -2,7 +2,7 @@
 
 Condensed knowledge catalog. Read referenced files when working in related areas.
 
-**Soft limit: 100 entries.** When approaching this limit, review for entries where the rule has been promoted to always-loaded fragments (making the index entry redundant).
+**Append-only.** Never remove or consolidate entries — each entry is a keyword-rich discovery surface for on-demand knowledge. Growth is bounded by consolidation rate (~5-10 entries/session) and total token cost is modest (200 entries ≈ 5000 tokens).
 
 ## Behavioral Rules
 

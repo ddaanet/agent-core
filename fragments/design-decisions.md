@@ -1,8 +1,10 @@
 ## Design Decision Escalation
 
-**Rule:** When facing a design decision during any workflow phase, use `/opus-design-question` instead of asking the user.
+**Rule:** When facing a design decision during planning or execution, use `/opus-design-question` instead of asking the user.
 
-**Applies to:** All agents during design, planning, and execution phases.
+**Applies to:** Agents during planning and execution phases.
+
+**Does NOT apply to:** Design sessions (`/design` skill). Design sessions exist to make architectural decisions — delegating that to a subagent is circular. The designer reasons through decisions directly.
 
 **When you encounter a choice like:**
 - "Should I use approach A or B?"

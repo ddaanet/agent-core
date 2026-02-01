@@ -41,7 +41,7 @@ Before doing design work, assess whether design is actually needed:
 
 Read `agents/design-decisions.md` for existing patterns. Clarify ambiguous requirements with user.
 
-**Design decision escalation:** When facing architectural choices between approaches (e.g., "approach A vs B"), use `/opus-design-question` to consult an Opus subagent instead of asking the user. Only ask the user for subjective preferences, business logic, or scope changes.
+**Design decision escalation does NOT apply here.** `/opus-design-question` is for planning/execution phases that hit unexpected architectural choices. Design sessions exist to make those decisions — the designer reasons through them directly.
 
 ### 1.5. Memory Discovery
 

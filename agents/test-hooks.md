@@ -51,13 +51,16 @@ You are a hook testing agent specializing in validating Claude Code hook behavio
 - PreToolUse:Bash → submodule-safety.py (blocks commands when cwd != root)
 - PostToolUse:Bash → submodule-safety.py (warns after cwd drift with restore command)
 - UserPromptSubmit → userpromptsubmit-shortcuts.py (expands shortcuts like `hc`)
-- PreToolUse:Write → pretooluse-block-tmp.sh (blocks /tmp writes)
+- PreToolUse:Write|Edit → pretooluse-block-tmp.sh (blocks /tmp writes)
+- PreToolUse:Write|Edit → pretooluse-symlink-redirect.sh (blocks writes to agent-core symlinks)
 
 ---
 
 ## Test Procedure
 
 Execute each test case sequentially. Record results in `tmp/hook-test-results-[timestamp].md`.
+
+**Total tests: 13** (added Test 12: Block symlink writes, Test 13: Allow Edit to agent-core direct path)
 
 ### Test 1: Block /tmp writes
 
@@ -325,6 +328,44 @@ true
 
 ---
 
+### Test 12: Block symlink writes to agent-core
+
+**Objective:** Verify pretooluse-symlink-redirect.sh blocks writes to symlinks pointing to agent-core
+
+**Action:**
+```
+Write tool: .claude/skills/commit/SKILL.md
+Content: "This should be blocked - commit is a symlink"
+```
+
+**Expected outcome:**
+- **Hook behavior:** Blocks operation (exit code 2)
+- **Error message (stderr):** Contains "🚫 **BLOCKED: Cannot write to symlink pointing to agent-core**" and shows correct path to write to instead
+- **Tool execution:** Write tool does NOT execute
+
+**Actual outcome:** [AGENT FILLS IN]
+
+---
+
+### Test 13: Allow Edit to agent-core direct path
+
+**Objective:** Verify pretooluse-symlink-redirect.sh allows edits to agent-core files when using direct path
+
+**Action:**
+```
+Edit tool: agent-core/hooks/pretooluse-block-tmp.sh
+old_string: "# Only check Write and Edit tools"
+new_string: "# Only check Write and Edit tools"
+```
+
+**Expected outcome:**
+- **Hook behavior:** Allows operation (no warning, file is not a symlink when accessed directly)
+- **Tool execution:** Edit tool executes successfully
+
+**Actual outcome:** [AGENT FILLS IN]
+
+---
+
 ## Hook Architecture
 
 **Hook configuration location:** `.claude/settings.json` (NOT `.claude/hooks/hooks.json`)
@@ -333,7 +374,8 @@ true
 - **PreToolUse:Bash** → submodule-safety.py (blocks commands when cwd != root)
 - **PostToolUse:Bash** → submodule-safety.py (warns after cwd drift)
 - **UserPromptSubmit** → userpromptsubmit-shortcuts.py (expands shortcuts)
-- **PreToolUse:Write** → pretooluse-block-tmp.sh (blocks /tmp writes)
+- **PreToolUse:Write|Edit** → pretooluse-block-tmp.sh (blocks /tmp writes)
+- **PreToolUse:Write|Edit** → pretooluse-symlink-redirect.sh (blocks writes to agent-core symlinks)
 
 **Hook interaction:** Write and Bash matchers are mutually exclusive. PreToolUse and PostToolUse on Bash both trigger submodule-safety.py but in different modes (event name passed as arg).
 
@@ -394,7 +436,7 @@ Create `tmp/hook-test-results-[timestamp].md` with this structure:
 - Notes: [any deviations or observations]
 
 ## Summary
-- Total tests: 11
+- Total tests: 13
 - Passed: X
 - Failed: Y
 - Regression risk: [HIGH/MEDIUM/LOW]
@@ -407,7 +449,7 @@ Create `tmp/hook-test-results-[timestamp].md` with this structure:
 **For agent executing this procedure:**
 
 1. Read this file completely before starting
-2. Execute tests in order (1-11)
+2. Execute tests in order (1-13)
    - **Test 9 (UserPromptSubmit):** If you are a sub-agent, mark as SKIPPED - only main agent or user can test
 3. Record each result immediately after test execution
 4. Include actual hook output in notes if it deviates from expected

@@ -11,8 +11,8 @@ input=$(cat)
 tool_name=$(echo "$input" | jq -r '.tool_name // empty')
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
-# Only check Write tool
-if [[ "$tool_name" == "Write" ]]; then
+# Only check Write and Edit tools
+if [[ "$tool_name" == "Write" || "$tool_name" == "Edit" ]]; then
   # Check if path starts with /tmp/ or /private/tmp/
   if [[ "$file_path" =~ ^(/tmp/|/private/tmp/) ]]; then
     # Block the operation - output plain message to stderr and exit 2

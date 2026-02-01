@@ -29,10 +29,10 @@ Perform structured root cause analysis of agent behavior deviations within the c
 **First action:** Emit session-break framing block to force cognitive reset from execution mode to diagnostic mode:
 
 ```
----
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔍 REFLECT MODE — Deviation Diagnosis
 Previous task suspended. Analyzing conversation for rule violations.
----
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 **Why critical:** Without explicit framing, the agent remains in execution mode and applies quick fixes instead of performing systematic diagnosis. The framing block forces diagnostic mindset.

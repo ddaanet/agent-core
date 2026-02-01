@@ -5,3 +5,4 @@
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
 5. **Use AskUserQuestion for choices** - When presenting options, use the AskUserQuestion tool instead of prose questions. Never embed multi-option choices in text with a trailing "yes/no?" — the user's `y` binds to the last question, not the first option
+6. **Unambiguous directives** - Automation directives must have explicit boundaries. Use "Do NOT commit or handoff" not "drive to completion" (which is ambiguous). Clear prohibitions prevent scope creep in automation

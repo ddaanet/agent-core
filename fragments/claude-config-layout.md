@@ -51,6 +51,32 @@
 - Hook changes only take effect after restarting Claude Code session
 - Test hooks after commit by restarting and running test procedure
 
+**Hook behavior patterns:**
+
+**UserPromptSubmit hooks:**
+- Cannot rewrite prompts (original passes through unchanged)
+- Can only add `additionalContext` or block (exit 2)
+- No `matcher` support — fires on every prompt (all filtering must be script-internal)
+- Use `hookSpecificOutput.additionalContext` for discrete context injection (not shown in transcript)
+- Plain text stdout also works but is visible in transcript
+
+**Hook output visibility:**
+- `additionalContext` → Claude sees (injected context)
+- `systemMessage` → User sees (UI message)
+- stderr + exit 2 → Claude sees as error (blocking)
+- **Pattern:** Use dual output (both `additionalContext` and `systemMessage`) for user+agent visibility
+
+**Hook execution scope:**
+- Hooks only active in main agent session
+- Do NOT fire in sub-agents spawned via Task tool
+- Sub-agents can have tools (Bash, Write) but hook interceptors won't fire
+- Test hooks manually in main session, not via delegated agents
+
+**Security patterns:**
+- Use exact match (`command in patterns`) for restore operations, not `startswith()`
+- Rationale: Shell operators (&&, ;, ||) can chain additional commands
+- Prevents exploitation via command continuation
+
 ### Agent Configuration
 
 **Plan-specific agents:**

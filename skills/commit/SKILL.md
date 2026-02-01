@@ -212,6 +212,18 @@ Pending:
 
 **If no pending tasks** — display "No pending tasks." and optionally suggest `/next` to find work from todo.md.
 
+**Copy command to clipboard:**
+
+After displaying STATUS, extract the command from the first pending task and copy to clipboard:
+
+```bash
+echo '<command>' | pbcopy
+```
+
+Where `<command>` is the backtick-wrapped text from the first pending task. Strip the backticks before copying.
+
+**Requires `dangerouslyDisableSandbox: true`** - pbcopy is blocked by sandbox.
+
 **Why:** This enables tail-call composition. When `/commit` is tail-called from `/handoff --commit` (which is tail-called from `/plan-tdd` or `/plan-adhoc`), the user sees the next action without manual inspection. For post-planning workflows, this displays "Restart session, switch to haiku model, paste `/orchestrate {name}` from clipboard." When all pending work is done, `/next` finds the next thing.
 
 ## Context Gathering (Non-Context Mode)

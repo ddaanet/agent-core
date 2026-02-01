@@ -163,6 +163,18 @@ Pending:
 - Missing session.md or no Pending Tasks → "No pending tasks."
 - Old format (no metadata) → use defaults (sonnet, no restart)
 
+**Copy command to clipboard:**
+
+After displaying STATUS, extract the command from the first pending task and copy to clipboard:
+
+```bash
+echo '<command>' | pbcopy
+```
+
+Where `<command>` is the backtick-wrapped text from the first pending task. Strip the backticks before copying.
+
+**Requires `dangerouslyDisableSandbox: true`** - pbcopy is blocked by sandbox.
+
 **If `--commit` flag WAS specified:**
 
 Skip STATUS display. The `/commit` skill will show it after committing.

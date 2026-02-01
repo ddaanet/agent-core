@@ -94,14 +94,20 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ### Point 0.5: Discover Codebase Structure (REQUIRED)
 
-**Before writing any runbook content, verify actual file locations:**
+**Before writing any runbook content:**
 
-- Use Glob to find source files referenced by the design
-- Use Glob to find test files: `tests/test_*.py`, `tests/**/test_*.py`
-- Use Grep to find specific functions, classes, or patterns mentioned in the design
-- Record actual file paths for use in runbook steps
-- **NEVER assume file paths from conventions alone** — always verify with Glob/Grep
-- STOP if expected files not found: report missing files to user
+1. **Discover relevant prior knowledge:**
+   - Scan memory-index.md for entries related to the task domain
+   - Read referenced files for relevant matches
+   - Factor known constraints into step design and model selection
+
+2. **Verify actual file locations:**
+   - Use Glob to find source files referenced by the design
+   - Use Glob to find test files: `tests/test_*.py`, `tests/**/test_*.py`
+   - Use Grep to find specific functions, classes, or patterns mentioned in the design
+   - Record actual file paths for use in runbook steps
+   - **NEVER assume file paths from conventions alone** — always verify with Glob/Grep
+   - STOP if expected files not found: report missing files to user
 
 **Why:** Runbooks with fabricated file paths fail immediately at execution. This is a complete blocker.
 

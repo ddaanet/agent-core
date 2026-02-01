@@ -56,6 +56,15 @@ Transform session learnings into persistent, actionable documentation. Updates C
 - Read updated section → Check formatting → Verify placement
 - **After consolidation**: Remove consolidated learnings from `agents/learnings.md`, but keep the 3-5 most recent learnings (at bottom of file) for continuity
 
+**Step 4a: Update discovery mechanisms**
+
+After consolidating a learning:
+
+1. **Append to memory index**: Add one-line entry (summary + file reference) to appropriate section in `agent-core/fragments/memory-index.md`
+2. **If new fragment created**: Add `@`-reference to CLAUDE.md OR create `.claude/rules/` entry if path-scoped. **Heuristic:** If the learning applies regardless of which files are being edited → `@`-ref in CLAUDE.md. If it only applies when working with a specific file type or directory → `.claude/rules/` entry with path frontmatter.
+3. **If existing fragment updated**: Ensure memory index entry reflects the updated content (add new entry or update existing one)
+4. **If decision file updated**: Verify corresponding `.claude/rules/` entry exists for path trigger
+
 ### 5. Document
 **Commit**: `Update [file]: [what]\n\n- [change 1]\n- [change 2]\n- [rationale]`
 **Handoff** (if session.md): Note update, explain significance, reference commit

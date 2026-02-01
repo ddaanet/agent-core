@@ -34,9 +34,8 @@ agent-core/
 │   ├── mypy.toml                   # Mypy type checker configuration
 │   ├── communication.md            # Communication guidelines
 │   ├── delegation.md               # Delegation patterns
-│   ├── tool-preferences.md         # Tool usage preferences
-│   ├── hashtags.md                 # Hashtag conventions
-│   └── AGENTS-framework.md         # Framework for AGENTS.md files
+│   ├── tool-batching.md            # Tool batching guidelines
+│   └── ... (other fragments)       # Additional instruction fragments
 ├── skills/              # Workflow skills
 │   ├── design/          # Design session skill (TDD/general mode)
 │   ├── orchestrate/     # Runbook execution skill

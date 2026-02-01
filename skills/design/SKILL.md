@@ -43,6 +43,16 @@ Read `agents/design-decisions.md` for existing patterns. Clarify ambiguous requi
 
 **Design decision escalation:** When facing architectural choices between approaches (e.g., "approach A vs B"), use `/opus-design-question` to consult an Opus subagent instead of asking the user. Only ask the user for subjective preferences, business logic, or scope changes.
 
+### 1.5. Memory Discovery
+
+Scan memory-index.md for entries relevant to the current task domain.
+For any matches:
+1. Read the referenced file(s) to load full context
+2. Note relevant constraints, patterns, or prior decisions
+3. Factor these into architectural decisions
+
+This prevents re-learning known patterns or contradicting established rules.
+
 ### 2. Explore Codebase
 
 **CRITICAL: Delegate exploration. Opus must not grep/glob/browse directly.**

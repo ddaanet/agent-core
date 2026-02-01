@@ -83,6 +83,16 @@ WebSearch/WebFetch for external patterns, prior art, or specifications.
 
 **TDD mode additions:** Spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
 
+**Plugin-related topics (hooks, agents, skills, plugins):**
+When the design involves Claude Code plugin components, include a skill-loading directive in "Next steps":
+- Hooks → `Load plugin-dev:hook-development before planning`
+- Agents → `Load plugin-dev:agent-development before planning`
+- Skills → `Load plugin-dev:skill-development before planning`
+- Plugin structure → `Load plugin-dev:plugin-structure before planning`
+- MCP integration → `Load plugin-dev:mcp-integration before planning`
+
+This ensures the planner has domain-specific guidance loaded before creating the runbook.
+
 ### 5. Vet Design
 
 **CRITICAL: Delegate to opus subagent for review.**

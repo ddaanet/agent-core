@@ -67,7 +67,7 @@ Route learnings to appropriate documentation based on domain.
 
 ### 1. Append to Memory Index
 
-Add one-line entry to `agent-core/fragments/memory-index.md` in the appropriate domain section:
+Add one-line entry to `agents/memory-index.md` in the appropriate domain section:
 
 ```markdown
 - [Summary of learning] → `agent-core/fragments/file.md` or `agents/decisions/file.md`

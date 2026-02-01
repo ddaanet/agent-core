@@ -101,10 +101,18 @@ git status -vv
 
 If `git status` shows modified submodules (e.g., `M agent-core`):
 
-1. Enter submodule: check `git status` inside it
-2. If submodule has uncommitted changes: commit them first with a message generated from the submodule's own diff, following standard commit message style. Do NOT prefix the message with the submodule name — the commit lives inside the submodule repo where it would be redundant
-3. Stage the submodule pointer in parent: `git add <submodule-path>`
+1. Check submodule status: `(cd agent-core && git status)`
+2. If submodule has uncommitted changes: commit them using subshell pattern:
+   ```bash
+   (cd agent-core && git add <files> && git commit -m "$(cat <<'EOF'
+   Commit message here
+   EOF
+   )")
+   ```
+3. Stage the submodule pointer in parent: `git add agent-core`
 4. Continue with parent commit
+
+**Subshell pattern:** Use `(cd submodule && ...)` instead of `cd submodule` to avoid changing working directory in main session.
 
 **Scope:** Single-level submodules only. Nested submodules not used in this repo.
 
@@ -132,16 +140,7 @@ just precommit  # or: just test (--test) / just lint (--lint)
 
 **Read references/gitmoji-index.txt** (~78 entries, format: `emoji - name - description`).
 
-Analyze commit message semantics (type, scope, impact). Select most specific emoji matching primary intent:
-- 🐛 bug - Fix a bug
-- ✨ sparkles - Introduce new features
-- 📝 memo - Add or update documentation
-- ♻️ recycle - Refactor code
-- ⚡️ zap - Improve performance
-- 🔥 fire - Remove code or files
-- 🎨 art - Improve structure / format of the code
-- 🤖 robot - Add or update agent skills, instructions, or guidance
-- (see full index for all 78 options)
+Analyze commit message semantics (type, scope, impact). Select the most specific emoji matching primary intent from the index.
 
 Prefix commit title with selected emoji.
 
@@ -171,6 +170,7 @@ git status
 - Stage specific files only (not `git add -A`)
 - Preserve already-staged files
 - **Include `agents/session.md`, `plans/` files, and submodule pointer updates if they have uncommitted changes**
+- **Use subshell pattern for submodules:** `(cd submodule && git ...)` to avoid changing working directory
 - Do NOT commit secrets (.env, credentials.json, etc.)
 
 ## Critical Constraints

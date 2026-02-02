@@ -107,6 +107,11 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 **Actions:**
 
+0. **Read documentation perimeter (if present):**
+   - If design includes "Documentation Perimeter" section, read all listed files under "Required reading"
+   - Note Context7 references for potential additional queries
+   - This provides designer's recommended context before discovery
+
 1. **Determine design path:**
    - `/plan-tdd` → Find latest `plans/*/design.md` using Glob (sort by mtime)
    - `/plan-tdd <path>` → Use absolute path

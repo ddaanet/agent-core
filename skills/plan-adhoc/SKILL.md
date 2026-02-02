@@ -96,6 +96,15 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 **Before writing any runbook content:**
 
+0. **Read documentation perimeter (if present):**
+
+If design document includes "Documentation Perimeter" section:
+- Read all files listed under "Required reading"
+- Note Context7 references (may need additional queries)
+- Factor knowledge into step design
+
+This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory-index scan.
+
 1. **Discover relevant prior knowledge:**
    - Scan memory-index.md for entries related to the task domain
    - Read referenced files for relevant matches

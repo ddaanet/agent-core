@@ -31,39 +31,99 @@ Before doing design work, assess whether design is actually needed:
 
 **Complex (design needed):**
 - Architectural decisions, multiple valid approaches, uncertain requirements, significant codebase impact
-- → Proceed with steps 1-6 below.
+- → Proceed with Phases A-C below.
 
 **Session state check:** If session has significant pending work (>5 tasks), suggest `/shelve` before proceeding.
 
 ---
 
-### 1. Understand Request
+### Phase A: Research + Outline
 
-Read `agents/design-decisions.md` for existing patterns. Clarify ambiguous requirements with user.
+**Objective:** Load context, explore codebase, research external resources, produce plan outline.
+
+#### A.1. Documentation Checkpoint
+
+**Purpose:** Systematic documentation loading — replaces ad-hoc memory discovery.
+
+**Hierarchy (each level is fallback when previous didn't answer):**
+
+| Level | Source | How | When |
+|-------|--------|-----|------|
+| 1. Local knowledge | `memory-index.md` for keyword discovery → read referenced files. `agents/design-decisions.md` always. Other `agents/decisions/*.md` and `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, quiet-explore or Grep on decision/fragment directories is also valid. | Direct Read, quiet-explore, or Grep | Always (core), flexible method |
+| 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
+| 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
+| 4. Local explore | Codebase exploration | Delegate to quiet-explore agent | Always for complex designs |
+| 5. Web research | External patterns, prior art, specifications | WebSearch/WebFetch (direct in main session) | When local sources insufficient |
+
+**Not all levels needed for every task.** Level 1 is always loaded. Levels 2-5 are conditional on task domain.
+
+**Level 1 clarification:** Memory-index is an ambient awareness index — keyword-rich entries that surface relevant knowledge. It is NOT the only way to discover local knowledge. For targeted doc collection (e.g., "what do we know about agent patterns?"), the designer can also:
+- Delegate quiet-explore to read and summarize `agents/decisions/` and `agent-core/fragments/`
+- Use Grep to search for specific topics across decision/fragment files
+- These approaches work well when the doc volume is small enough to read completely
+
+**Flexibility:** The checkpoint is domain-aware, not prescriptive. Designer identifies what domain the task touches and loads relevant docs for that domain. No fixed "always read X" list beyond level 1 core.
 
 **Design decision escalation does NOT apply here.** `/opus-design-question` is for planning/execution phases that hit unexpected architectural choices. Design sessions exist to make those decisions — the designer reasons through them directly.
 
-### 1.5. Memory Discovery
-
-Scan memory-index.md for entries relevant to the current task domain.
-For any matches:
-1. Read the referenced file(s) to load full context
-2. Note relevant constraints, patterns, or prior decisions
-3. Factor these into architectural decisions
-
-This prevents re-learning known patterns or contradicting established rules.
-
-### 2. Explore Codebase
+#### A.2. Explore Codebase
 
 **CRITICAL: Delegate exploration. Opus must not grep/glob/browse directly.**
 
-Use Task tool with `subagent_type="Explore"` (or `"quiet-explore"`). Only use Read for specific files AFTER exploration identifies them.
+Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/<job-name>/reports/explore-<topic>.md`. Agent writes findings to file and returns filepath.
 
-### 3. Research (if needed)
+#### A.3-4. External Research (if needed)
 
-WebSearch/WebFetch for external patterns, prior art, or specifications.
+**Context7:** Call MCP tools directly from main session (unavailable in sub-agents). Write results to report file: `plans/<job-name>/reports/context7-<topic>.md`.
 
-### 4. Create Design Document
+**Web research:** WebSearch/WebFetch for external patterns, prior art, or specifications.
+
+#### A.5. Produce Plan Outline
+
+**Output:** Freeform summary presented to user in conversation (not a file).
+
+**Content:**
+- Approach summary
+- Key decisions
+- Open questions
+- Scope boundaries
+
+**Plugin-topic detection:** If design involves Claude Code plugin components (hooks, agents, skills), note in outline: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."
+
+**Example outline** (for reference — adapt to task):
+```
+Approach: Add rate limiting middleware to API gateway using token bucket algorithm.
+Key decisions: Per-user limits (not global), Redis-backed counters, 429 response with Retry-After header.
+Open questions: Should rate limits vary by endpoint? Should admin users be exempt?
+Scope: API gateway only. Dashboard/monitoring out of scope.
+Plugin-topic: Involves hook development (PreToolUse validation) — load plugin-dev:hook-development before planning.
+```
+
+**Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
+
+---
+
+### Phase B: Iterative Discussion
+
+**Objective:** Validate approach with user before expensive design generation.
+
+**Process:**
+- User provides feedback on outline
+- Designer responds with **incremental deltas only** — not full outline regeneration
+- Loop until user validates approach
+- This is conversation, not document generation — keep it light
+
+**Termination:** If user feedback fundamentally changes the approach (not refining it), restart Phase A with updated understanding. Phase B is for convergence, not exploration of new directions.
+
+**Convergence guidance:** If after 3 rounds the outline is not converging, ask user whether to proceed with current state or restart with different constraints.
+
+---
+
+### Phase C: Generate Design
+
+**Objective:** Produce full design document, review, fix, commit.
+
+#### C.1. Create Design Document
 
 **Output:** `plans/<job-name>/design.md`
 
@@ -79,9 +139,30 @@ WebSearch/WebFetch for external patterns, prior art, or specifications.
 - Architecture/approach
 - Key design decisions with rationale
 - Implementation notes (affected files, testing strategy)
+- Documentation Perimeter (see below)
 - Next steps
 
 **TDD mode additions:** Spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
+
+**Documentation Perimeter section:**
+
+Include this section specifying what the planner should read before starting:
+
+```markdown
+## Documentation Perimeter
+
+**Required reading (planner must load before starting):**
+- `agents/decisions/architecture.md` — module patterns, path handling
+- `agent-core/fragments/delegation.md` — quiet execution pattern
+- `plans/{job-name}/reports/explore-{topic}.md` — exploration results
+
+**Context7 references:**
+- `/anthropics/claude-code` — hook configuration patterns (query: "PostToolUse hooks")
+
+**Additional research allowed:** Planner may do additional Context7 queries or exploration for technical implementation details not covered above.
+```
+
+**Rationale:** Designer has deepest understanding of what knowledge the task requires. Encoding this explicitly prevents planner from either under-reading (missing critical context) or over-reading (wasting tokens on irrelevant docs).
 
 **Plugin-related topics (hooks, agents, skills, plugins):**
 When the design involves Claude Code plugin components, include a skill-loading directive in "Next steps":
@@ -93,7 +174,7 @@ When the design involves Claude Code plugin components, include a skill-loading 
 
 This ensures the planner has domain-specific guidance loaded before creating the runbook.
 
-### 5. Vet Design
+#### C.3. Vet Design
 
 **CRITICAL: Delegate to opus subagent for review.**
 
@@ -109,13 +190,13 @@ Review plans/<job-name>/design.md for:
 Return concise feedback with actionable fixes.
 ```
 
-### 6. Apply Fixes
+#### C.4. Apply Fixes
 
 **Address all high and medium priority feedback from vet review.**
 
 Update design.md with corrections. Low priority items can be deferred or documented as known limitations.
 
-### 7. Handoff and Commit
+#### C.5. Handoff and Commit
 
 **CRITICAL: As the final action, invoke `/handoff --commit`.**
 

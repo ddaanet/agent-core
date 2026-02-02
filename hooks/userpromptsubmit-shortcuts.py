@@ -1,6 +1,5 @@
-#\!/usr/bin/env python3
-"""
-UserPromptSubmit hook: Expand workflow shortcuts.
+#!/usr/bin/env python3
+"""UserPromptSubmit hook: Expand workflow shortcuts.
 
 Tier 1 - Commands (exact match, entire message):
   s, x, xc, r, h, hc, ci, ?

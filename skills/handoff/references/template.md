@@ -18,13 +18,8 @@ Use this structure when updating session.md for agent handoff:
 
 ## Pending Tasks
 
-- [ ] **Task name** (PRIORITY)
-  - Specific requirement or detail
-  - Reference: file/path.md:line-numbers
-
-- [ ] **Another task** (AFTER X)
-  - Dependencies or prerequisites
-  - Context needed for execution
+- [ ] **Task name** #PNDNG — description | model
+- [ ] **Another task** #PNDNG — description | model | restart
 
 ## Blockers / Gotchas
 

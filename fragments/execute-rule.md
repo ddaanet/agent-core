@@ -56,6 +56,12 @@ Execute task to completion, then chain:
 **Behavior:**
 Strict resume: continue in-progress task only. Error if no in-progress task exists.
 
+### Task Pickup: Context Recovery
+
+**Rule:** Before starting a pending task, run `agent-core/bin/task-context.sh <token>` to recover the session.md where it was introduced.
+
+The token (e.g., `#xK9f2`) is embedded in the task line. The script outputs the full session.md from the introducing commit. Tokens are generated during precommit (`#PNDNG` → unique token), so git history contains the final token.
+
 ---
 
 ## `x` vs `r` Behavior Matrix
@@ -106,16 +112,17 @@ Strict resume: continue in-progress task only. Error if no in-progress task exis
 **Task metadata format:**
 
 ```markdown
-- [ ] **Task Name** — `command` | model | restart?
+- [ ] **Task Name** #token — `command` | model | restart?
 ```
 
 **Examples:**
 ```markdown
-- [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
-- [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/problem.md` | opus | restart
+- [ ] **Implement ambient awareness** #xK9f2 — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
+- [ ] **Design runbook identifiers** #bQ7mN — `/design plans/runbook-identifiers/problem.md` | opus | restart
 ```
 
 **Field rules:**
+- Token: 5-char base62 identifier (written as `#PNDNG` by handoff, replaced by precommit)
 - Command: Backtick-wrapped command to start the task
 - Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
 - Restart: Optional flag — only include if restart needed (omit = no restart)

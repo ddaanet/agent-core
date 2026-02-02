@@ -32,6 +32,10 @@ When invoked, immediately update `session.md` with:
 
 Write a handoff note following the template structure. See **`references/template.md`** for complete template and formatting guidelines.
 
+**Pending task tokens:** When adding new pending tasks, use `#PNDNG` as a placeholder token. The commit skill replaces these with unique identifiers before committing. This enables `task-context.sh` to find the session.md where a task was introduced.
+
+**Format:** `- [ ] **Task name** #PNDNG — description | model`
+
 ### 3. Context Preservation
 
 **session.md allowed sections:**

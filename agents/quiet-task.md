@@ -109,7 +109,7 @@ When task involves git operations:
 - **NEVER** update git config
 - **NEVER** run destructive commands unless task explicitly requires them
 - **NEVER** skip hooks unless task explicitly requires it
-- **NEVER** commit changes unless task explicitly requires a commit
+- **NEVER** commit changes unless task explicitly requires a commit or a clean-tree requirement is specified
 - Use HEREDOC format for commit messages
 - Create NEW commits on failures, never amend
 

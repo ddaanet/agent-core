@@ -180,16 +180,21 @@ def validate_cycle_structure(cycle, common_context=''):
 
 
 def validate_cycle_numbering(cycles):
-    """Validate cycle numbering is sequential.
+    """Validate cycle numbering.
 
-    Returns: List of error messages (empty if valid)
+    Errors (fatal): no cycles, duplicates, bad start number.
+    Warnings (non-fatal): gaps in numbering (document order
+    defines execution sequence, not numbers).
+
+    Returns: (errors, warnings) tuple of string lists.
     """
     if not cycles:
-        return ["ERROR: No cycles found in TDD runbook"]
+        return (["ERROR: No cycles found in TDD runbook"], [])
 
     errors = []
+    warnings = []
 
-    # Check for duplicates
+    # Check for duplicates (fatal - ambiguous identity)
     seen = set()
     for cycle in cycles:
         cycle_id = cycle['number']
@@ -197,16 +202,17 @@ def validate_cycle_numbering(cycles):
             errors.append(f"ERROR: Duplicate cycle number: {cycle_id}")
         seen.add(cycle_id)
 
-    # Check major numbers are sequential
+    # Check major numbers start correctly (fatal - unexpected)
     major_nums = sorted(set(c['major'] for c in cycles))
     if major_nums[0] not in (0, 1):
         errors.append(f"ERROR: First cycle must start at 0.x or 1.x, found {major_nums[0]}.x")
 
+    # Check major number gaps (warn only - document order is authoritative)
     for i in range(len(major_nums) - 1):
         if major_nums[i+1] != major_nums[i] + 1:
-            errors.append(f"ERROR: Gap in major cycle numbers: {major_nums[i]} -> {major_nums[i+1]}")
+            warnings.append(f"WARNING: Gap in major cycle numbers: {major_nums[i]} -> {major_nums[i+1]}")
 
-    # Check minor numbers are sequential within each major
+    # Check minor numbers within each major
     by_major = {}
     for cycle in cycles:
         major = cycle['major']
@@ -216,14 +222,16 @@ def validate_cycle_numbering(cycles):
 
     for major, minors in by_major.items():
         sorted_minors = sorted(minors)
+        # Minor must start at 1 (fatal - convention)
         if sorted_minors[0] != 1:
             errors.append(f"ERROR: Cycle {major}.x must start at {major}.1, found {major}.{sorted_minors[0]}")
 
+        # Minor gaps (warn only - same rationale as major gaps)
         for i in range(len(sorted_minors) - 1):
             if sorted_minors[i+1] != sorted_minors[i] + 1:
-                errors.append(f"ERROR: Gap in cycle {major}.x: {major}.{sorted_minors[i]} -> {major}.{sorted_minors[i+1]}")
+                warnings.append(f"WARNING: Gap in cycle {major}.x: {major}.{sorted_minors[i]} -> {major}.{sorted_minors[i+1]}")
 
-    return errors
+    return (errors, warnings)
 
 
 def extract_sections(content):
@@ -561,7 +569,9 @@ def main():
     if runbook_type == 'tdd':
         # Extract cycles and validate numbering
         cycles = extract_cycles(body)
-        errors = validate_cycle_numbering(cycles)
+        errors, warnings = validate_cycle_numbering(cycles)
+        for warning in warnings:
+            print(warning, file=sys.stderr)
         if errors:
             for error in errors:
                 print(error, file=sys.stderr)

@@ -365,38 +365,83 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 """
 
 
-def generate_step_file(step_num, step_content, runbook_path):
-    """Generate step file with references."""
-    return f"""# Step {step_num}
+def extract_step_metadata(content, default_model='haiku'):
+    """Extract execution metadata from step/cycle content.
 
-**Plan**: `{runbook_path}`
-**Common Context**: See plan file for context
+    Looks for bold-label fields like **Execution Model**: Sonnet
+    in the step body content. Extracted model is normalized to
+    lowercase and validated against known models.
 
----
+    Returns: dict with extracted metadata (model, report_path)
+    """
+    valid_models = {'haiku', 'sonnet', 'opus'}
+    metadata = {}
 
-{step_content}
-"""
+    # Extract Execution Model (case-insensitive)
+    model_match = re.search(
+        r'\*\*Execution Model\*\*:\s*(\w+)', content, re.IGNORECASE
+    )
+    if model_match:
+        model_val = model_match.group(1).strip().lower()
+        if model_val in valid_models:
+            metadata['model'] = model_val
+        else:
+            print(f"WARNING: Invalid execution model '{model_val}', using default '{default_model}'", file=sys.stderr)
+            metadata['model'] = default_model
+    else:
+        metadata['model'] = default_model
+
+    # Extract Report Path (may have backtick wrapping)
+    report_match = re.search(
+        r'\*\*Report Path\*\*:\s*`?([^`\n]+)`?', content
+    )
+    if report_match:
+        metadata['report_path'] = report_match.group(1).strip()
+
+    return metadata
 
 
-def generate_cycle_file(cycle, runbook_path):
-    """Generate cycle file with references.
+def generate_step_file(step_num, step_content, runbook_path, default_model='haiku'):
+    """Generate step file with references and execution metadata header."""
+    meta = extract_step_metadata(step_content, default_model)
+
+    header_lines = [
+        f"# Step {step_num}",
+        "",
+        f"**Plan**: `{runbook_path}`",
+        f"**Execution Model**: {meta['model']}",
+    ]
+    if 'report_path' in meta:
+        header_lines.append(f"**Report Path**: `{meta['report_path']}`")
+
+    header_lines.extend(["", "---", "", step_content, ""])
+    return '\n'.join(header_lines)
+
+
+def generate_cycle_file(cycle, runbook_path, default_model='haiku'):
+    """Generate cycle file with references and execution metadata header.
 
     Args:
         cycle: Dictionary with keys: major, minor, number, title, content
         runbook_path: Path to runbook file
+        default_model: Default model if not specified in cycle content
 
     Returns:
         Formatted cycle file content
     """
-    return f"""# Cycle {cycle['number']}
+    meta = extract_step_metadata(cycle['content'], default_model)
 
-**Plan**: `{runbook_path}`
-**Common Context**: See plan file for context
+    header_lines = [
+        f"# Cycle {cycle['number']}",
+        "",
+        f"**Plan**: `{runbook_path}`",
+        f"**Execution Model**: {meta['model']}",
+    ]
+    if 'report_path' in meta:
+        header_lines.append(f"**Report Path**: `{meta['report_path']}`")
 
----
-
-{cycle['content']}
-"""
+    header_lines.extend(["", "---", "", cycle['content'], ""])
+    return '\n'.join(header_lines)
 
 
 def generate_default_orchestrator(runbook_name, cycles=None):
@@ -494,7 +539,7 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
             step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
             step_path = steps_dir / step_file_name
 
-            step_file_content = generate_cycle_file(cycle, str(runbook_path))
+            step_file_content = generate_cycle_file(cycle, str(runbook_path), model)
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
     else:
@@ -504,7 +549,7 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
             step_file_name = f"step-{step_num.replace('.', '-')}.md"
             step_path = steps_dir / step_file_name
 
-            step_file_content = generate_step_file(step_num, step_content, str(runbook_path))
+            step_file_content = generate_step_file(step_num, step_content, str(runbook_path), model)
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
 

@@ -72,10 +72,10 @@ Use Task tool with:
 
 CRITICAL: For session handoffs, use /handoff-haiku, NOT /handoff."
 - description: "Execute step N of runbook"
-- model: [from step file "Execution Model" field — read each step file to determine]
+- model: [from step file header "Execution Model" field]
 ```
 
-**CRITICAL — Model selection:** The orchestrator itself may run on haiku, but step agents use the model specified in each step file's "Execution Model" field. Do NOT default all steps to haiku. Steps requiring interpretation, review, or generation typically specify sonnet. Only simple operations (symlinks, validation) use haiku.
+**CRITICAL — Model selection:** The orchestrator itself may run on haiku, but step agents use the model specified in each step file's **header metadata**. The `**Execution Model**` field appears in the step file header (lines before the `---` separator), placed there by `prepare-runbook.py`. Read the header section of each step file to extract the model — do NOT search the full body. Do NOT default all steps to haiku.
 
 **3.2 Check execution result:**
 

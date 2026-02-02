@@ -401,6 +401,84 @@ def extract_step_metadata(content, default_model='haiku'):
     return metadata
 
 
+def extract_file_references(content):
+    """Extract file path references from step/cycle content.
+
+    Finds backtick-wrapped paths that look like project files.
+    Excludes paths inside fenced code blocks (``` ... ```).
+
+    Returns: set of file path strings
+    """
+    # Strip fenced code blocks to avoid matching paths inside them
+    stripped = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
+
+    # Match backtick-wrapped paths containing at least one / (directory separator)
+    # and ending with a known file extension. Requires / to avoid matching
+    # method names like `utils.json` or `config.py`.
+    file_exts = r'\.(?:py|md|json|sh|txt|toml|yml|yaml|cfg|ini|js|ts|tsx)'
+    matches = re.findall(
+        rf'`([a-zA-Z][a-zA-Z0-9_.\-]*/[a-zA-Z0-9_/.\-]*{file_exts})`', stripped
+    )
+    return set(matches)
+
+
+def validate_file_references(sections, cycles=None, runbook_path=''):
+    """Validate that file references in steps point to existing files.
+
+    Extracts backtick-wrapped file paths from step content and checks
+    existence. Skips paths that are expected to be created during
+    execution (report paths, paths under plans/*/reports/).
+
+    Returns: list of warning strings (empty if all valid)
+    """
+    warnings = []
+
+    # Collect all step contents with identifiers
+    step_items = []
+    if cycles:
+        for cycle in cycles:
+            step_items.append((f"Cycle {cycle['number']}", cycle['content']))
+    elif sections.get('steps'):
+        for step_num, content in sections['steps'].items():
+            step_items.append((f"Step {step_num}", content))
+
+    # Also check common context
+    if sections.get('common_context'):
+        step_items.append(("Common Context", sections['common_context']))
+
+    # Paths to exclude from validation
+    runbook_str = str(runbook_path)
+
+    for step_id, content in step_items:
+        refs = extract_file_references(content)
+        meta = extract_step_metadata(content)
+        report_path = meta.get('report_path', '')
+
+        for ref in sorted(refs):
+            # Skip the runbook itself (Plan reference)
+            if ref == runbook_str:
+                continue
+
+            # Skip report paths (created during execution)
+            if ref == report_path:
+                continue
+
+            # Skip paths under plans/*/reports/ (always created)
+            if re.match(r'plans/[^/]+/reports/', ref):
+                continue
+
+            # Skip paths preceded by creation-verb context
+            create_pattern = r'(?:Create|Write|mkdir)[^`]*`' + re.escape(ref) + r'`'
+            if re.search(create_pattern, content, re.IGNORECASE):
+                continue
+
+            # Check existence
+            if not Path(ref).exists():
+                warnings.append(f"WARNING: {step_id} references non-existent file: {ref}")
+
+    return warnings
+
+
 def generate_step_file(step_num, step_content, runbook_path, default_model='haiku'):
     """Generate step file with references and execution metadata header."""
     meta = extract_step_metadata(step_content, default_model)
@@ -658,6 +736,11 @@ def main():
         if sections is None:
             sys.exit(1)
         cycles = None
+
+    # Validate file references in steps
+    ref_warnings = validate_file_references(sections, cycles, runbook_path)
+    for warning in ref_warnings:
+        print(warning, file=sys.stderr)
 
     # Derive paths
     runbook_name, agent_path, steps_dir, orchestrator_path = derive_paths(runbook_path)

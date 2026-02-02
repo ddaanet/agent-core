@@ -176,25 +176,32 @@ This ensures the planner has domain-specific guidance loaded before creating the
 
 #### C.3. Vet Design
 
-**CRITICAL: Delegate to opus subagent for review.**
+**CRITICAL: Delegate to design-vet-agent for review.**
 
-Use Task tool with `subagent_type="general-purpose"`, `model="opus"`:
+Use Task tool with `subagent_type="design-vet-agent"`:
 
 ```
-Review plans/<job-name>/design.md for:
-1. Completeness - Missing requirements or edge cases?
-2. Clarity - Ambiguous decisions or insufficient rationale?
-3. Feasibility - Implementation complexity realistic?
-4. Consistency - Conflicts with existing patterns?
+Review plans/<job-name>/design.md for completeness, clarity, feasibility, and consistency.
 
-Return concise feedback with actionable fixes.
+Write detailed review to: plans/<job-name>/reports/design-review.md
+
+Return only the filepath on success, or 'Error: [description]' on failure.
 ```
+
+The design-vet-agent (opus model) performs comprehensive architectural review and writes a structured report with critical/major/minor issues categorized.
 
 #### C.4. Apply Fixes
 
-**Address all high and medium priority feedback from vet review.**
+**Read the review report** from the filepath returned by design-vet-agent.
+
+**Address all critical and major priority feedback:**
+- Critical issues MUST be fixed before proceeding
+- Major issues SHOULD be fixed (strongly recommended)
+- Minor issues are optional
 
 Update design.md with corrections. Low priority items can be deferred or documented as known limitations.
+
+**Re-review if needed:** If changes are significant, re-delegate to design-vet-agent for verification.
 
 #### C.5. Handoff and Commit
 

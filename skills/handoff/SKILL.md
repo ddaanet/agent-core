@@ -18,6 +18,8 @@ Standard (Sonnet)
 
 - `--commit` — After completing handoff, tail-call `/commit` as the final action. Use when changes need committing after session handoff (e.g., post-planning workflows).
 
+**Flag parsing:** Flags are exact tokens, not substrings. `/handoff --commit` has the flag. `/handoff describe the commit process` does NOT — that's prose guidance for handoff content. When in doubt, no flag was provided.
+
 ## Protocol
 
 When invoked, immediately update `session.md` with:

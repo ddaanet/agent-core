@@ -11,6 +11,8 @@ Perform structured root cause analysis of agent behavior deviations within the c
 
 ## When to Use
 
+**Reflect for RCA:**
+
 **Use when:**
 - Agent deviated from documented rules or constraints
 - Agent bypassed stop conditions or escalation triggers

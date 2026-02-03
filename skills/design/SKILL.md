@@ -164,6 +164,8 @@ Include this section specifying what the planner should read before starting:
 
 **Rationale:** Designer has deepest understanding of what knowledge the task requires. Encoding this explicitly prevents planner from either under-reading (missing critical context) or over-reading (wasting tokens on irrelevant docs).
 
+**Skill-loading directives:**
+
 **Plugin-related topics (hooks, agents, skills, plugins):**
 When the design involves Claude Code plugin components, include a skill-loading directive in "Next steps":
 - Hooks → `Load plugin-dev:hook-development before planning`

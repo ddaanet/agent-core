@@ -402,7 +402,7 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 4. vet-fix-agent - Review and fix changes before commit
 5. Complete job
 
-**TDD workflow:**
+**TDD workflow reference:**
 1. `/design` (TDD mode) - Opus creates design with TDD sections
 2. `/plan-tdd` - Sonnet creates TDD runbook and artifacts
 3. `/orchestrate` - Haiku executes TDD cycles (THIS SKILL)

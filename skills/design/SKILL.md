@@ -93,7 +93,7 @@ Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/
 
 #### A.5. Produce Plan Outline
 
-**Output:** Freeform summary presented to user in conversation (not a file).
+**Output:** Write outline to `plans/<job>/outline.md` (create directory if needed).
 
 **Content:**
 - Approach summary
@@ -111,6 +111,26 @@ Scope: API gateway only. Dashboard/monitoring out of scope.
 
 **Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
 
+#### A.6. FP-1 Checkpoint: Review Outline
+
+**Objective:** Validate outline before presenting to user.
+
+**Process:**
+
+Delegate to `outline-review-agent` using Task tool with `subagent_type="outline-review-agent"`:
+
+```
+Review plans/<job>/outline.md for completeness, clarity, and alignment with requirements.
+
+Apply all fixes (critical, major, minor) directly to outline.md.
+
+Write review report to: plans/<job>/reports/outline-review.md
+
+Return only the filepath on success, or 'Error: [description]' on failure.
+```
+
+**Read the review report** from the returned filepath to verify any issues were resolved.
+
 ---
 
 ### Phase B: Iterative Discussion
@@ -118,10 +138,11 @@ Scope: API gateway only. Dashboard/monitoring out of scope.
 **Objective:** Validate approach with user before expensive design generation.
 
 **Process:**
-- User provides feedback on outline
-- Designer responds with **incremental deltas only** — not full outline regeneration
-- Loop until user validates approach
-- This is conversation, not document generation — keep it light
+1. Open outline for user review: `open plans/<job>/outline.md`
+2. User reads outline in editor, provides feedback in chat
+3. Designer applies deltas to outline.md file (not inline conversation)
+4. Re-review via outline-review-agent if significant changes made
+5. Loop until user validates approach
 
 **Plugin-topic detection (reminder):** If design involves Claude Code plugin components (hooks, agents, skills), note which skill to load before planning: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."
 

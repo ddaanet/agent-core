@@ -128,6 +128,49 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ---
 
+### Phase 1.5: Generate Runbook Outline (Tier 3 Only)
+
+**Objective:** Create holistic outline with TDD-specific structure before generating full cycles.
+
+**Actions:**
+
+1. **Create runbook outline:**
+   - File: `plans/<feature>/runbook-outline.md`
+   - Include:
+     - **Requirements mapping table:** Link each requirement from design to implementation phase/cycle
+     - **Phase structure:** Break work into logical phases with cycle titles (no full RED/GREEN content yet)
+     - **Key decisions reference:** Link to design sections with architectural decisions
+     - **Complexity per phase:** Estimated cycle count and model requirements per phase
+   - Use TDD-specific format:
+     - Cycles instead of steps (X.Y numbering)
+     - RED/GREEN markers in cycle titles where appropriate
+     - Test-first sequencing visible in structure
+
+2. **Review outline:**
+   - Delegate to `runbook-outline-review-agent` (fix-all mode)
+   - Agent fixes all issues (critical, major, minor)
+   - Agent returns review report path
+
+3. **Validate and proceed:**
+   - Read review report
+   - If critical issues remain: STOP and escalate to user
+   - Otherwise: proceed to phase-by-phase cycle expansion
+
+**Why outline-first:**
+- Establishes cross-phase structure before expensive cycle generation
+- Enables early feedback on phase boundaries and cycle sequencing
+- Catches requirements gaps before RED/GREEN details
+- Provides roadmap for phase-by-phase expansion
+
+**Fallback for small TDD runbooks:**
+- If outline has ≤3 phases and ≤10 total cycles → generate entire runbook at once (skip phase-by-phase)
+- Single review pass instead of per-phase
+- Simpler workflow for simple features
+
+**Outputs:** runbook-outline.md, outline review report
+
+---
+
 ### Phase 2: Analysis (Tier 3 Only)
 
 **Objective:** Extract feature info and validate completeness.
@@ -175,11 +218,44 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ---
 
-### Phase 3: Cycle Planning (Tier 3 Only)
+### Phase 3: Phase-by-Phase Cycle Expansion (Tier 3 Only)
+
+**Objective:** Generate detailed cycle content for each phase with TDD-specific review.
+
+**Actions:**
+
+**For each phase identified in the outline:**
+
+1. **Generate phase cycles:**
+   - File: `plans/<feature>/runbook-phase-N.md`
+   - Include full cycle details for this phase with RED/GREEN/Stop Conditions
+   - Use cycle planning guidance from Phase 3.1-3.6 below
+
+2. **Review phase cycles:**
+   - Delegate to `tdd-plan-reviewer` (review-only mode)
+   - Agent checks for prescriptive code and RED/GREEN violations
+   - Agent writes review report, does NOT apply fixes
+   - Agent returns review report path
+
+3. **Apply fixes:**
+   - Read review report
+   - **REQUIRED:** Apply all high and medium priority fixes
+   - Focus on prescriptive code removal and RED/GREEN sequencing
+   - Update phase file with corrections
+
+4. **Finalize phase:**
+   - Phase cycles approved
+   - Proceed to next phase
+
+**Fallback:** If outline indicated ≤3 phases and ≤10 total cycles, skip phase-by-phase and generate all cycles at once with single review.
+
+---
+
+### Phase 3.1-3.6: Cycle Planning Guidance (Applied Per-Phase)
 
 **Objective:** Generate cycle definitions with RED/GREEN/Stop Conditions.
 
-**Actions:**
+**Actions (applied within each phase file):**
 
 1. **Number cycles:** X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
    - Start at 1.1 (not 0.1 or 1.0)
@@ -299,11 +375,29 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ---
 
-### Phase 4: Runbook Generation (Tier 3 Only)
+### Phase 4: Assembly and Metadata (Tier 3 Only)
 
-**Objective:** Create runbook file with all sections.
+**Objective:** Assemble phase files into complete runbook with metadata.
 
-**Structure:**
+**Actions:**
+
+1. **Concatenate phase files:**
+   - Combine all `runbook-phase-N.md` files into `plans/<feature>/runbook.md`
+   - Preserve phase structure and cycle ordering
+   - Use assemble-runbook.py script or manual concatenation
+
+2. **Add metadata sections:**
+   - Insert Weak Orchestrator Metadata at top
+   - Ensure Common Context is present
+   - Compute total cycle count from assembled phases
+
+3. **Final cross-phase consistency check:**
+   - Review cycle numbering across phases
+   - Verify no duplicate cycle IDs
+   - Check metadata "Total Steps" matches actual cycle count
+   - No new content generation, only validation
+
+**Assembled Runbook Structure:**
 
 ```markdown
 ---
@@ -406,9 +500,9 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
 ---
 
-### Phase 5: Validation and Review (Tier 3 Only)
+### Phase 5: Final Review and Preparation (Tier 3 Only)
 
-**Objective:** Verify format, delegate comprehensive review, and ensure prepare-runbook.py compatibility.
+**Objective:** Perform holistic review of assembled runbook and prepare execution artifacts.
 
 **Actions:**
 
@@ -420,31 +514,34 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
    - Metadata "Total Steps" matches actual cycle count
    - Every CLI command has at least one cycle with content assertions
 
-2. **Trigger tdd-plan-reviewer agent:**
+2. **Delegate final holistic review:**
+
+   **Agent:** `tdd-plan-reviewer` (review-only mode)
 
    **What it checks:**
+   - Cross-phase consistency (individual phases already reviewed)
    - Prescriptive code in GREEN phases (critical violation)
-   - RED/GREEN sequencing (will tests actually fail?)
-   - Behavior descriptions vs code prescriptions
-   - Incremental implementation (not all-at-once)
+   - RED/GREEN sequencing across phase boundaries
+   - Overall cycle progression and dependencies
+   - Incremental implementation coherence
 
    **Agent output:**
-   - Writes report to plans/{name}/reports/runbook-review.md
-   - Returns summary: violations count or "PASS"
+   - Writes report to plans/{name}/reports/runbook-final-review.md
+   - Returns review report path
 
    **Triggering phrase:**
-   "Review the TDD runbook at plans/{name}/runbook.md for prescriptive code and RED/GREEN violations."
+   "Review the assembled TDD runbook at plans/{name}/runbook.md for cross-phase consistency, prescriptive code, and RED/GREEN violations."
 
 3. **Handle review outcome:**
-   - If PASS: Proceed to step 4
+   - Read review report
    - If violations found:
-     - Read review report
      - **REQUIRED:** Apply all high and medium priority fixes
      - Update runbook with corrections
      - Re-run tdd-plan-reviewer if changes are significant
-     - Iterate until PASS or only low-priority issues remain
+     - Iterate until only low-priority issues remain
    - Low-priority issues: Optional (document as future improvements if skipped)
    - **NEVER** proceed with unaddressed high/medium violations
+   - If critical issues remain: STOP and escalate to user
 
 4. **Revalidate dependencies:** Run topological sort again
 

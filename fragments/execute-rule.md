@@ -35,10 +35,17 @@ Jobs:
 - **Status values:** `requirements`, `designed`, `planned`
 - **Sorting:** Alphabetical by directory name
 
+**Special handling for `plans/claude/`:**
+- List individual `.md` files within `plans/claude/` as separate entries
+- **Format:** `claude/<filename> — plan` (without .md extension)
+- Excludes `.gitkeep` and other non-plan files
+- These are Claude Code built-in plan mode files
+
 **Status detection:**
 - **planned** — has `runbook.md` and `steps/` directory
 - **designed** — has `design.md` (but no runbook.md)
 - **requirements** — everything else (early stage work)
+- **plan** — individual plan files in `plans/claude/`
 
 **Graceful degradation:**
 - Missing session.md or no Pending Tasks → "No pending tasks."

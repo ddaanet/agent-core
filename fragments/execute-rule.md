@@ -21,26 +21,29 @@ Next: <first pending task name>
 
 Pending:
 - <task 2 name> (<model if non-default>)
+  - Plan: <plan-directory> | Status: <status> | Notes: <notes>
 - <task 3 name>
+  - Plan: <plan-directory> | Status: <status>
 - ...
 
-Jobs:
-  <name> — <status>
-  <name> — <status>
-  ...
+Unscheduled Plans:
+- <plan-name> — <status>
+- ...
 ```
 
-**Jobs listing:** Read `agents/jobs.md` for authoritative status, then list all plans on one line each:
+**Pending list format:**
+- First line: task name with model if non-default
+- Nested line: plan directory, status from jobs.md, notes if present
+- Omit nested line if task has no associated plan
+
+**Unscheduled Plans:** Plans in jobs.md that have no associated pending task.
+- Read `agents/jobs.md` for all plans
+- Exclude plans that appear in any pending task's plan directory
 - **Format:** `<plan-name> — <status>`
-- **Status values:** `complete`, `planned`, `designed`, `requirements`, `plan`
+- **Status values:** `complete`, `planned`, `designed`, `requirements`
 - **Sorting:** Alphabetical by plan name
 
-**Status source priority:**
-1. **jobs.md "Complete (Archived)" section** — Extract plan names from Recent bullets (format: `` `plan-name` — description``)
-2. **jobs.md "In Progress" table** — Read Plan column
-3. **jobs.md "Designed" table** — Read Plan column
-4. **jobs.md "Requirements" table** — Read Plan column
-5. **plans/* directories** — For any plans not in jobs.md, infer status from directory contents
+**Status source:** Read `agents/jobs.md` as authoritative source for plan status and notes.
 
 **Special handling for `plans/claude/`:**
 - List individual `.md` files within `plans/claude/` as separate entries
@@ -48,15 +51,10 @@ Jobs:
 - Excludes `.gitkeep` and other non-plan files
 - These are Claude Code built-in plan mode files
 
-**Directory-based status detection (fallback):**
-- **planned** — has `runbook.md` and `steps/` directory
-- **designed** — has `design.md` (but no runbook.md)
-- **requirements** — everything else (early stage work)
-
 **Graceful degradation:**
 - Missing session.md or no Pending Tasks → "No pending tasks."
 - Old format (no metadata) → use defaults (sonnet, no restart)
-- No plans/ directory or empty → omit Jobs section entirely
+- No unscheduled plans → omit Unscheduled Plans section entirely
 
 ### MODE 2: EXECUTE
 

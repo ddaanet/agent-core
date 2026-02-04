@@ -193,6 +193,18 @@ def validate(index_path):
                 f"has no matching semantic header in agents/decisions/"
             )
 
+    # Check for duplicate headers across files
+    # Headers should appear in only one file to avoid confusion
+    for title, locations in sorted(headers.items()):
+        if len(locations) > 1:
+            files = set(filepath for filepath, _, _ in locations)
+            if len(files) > 1:  # Only error if duplicates are in different files
+                errors.append(
+                    f"  Duplicate header '{title}' found in multiple files:"
+                )
+                for filepath, lineno, level in locations:
+                    errors.append(f"    {filepath}:{lineno} ({level} level)")
+
     # Print warnings to stderr but don't fail
     if warnings:
         print(

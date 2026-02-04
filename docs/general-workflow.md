@@ -221,7 +221,7 @@ Run `prepare-runbook.py` to create:
 
 **Activities:**
 - Update project documentation for changes
-- Record architectural choices in `agents/design-decisions.md`
+- Record architectural choices in `agents/decisions/`
 - Move relevant decisions OUT of `plans/` to permanent docs
 - Delete plan-specific agent (no use beyond its runbook)
 - Archive or delete plan directory per project convention
@@ -484,7 +484,7 @@ Git tracks all changes to runbook and artifacts.
 - Record decisions in `plans/<name>/decisions.md`
 
 **After completion:**
-- Move important decisions to `agents/design-decisions.md`
+- Move important decisions to `agents/decisions/`
 - Delete plan-specific agent
 - Archive plan directory (or delete per project convention)
 
@@ -494,7 +494,7 @@ Git tracks all changes to runbook and artifacts.
 
 - **CLAUDE.md**: Agent instructions, communication rules, patterns
 - **agents/session.md**: Current task context and architecture
-- **agents/design-decisions.md**: Architectural decisions and rationale
+- **agents/decisions/**: Architectural decisions and rationale
 - **agents/session.md**: Current session handoff context
 
 ---
@@ -516,7 +516,7 @@ Git tracks all changes to runbook and artifacts.
 - Update session.md with progress
 
 ### 4. Completion
-- Extract valuable decisions to `agents/design-decisions.md`
+- Extract valuable decisions to `agents/decisions/`
 - Delete plan-specific agent
 - Archive or delete plan directory (per project convention)
 

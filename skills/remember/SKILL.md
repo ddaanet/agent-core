@@ -26,7 +26,7 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 **Behavioral rules** → `agent-core/fragments/*.md`: Workflow patterns • Anti-patterns • Directive conflicts • Agent behavior
 **Technical details** → `agents/decisions/*.md`: Architecture • Implementation patterns • Technology choices (consult `agents/decisions/README.md` for domain → file routing)
-**Implementation patterns** → `agents/implementation-notes.md`: Mock patterns • Python quirks • API details
+**Implementation patterns** → `agents/decisions/implementation-notes.md`: Mock patterns • Python quirks • API details
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
 **Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
 **Other**: `.claude/agents/*.md` • Plan files (historical only)

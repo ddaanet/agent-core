@@ -548,7 +548,7 @@ This structured format enables:
 - **CLAUDE.md**: Agent instructions, communication rules, patterns
 - **docs/general-workflow.md**: General workflow documentation
 - **agents/session.md**: Current task context and architecture
-- **agents/design-decisions.md**: Architectural decisions and rationale
+- **agents/decisions/**: Architectural decisions and rationale
 - **agents/session.md**: Current session handoff context
 - **agents/tdd-task.md**: TDD task agent baseline template
 

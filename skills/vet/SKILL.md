@@ -361,7 +361,7 @@ Full review written to: scratch/reviews/vet-review-2026-01-19-142530.md
 **Example reviews:**
 - Look for patterns in existing PR reviews
 - Check project conventions in CLAUDE.md
-- Reference agents/design-decisions.md for architectural patterns
+- Reference agents/decisions/ for architectural patterns
 
 **Related skills:**
 - Built-in `/review` - For PR reviews

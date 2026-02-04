@@ -197,65 +197,25 @@ git status
 - **Token-efficient bash**: When running 3+ sequential git commands, use `/token-efficient-bash` skill pattern for 40-60% token savings
 - **Context mode requirement**: When using `--context`, error if you don't have clear context about what changed
 
-## Post-Commit: Display Next Task
+## Post-Commit: Display STATUS
 
 **This applies to ALL commits**, whether invoked directly or via tail-call from `/handoff --commit`.
 
-After a successful commit, read `agents/session.md` and display STATUS.
-
-**STATUS display format:**
+After a successful commit, display STATUS with commit confirmation:
 
 ```
 Committed: <commit subject line>
-
-Next: <first pending task name>
-  `<command to start it>`
-  Model: <recommended model> | Restart: <yes/no>
-
-Pending:
-- <task 2 name> (<model if non-default>)
-- <task 3 name>
-- ...
-
-Jobs:
-  <name> — <status> [#token]
-  <name> — <status>
-  ...
 ```
 
-**Jobs listing:** Scan `plans/*/` directories and list each on one line:
-- **Format:** `<directory-name> — <status> [#token]`
-- **Status values:** `requirements`, `designed`, `planned`
-- **Token:** If a pending task mentions this plan name, append its `#token`
-- **Sorting:** Alphabetical by directory name
+Then display STATUS following the format in `agent-core/fragments/execute-rule.md` (MODE 1: STATUS section).
 
-**Status detection:**
-- **planned** — has `runbook.md` and `steps/` directory
-- **designed** — has `design.md` (but no runbook.md)
-- **requirements** — everything else (early stage work)
+**Key points:**
+- Prefix with "Committed: <subject>" line
+- Follow with standard STATUS display (Next task, Pending list, Jobs)
+- Copy first pending task's command to clipboard (requires `dangerouslyDisableSandbox: true`)
+- If no pending tasks, display "No pending tasks." and suggest `/next`
 
-**Graceful degradation:**
-- Missing session.md or no Pending Tasks → "No pending tasks."
-- Old format (no metadata) → use defaults (model=sonnet, restart=no)
-- Missing model field → default to sonnet
-- Missing restart field → default to no
-- No plans/ directory or empty → omit Jobs section entirely
-
-**If no pending tasks** — display "No pending tasks." and optionally suggest `/next` to find work from todo.md.
-
-**Copy command to clipboard:**
-
-After displaying STATUS, extract the command from the first pending task and copy to clipboard:
-
-```bash
-echo '<command>' | pbcopy
-```
-
-Where `<command>` is the backtick-wrapped text from the first pending task. Strip the backticks before copying.
-
-**Requires `dangerouslyDisableSandbox: true`** - pbcopy is blocked by sandbox.
-
-**Why:** This enables tail-call composition. When `/commit` is tail-called from `/handoff --commit` (which is tail-called from `/plan-tdd` or `/plan-adhoc`), the user sees the next action without manual inspection. For post-planning workflows, this displays "Restart session, switch to haiku model, paste `/orchestrate {name}` from clipboard." When all pending work is done, `/next` finds the next thing.
+**Why:** STATUS display is defined once in execute-rule.md. Reference that instead of duplicating.
 
 ## Context Gathering (Non-Context Mode)
 

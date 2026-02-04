@@ -58,12 +58,13 @@ def collect_semantic_headers(root):
             for i, line in enumerate(lines, 1):
                 stripped = line.strip()
 
-                # Track document intro exemption
-                if DOC_TITLE.match(stripped):
+                # Track document intro exemption (only before first ## header)
+                # After first ##, don't re-enter intro (# lines may be code comments)
+                if not seen_first_h2 and DOC_TITLE.match(stripped):
                     in_doc_intro = True
                     continue
 
-                # First ## ends document intro
+                # First ## ends document intro permanently
                 if in_doc_intro and stripped.startswith("## "):
                     in_doc_intro = False
                     seen_first_h2 = True
@@ -183,9 +184,14 @@ def validate(index_path):
                     f"({level} level) has no memory-index.md entry"
                 )
 
-    # Note: Index entries without matching headers are ALLOWED.
-    # Index entries can reference prose content within semantic sections,
-    # not just headers. Only orphan headers block commit.
+    # Check for orphan index entries (entries without matching headers)
+    # Index entries must reference semantic headers in permanent docs (decisions/)
+    for key, (lineno, full_entry) in entries.items():
+        if key not in headers:
+            errors.append(
+                f"  memory-index.md:{lineno}: orphan index entry '{key}' "
+                f"has no matching semantic header in agents/decisions/"
+            )
 
     # Print warnings to stderr but don't fail
     if warnings:

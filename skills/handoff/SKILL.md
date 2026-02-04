@@ -124,7 +124,21 @@ wc -l agents/session.md agents/learnings.md
 
 Session.md contains volatile state; learnings.md contains institutional knowledge.
 
-### 6. Trim Completed Tasks
+### 6. Update jobs.md
+
+When plan status changes during this session, update `agents/jobs.md`:
+
+**Status transitions:**
+- Plan completed → Move from current section to "Complete (Archived)"
+- Design created → Move from Requirements to Designed
+- Runbook created → Move from Designed to In Progress (planned)
+
+**Format for Complete section:**
+Add one-line entry: `- plan-name — brief description of what was delivered`
+
+**Note:** jobs.md tracks plan lifecycle, session.md tracks task execution. They're complementary.
+
+### 7. Trim Completed Tasks
 
 **Rule:** Delete completed tasks only if BOTH conditions are true:
 1. Completed before this conversation started (from previous conversation)
@@ -150,61 +164,19 @@ Session.md contains volatile state; learnings.md contains institutional knowledg
 - Delete tasks completed in the current conversation
 - Archive to separate files
 
-### 7. Display STATUS (unless --commit)
+### 8. Display STATUS (unless --commit)
 
 **If `--commit` flag was NOT specified:**
 
-Display STATUS listing as final output. Read session.md Pending Tasks section and scan plans/ for job status:
+Display STATUS following the format in `agent-core/fragments/execute-rule.md` (MODE 1: STATUS section).
 
-```
-Next: <first pending task name>
-  `<command to start it>`
-  Model: <recommended model> | Restart: <yes/no>
-
-Pending:
-- <task 2 name> (<model if non-default>)
-- <task 3 name>
-- ...
-
-Jobs:
-  <name> — <status> [#token]
-  <name> — <status>
-  ...
-```
-
-**Jobs listing:** Scan `plans/*/` directories and list each on one line:
-- **Format:** `<directory-name> — <status> [#token]`
-- **Status values:** `requirements`, `designed`, `planned`
-- **Token:** If a pending task mentions this plan name, append its `#token`
-- **Sorting:** Alphabetical by directory name
-
-**Status detection:**
-- **planned** — has `runbook.md` and `steps/` directory
-- **designed** — has `design.md` (but no runbook.md)
-- **requirements** — everything else (early stage work)
-
-**Graceful degradation:**
-- Missing session.md or no Pending Tasks → "No pending tasks."
-- Old format (no metadata) → use defaults (sonnet, no restart)
-- No plans/ directory or empty → omit Jobs section entirely
-
-**Copy command to clipboard:**
-
-After displaying STATUS, extract the command from the first pending task and copy to clipboard:
-
-```bash
-echo '<command>' | pbcopy
-```
-
-Where `<command>` is the backtick-wrapped text from the first pending task. Strip the backticks before copying.
-
-**Requires `dangerouslyDisableSandbox: true`** - pbcopy is blocked by sandbox.
+**Key points:**
+- Read session.md Pending Tasks, scan plans/ for job status
+- Copy first pending task's command to clipboard (requires `dangerouslyDisableSandbox: true`)
 
 **If `--commit` flag WAS specified:**
 
 Skip STATUS display. The `/commit` skill will show it after committing.
-
-**Rationale:** STATUS replaces the old session size advice. Model recommendations are now shown in STATUS display's "Model:" field.
 
 ## Principles
 

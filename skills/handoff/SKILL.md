@@ -91,16 +91,18 @@ If the session has learnings, append them to `agents/learnings.md` (not session.
 **Learning format:**
 
 ```markdown
-**[Learning title]:**
+## [Learning title]
 - Anti-pattern: [what NOT to do]
 - Correct pattern: [what TO do]
 - Rationale: [why]
 
-**[Another learning]:**
+## [Another learning]
 - Anti-pattern: [what NOT to do]
 - Correct pattern: [what TO do]
 - Rationale: [why]
 ```
+
+**Note:** No blank line after `## Title` header.
 
 **Design decisions are learnings.** When the session produced significant design decisions (architectural choices, trade-offs, anti-patterns discovered), write them to `agents/learnings.md` using the standard learning format. learnings.md is a staging area — `/remember` consolidates to permanent locations (fragments/, decisions/, skill references/).
 

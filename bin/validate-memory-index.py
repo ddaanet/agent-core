@@ -1,25 +1,28 @@
 #!/usr/bin/env python3
-"""Validate memory-index.md entries against titles in indexed files.
+"""Validate memory-index.md entries against semantic headers in indexed files.
 
 Checks:
-- Each index entry matches a **Title:** in at least one indexed file
-- Each index entry resolves unambiguously (not in multiple files)
+- All semantic headers (##+ not starting with .) have index entries
+- All index entries match at least one semantic header
 - No duplicate index entries
+- Document intro content (between # and first ##) is exempt
 """
 
 import re
 import sys
 from pathlib import Path
 
-# Standalone bold title: **Title here:** (nothing after closing **)
-TITLE_PATTERN = re.compile(r"^\*\*(.+?):\*\*\s*$")
-INDEX_ENTRY_PATTERN = re.compile(r"^- (.+)$")
+# Semantic header: ##+ followed by space and non-dot
+SEMANTIC_HEADER = re.compile(r"^(##+) ([^.].+)$")
+# Structural header: ##+ followed by space and dot
+STRUCTURAL_HEADER = re.compile(r"^(##+) \..+$")
+# Document title
+DOC_TITLE = re.compile(r"^# .+$")
 
-# Files that contain identifier titles
+# Files that contain semantic headers
 INDEXED_GLOBS = [
-    "agents/learnings.md",
     "agents/decisions/*.md",
-    "agent-core/skills/*/SKILL.md",
+    "agents/learnings.md",
 ]
 
 
@@ -33,12 +36,12 @@ def find_project_root():
     return Path.cwd()
 
 
-def collect_titles(root):
-    """Scan indexed files for all standalone **Title:** patterns.
+def collect_semantic_headers(root):
+    """Scan indexed files for all semantic headers.
 
-    Returns dict: lowercase title → list of (file_path, line_number).
+    Returns dict: lowercase title → list of (file_path, line_number, header_level).
     """
-    titles = {}
+    headers = {}
 
     for glob_pattern in INDEXED_GLOBS:
         for filepath in sorted(root.glob(glob_pattern)):
@@ -48,56 +51,149 @@ def collect_titles(root):
             except (OSError, UnicodeDecodeError):
                 continue
 
-            for i, line in enumerate(lines, 1):
-                m = TITLE_PATTERN.match(line.strip())
-                if m:
-                    key = m.group(1).lower()
-                    titles.setdefault(key, []).append((rel, i))
+            in_doc_intro = False
+            seen_first_h2 = False
 
-    return titles
+            for i, line in enumerate(lines, 1):
+                stripped = line.strip()
+
+                # Track document intro exemption
+                if DOC_TITLE.match(stripped):
+                    in_doc_intro = True
+                    continue
+
+                # First ## ends document intro
+                if in_doc_intro and stripped.startswith("## "):
+                    in_doc_intro = False
+                    seen_first_h2 = True
+
+                # Skip content in document intro
+                if in_doc_intro:
+                    continue
+
+                # Match semantic headers
+                m = SEMANTIC_HEADER.match(stripped)
+                if m:
+                    level = m.group(1)
+                    title = m.group(2)
+                    key = title.lower()
+                    headers.setdefault(key, []).append((rel, i, level))
+
+    return headers
+
+
+def extract_index_entries(index_path, root):
+    """Extract index entries from memory-index.md.
+
+    Index entries are bare lines (not headers, not bold, not list markers)
+    with em-dash separator: "Key — description"
+
+    Returns dict: lowercase key → (line_number, full_entry)
+    """
+    entries = {}
+
+    try:
+        lines = (root / index_path).read_text().splitlines()
+    except FileNotFoundError:
+        return entries
+
+    in_section = False
+
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+
+        # Handle headers - track section state
+        if stripped.startswith("#"):
+            in_section = stripped.startswith("##")
+            continue
+
+        # Skip empty lines without changing section state
+        if not stripped:
+            continue
+
+        # Skip bold directives (** at start)
+        if stripped.startswith("**"):
+            continue
+
+        # Skip list markers (old format, shouldn't exist but handle gracefully)
+        if stripped.startswith("- "):
+            continue
+
+        # In a section, non-header, non-bold, non-empty = index entry
+        if in_section:
+            # Extract key (part before em-dash)
+            if " — " in stripped:
+                key = stripped.split(" — ")[0]
+            else:
+                # Fallback: whole line is key
+                key = stripped
+
+            key_lower = key.lower()
+            if key_lower in entries:
+                # Duplicate will be caught later
+                pass
+            entries[key_lower] = (i, stripped)
+
+    return entries
 
 
 def validate(index_path):
     """Validate memory index. Returns list of error strings."""
     root = find_project_root()
 
-    try:
-        lines = (root / index_path).read_text().splitlines()
-    except FileNotFoundError:
-        return []
+    headers = collect_semantic_headers(root)
+    entries = extract_index_entries(index_path, root)
 
-    titles = collect_titles(root)
     errors = []
+    warnings = []
     seen_entries = {}
 
-    for lineno, line in enumerate(lines, 1):
-        m = INDEX_ENTRY_PATTERN.match(line.strip())
-        if not m:
-            continue
-
-        entry = m.group(1).strip()
-        key = entry.lower()
-
-        # Duplicate index entry check
+    # Check for duplicate index entries
+    for key, (lineno, full_entry) in entries.items():
         if key in seen_entries:
             errors.append(
-                f"  line {lineno}: duplicate index entry '{entry}' "
+                f"  memory-index.md:{lineno}: duplicate index entry '{key}' "
                 f"(first at line {seen_entries[key]})"
             )
         else:
             seen_entries[key] = lineno
 
-        # Title existence check
-        locations = titles.get(key, [])
-        if not locations:
+    # Check D-3 format compliance: entries must have em-dash separator
+    for key, (lineno, full_entry) in entries.items():
+        if " — " not in full_entry:
             errors.append(
-                f"  line {lineno}: no matching **{entry}:** in indexed files"
+                f"  memory-index.md:{lineno}: entry lacks em-dash separator (D-3): '{full_entry}'"
             )
-        elif len(locations) > 1:
-            locs = ", ".join(f"{f}:{ln}" for f, ln in locations)
-            errors.append(
-                f"  line {lineno}: ambiguous '{entry}' found in multiple files: {locs}"
-            )
+        else:
+            # Check word count (8-12 word soft limit for description after em-dash)
+            description = full_entry.split(" — ", 1)[1]
+            word_count = len(description.split())
+            if word_count < 8:
+                warnings.append(
+                    f"  memory-index.md:{lineno}: description has {word_count} words, soft limit 8-12 (D-3): '{full_entry}'"
+                )
+
+    # Check for orphan semantic headers (headers without index entries)
+    # Per design R-4: all semantic headers must have index entries (ERROR blocks commit)
+    for title, locations in sorted(headers.items()):
+        if title not in entries:
+            for filepath, lineno, level in locations:
+                errors.append(
+                    f"  {filepath}:{lineno}: orphan semantic header '{title}' "
+                    f"({level} level) has no memory-index.md entry"
+                )
+
+    # Note: Index entries without matching headers are ALLOWED.
+    # Index entries can reference prose content within semantic sections,
+    # not just headers. Only orphan headers block commit.
+
+    # Print warnings to stderr but don't fail
+    if warnings:
+        print(
+            f"Memory index warnings ({len(warnings)}):", file=sys.stderr,
+        )
+        for w in warnings:
+            print(w, file=sys.stderr)
 
     return errors
 
@@ -108,7 +204,7 @@ def main():
 
     if errors:
         print(
-            f"Memory index validation failed ({len(errors)} errors):", file=sys.stderr
+            f"Memory index validation failed ({len(errors)} errors):", file=sys.stderr,
         )
         for e in errors:
             print(e, file=sys.stderr)

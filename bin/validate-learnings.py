@@ -2,7 +2,7 @@
 """Validate learnings.md identifier syntax and uniqueness.
 
 Checks:
-- Title format: **Title words here:** (bold, colon-terminated)
+- Title format: ## Title (markdown header)
 - Max word count per title (default: 5)
 - No duplicate titles
 - No empty titles
@@ -12,7 +12,7 @@ import re
 import sys
 
 MAX_WORDS = 5
-TITLE_PATTERN = re.compile(r"^\*\*(.+?):\*\*$")
+TITLE_PATTERN = re.compile(r"^## (.+)$")
 
 
 def extract_titles(lines):
@@ -20,7 +20,10 @@ def extract_titles(lines):
     titles = []
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        # Match standalone bold title lines: **Some title:**
+        # Skip first 10 lines (preamble/header)
+        if i <= 10:
+            continue
+        # Match ## Title headers
         m = TITLE_PATTERN.match(stripped)
         if m:
             titles.append((i, m.group(1)))
@@ -40,16 +43,12 @@ def validate(path, max_words=MAX_WORDS):
     seen = {}
 
     for lineno, title in titles:
-        # Skip header lines (e.g., "Soft limit: 80 lines.")
-        if title.startswith("Soft limit"):
-            continue
-
         # Word count check
         words = title.split()
         if len(words) > max_words:
             errors.append(
                 f"  line {lineno}: title has {len(words)} words (max {max_words}): "
-                f"**{title}:**"
+                f"## {title}"
             )
 
         # Uniqueness check
@@ -57,7 +56,7 @@ def validate(path, max_words=MAX_WORDS):
         if key in seen:
             errors.append(
                 f"  line {lineno}: duplicate title (first at line {seen[key]}): "
-                f"**{title}:**"
+                f"## {title}"
             )
         else:
             seen[key] = lineno

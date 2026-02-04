@@ -264,8 +264,9 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 5. **Verify integration coverage:**
    - For each component that reads external state (files, keychain, APIs): at least one cycle mocks and tests the real interaction
-   - For each CLI command: at least one cycle asserts on output content
+   - For each entry point: at least one cycle asserts on output content (not just structure)
    - If components are created separately and need wiring: plan explicit integration cycles
+   - **For composition tasks:** Plan xfail integration test at phase start, passing at phase end (see Checkpoints)
    - Metadata cycle count MUST equal actual cycles defined
 
 6. **Generate stop conditions:**
@@ -539,6 +540,37 @@ Checkpoints are verification points inserted between phases. They validate accum
      - **REQUIRED:** Apply all high and medium priority fixes
      - Commit when complete
   3. **Functional:** Sonnet reviews implementations against design (same checks as light checkpoint)
+
+**Integration tests (composition tasks):**
+
+When runbook targets multi-module integration:
+
+1. **Phase start:** Write integration test marked `@pytest.mark.xfail(reason="Phase N not implemented")`
+   - Test calls top-level entry point
+   - Asserts on critical content in output (not just structure)
+   - Must fail before phase work begins
+
+2. **Phase end:** Remove xfail marker, verify test passes
+   - If test still fails: Phase incomplete, debug before proceeding
+   - Integration test catches gaps unit tests miss (results consumed, not just functions called)
+
+**Why:** Unit tests verify modules in isolation. Integration tests verify composition — that functions are called AND their results are used. The statusline-wiring execution found 3 major gaps at vet checkpoint that integration tests would have caught earlier.
+
+**Example:**
+```python
+# Phase start: xfail
+@pytest.mark.xfail(reason="Phase N not implemented")
+def test_output_contains_expected_data():
+    result = entry_point()
+    assert "expected_field" in result
+    assert result["count"] > 0
+
+# Phase end: remove xfail, test must pass
+def test_output_contains_expected_data():
+    result = entry_point()
+    assert "expected_field" in result
+    assert result["count"] > 0
+```
 
 **When to mark `checkpoint: full` during planning:**
 - Phase introduces new public API surface or contract

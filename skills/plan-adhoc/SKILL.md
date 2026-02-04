@@ -111,9 +111,17 @@ Common false escalations:
 
 **Sequence:** 4-point process (see below) — existing pipeline unchanged.
 
-## 4-Point Planning Process (Tier 3 Only)
+## Planning Process (Tier 3 Only)
 
 **Use this process only after assessment determines Tier 3 is needed.**
+
+**Process overview:**
+- Point 0.5: Discover codebase structure
+- Point 0.75: Generate runbook outline
+- Point 1: Phase-by-phase expansion with reviews
+- Point 2: Assembly and metadata
+- Point 3: Final holistic review
+- Point 4: Prepare artifacts and handoff
 
 ### Point 0.5: Discover Codebase Structure (REQUIRED)
 
@@ -150,9 +158,67 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 
 ---
 
-### Point 1: Evaluate Script vs Direct Execution
+### Point 0.75: Generate Runbook Outline
 
-For each task in the runbook, decide on execution approach:
+**Before writing full runbook content, create a holistic outline for cross-phase coherence.**
+
+1. **Create runbook outline:**
+   - File: `plans/<job>/runbook-outline.md`
+   - Include:
+     - **Requirements mapping table:** Link each requirement from design to implementation phase/step
+     - **Phase structure:** Break work into logical phases with step titles (no full content yet)
+     - **Key decisions reference:** Link to design sections with architectural decisions
+     - **Complexity per phase:** Estimated scope and model requirements per phase
+
+2. **Review outline:**
+   - Delegate to `runbook-outline-review-agent` (fix-all mode)
+   - Agent fixes all issues (critical, major, minor)
+   - Agent returns review report path
+
+3. **Validate and proceed:**
+   - Read review report
+   - If critical issues remain: STOP and escalate to user
+   - Otherwise: proceed to phase-by-phase expansion
+
+**Why outline-first:**
+- Establishes cross-phase structure before expensive content generation
+- Enables early feedback on phase boundaries and dependencies
+- Catches requirements gaps before implementation details
+- Provides roadmap for phase-by-phase expansion
+
+**Fallback for small runbooks:**
+- If outline has ≤3 phases and ≤10 total steps → generate entire runbook at once (skip phase-by-phase)
+- Single review pass instead of per-phase
+- Simpler workflow for simple tasks
+
+---
+
+### Point 1: Phase-by-Phase Runbook Expansion
+
+**For each phase identified in the outline, generate detailed content with review.**
+
+**For each phase:**
+
+1. **Generate phase content:**
+   - File: `plans/<job>/runbook-phase-N.md`
+   - Include full step details for this phase
+   - Use script evaluation for each task (see section 1.1-1.3 below)
+
+2. **Review phase content:**
+   - Delegate to `vet-agent` (review-only mode)
+   - Agent writes review report, does NOT apply fixes
+   - Agent returns review report path
+
+3. **Apply fixes:**
+   - Read review report
+   - Apply all critical and major priority fixes
+   - Update phase file with fixes
+
+4. **Finalize phase:**
+   - Phase content approved
+   - Proceed to next phase
+
+**Script evaluation for tasks within each phase:**
 
 **1.1 Small Tasks (≤25 lines)**: Write complete script inline
 
@@ -198,9 +264,25 @@ Implementation:
 
 ---
 
-### Point 2: Include Weak Orchestrator Metadata
+### Point 2: Assembly and Weak Orchestrator Metadata
 
-Every runbook MUST include this metadata section at the top:
+**After all phases are finalized, assemble the complete runbook.**
+
+1. **Concatenate phase files:**
+   - Combine all `runbook-phase-N.md` files into `plans/<job>/runbook.md`
+   - Preserve phase structure and ordering
+
+2. **Add Weak Orchestrator Metadata:**
+   - Compute from assembled phases
+   - Include metadata section at top of runbook
+
+3. **Final consistency check:**
+   - Review cross-phase dependencies
+   - Verify step numbering is sequential
+   - Check for phase boundary issues
+   - No new content generation, only validation
+
+Every assembled runbook MUST include this metadata section at the top:
 
 ```markdown
 ## Weak Orchestrator Metadata
@@ -251,15 +333,9 @@ Every runbook MUST include this metadata section at the top:
 
 ---
 
-### Point 3: Plan Review by Vet Agent
+### Point 3: Final Holistic Review
 
-Before finalizing the runbook, delegate review to the vet agent.
-
-**Why vet agent:**
-- **Fresh eyes**: Sub-agent reviews with no orchestrator bias
-- **Autonomous fixing**: Agent applies high/medium fixes directly (not just reports)
-- **Quiet execution**: Writes detailed review to file, returns terse result
-- **Specialized**: Dedicated agent with vet review protocol built-in
+**After assembly, perform final cross-phase review of complete runbook.**
 
 **Delegation Pattern:**
 
@@ -267,7 +343,13 @@ Before finalizing the runbook, delegate review to the vet agent.
 Task(
   subagent_type="vet-agent",
   model="sonnet",
-  prompt="Review the runbook at [runbook-path] for completeness, correctness, and executability.
+  prompt="Review the assembled runbook at [runbook-path] for completeness, correctness, and executability.
+
+  Focus on cross-phase issues:
+  - Step numbering consistency
+  - Dependency ordering across phases
+  - Metadata accuracy (step counts, model assignments)
+  - Overall coherence
 
   CRITICAL: Also validate all file paths referenced in the runbook exist in the codebase.
   Use Glob to verify each path. Flag missing files as critical issues.
@@ -281,10 +363,11 @@ Task(
 ```
 
 **Agent responsibilities:**
-1. Review runbook file using vet protocol
-2. Validate all referenced file paths exist
-3. Write review report to specified path
-4. Return filepath or error to orchestrator
+1. Review assembled runbook using vet protocol
+2. Focus on cross-phase consistency (individual phases already reviewed)
+3. Validate all referenced file paths exist
+4. Write review report to specified path
+5. Return filepath or error to orchestrator
 
 **Orchestrator receives:**
 - Filepath: `plans/foo/reports/runbook-review.md` (success)
@@ -307,6 +390,8 @@ Task(
 - Critical and major priority issues MUST be fixed before proceeding
 - Minor priority issues are optional (document as future improvements if skipped)
 - Never proceed with unaddressed critical/major issues
+
+**Note:** Individual phase reviews already happened (Point 1). This final review checks holistic consistency only.
 
 ---
 
@@ -491,27 +576,44 @@ Analyzing task:
 
 **Assessment: Create runbook** (orchestration justified)
 
-**Point 1: Evaluating Tasks**
+**Point 0.5: Discover Codebase**
 
-Let me break this down:
+*Uses Glob/Grep to verify file paths from design*
+*Scans memory-index.md for related constraints*
 
-1. Setup OAuth2 configuration (small - inline script)
-2. Implement auth routes and handlers (medium - prose description)
-3. Add session management (medium - prose description)
-4. Create user profile integration (medium - prose description)
-5. Write integration tests (large - separate planning needed)
+**Point 0.75: Generate Runbook Outline**
 
-**Point 2: Creating Runbook with Metadata**
+*Creates runbook outline with 3 phases, 8 steps*
+*Delegates to runbook-outline-review-agent (fix-all)*
+*Receives: "plans/oauth2-auth/reports/outline-review.md"*
 
-*Creates initial runbook draft with orchestrator metadata*
+**Point 1: Phase-by-Phase Expansion**
 
-**Point 3: Runbook Review**
+*Phase 1: Configuration and Setup*
+- Generates runbook-phase-1.md
+- Delegates to vet-agent (review-only)
+- Applies critical/major fixes
 
-*Delegates to sonnet task agent for review*
-*Receives: "Review complete - 2 critical issues, 3 major issues - NEEDS_REVISION"*
+*Phase 2: Core Implementation*
+- Generates runbook-phase-2.md
+- Delegates to vet-agent (review-only)
+- Applies fixes
 
-*Addresses issues and requests re-review*
-*Receives: "Re-review complete - All critical issues resolved - READY"*
+*Phase 3: Testing*
+- Generates runbook-phase-3.md
+- Marks for separate planning session
+- Delegates to vet-agent (review-only)
+
+**Point 2: Assembly and Metadata**
+
+*Concatenates phases into runbook.md*
+*Adds Weak Orchestrator Metadata*
+*Final consistency check*
+
+**Point 3: Final Holistic Review**
+
+*Delegates to vet-agent for cross-phase review*
+*Receives: "Review complete - All checks passed - READY"*
 
 **Point 4: Prepare Artifacts**
 
@@ -523,9 +625,8 @@ agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
 
 Artifacts created:
 - Plan-specific agent: `.claude/agents/oauth2-auth-task.md`
-- Steps: `plans/oauth2-auth/steps/step-{1,2,3,4}.md`
+- Steps: `plans/oauth2-auth/steps/step-{1,2,3,4,5,6,7,8}.md`
 - Orchestrator plan: `plans/oauth2-auth/orchestrator-plan.md`
-- Note: Step 5 (tests) marked for separate planning session
 
 Ready for execution. Use `/orchestrate` to execute the runbook."
 
@@ -666,6 +767,8 @@ Default behavior if omitted:
 **Avoid:**
 - Creating runbooks when direct implementation is better (skipping Point 0)
 - Assuming file paths from conventions without Glob/Grep verification (skipping Point 0.5)
+- Skipping outline generation (Point 0.75) for complex runbooks
+- Generating entire runbook monolithically instead of phase-by-phase
 - Assuming prerequisites are met without verification
 - Assigning semantic analysis tasks to haiku
 - Leaving design decisions for "during execution"

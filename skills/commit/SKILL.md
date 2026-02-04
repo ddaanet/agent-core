@@ -216,13 +216,30 @@ Pending:
 - <task 2 name> (<model if non-default>)
 - <task 3 name>
 - ...
+
+Jobs:
+  <name> — <status> [#token]
+  <name> — <status>
+  ...
 ```
+
+**Jobs listing:** Scan `plans/*/` directories and list each on one line:
+- **Format:** `<directory-name> — <status> [#token]`
+- **Status values:** `requirements`, `designed`, `planned`
+- **Token:** If a pending task mentions this plan name, append its `#token`
+- **Sorting:** Alphabetical by directory name
+
+**Status detection:**
+- **planned** — has `runbook.md` and `steps/` directory
+- **designed** — has `design.md` (but no runbook.md)
+- **requirements** — everything else (early stage work)
 
 **Graceful degradation:**
 - Missing session.md or no Pending Tasks → "No pending tasks."
 - Old format (no metadata) → use defaults (model=sonnet, restart=no)
 - Missing model field → default to sonnet
 - Missing restart field → default to no
+- No plans/ directory or empty → omit Jobs section entirely
 
 **If no pending tasks** — display "No pending tasks." and optionally suggest `/next` to find work from todo.md.
 

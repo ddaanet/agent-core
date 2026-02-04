@@ -75,7 +75,30 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 3. Apply critical/major priority fixes from vet review
 4. Tail-call `/handoff --commit`
 
+**Design constraints are non-negotiable:**
+
+When design specifies explicit classifications (tables, rules, decision lists):
+1. Include them LITERALLY in the delegation prompt
+2. Delegated agents must NOT invent alternative heuristics
+3. Agent "judgment" means applying design rules to specific cases, not creating new rules
+
+Example: If design says "all ## headers are semantic," agent uses judgment to write good index entries for each header — NOT to reclassify some headers as structural.
+
 **Key distinction from Tier 3:** No prepare-runbook.py, no orchestrator plan, no plan-specific agent. The planner acts as ad-hoc orchestrator, delegating directly via Task tool.
+
+**Handling agent escalations:**
+
+When delegated agent escalates "ambiguity" or "design gap":
+
+1. **Verify against design source** — Re-read the design document section in question
+2. **If design provides explicit rules** (classification tables, decision lists): Resolve using those rules, do not accept the escalation
+3. **If genuinely ambiguous** (design silent on the case): Use `/opus-design-question` or ask user
+4. **Re-delegate with clarification** if agent misread design
+
+Common false escalations:
+- "Which items are X vs Y?" when design table already classifies
+- "Should we do A or B?" when design explicitly chose A
+- "This seems like a lot" when design rationale explains why it's acceptable
 
 ### Tier 3: Full Runbook
 

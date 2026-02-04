@@ -133,6 +133,15 @@ Plugin-topic: Involves hook development (PreToolUse validation) — load plugin-
 - Concrete file paths and integration points
 - Explicit scope boundaries (in/out)
 
+**Classification tables are binding:**
+
+When design includes classification tables (e.g., "X is type A, Y is type B"), these are LITERAL constraints for downstream planners/agents, not interpretable guidelines. Planners must pass classifications through verbatim to delegated agents.
+
+Format classification tables with explicit scope:
+- Default behavior (what happens without markers)
+- Opt-out mechanism (how to deviate from default)
+- Complete enumeration (all cases covered)
+
 **Structure guidance (adapt as needed):**
 - Problem statement
 - Requirements (functional, non-functional, out of scope)
@@ -229,6 +238,14 @@ Design documents are consumed by planning agents (`/plan-tdd` or `/plan-adhoc`).
 - Flag areas requiring user confirmation
 
 Large tasks require planning anyway - dense design output naturally aligns with planning needs.
+
+**Binding constraints for planners:**
+
+Design documents contain two types of content:
+1. **Guidance** — Rationale, context, recommendations (planners may adapt)
+2. **Constraints** — Classification tables, explicit rules, scope boundaries (planners must follow literally)
+
+Classification tables are constraints. When the table says "### Title is semantic," that's not a suggestion — it's a specification the planner must enforce.
 
 ## Constraints
 

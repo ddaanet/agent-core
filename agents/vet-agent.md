@@ -200,7 +200,7 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
 
 **Ready:**
 - No critical issues
-- No major issues or only 1-2 minor major issues
+- No major issues or only 1-2 minor issues
 - Follows project standards
 - Tests adequate
 - Documentation complete

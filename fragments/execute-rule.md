@@ -30,10 +30,17 @@ Jobs:
   ...
 ```
 
-**Jobs listing:** Scan `plans/*/` directories and list each on one line:
-- **Format:** `<directory-name> — <status>`
-- **Status values:** `requirements`, `designed`, `planned`
-- **Sorting:** Alphabetical by directory name
+**Jobs listing:** Read `agents/jobs.md` for authoritative status, then list all plans on one line each:
+- **Format:** `<plan-name> — <status>`
+- **Status values:** `complete`, `planned`, `designed`, `requirements`, `plan`
+- **Sorting:** Alphabetical by plan name
+
+**Status source priority:**
+1. **jobs.md "Complete (Archived)" section** — Extract plan names from Recent bullets (format: `` `plan-name` — description``)
+2. **jobs.md "In Progress" table** — Read Plan column
+3. **jobs.md "Designed" table** — Read Plan column
+4. **jobs.md "Requirements" table** — Read Plan column
+5. **plans/* directories** — For any plans not in jobs.md, infer status from directory contents
 
 **Special handling for `plans/claude/`:**
 - List individual `.md` files within `plans/claude/` as separate entries
@@ -41,11 +48,10 @@ Jobs:
 - Excludes `.gitkeep` and other non-plan files
 - These are Claude Code built-in plan mode files
 
-**Status detection:**
+**Directory-based status detection (fallback):**
 - **planned** — has `runbook.md` and `steps/` directory
 - **designed** — has `design.md` (but no runbook.md)
 - **requirements** — everything else (early stage work)
-- **plan** — individual plan files in `plans/claude/`
 
 **Graceful degradation:**
 - Missing session.md or no Pending Tasks → "No pending tasks."

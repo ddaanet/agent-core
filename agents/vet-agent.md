@@ -34,6 +34,13 @@ Context: File appears to be a design document (design.md)
 Recommendation: Use design-vet-agent for design document review (uses opus for architectural analysis)
 ```
 
+**If reviewing a runbook (`runbook.md`):**
+- Check for outline review: `plans/<job>/reports/runbook-outline-review.md`
+- If outline review exists, note that outline was validated before runbook expansion
+- If outline review missing, include warning in review report (not error): "Outline was not reviewed before runbook expansion. Best practice is to validate outline first for earlier feedback."
+- Compare runbook against outline's requirements mapping (if outline exists at `plans/<job>/runbook-outline.md`)
+- Verify runbook steps cover all requirements mentioned in outline
+
 ### 1. Determine Scope
 
 **If scope not provided in task prompt, ask user:**
@@ -187,6 +194,20 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
 **Gaps:** [Requirements not satisfied by implementation]
 
 **If no requirements context provided, omit this section.**
+
+## Outline Validation (for runbooks only)
+
+**If reviewing a runbook:**
+
+**Outline Review Status**: [Present / Missing]
+- If present: Note file path `plans/<job>/reports/runbook-outline-review.md`
+- If missing: Include warning that outline was not reviewed before expansion
+
+**Requirements Coverage** (if outline exists at `plans/<job>/runbook-outline.md`):
+- Verify runbook steps cover all requirements mapped in outline
+- Note any missing or incomplete coverage
+
+**If not a runbook review, omit this section.**
 
 ---
 

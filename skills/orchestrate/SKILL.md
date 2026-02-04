@@ -120,9 +120,36 @@ git status --porcelain
 - Runs at: Final phase boundary, or explicit `checkpoint: full` markers in runbook
 - Steps:
   1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
-  2. **Vet:** Quality review of accumulated changes
-     - Delegate to vet-fix-agent: "Review accumulated changes. Write review to plans/{name}/reports/checkpoint-{N}-vet.md"
-     - Agent reviews AND applies critical/major fixes directly (has Edit tool)
+  2. **Vet:** Quality review of accumulated changes with requirements context
+     - **Phase boundary detection:** Parse step file frontmatter for `Phase: N` field
+       - When phase number changes from previous step → phase boundary triggered
+       - Step files include phase metadata via prepare-runbook.py
+     - **Gather context before delegation:**
+       - Requirements summary: Extract FR-* items relevant to completed phase from design
+       - Changed files: Run `git diff --name-only <last-checkpoint-commit>..HEAD`
+       - Design reference: Path to `plans/<name>/design.md`
+     - **Delegate to vet-fix-agent with enhanced prompt:**
+       ```
+       Review implementation changes for Phase N.
+
+       Requirements context:
+       - FR-1: [requirement summary]
+       - FR-2: [requirement summary]
+       [... relevant FRs for this phase]
+
+       Design reference: plans/<name>/design.md
+
+       Changed files (review these using Read tool):
+       - path/to/file1.py
+       - path/to/file2.py
+       [... file list from git diff --name-only]
+
+       CRITICAL: Do NOT read runbook.md — review implementation only.
+
+       Write review to: plans/<name>/reports/checkpoint-N-vet.md
+       ```
+     - Agent reviews changed files using Read tool
+     - Agent applies critical/major fixes directly using Edit tool
      - Read review report: check for UNFIXABLE issues
      - Minor-priority issues: Optional (can defer)
      - **NEVER** proceed with UNFIXABLE critical/major issues — escalate to user
@@ -139,6 +166,8 @@ git status --porcelain
   - Runbook expected to exceed 20 cycles total
 
 **Rationale:** Fix + Functional catches dangerous issues (broken tests, stubs) cheaply. Vet catches quality debt (naming, duplication, abstraction) best at meaningful boundaries where accumulated changes justify the cost.
+
+**Requirements context in vet review:** Providing FR-* items helps vet-fix-agent evaluate whether implementation aligns with stated requirements, improving review quality without adding full runbook context.
 
 **3.5 On success:**
 - Log step completion

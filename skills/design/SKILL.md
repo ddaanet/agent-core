@@ -41,6 +41,19 @@ Before doing design work, assess whether design is actually needed:
 
 **Objective:** Load context, explore codebase, research external resources, produce plan outline.
 
+#### A.0. Requirements Checkpoint
+
+If `requirements.md` exists in job directory (`plans/<job-name>/requirements.md`):
+- Read and summarize functional/non-functional requirements
+- Note scope boundaries (in/out of scope)
+- Carry requirements context into outline and design
+
+If no requirements.md exists:
+- Document requirements discovered during research
+- Can be inline in design.md or separate requirements.md (designer's judgment)
+
+**Output:** Requirements summary available for Phase A.5 (outline) and Phase C.1 (design).
+
 #### A.1. Documentation Checkpoint
 
 **Purpose:** Systematic documentation loading — replaces ad-hoc memory discovery.
@@ -149,6 +162,28 @@ Format classification tables with explicit scope:
 - Implementation notes (affected files, testing strategy)
 - Documentation Perimeter (see below)
 - Next steps
+
+**Requirements section format:**
+
+When requirements.md exists in job directory, include traceability mapping:
+
+```markdown
+## Requirements
+
+**Source:** `plans/<job-name>/requirements.md` (or inline if documented during design)
+
+**Functional:**
+- FR-1: [requirement] — addressed by [design decision/section]
+- FR-2: [requirement] — addressed by [design decision/section]
+
+**Non-functional:**
+- NFR-1: [requirement] — addressed by [design decision/section]
+
+**Out of scope:**
+- [item] — rationale
+```
+
+Each requirement should map to a design element for downstream validation.
 
 **TDD mode additions:** Spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
 

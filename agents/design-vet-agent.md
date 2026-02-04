@@ -80,6 +80,23 @@ If design involves Claude Code plugin components (hooks, agents, skills, MCP):
 - Check: hooks → `plugin-dev:hook-development`, agents → `plugin-dev:agent-development`, etc.
 - Flag if plugin topic present but no loading directive
 
+### 4.5. Validate Requirements Alignment
+
+If design includes a Requirements section:
+- Check completeness: Does design address all functional requirements?
+- Check consistency: Do design decisions conflict with non-functional requirements?
+- Check scope: Does design stay within scope boundaries?
+- Check traceability: Can each requirement be traced to a design element?
+
+**Review criteria:**
+
+| Check | Question |
+|-------|----------|
+| **Completeness** | Does design address all functional requirements? |
+| **Consistency** | Do design decisions conflict with non-functional requirements? |
+| **Scope** | Does design stay within scope boundaries? |
+| **Traceability** | Can each requirement be traced to a design element? |
+
 ### 5. Write Review Report
 
 **Create review file** at path specified in task prompt (typically `plans/<job-name>/reports/design-review.md`).
@@ -125,6 +142,20 @@ If design involves Claude Code plugin components (hooks, agents, skills, MCP):
 
 1. **[Issue title]**
    - Note: [Improvement idea]
+
+## Requirements Alignment
+
+**Requirements Source:** [path or "inline" or "none"]
+
+| Requirement | Addressed | Design Reference |
+|-------------|-----------|------------------|
+| FR-1 | ✓/✗ | Section X / Missing |
+| FR-2 | ✓/✗ | Section Y / Missing |
+| NFR-1 | ✓/✗ | Decision Z / Missing |
+
+**Gaps:** [List any requirements not addressed by design, or "None"]
+
+**Note:** This section only applies if design includes Requirements section. Omit if design has no requirements.
 
 ## Positive Observations
 

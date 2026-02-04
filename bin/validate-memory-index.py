@@ -19,10 +19,11 @@ STRUCTURAL_HEADER = re.compile(r"^(##+) \..+$")
 # Document title
 DOC_TITLE = re.compile(r"^# .+$")
 
-# Files that contain semantic headers
+# Files that contain semantic headers requiring index entries
+# Note: learnings.md is excluded — it's inlined via CLAUDE.md, and /remember
+# processes staged learnings into permanent locations (fragments/, decisions/)
 INDEXED_GLOBS = [
     "agents/decisions/*.md",
-    "agents/learnings.md",
 ]
 
 

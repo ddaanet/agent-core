@@ -81,6 +81,20 @@ Fix authentication bug in login flow
 
 ## Execution Steps
 
+### 0. Session freshness check
+
+**Before any commit work**, verify session.md reflects current state:
+
+- If session.md is stale (doesn't reflect work done in this conversation), run `/handoff --commit` instead
+- This skill continues only if session.md is already current
+
+**Why:** Every commit is a sync point. Versioned files, submodules, and session context must be consistent. A commit with stale session.md creates drift between code state and documented context.
+
+**Indicators of staleness:**
+- Completed work not in "Completed This Session"
+- New pending tasks not recorded
+- Blockers/gotchas discovered but not documented
+
 ### 1. Pre-commit validation + discovery
 
 **Non-context mode** (default):
@@ -95,7 +109,7 @@ git status -vv
 - Precommit first: if it fails, no verbose output bloat
 - Shows: file status + staged diffs + unstaged diffs
 - Note what's already staged vs unstaged (preserve staging state)
-- ERROR if working tree is clean
+- ERROR if nothing to commit (no staged or unstaged changes; untracked files don't count)
 
 ### 1b. Check submodules
 

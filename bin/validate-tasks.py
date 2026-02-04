@@ -57,31 +57,118 @@ def extract_learning_keys(lines):
     return keys
 
 
-def get_new_tasks(session_path):
-    """Get task names that are new in the current commit (not in any parent)."""
+def get_session_from_commit(commit_ref, session_path):
+    """Get session.md content from a specific commit."""
     try:
-        # Get current staged content
         result = subprocess.run(
-            ["git", "diff", "--cached", "--unified=0", "--", str(session_path)],
+            ["git", "show", f"{commit_ref}:{session_path}"],
             capture_output=True,
             text=True,
             check=True,
         )
+        return result.stdout.splitlines()
+    except subprocess.CalledProcessError:
+        return []
 
-        # Extract added lines (lines starting with +)
-        new_lines = []
-        for line in result.stdout.splitlines():
-            if line.startswith("+") and not line.startswith("+++"):
-                new_lines.append(line[1:])  # Strip leading +
 
-        # Extract task names from new lines
-        new_tasks = []
-        for line in new_lines:
-            m = TASK_PATTERN.match(line.strip())
-            if m:
-                new_tasks.append(m.group(1))
+def get_merge_parents():
+    """Get parent commits for current merge. Returns (parent1, parent2) or None."""
+    try:
+        # Check if we're in a merge
+        result = subprocess.run(
+            ["git", "rev-parse", "MERGE_HEAD"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            return None  # Not in a merge
 
-        return new_tasks
+        merge_head = result.stdout.strip()
+
+        # Get HEAD
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        head = result.stdout.strip()
+
+        return (head, merge_head)
+    except subprocess.CalledProcessError:
+        return None
+
+
+def get_staged_session(session_path):
+    """Get staged session.md content."""
+    try:
+        result = subprocess.run(
+            ["git", "show", f":{session_path}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.splitlines()
+    except subprocess.CalledProcessError:
+        return []
+
+
+def get_new_tasks(session_path):
+    """Get task names that are new (not present in any parent).
+
+    For regular commits: compares against HEAD.
+    For merge commits: compares against both parents. A task is "new" only if
+    present in current session.md but not present in either parent.
+    """
+    try:
+        parents = get_merge_parents()
+
+        # Get current (staged) task list
+        current_lines = get_staged_session(session_path)
+        current_tasks = {name for _, name in extract_task_names(current_lines)}
+
+        if parents is None:
+            # Regular commit - compare against HEAD
+            parent_lines = get_session_from_commit("HEAD", session_path)
+            parent_tasks = {name for _, name in extract_task_names(parent_lines)}
+            new_tasks = current_tasks - parent_tasks
+            return list(new_tasks)
+
+        # Merge commit - check both parents
+        parent1, parent2 = parents
+
+        # Check if we have more than 2 parents (octopus merge)
+        result = subprocess.run(
+            ["git", "rev-list", "--parents", "--max-count=1", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        parent_count = len(result.stdout.strip().split()) - 1
+        if parent_count > 2:
+            print(
+                f"Error: Octopus merge detected ({parent_count} parents). "
+                "Task validation logic needs augmentation for n-way merges.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        # Get task lists from both parents
+        p1_lines = get_session_from_commit(parent1, session_path)
+        p1_tasks = {name for _, name in extract_task_names(p1_lines)}
+
+        p2_lines = get_session_from_commit(parent2, session_path)
+        p2_tasks = {name for _, name in extract_task_names(p2_lines)}
+
+        # Combine parent task lists
+        all_parent_tasks = p1_tasks | p2_tasks
+
+        # A task is "new" if present in current but not in either parent
+        new_tasks = current_tasks - all_parent_tasks
+
+        return list(new_tasks)
+
     except subprocess.CalledProcessError:
         # Not in a git repo or no staged changes
         return []

@@ -119,12 +119,17 @@ Common false escalations:
 
 **Before writing any runbook content:**
 
-0. **Read documentation perimeter (if present):**
+0. **Read documentation perimeter and requirements (if present):**
 
 If design document includes "Documentation Perimeter" section:
 - Read all files listed under "Required reading"
 - Note Context7 references (may need additional queries)
 - Factor knowledge into step design
+
+If design document includes "Requirements" section:
+- Read and summarize functional/non-functional requirements
+- Note scope boundaries (in/out of scope)
+- Carry requirements context into runbook Common Context
 
 This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory-index scan.
 
@@ -266,6 +271,8 @@ Task(
 
   CRITICAL: Also validate all file paths referenced in the runbook exist in the codebase.
   Use Glob to verify each path. Flag missing files as critical issues.
+
+  If runbook includes requirements context: Verify implementation steps satisfy requirements.
 
   Write detailed review to: [review-path]
 
@@ -555,6 +562,13 @@ model: haiku        # Optional: default model for plan-specific agent
 ## Common Context
 
 [Shared information for all steps]
+
+**Requirements (from design):**
+- FR-1: [summary] — addressed by [design element]
+- FR-2: [summary] — addressed by [design element]
+- NFR-1: [summary] — addressed by [design element]
+
+**Scope boundaries:** [in/out of scope]
 
 **Key Constraints:**
 - [Constraint 1]

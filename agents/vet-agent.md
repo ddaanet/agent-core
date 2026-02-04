@@ -103,6 +103,12 @@ Review all changes for:
 - No temporary debugging code
 - Related changes included (tests, docs, etc.)
 
+**Requirements Validation (if context provided):**
+- If task prompt includes requirements context, verify implementation satisfies requirements
+- Check functional requirements are met
+- Check non-functional requirements are addressed
+- Flag requirements gaps as major issues
+
 ### 4. Write Review Report
 
 **Create review file** at:
@@ -152,6 +158,21 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
 1. **[Issue title]**
    - Location: [file:line or commit hash]
    - Note: [Improvement idea]
+
+## Requirements Validation
+
+**If requirements context provided in task prompt:**
+
+| Requirement | Status | Evidence |
+|-------------|--------|----------|
+| FR-1 | Satisfied/Partial/Missing | [file:line or explanation] |
+| FR-2 | Satisfied/Partial/Missing | [file:line or explanation] |
+
+**Gaps:** [Requirements not satisfied by implementation]
+
+**If no requirements context provided, omit this section.**
+
+---
 
 ## Positive Observations
 

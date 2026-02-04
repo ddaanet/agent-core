@@ -107,9 +107,10 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 **Actions:**
 
-0. **Read documentation perimeter (if present):**
+0. **Read documentation perimeter and requirements (if present):**
    - If design includes "Documentation Perimeter" section, read all listed files under "Required reading"
    - Note Context7 references for potential additional queries
+   - If design includes "Requirements" section, read and summarize functional/non-functional requirements, note scope boundaries
    - This provides designer's recommended context before discovery
 
 1. **Determine design path:**
@@ -328,6 +329,13 @@ model: haiku
 **Prerequisites**: {from_design}
 
 ## Common Context
+
+**Requirements (from design):**
+- FR-1: [summary] — addressed by [design element]
+- FR-2: [summary] — addressed by [design element]
+- NFR-1: [summary] — addressed by [design element]
+
+**Scope boundaries:** [in/out of scope]
 
 **Key Design Decisions:**
 {numbered_list}

@@ -18,8 +18,8 @@ Use this structure when updating session.md for agent handoff:
 
 ## Pending Tasks
 
-- [ ] **Task name** #PNDNG — description | model
-- [ ] **Another task** #PNDNG — description | model | restart
+- [ ] **Task name** — description | model
+- [ ] **Another task** — description | model | restart
 
 ## Blockers / Gotchas
 

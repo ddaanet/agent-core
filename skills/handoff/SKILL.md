@@ -34,9 +34,15 @@ When invoked, immediately update `session.md` with:
 
 Write a handoff note following the template structure. See **`references/template.md`** for complete template and formatting guidelines.
 
-**Pending task tokens:** When adding new pending tasks, use `#PNDNG` as a placeholder token. The commit skill replaces these with unique identifiers before committing. This enables `task-context.sh` to find the session.md where a task was introduced.
+**Task naming:** Task names serve as prose key identifiers and must be unique across session.md and disjoint from learning keys in learnings.md. This enables `task-context.sh` to find the session.md where a task was introduced.
 
-**Format:** `- [ ] **Task name** #PNDNG — description | model`
+**Format:** `- [ ] **Task Name** — description | model | restart?`
+
+**Field rules:**
+- Task Name: Prose key serving as identifier (must be unique across session.md and disjoint from learning keys)
+- Description: Brief description of the task
+- Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
+- Restart: Optional flag — only include if restart needed (omit = no restart)
 
 ### 3. Context Preservation
 

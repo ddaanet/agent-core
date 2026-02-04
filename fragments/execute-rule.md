@@ -25,15 +25,14 @@ Pending:
 - ...
 
 Jobs:
-  <name> — <status> [#token]
+  <name> — <status>
   <name> — <status>
   ...
 ```
 
 **Jobs listing:** Scan `plans/*/` directories and list each on one line:
-- **Format:** `<directory-name> — <status> [#token]`
+- **Format:** `<directory-name> — <status>`
 - **Status values:** `requirements`, `designed`, `planned`
-- **Token:** If a pending task mentions this plan name, append its `#token`
 - **Sorting:** Alphabetical by directory name
 
 **Status detection:**
@@ -75,9 +74,9 @@ Strict resume: continue in-progress task only. Error if no in-progress task exis
 
 ### Task Pickup: Context Recovery
 
-**Rule:** Before starting a pending task, run `agent-core/bin/task-context.sh <token>` to recover the session.md where it was introduced.
+**Rule:** Before starting a pending task, run `agent-core/bin/task-context.sh '<task-name>'` to recover the session.md where it was introduced.
 
-The token (e.g., `#xK9f2`) is embedded in the task line. The script outputs the full session.md from the introducing commit. Tokens are generated during precommit (`#PNDNG` → unique token), so git history contains the final token.
+The task name serves as the lookup key. The script uses `git log -S` to find the commit where the task was first introduced and outputs the full session.md from that commit.
 
 ---
 
@@ -129,17 +128,17 @@ The token (e.g., `#xK9f2`) is embedded in the task line. The script outputs the 
 **Task metadata format:**
 
 ```markdown
-- [ ] **Task Name** #token — `command` | model | restart?
+- [ ] **Task Name** — `command` | model | restart?
 ```
 
 **Examples:**
 ```markdown
-- [ ] **Implement ambient awareness** #xK9f2 — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
-- [ ] **Design runbook identifiers** #bQ7mN — `/design plans/runbook-identifiers/problem.md` | opus | restart
+- [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
+- [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/problem.md` | opus | restart
 ```
 
 **Field rules:**
-- Token: 5-char base62 identifier (written as `#PNDNG` by handoff, replaced by precommit)
+- Task Name: Prose key serving as identifier (must be unique across session.md and disjoint from learning keys)
 - Command: Backtick-wrapped command to start the task
 - Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
 - Restart: Optional flag — only include if restart needed (omit = no restart)

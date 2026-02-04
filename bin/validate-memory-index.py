@@ -165,9 +165,8 @@ def validate(index_path):
                 f"  memory-index.md:{lineno}: entry lacks em-dash separator (D-3): '{full_entry}'"
             )
         else:
-            # Check word count (8-12 word soft limit for description after em-dash)
-            description = full_entry.split(" — ", 1)[1]
-            word_count = len(description.split())
+            # Check word count (8-12 word soft limit for key + description total)
+            word_count = len(full_entry.split())
             if word_count < 8:
                 warnings.append(
                     f"  memory-index.md:{lineno}: description has {word_count} words, soft limit 8-12 (D-3): '{full_entry}'"

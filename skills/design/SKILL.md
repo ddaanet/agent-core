@@ -88,15 +88,12 @@ Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/
 - Open questions
 - Scope boundaries
 
-**Plugin-topic detection:** If design involves Claude Code plugin components (hooks, agents, skills), note in outline: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."
-
 **Example outline** (for reference — adapt to task):
 ```
 Approach: Add rate limiting middleware to API gateway using token bucket algorithm.
 Key decisions: Per-user limits (not global), Redis-backed counters, 429 response with Retry-After header.
 Open questions: Should rate limits vary by endpoint? Should admin users be exempt?
 Scope: API gateway only. Dashboard/monitoring out of scope.
-Plugin-topic: Involves hook development (PreToolUse validation) — load plugin-dev:hook-development before planning.
 ```
 
 **Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
@@ -112,6 +109,8 @@ Plugin-topic: Involves hook development (PreToolUse validation) — load plugin-
 - Designer responds with **incremental deltas only** — not full outline regeneration
 - Loop until user validates approach
 - This is conversation, not document generation — keep it light
+
+**Plugin-topic detection (reminder):** If design involves Claude Code plugin components (hooks, agents, skills), note which skill to load before planning: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."
 
 **Termination:** If user feedback fundamentally changes the approach (not refining it), restart Phase A with updated understanding. Phase B is for convergence, not exploration of new directions.
 

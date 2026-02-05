@@ -239,10 +239,11 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - If found: STOP, report with line numbers and context
 
 3.5. **Memory discovery:**
-   - Scan memory-index.md for entries relevant to the current task domain
-   - Read referenced files for relevant matches
+   - Check loaded memory-index context (already in CLAUDE.md) for entries relevant to the task domain
+   - When entry is relevant, Read the referenced file
    - Factor known constraints, patterns, and prior decisions into cycle design
    - This prevents re-learning known patterns or contradicting established rules
+   - **Do NOT grep memory-index.md** — it's already loaded, scan it mentally
 
 4. **Discover codebase structure (REQUIRED):**
    - Use Glob to find existing test files: `tests/test_*.py`, `tests/**/test_*.py`

@@ -139,12 +139,13 @@ If design document includes "Requirements" section:
 - Note scope boundaries (in/out of scope)
 - Carry requirements context into runbook Common Context
 
-This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory-index scan.
+This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory discovery.
 
 1. **Discover relevant prior knowledge:**
-   - Scan memory-index.md for entries related to the task domain
-   - Read referenced files for relevant matches
+   - Check loaded memory-index context (already in CLAUDE.md) for entries related to the task domain
+   - When entry is relevant, Read the referenced file
    - Factor known constraints into step design and model selection
+   - **Do NOT grep memory-index.md** — it's already loaded, scan it mentally
 
 2. **Verify actual file locations:**
    - Use Glob to find source files referenced by the design

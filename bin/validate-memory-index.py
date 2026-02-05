@@ -6,8 +6,8 @@ Checks:
 - All index entries match at least one semantic header
 - No duplicate index entries
 - Document intro content (between # and first ##) is exempt
-- Entries are in correct file section (autofix available)
-- Entries are in file order within sections (autofix available)
+- Entries are in correct file section (autofix by default)
+- Entries are in file order within sections (autofix by default)
 """
 
 import re
@@ -206,10 +206,10 @@ def extract_index_structure(index_path, root):
     return preamble, sections
 
 
-def validate(index_path, autofix=False):
+def validate(index_path, autofix=True):
     """Validate memory index. Returns list of error strings.
 
-    If autofix=True, also fixes section placement and ordering issues.
+    Autofix is enabled by default for section placement and ordering issues.
     """
     root = find_project_root()
 
@@ -217,7 +217,6 @@ def validate(index_path, autofix=False):
     entries = extract_index_entries(index_path, root)
 
     errors = []
-    warnings = []
     seen_entries = {}
     placement_errors = []
     ordering_errors = []
@@ -239,11 +238,11 @@ def validate(index_path, autofix=False):
                 f"  memory-index.md:{lineno}: entry lacks em-dash separator (D-3): '{full_entry}'"
             )
         else:
-            # Check word count (8-12 word soft limit for key + description total)
+            # Check word count (8-12 word hard limit for key + description total)
             word_count = len(full_entry.split())
-            if word_count < 8:
-                warnings.append(
-                    f"  memory-index.md:{lineno}: description has {word_count} words, soft limit 8-12 (D-3): '{full_entry}'"
+            if word_count < 8 or word_count > 12:
+                errors.append(
+                    f"  memory-index.md:{lineno}: entry has {word_count} words, must be 8-12 (D-3): '{full_entry}'"
                 )
 
     # Check section placement: entry should be in section matching its source file
@@ -333,15 +332,6 @@ def validate(index_path, autofix=False):
         else:
             errors.extend(placement_errors)
             errors.extend(ordering_errors)
-            print("  (run with --fix to autofix placement/ordering)", file=sys.stderr)
-
-    # Print warnings to stderr but don't fail
-    if warnings:
-        print(
-            f"Memory index warnings ({len(warnings)}):", file=sys.stderr,
-        )
-        for w in warnings:
-            print(w, file=sys.stderr)
 
     return errors
 
@@ -411,11 +401,9 @@ def autofix_index(index_path, root, headers):
 
 def main():
     args = sys.argv[1:]
-    autofix = "--fix" in args
-    args = [a for a in args if a != "--fix"]
 
     path = args[0] if args else "agents/memory-index.md"
-    errors = validate(path, autofix=autofix)
+    errors = validate(path)
 
     if errors:
         print(

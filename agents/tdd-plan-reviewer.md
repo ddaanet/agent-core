@@ -49,9 +49,13 @@ Load and follow the review-tdd-plan skill (preloaded via skills field above). It
 
 1. **GREEN phases:** Detect prescriptive implementation code. GREEN should describe behavior and provide hints, not prescribe exact code.
 
-2. **RED phases (new):** Validate prose test quality. RED should use prose test descriptions with specific assertions, not full test code. Prose must be behaviorally specific (exact values/patterns, not vague descriptions).
+2. **RED phases:** Validate prose test quality. RED should use prose test descriptions with specific assertions, not full test code. Prose must be behaviorally specific (exact values/patterns, not vague descriptions).
+
+3. **Consolidation quality:** Verify merged cycles maintain test isolation. Merged cycles should have ≤5 assertions, no conflicting setup/teardown, and related domains only.
 
 **Prose quality rule:** If an executor could write different tests that all satisfy the prose description, the prose is too vague.
+
+**Consolidation rule:** Trivial work should be inlined or merged with adjacent cycles, not left as isolated single-assertion cycles.
 
 **Review-Only Policy:**
 

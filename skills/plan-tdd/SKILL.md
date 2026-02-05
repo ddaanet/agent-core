@@ -171,6 +171,53 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ---
 
+### Phase 1.6: Consolidation Gate — Outline (Tier 3 Only)
+
+**Objective:** Merge trivial phases with adjacent complexity before expensive expansion.
+
+**Actions:**
+
+1. **Scan outline for trivial phases:**
+   - Phases with ≤2 cycles AND complexity marked "Low"
+   - Single-constant changes or configuration updates
+   - Pattern: setup/cleanup work that could batch with adjacent feature work
+
+2. **Evaluate merge candidates:**
+
+   For each trivial phase, check:
+   - Can it merge with preceding phase? (same domain, natural continuation)
+   - Can it merge with following phase? (prerequisite relationship)
+   - Would merging create >10 cycles in target phase? (reject if so)
+
+3. **Apply consolidation:**
+
+   **Merge pattern:**
+   ```markdown
+   ## Phase N: [Combined Name]
+
+   ### [Original feature cycles]
+   ### [Trivial work as final cycles]
+   ```
+
+   **Do NOT merge if:**
+   - Trivial phase has external dependencies (blocking other work)
+   - Merged phase would exceed 10 cycles
+   - Domains are unrelated (forced grouping hurts coherence)
+
+4. **Update traceability:**
+   - Adjust requirements mapping table
+   - Update phase structure in outline
+   - Note consolidation decisions in Expansion Guidance
+
+**When to skip:**
+- Outline has no trivial phases
+- All trivial phases have cross-cutting dependencies
+- Outline is already compact (≤3 phases)
+
+**Rationale:** Rather than standalone trivial steps that fragment execution, batch simple work with adjacent complexity. This reduces orchestrator overhead and creates natural commit boundaries.
+
+---
+
 ### Phase 2: Analysis (Tier 3 Only)
 
 **Objective:** Extract feature info and validate completeness.
@@ -572,6 +619,63 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 - STOP on write errors
 
 **Outputs:** runbook_path, runbook file
+
+---
+
+### Phase 4.5: Consolidation Gate — Runbook (Tier 3 Only)
+
+**Objective:** Merge isolated trivial cycles with related features before final review.
+
+**Actions:**
+
+1. **Identify isolated trivial cycles:**
+   - Cycles marked for fast-path during Phase 2.5
+   - Single-line changes or constant updates
+   - Cycles with no test assertions (pure configuration)
+
+2. **Check merge candidates:**
+
+   For each trivial cycle:
+   - **Same-file cycles:** Merge with adjacent cycle modifying same file
+   - **Setup cycles:** Promote to phase preamble (not separate cycle)
+   - **Cleanup cycles:** Demote to phase postamble
+
+3. **Apply cycle consolidation:**
+
+   **Merge into adjacent cycle:**
+   ```markdown
+   ## Cycle X.Y: [Feature Name]
+
+   **Additional setup:** [trivial work folded in]
+
+   [Standard RED/GREEN content]
+   ```
+
+   **Convert to inline instruction:**
+   ```markdown
+   **Pre-phase setup:**
+   - Update config constant to X
+   - Add import statement for Y
+
+   ## Cycle X.1: [First real cycle]
+   ```
+
+4. **Update metadata:**
+   - Adjust Total Steps count
+   - Update cycle numbering if merges occurred
+   - Note consolidations in runbook header
+
+**Constraints:**
+- Never merge cycles across phases
+- Preserve test isolation (don't merge if tests would conflict)
+- Keep merged cycles ≤5 assertions total
+
+**When to skip:**
+- No trivial cycles identified in Phase 2.5
+- All cycles have substantial test coverage
+- Runbook is already compact (<15 cycles)
+
+**Rationale:** Trivial cycles add orchestrator overhead. A haiku executor can handle "update constant X and then implement feature Y" in one delegation. Consolidation reduces round-trips without losing coverage.
 
 ---
 

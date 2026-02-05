@@ -179,7 +179,33 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 - If empty case requires special handling → acceptable
 - If empty case arises naturally from list processing → WARNING: reorder to test simplest happy path first
 
-### 8. File Reference Validation (CRITICAL)
+### 8. Consolidation Quality
+
+**Check:** Merged cycles maintain test isolation
+
+**Indicators of bad consolidation:**
+- Merged cycle has >5 assertions (overloaded)
+- Setup/teardown conflicts in same cycle
+- Unrelated domains merged (forced grouping)
+- Phase preamble contains testable behavior (should be a cycle)
+
+**Check:** Trivial work placement
+
+**Good patterns:**
+- Config constants as phase preamble
+- Import additions as setup instructions
+- Single-file trivial changes merged with adjacent same-file cycle
+
+**Bad patterns:**
+- Trivial cycles left isolated (should merge or inline)
+- Testable behavior hidden in preamble (needs assertion)
+- Cross-phase merges (never allowed)
+
+**Why this matters:** Consolidation reduces orchestrator overhead but shouldn't sacrifice test isolation. Bad merges create flaky tests or miss coverage.
+
+---
+
+### 9. File Reference Validation (CRITICAL)
 
 **Violation:** Runbook references file paths that don't exist in the codebase
 

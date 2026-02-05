@@ -187,6 +187,11 @@ Analyze outline against these dimensions:
 
 The following recommendations should be incorporated during full runbook expansion:
 
+**Consolidation candidates:**
+- [Trivial phases that should merge with adjacent work]
+- [Setup cycles to inline as preamble]
+- [Single-file changes to batch together]
+
 **Cycle expansion:**
 - [Specific guidance for cycle content]
 - [Test case suggestions]
@@ -200,6 +205,14 @@ The following recommendations should be incorporated during full runbook expansi
 - [Shell line numbers for algorithm verification]
 - [Design sections to propagate]
 ```
+
+**Consolidation guidance:**
+
+When identifying trivial phases during outline review, note them for Phase 1.6 consolidation:
+
+- **Merge candidates:** Phases with ≤2 cycles that logically belong with adjacent work
+- **Inline candidates:** Single-constant or config changes that don't need separate cycles
+- **Preserve isolation:** Note any trivial work that MUST stay separate (external dependencies)
 
 **Why inline:** Phase expansion already reads the outline. Guidance co-located with structure ensures it's consumed. Report file recommendations are easily overlooked.
 

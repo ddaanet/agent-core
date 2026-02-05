@@ -47,12 +47,19 @@ If `requirements.md` exists in job directory (`plans/<job-name>/requirements.md`
 - Read and summarize functional/non-functional requirements
 - Note scope boundaries (in/out of scope)
 - Carry requirements context into outline and design
+- **Skill dependency scan:** Check if requirements mention creating agents, skills, hooks, or plugins → load corresponding `plugin-dev:*` skill immediately (don't defer to A.1)
 
 If no requirements.md exists:
 - Document requirements discovered during research
 - Can be inline in design.md or separate requirements.md (designer's judgment)
 
-**Output:** Requirements summary available for Phase A.5 (outline) and Phase C.1 (design).
+**Skill dependency indicators:**
+- "sub-agent", "delegate to agent", "agent definition" → `plugin-dev:agent-development`
+- "skill", "invoke skill", "skill preloaded" → `plugin-dev:skill-development`
+- "hook", "PreToolUse", "PostToolUse" → `plugin-dev:hook-development`
+- "plugin", "MCP server" → `plugin-dev:plugin-structure`, `plugin-dev:mcp-integration`
+
+**Output:** Requirements summary + skill dependencies loaded, available for Phase A.5 (outline) and Phase C.1 (design).
 
 #### A.1. Documentation Checkpoint
 

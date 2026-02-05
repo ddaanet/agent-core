@@ -153,3 +153,12 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 - Command: Backtick-wrapped command to start the task
 - Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
 - Restart: Optional flag — only include if restart needed (omit = no restart)
+
+**Restart triggers:** Session restart is required for structural changes that load at startup:
+- Sub-agent definitions (`.claude/agents/`)
+- Hook configuration (`.claude/hooks/`, `settings.json` hooks)
+- Plugin changes (`.claude/plugins/`)
+- MCP server configuration (`.mcp.json`)
+- API/provider configuration
+
+**NOT restart triggers:** Model changes (use `/model` command at runtime)

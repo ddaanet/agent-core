@@ -2,7 +2,7 @@
 """
 Prepare execution artifacts from runbook markdown files.
 
-Transforms a runbook markdown file into:
+Transforms a runbook markdown file (or phase-grouped directory) into:
 1. Plan-specific agent (.claude/agents/<runbook-name>-task.md)
 2. Step/Cycle files (plans/<runbook-name>/steps/)
 3. Orchestrator plan (plans/<runbook-name>/orchestrator-plan.md)
@@ -10,16 +10,22 @@ Transforms a runbook markdown file into:
 Supports:
 - General runbooks (## Step N:)
 - TDD runbooks (## Cycle X.Y:, requires type: tdd in frontmatter)
+- Phase-grouped runbooks (runbook-phase-*.md files in a directory)
 
 Usage:
     prepare-runbook.py <runbook-file.md>
+    prepare-runbook.py <directory-with-phase-files>
 
-Example (General):
+Example (File):
     prepare-runbook.py plans/foo/runbook.md
     # Creates:
     #   .claude/agents/foo-task.md (uses quiet-task.md baseline)
     #   plans/foo/steps/step-*.md
     #   plans/foo/orchestrator-plan.md
+
+Example (Phase Directory):
+    prepare-runbook.py plans/foo/
+    # Detects runbook-phase-*.md files, assembles them, then creates same artifacts
 
 Example (TDD):
     prepare-runbook.py plans/tdd-test/runbook.md
@@ -115,9 +121,10 @@ def extract_cycles(content):
             }
             current_content = [line]
 
-        # Check for next H2/H3 (non-cycle section) - terminates current cycle
-        elif (line.startswith('## ') or line.startswith('### ')) and current_cycle is not None:
-            # End current cycle - any H2/H3 that's not a cycle terminates the current cycle
+        # Check for next H2 (non-cycle section) - terminates current cycle
+        # Only H2 headers terminate cycles (H3 like ### RED Phase are cycle content)
+        elif line.startswith('## ') and current_cycle is not None:
+            # End current cycle - H2 header that's not a cycle terminates the current cycle
             current_cycle['content'] = '\n'.join(current_content).strip()
             cycles.append(current_cycle)
             current_cycle = None
@@ -167,10 +174,13 @@ def validate_cycle_structure(cycle, common_context=''):
         if 'green' not in content:
             messages.append(f"ERROR: Cycle {cycle_num} missing required section: GREEN phase")
 
-    # Check for mandatory Stop Conditions (can be in cycle OR Common Context)
+    # Check for mandatory Stop/Error Conditions (can be in cycle OR Common Context)
+    # Accept either "stop condition" or "error condition" as valid
     common_lower = common_context.lower()
-    if 'stop condition' not in content and 'stop condition' not in common_lower:
-        messages.append(f"ERROR: Cycle {cycle_num} missing required section: Stop Conditions")
+    has_conditions = ('stop condition' in content or 'stop condition' in common_lower or
+                      'error condition' in content or 'error condition' in common_lower)
+    if not has_conditions:
+        messages.append(f"ERROR: Cycle {cycle_num} missing required section: Stop/Error Conditions")
 
     # Warn if missing dependencies (can be in cycle OR Common Context, non-critical)
     if 'dependencies' not in content and 'dependency' not in content and 'dependencies' not in common_lower and 'dependency' not in common_lower:
@@ -365,6 +375,70 @@ def extract_sections(content):
             sections['step_phases'][current_step] = line_to_phase[current_step_line]
 
     return sections
+
+
+def assemble_phase_files(directory):
+    """Assemble runbook from phase files in a directory.
+
+    Detects runbook-phase-*.md files, sorts by phase number,
+    and concatenates into assembled content. Prepends TDD frontmatter
+    since phase files contain only content.
+
+    Args:
+        directory: Path to directory containing runbook-phase-*.md files
+
+    Returns:
+        (assembled_content_with_frontmatter, phase_dir) or (None, None) if no phase files found
+    """
+    dir_path = Path(directory)
+    if not dir_path.is_dir():
+        return None, None
+
+    # Find all phase files: runbook-phase-*.md
+    phase_files = sorted(dir_path.glob('runbook-phase-*.md'))
+    if not phase_files:
+        return None, None
+
+    # Extract phase numbers for sorting
+    def get_phase_num(path):
+        match = re.search(r'runbook-phase-(\d+)\.md', path.name)
+        return int(match.group(1)) if match else float('inf')
+
+    phase_files = sorted(phase_files, key=get_phase_num)
+
+    # Validate sequential phase numbering
+    phase_nums = [get_phase_num(f) for f in phase_files]
+    if phase_nums != list(range(1, len(phase_nums) + 1)):
+        missing = set(range(1, max(phase_nums) + 1)) - set(phase_nums)
+        print(f"ERROR: Phase numbering gaps detected. Missing phases: {sorted(missing)}", file=sys.stderr)
+        return None, None
+
+    # Read and validate each phase file
+    assembled_parts = []
+    for phase_file in phase_files:
+        content = phase_file.read_text()
+        if not content.strip():
+            print(f"ERROR: Empty phase file: {phase_file}", file=sys.stderr)
+            return None, None
+        if not re.search(r'^##+ Cycle\s+\d+\.\d+:', content, re.MULTILINE):
+            print(f"ERROR: Phase file missing cycle headers: {phase_file}", file=sys.stderr)
+            return None, None
+        assembled_parts.append(content)
+
+    # Derive runbook name from directory (plans/foo -> foo)
+    runbook_name = dir_path.name
+
+    # Prepend TDD frontmatter (phase files have no frontmatter)
+    frontmatter = f"""---
+type: tdd
+model: haiku
+name: {runbook_name}
+---
+"""
+    assembled_body = '\n'.join(assembled_parts)
+    assembled_content = frontmatter + assembled_body
+
+    return assembled_content, str(dir_path)
 
 
 def derive_paths(runbook_path):
@@ -744,7 +818,7 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: prepare-runbook.py <runbook-file.md>", file=sys.stderr)
+        print("Usage: prepare-runbook.py <runbook-file.md> OR <directory-with-phase-files>", file=sys.stderr)
         print("", file=sys.stderr)
         print("Transforms runbook markdown into execution artifacts:", file=sys.stderr)
         print("  - Plan-specific agent (.claude/agents/<runbook-name>-task.md)", file=sys.stderr)
@@ -754,17 +828,36 @@ def main():
         print("Supports:", file=sys.stderr)
         print("  - General runbooks (## Step N:)", file=sys.stderr)
         print("  - TDD runbooks (## Cycle X.Y:, requires type: tdd in frontmatter)", file=sys.stderr)
+        print("  - Phase-grouped runbooks (runbook-phase-*.md files in directory)", file=sys.stderr)
         sys.exit(1)
 
-    runbook_path = Path(sys.argv[1])
+    input_path = Path(sys.argv[1])
 
-    # Validate runbook exists
-    if not runbook_path.exists():
-        print(f"ERROR: Runbook not found: {runbook_path}", file=sys.stderr)
+    # Validate input exists
+    if not input_path.exists():
+        print(f"ERROR: Path not found: {input_path}", file=sys.stderr)
         sys.exit(1)
 
-    # Read and parse runbook
-    content = runbook_path.read_text()
+    # Handle directory vs file input
+    if input_path.is_dir():
+        # Try to assemble from phase files
+        assembled_content, phase_file = assemble_phase_files(input_path)
+        if assembled_content is None:
+            # Error already printed by assemble_phase_files if validation failed
+            # Only print "not found" message if no phase files exist
+            if not list(input_path.glob('runbook-phase-*.md')):
+                print(f"ERROR: No runbook-phase-*.md files found in directory: {input_path}", file=sys.stderr)
+            sys.exit(1)
+        content = assembled_content
+        # Use parent directory for naming (plans/foo/ -> foo)
+        runbook_path = input_path / "runbook.md"
+        print(f"✓ Assembled from phase files in {input_path}", file=sys.stderr)
+    else:
+        # Single file input
+        runbook_path = input_path
+        content = runbook_path.read_text()
+
+    # Parse runbook
     metadata, body = parse_frontmatter(content)
 
     runbook_type = metadata.get('type', 'general')

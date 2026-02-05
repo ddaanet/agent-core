@@ -85,7 +85,9 @@ Fix authentication bug in login flow
 
 **Before any commit work**, verify session.md reflects current state:
 
-- If session.md is stale (doesn't reflect work done in this conversation), run `/handoff --commit` instead
+- If session.md is stale (doesn't reflect work done in this conversation), run handoff first:
+  - **Haiku model:** Run `/handoff-haiku --commit`
+  - **Sonnet/Opus:** Run `/handoff --commit`
 - This skill continues only if session.md is already current
 
 **Why:** Every commit is a sync point. Versioned files, submodules, and session context must be consistent. A commit with stale session.md creates drift between code state and documented context.
@@ -94,6 +96,22 @@ Fix authentication bug in login flow
 - Completed work not in "Completed This Session"
 - New pending tasks not recorded
 - Blockers/gotchas discovered but not documented
+
+### 0b. Vet checkpoint (all models)
+
+**Before committing production artifacts**, verify alignment:
+
+- **Production artifacts created this session?** (code, scripts, plans, skills, agents)
+- **Vet review with alignment check completed?** Report in `plans/*/reports/` or `tmp/`
+- **UNFIXABLE issues addressed?** Any UNFIXABLE items require user escalation before commit
+
+**Reports are exempt** — they ARE the verification artifacts.
+
+**If no vet review exists for production artifacts:** STOP. Delegate to `vet-fix-agent` first. Return to commit after vet completes.
+
+**Alignment verification requires criteria.** If no runbook/design/acceptance criteria exists for the work, the vet cannot verify alignment — escalate to user to establish criteria before proceeding.
+
+**Why:** All models can produce output that drifts from intent. Vet+fix with alignment catches drift before commit.
 
 ### 1. Pre-commit validation + discovery
 

@@ -44,6 +44,32 @@ Write a handoff note following the template structure. See **`references/templat
 - Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
 - Restart: Optional flag — only include if restart needed (omit = no restart)
 
+**Haiku task requirements:**
+
+When scheduling implementation work for haiku, provide execution criteria — haiku cannot infer intent or verify alignment without explicit specification.
+
+| Task type | Required | Example |
+|-----------|----------|---------|
+| Runbook execution | Plan reference | `Plan: statusline-parity` in nested line |
+| Ad-hoc implementation | Acceptance criteria | Bullet list of specific outcomes |
+| Script/tool enhancement | Test command or expected behavior | `Verify: just test passes` |
+
+**Why:** Without criteria, haiku cannot verify alignment, vet cannot check drift, and quality issues surface only at commit time.
+
+**Example (good):**
+```markdown
+- [ ] **Enhance prepare-runbook.py** — Add phase file assembly | haiku
+  - Accept directory input, detect runbook-phase-*.md files
+  - Sort by phase number, prepend TDD frontmatter
+  - Verify: `prepare-runbook.py plans/statusline-parity/` succeeds
+```
+
+**Example (bad):**
+```markdown
+- [ ] **Enhance prepare-runbook.py** — Accept directory, detect phase files | haiku
+```
+The bad example has no acceptance criteria — haiku must guess at implementation details.
+
 ### 3. Context Preservation
 
 **session.md allowed sections:**

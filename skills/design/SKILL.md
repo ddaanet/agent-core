@@ -126,10 +126,13 @@ Apply all fixes (critical, major, minor) directly to outline.md.
 
 Write review report to: plans/<job>/reports/outline-review.md
 
-Return only the filepath on success, or 'Error: [description]' on failure.
+Return only the filepath on success (with ESCALATION note if unfixable issues), or 'Error: [description]' on failure.
 ```
 
-**Read the review report** from the returned filepath to verify any issues were resolved.
+**Handle review outcome:**
+- Read the review report from the returned filepath
+- If ESCALATION noted: Address unfixable issues before proceeding to user presentation
+- If all issues fixed: Proceed to Phase B (report is audit trail)
 
 ---
 

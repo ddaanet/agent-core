@@ -322,24 +322,20 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Include cycle details using **prose test descriptions** (not full code)
    - Use cycle planning guidance from Phase 3.1-3.6 below
 
-2. **Review phase cycles:**
-   - Delegate to `tdd-plan-reviewer` (review-only mode)
+2. **Review and fix phase cycles:**
+   - Delegate to `tdd-plan-reviewer` (fix-all mode)
    - Agent checks for:
      - Prescriptive code in GREEN phases
      - RED/GREEN violations
      - **Prose test quality** (behaviorally specific assertions)
-   - Agent writes review report, does NOT apply fixes
-   - Agent returns review report path
+   - Agent fixes ALL issues directly in phase file
+   - Agent writes review report (audit trail)
+   - Agent returns review report path (with escalation note if unfixable issues)
 
-3. **Apply fixes:**
+3. **Handle review outcome:**
    - Read review report
-   - **REQUIRED:** Apply all high and medium priority fixes
-   - Focus on prose quality, prescriptive code removal, RED/GREEN sequencing
-   - Update phase file with corrections
-
-4. **Finalize phase:**
-   - Phase cycles approved
-   - Proceed to next phase
+   - If ESCALATION noted: STOP, address unfixable issues before proceeding
+   - If all issues fixed: proceed to next phase
 
 **Fallback:** If outline indicated ≤3 phases and ≤10 total cycles, skip phase-by-phase and generate all cycles at once with single review.
 
@@ -695,7 +691,7 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
 2. **Delegate final holistic review:**
 
-   **Agent:** `tdd-plan-reviewer` (review-only mode)
+   **Agent:** `tdd-plan-reviewer` (fix-all mode)
 
    **What it checks:**
    - Cross-phase consistency (individual phases already reviewed)
@@ -704,23 +700,18 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
    - Overall cycle progression and dependencies
    - Incremental implementation coherence
 
-   **Agent output:**
-   - Writes report to plans/{name}/reports/runbook-final-review.md
-   - Returns review report path
+   **Agent behavior:**
+   - Fixes ALL issues directly in runbook.md
+   - Writes report to plans/{name}/reports/runbook-final-review.md (audit trail)
+   - Returns report path (with escalation note if unfixable issues)
 
    **Triggering phrase:**
    "Review the assembled TDD runbook at plans/{name}/runbook.md for cross-phase consistency, prescriptive code, and RED/GREEN violations."
 
 3. **Handle review outcome:**
    - Read review report
-   - If violations found:
-     - **REQUIRED:** Apply all high and medium priority fixes
-     - Update runbook with corrections
-     - Re-run tdd-plan-reviewer if changes are significant
-     - Iterate until only low-priority issues remain
-   - Low-priority issues: Optional (document as future improvements if skipped)
-   - **NEVER** proceed with unaddressed high/medium violations
-   - If critical issues remain: STOP and escalate to user
+   - If ESCALATION noted: STOP, address unfixable issues before proceeding
+   - If all issues fixed: proceed to step 4
 
 4. **Revalidate dependencies:** Run topological sort again
 

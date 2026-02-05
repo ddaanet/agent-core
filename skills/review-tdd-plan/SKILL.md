@@ -116,20 +116,53 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 ### 5. Weak RED Phase Assertions (CRITICAL)
 
-**Violation:** RED test only verifies structure, not behavior
+**Violation:** RED test prose only verifies structure, not behavior
 
-**Indicators:**
+**Indicators (prose format):**
+- Prose says "returns correct value" without specifying what value
+- Prose says "handles error" without specifying error type/message
+- Prose says "processes correctly" without expected output
+- No specific values, patterns, or behaviors specified
+
+**Indicators (legacy code format):**
 - Test only checks `exit_code == 0` or `exit_code != 0`
 - Test only checks key existence (`"KEY" in dict`) without value verification
 - Test only checks class/method existence (would pass with `pass` body)
 - Test has no mocking for I/O-dependent behavior
 
-**Check:** For each RED phase, ask: "Would a stub that returns a constant/empty value pass this test?" If yes → VIOLATION: weak assertion
+**Check:** For each RED phase, ask: "Could an executor write different tests that all satisfy this description?" If yes → VIOLATION: prose too vague
 
-**Correct pattern:**
-- Assert on output content, mock interactions, or computed values
-- Mock external dependencies and verify interaction
-- Use fixtures for filesystem state
+**Correct prose pattern:**
+- Specific values: "returns string containing 🥈 emoji"
+- Specific errors: "raises ValueError with message 'invalid input'"
+- Specific structure: "output dict contains 'count' key with integer > 0"
+- Mock requirements: "mock keychain, verify get_password called with service='claude'"
+
+### 5.5. Prose Test Quality (NEW)
+
+**Violation:** RED phase uses full test code instead of prose description
+
+**Check:** Scan RED phases for python code blocks containing test implementations
+
+**Indicators:**
+- `def test_*():` pattern in RED phase code block
+- `assert` statements in code blocks (not in prose)
+- Complete test function with imports and fixtures
+
+**Why this matters:**
+- Full test code wastes planning tokens
+- Haiku executors can generate tests from prose
+- Prose is easier to review for behavioral coverage
+
+**Acceptable in RED:**
+- Prose test descriptions with specific assertions
+- Expected failure message/pattern (in code block OK)
+- Fixture setup hints (prose, not code)
+
+**Not acceptable:**
+- Complete pytest function implementations
+- Multiple assert statements in code blocks
+- Full test file content
 
 ### 6. Metadata Accuracy
 
@@ -171,6 +204,8 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 ### Phase 1: Scan for Code Blocks
 
+**1a. Check GREEN phases for implementation code:**
+
 Use Grep tool to find code blocks in GREEN phases:
 
 **Pattern:** `^\*\*GREEN Phase:\*\*`
@@ -181,6 +216,17 @@ Use Grep tool to find code blocks in GREEN phases:
 1. Check if it's implementation code (not test code)
 2. Check if it's in GREEN phase
 3. Mark as VIOLATION
+
+**1b. Check RED phases for full test code (new check):**
+
+**Pattern:** `^\*\*RED Phase:\*\*`
+**Context:** Use -A 30 to see test content
+**Check for:** `def test_.*\(\):` pattern inside code blocks
+
+**For full test functions found:**
+1. Check if it's a complete test implementation (not just expected failure)
+2. If complete test with multiple asserts → VIOLATION: use prose instead
+3. Exception: Expected failure message snippets are OK
 
 ### Phase 2: Validate File References
 
@@ -197,9 +243,15 @@ Extract all file paths referenced in the runbook (Common Context, RED/GREEN phas
 
 **For each cycle (X.Y):**
 
-1. **Extract RED phase:** What test assertions?
-2. **Extract GREEN phase:** What implementation guidance?
-3. **Check sequence:** Will RED fail before GREEN?
+1. **Extract RED phase:** What test assertions (prose or code)?
+2. **Validate prose quality:** Are assertions behaviorally specific?
+3. **Extract GREEN phase:** What implementation guidance?
+4. **Check sequence:** Will RED fail before GREEN?
+
+**Prose quality check:**
+- Each assertion specifies concrete expected value or pattern
+- Not vague ("works correctly", "handles error")
+- Could haiku write the test from this prose? If unclear → WARNING
 
 **Sequencing check:**
 - If cycle X.1 includes complete signature + error handling → VIOLATION

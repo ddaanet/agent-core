@@ -218,6 +218,50 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ---
 
+### Phase 2.5: Complexity Check Before Expansion (Tier 3 Only)
+
+**Objective:** Assess expansion complexity BEFORE generating cycle content. Gate expensive expansion with callback mechanism.
+
+**Actions:**
+
+1. **Assess expansion scope:**
+   - Count total cycles from outline
+   - Identify pattern-based cycles (same test structure, different inputs)
+   - Identify algorithmic cycles (unique logic, edge cases)
+   - Estimate token cost of full expansion
+
+2. **Apply fast-path if applicable:**
+   - **Pattern cycles (≥5 similar):** Generate pattern template + variation list instead of per-cycle expansion
+   - **Trivial phases (≤2 cycles, low complexity):** Inline instructions instead of full TDD cycle format
+   - **Single constant change:** Skip cycle, add as inline task
+
+3. **Callback mechanism — if expansion too large:**
+
+   **Callback triggers:**
+   - Outline exceeds 25 cycles → callback to design (scope too large)
+   - Phase exceeds 10 cycles → callback to outline (phase needs splitting)
+   - Single cycle too complex → callback to outline (decompose further)
+
+   **Callback levels:**
+   ```
+   step → runbook outline → design → design outline → requirements
+   ```
+
+   **When callback triggered:**
+   - STOP expansion
+   - Document issue: "Phase N contains [issue]. Callback to [level] required."
+   - Return to previous level with specific restructuring recommendation
+   - DO NOT proceed with expensive expansion of poorly-structured work
+
+4. **Proceed with expansion:**
+   - Only if complexity checks pass
+   - Fast-path applied where appropriate
+   - Callback mechanism available for discovered issues
+
+**Rationale:** Complexity assessment is a planning concern (sonnet/opus). Don't delegate to haiku executor — they optimize for completion, not scope management. Catch structural problems before expensive expansion.
+
+---
+
 ### Phase 3: Phase-by-Phase Cycle Expansion (Tier 3 Only)
 
 **Objective:** Generate detailed cycle content for each phase with TDD-specific review.
@@ -228,19 +272,22 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 1. **Generate phase cycles:**
    - File: `plans/<feature>/runbook-phase-N.md`
-   - Include full cycle details for this phase with RED/GREEN/Stop Conditions
+   - Include cycle details using **prose test descriptions** (not full code)
    - Use cycle planning guidance from Phase 3.1-3.6 below
 
 2. **Review phase cycles:**
    - Delegate to `tdd-plan-reviewer` (review-only mode)
-   - Agent checks for prescriptive code and RED/GREEN violations
+   - Agent checks for:
+     - Prescriptive code in GREEN phases
+     - RED/GREEN violations
+     - **Prose test quality** (behaviorally specific assertions)
    - Agent writes review report, does NOT apply fixes
    - Agent returns review report path
 
 3. **Apply fixes:**
    - Read review report
    - **REQUIRED:** Apply all high and medium priority fixes
-   - Focus on prescriptive code removal and RED/GREEN sequencing
+   - Focus on prose quality, prescriptive code removal, RED/GREEN sequencing
    - Update phase file with corrections
 
 4. **Finalize phase:**
@@ -262,48 +309,60 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Sequential within phases
    - No duplicates (error), gaps acceptable (warn)
 
-2. **Generate RED specifications:**
+2. **Generate RED specifications (prose format):**
 
 ```markdown
 **RED Phase:**
 
-**Test:** [What to test - specific assertion]
+**Test:** [test function name]
+**Assertions:**
+- [Specific assertion 1 — behavioral, not structural]
+- [Specific assertion 2]
+- [Expected values/behaviors]
 
-**Expected failure:**
-```
-[Exact error message or pattern]
-```
+**Expected failure:** [Error type or pattern — e.g., "AttributeError: method not found"]
 
 **Why it fails:** [Missing implementation]
 
-**Verify RED:** [Command with file/function]
-- Must fail with [pattern]
-- If passes, STOP - feature may exist
+**Verify RED:** `pytest [file]::[test_function] -v`
 ```
+
+   **Prose Test Description Rules:**
+
+   RED phase uses **prose descriptions** of tests, not full code blocks. This saves planning tokens while providing enough specificity for haiku to implement correctly.
+
+   **Prose assertion format:**
+   ```markdown
+   **Assertions:**
+   - format_model("Claude Sonnet 4") returns string containing 🥈 emoji
+   - format_model("Claude Opus 4") returns string containing 🥇 emoji
+   - Output includes model name substring (e.g., "Sonnet")
+   ```
+
+   **NOT full code (anti-pattern):**
+   ```python
+   def test_format_model():
+       result = formatter.format_model("Claude Sonnet 4")
+       assert "🥈" in result
+       assert "Sonnet" in result
+   ```
 
    **Assertion Quality Requirements:**
 
-   RED phase tests MUST verify **behavior**, not just **structure**:
+   Prose descriptions MUST be behaviorally specific:
 
-   | Weak (structural) | Strong (behavioral) |
+   | Weak (vague) | Strong (specific) |
    |---|---|
-   | `assert result.exit_code == 0` | `assert "Mode: plan" in result.output` |
-   | `assert "KEY" in env_vars` | `assert env_vars["KEY"] != ""` or mock keychain |
-   | `assert hasattr(obj, "method")` | `assert obj.method(input) == expected` |
-   | `assert isinstance(result, dict)` | `assert result["field"] == expected_value` |
+   | "returns correct value" | "returns string containing 🥈 emoji" |
+   | "handles error case" | "raises ValueError with message 'invalid input'" |
+   | "processes input correctly" | "output dict contains 'count' key with integer > 0" |
 
-   **For I/O-dependent behavior:**
-   - Mock external dependencies (filesystem, keychain, APIs)
-   - Use fixtures (tmp_path) for state simulation
-   - Assert on interaction (mock.assert_called_with) or output content
-   - Never test I/O behavior with exit-code-only assertions
-
-   **Validation rule:** If a RED test can pass with a stub that returns a constant/empty value, the test is too weak. Add content or mock assertions.
+   **Validation rule:** Prose must specify exact expected values, patterns, or behaviors. If assertion could be satisfied by multiple implementations, it's too vague.
 
    **Logic:**
    - Parse increment for expected behavior
    - Use file mapping from Phase 2 step 4 (discovered via Glob, not inferred)
-   - Generate assertion from behavior
+   - Generate prose assertion from behavior (specific values/patterns)
    - Predict failure message
    - Provide specific test command with actual file path
 

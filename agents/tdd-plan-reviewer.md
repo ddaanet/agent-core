@@ -47,7 +47,11 @@ Load and follow the review-tdd-plan skill (preloaded via skills field above). It
 
 **Key Focus:**
 
-Detect prescriptive implementation code in GREEN phases. Tests should drive implementation, not scripts. GREEN phases should describe behavior and provide hints, not prescribe exact code.
+1. **GREEN phases:** Detect prescriptive implementation code. GREEN should describe behavior and provide hints, not prescribe exact code.
+
+2. **RED phases (new):** Validate prose test quality. RED should use prose test descriptions with specific assertions, not full test code. Prose must be behaviorally specific (exact values/patterns, not vague descriptions).
+
+**Prose quality rule:** If an executor could write different tests that all satisfy the prose description, the prose is too vague.
 
 **Review-Only Policy:**
 

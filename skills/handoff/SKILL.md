@@ -118,6 +118,14 @@ If the session has learnings, append them to `agents/learnings.md` (not session.
 - Learnings accumulate across sessions as institutional knowledge
 - When file reaches 80+ lines, note to user: "Learnings file at X/80 lines. Consider running /remember to consolidate."
 
+### 4b. Check for Invalidated Learnings
+
+**Trigger:** Session work modified enforcement (validators, scripts, precommit) or behavioral rules (fragments, skills, constraints).
+
+**Action:** Review loaded `agents/learnings.md` context (already in memory via CLAUDE.md @-reference — no Read/Grep needed). If any learning claims something now false (e.g., "X not enforced" when enforcement was just added), remove that learning.
+
+**Rationale:** Learnings load into every session. Stale learnings cause agents to act on false beliefs. Changes and learning cleanup must be atomic within the same commit.
+
 ### 5. Session Size Check and Advice
 
 After updating session.md and learnings.md, check sizes and provide advice.

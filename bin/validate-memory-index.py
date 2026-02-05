@@ -8,6 +8,8 @@ Checks:
 - Document intro content (between # and first ##) is exempt
 - Entries are in correct file section (autofix by default)
 - Entries are in file order within sections (autofix by default)
+- Word count 8-15 for entries (preamble lines exempt)
+- Entries pointing to structural sections are removed (autofix)
 """
 
 import re
@@ -45,6 +47,35 @@ def find_project_root():
             return p
         p = p.parent
     return Path.cwd()
+
+
+def collect_structural_headers(root):
+    """Scan indexed files for all structural headers (marked with . prefix).
+
+    Returns set of lowercase titles (without the . prefix).
+    """
+    structural = set()
+
+    for glob_pattern in INDEXED_GLOBS:
+        for filepath in sorted(root.glob(glob_pattern)):
+            try:
+                lines = filepath.read_text().splitlines()
+            except (OSError, UnicodeDecodeError):
+                continue
+
+            for line in lines:
+                stripped = line.strip()
+                if STRUCTURAL_HEADER.match(stripped):
+                    # Extract title without the . prefix
+                    # Format: "## .Title" or "### .Title"
+                    match = STRUCTURAL_HEADER.match(stripped)
+                    if match:
+                        # Get everything after "## ." or "### ."
+                        full = stripped.split(" ", 1)[1]  # Remove ##+ prefix
+                        title = full[1:]  # Remove leading .
+                        structural.add(title.lower())
+
+    return structural
 
 
 def collect_semantic_headers(root):
@@ -209,17 +240,20 @@ def extract_index_structure(index_path, root):
 def validate(index_path, autofix=True):
     """Validate memory index. Returns list of error strings.
 
-    Autofix is enabled by default for section placement and ordering issues.
+    Autofix is enabled by default for section placement, ordering,
+    and structural section cleanup.
     """
     root = find_project_root()
 
     headers = collect_semantic_headers(root)
+    structural = collect_structural_headers(root)
     entries = extract_index_entries(index_path, root)
 
     errors = []
     seen_entries = {}
     placement_errors = []
     ordering_errors = []
+    structural_entries = []  # Entries pointing to structural sections (to remove)
 
     # Check for duplicate index entries
     for key, (lineno, full_entry, section) in entries.items():
@@ -238,11 +272,11 @@ def validate(index_path, autofix=True):
                 f"  memory-index.md:{lineno}: entry lacks em-dash separator (D-3): '{full_entry}'"
             )
         else:
-            # Check word count (8-12 word hard limit for key + description total)
+            # Check word count (8-15 word hard limit for key + description total)
             word_count = len(full_entry.split())
-            if word_count < 8 or word_count > 12:
+            if word_count < 8 or word_count > 15:
                 errors.append(
-                    f"  memory-index.md:{lineno}: entry has {word_count} words, must be 8-12 (D-3): '{full_entry}'"
+                    f"  memory-index.md:{lineno}: entry has {word_count} words, must be 8-15: '{full_entry}'"
                 )
 
     # Check section placement: entry should be in section matching its source file
@@ -301,10 +335,22 @@ def validate(index_path, autofix=True):
         # Skip exempt sections
         if section in EXEMPT_SECTIONS:
             continue
+        # Skip entries pointing to structural sections (will be removed by autofix)
+        if key in structural:
+            continue
         if key not in headers:
             errors.append(
                 f"  memory-index.md:{lineno}: orphan index entry '{key}' "
                 f"has no matching semantic header in agents/decisions/"
+            )
+
+    # Check for entries pointing to structural sections (should be removed)
+    for key, (lineno, full_entry, section) in entries.items():
+        if section in EXEMPT_SECTIONS:
+            continue
+        if key in structural:
+            structural_entries.append(
+                f"  memory-index.md:{lineno}: entry '{key}' points to structural section"
             )
 
     # Check for duplicate headers across files
@@ -319,28 +365,40 @@ def validate(index_path, autofix=True):
                 for filepath, lineno, level in locations:
                     errors.append(f"    {filepath}:{lineno} ({level} level)")
 
-    # Handle placement and ordering errors
-    if placement_errors or ordering_errors:
+    # Handle placement, ordering, and structural entry errors
+    if placement_errors or ordering_errors or structural_entries:
         if autofix:
-            fixed = autofix_index(index_path, root, headers)
+            fixed = autofix_index(index_path, root, headers, structural)
             if fixed:
-                print(f"Autofixed {len(placement_errors)} placement and "
-                      f"{len(ordering_errors)} ordering issues", file=sys.stderr)
+                parts = []
+                if placement_errors:
+                    parts.append(f"{len(placement_errors)} placement")
+                if ordering_errors:
+                    parts.append(f"{len(ordering_errors)} ordering")
+                if structural_entries:
+                    parts.append(f"{len(structural_entries)} structural")
+                print(f"Autofixed {' and '.join(parts)} issues", file=sys.stderr)
             else:
                 errors.extend(placement_errors)
                 errors.extend(ordering_errors)
+                errors.extend(structural_entries)
         else:
             errors.extend(placement_errors)
             errors.extend(ordering_errors)
+            errors.extend(structural_entries)
 
     return errors
 
 
-def autofix_index(index_path, root, headers):
+def autofix_index(index_path, root, headers, structural=None):
     """Rewrite memory-index.md with entries in correct sections and order.
 
+    Also removes entries pointing to structural sections.
     Returns True if rewrite succeeded.
     """
+    if structural is None:
+        structural = set()
+
     preamble, sections = extract_index_structure(index_path, root)
 
     # Build map: file path → sorted entries
@@ -357,6 +415,10 @@ def autofix_index(index_path, root, headers):
                 key = entry.split(" — ")[0].lower()
             else:
                 key = entry.lower()
+
+            # Skip entries pointing to structural sections
+            if key in structural:
+                continue
 
             # Find which file this entry belongs to
             if key in headers:

@@ -234,31 +234,85 @@ def validate_cycle_numbering(cycles):
     return (errors, warnings)
 
 
+def validate_phase_numbering(step_phases):
+    """Validate phase numbering for general runbooks.
+
+    Errors (fatal): non-monotonic phases (decreasing).
+    Warnings (non-fatal): gaps in phase numbers.
+
+    Args:
+        step_phases: dict mapping step_num -> phase_number
+
+    Returns: (errors, warnings) tuple of string lists.
+    """
+    if not step_phases:
+        return ([], [])
+
+    errors = []
+    warnings = []
+
+    phase_nums = sorted(set(step_phases.values()))
+
+    # Check for gaps (warn only)
+    for i in range(len(phase_nums) - 1):
+        if phase_nums[i+1] != phase_nums[i] + 1:
+            warnings.append(f"WARNING: Gap in phase numbers: {phase_nums[i]} -> {phase_nums[i+1]}")
+
+    # Check for non-monotonic (error - phases should increase)
+    prev_phase = None
+    for step_num in sorted(step_phases.keys(), key=lambda x: tuple(map(int, x.split('.')))):
+        phase = step_phases[step_num]
+        if prev_phase is not None and phase < prev_phase:
+            errors.append(f"ERROR: Phase numbers must not decrease: Step {step_num} has phase {phase} after phase {prev_phase}")
+        prev_phase = phase
+
+    return (errors, warnings)
+
+
 def extract_sections(content):
     """Extract Common Context, Steps, and Orchestrator sections.
 
     Returns: {
         'common_context': (section_content or None),
         'steps': {step_num: step_content, ...},
+        'step_phases': {step_num: phase_number, ...},
         'orchestrator': section_content or None
     }
     """
     sections = {
         'common_context': None,
         'steps': {},
+        'step_phases': {},
         'orchestrator': None
     }
 
-    # Split by H2 headings
-    h2_pattern = r'^## '
     lines = content.split('\n')
 
+    # First pass: Build a map of line numbers to phases
+    # This allows us to determine which phase a step belongs to
+    # based on the most recent phase header before the step
+    line_to_phase = {}
+    current_phase = 1  # Default phase for flat runbooks
+    phase_pattern = r'^###? Phase\s+(\d+)'
+
+    for i, line in enumerate(lines):
+        phase_match = re.match(phase_pattern, line)
+        if phase_match:
+            current_phase = int(phase_match.group(1))
+        line_to_phase[i] = current_phase
+
+    # Second pass: Extract sections with phase information
     current_section = None
     current_content = []
     current_step = None
+    current_step_line = None
     step_pattern = r'^## Step\s+([\d.]+):\s*(.*)'
 
     for i, line in enumerate(lines):
+        # Skip phase headers (not content)
+        if re.match(phase_pattern, line):
+            continue
+
         if line.startswith('## '):
             # Save previous section
             if current_section and current_content:
@@ -269,6 +323,7 @@ def extract_sections(content):
                     sections['orchestrator'] = content_str
                 elif current_section == 'step':
                     sections['steps'][current_step] = content_str
+                    sections['step_phases'][current_step] = line_to_phase[current_step_line]
 
             # Detect new section
             if line == '## Common Context':
@@ -283,6 +338,7 @@ def extract_sections(content):
                         return None
                     current_section = 'step'
                     current_step = step_num
+                    current_step_line = i
                     current_content = [line]
                 else:
                     current_section = None
@@ -306,6 +362,7 @@ def extract_sections(content):
             sections['orchestrator'] = content_str
         elif current_section == 'step':
             sections['steps'][current_step] = content_str
+            sections['step_phases'][current_step] = line_to_phase[current_step_line]
 
     return sections
 
@@ -479,8 +536,19 @@ def validate_file_references(sections, cycles=None, runbook_path=''):
     return warnings
 
 
-def generate_step_file(step_num, step_content, runbook_path, default_model='haiku'):
-    """Generate step file with references and execution metadata header."""
+def generate_step_file(step_num, step_content, runbook_path, default_model='haiku', phase=1):
+    """Generate step file with references and execution metadata header.
+
+    Args:
+        step_num: Step number (e.g., "1.1")
+        step_content: Step body content
+        runbook_path: Path to runbook file
+        default_model: Default model if not specified in content
+        phase: Phase number for this step
+
+    Returns:
+        Formatted step file content with phase in frontmatter
+    """
     meta = extract_step_metadata(step_content, default_model)
 
     header_lines = [
@@ -488,6 +556,7 @@ def generate_step_file(step_num, step_content, runbook_path, default_model='haik
         "",
         f"**Plan**: `{runbook_path}`",
         f"**Execution Model**: {meta['model']}",
+        f"**Phase**: {phase}",
     ]
     if 'report_path' in meta:
         header_lines.append(f"**Report Path**: `{meta['report_path']}`")
@@ -505,7 +574,7 @@ def generate_cycle_file(cycle, runbook_path, default_model='haiku'):
         default_model: Default model if not specified in cycle content
 
     Returns:
-        Formatted cycle file content
+        Formatted cycle file content with phase (major cycle number)
     """
     meta = extract_step_metadata(cycle['content'], default_model)
 
@@ -514,6 +583,7 @@ def generate_cycle_file(cycle, runbook_path, default_model='haiku'):
         "",
         f"**Plan**: `{runbook_path}`",
         f"**Execution Model**: {meta['model']}",
+        f"**Phase**: {cycle['major']}",
     ]
     if 'report_path' in meta:
         header_lines.append(f"**Report Path**: `{meta['report_path']}`")
@@ -579,6 +649,15 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
             print("ERROR: No steps found in general runbook", file=sys.stderr)
             return False
 
+        # Validate phase numbering for general runbooks
+        phase_errors, phase_warnings = validate_phase_numbering(sections.get('step_phases', {}))
+        for warning in phase_warnings:
+            print(warning, file=sys.stderr)
+        if phase_errors:
+            for error in phase_errors:
+                print(error, file=sys.stderr)
+            return False
+
     # Create directories
     agent_path.parent.mkdir(parents=True, exist_ok=True)
     steps_dir.mkdir(parents=True, exist_ok=True)
@@ -612,7 +691,7 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
 
     # Generate step files (uniform naming for all runbook types)
     if runbook_type == 'tdd':
-        # Generate step files for TDD cycles
+        # Generate step files for TDD cycles (phase = major cycle number)
         for cycle in sorted(cycles, key=lambda c: (c['major'], c['minor'])):
             step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
             step_path = steps_dir / step_file_name
@@ -621,13 +700,15 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
     else:
-        # Generate step files
+        # Generate step files with phase metadata
+        step_phases = sections.get('step_phases', {})
         for step_num in sorted(sections['steps'].keys(), key=lambda x: tuple(map(int, x.split('.')))):
             step_content = sections['steps'][step_num]
             step_file_name = f"step-{step_num.replace('.', '-')}.md"
             step_path = steps_dir / step_file_name
+            phase = step_phases.get(step_num, 1)
 
-            step_file_content = generate_step_file(step_num, step_content, str(runbook_path), model)
+            step_file_content = generate_step_file(step_num, step_content, str(runbook_path), model, phase)
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
 

@@ -104,70 +104,38 @@ git status --porcelain
 
 **There are no exceptions.** Every step must leave a clean tree. If a step generates output files, the step itself must commit them. Report files, artifacts, and any other changes must be committed by the step agent before returning success.
 
-**3.4 Checkpoint execution (tiered approach):**
+**3.4 Checkpoint at phase boundary:**
 
-**Two checkpoint tiers:**
+At every phase boundary, delegate to vet-fix-agent for quality review.
 
-**Light checkpoint** (Fix + Functional):
-- Runs at: Every phase boundary
-- Steps:
-  1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
-  2. **Functional:** Check for stubs/hardcoded values against design
-     - If STUBS_FOUND: STOP orchestration, report to user
-     - If FUNCTIONAL: Continue
+**Phase boundary detection:** When step file `Phase: N` field changes from previous step.
 
-**Full checkpoint** (Fix + Vet + Functional):
-- Runs at: Final phase boundary, or explicit `checkpoint: full` markers in runbook
-- Steps:
-  1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
-  2. **Vet:** Quality review of accumulated changes with requirements context
-     - **Phase boundary detection:** Parse step file frontmatter for `Phase: N` field
-       - When phase number changes from previous step → phase boundary triggered
-       - Step files include phase metadata via prepare-runbook.py
-     - **Gather context before delegation:**
-       - Requirements summary: Extract FR-* items relevant to completed phase from design
-       - Changed files: Run `git diff --name-only <last-checkpoint-commit>..HEAD`
-       - Design reference: Path to `plans/<name>/design.md`
-     - **Delegate to vet-fix-agent with enhanced prompt:**
-       ```
-       Review implementation changes for Phase N.
+**Checkpoint delegation:**
+1. Gather context: design path, changed files (`git diff --name-only`), phase scope
+2. Delegate to vet-fix-agent with prompt:
+   ```
+   Phase N Checkpoint
 
-       Requirements context:
-       - FR-1: [requirement summary]
-       - FR-2: [requirement summary]
-       [... relevant FRs for this phase]
+   **First:** Run `just dev`, fix any failures, commit.
 
-       Design reference: plans/<name>/design.md
+   **Scope:**
+   - IN: [list methods/features implemented in this phase]
+   - OUT: [list methods/features for future phases — do NOT flag these]
 
-       Changed files (review these using Read tool):
-       - path/to/file1.py
-       - path/to/file2.py
-       [... file list from git diff --name-only]
+   **Review (read changed files):**
+   - Test quality: behavior-focused, meaningful assertions, edge cases
+   - Implementation quality: clarity, patterns, appropriate abstractions
+   - Integration: duplication across phase methods, pattern consistency
+   - Design anchoring: verify implementation matches design decisions
 
-       CRITICAL: Do NOT read runbook.md — review implementation only.
+   **Design reference:** plans/<name>/design.md
+   **Changed files:** [file list from git diff --name-only]
 
-       Write review to: plans/<name>/reports/checkpoint-N-vet.md
-       ```
-     - Agent reviews changed files using Read tool
-     - Agent applies critical/major fixes directly using Edit tool
-     - Read review report: check for UNFIXABLE issues
-     - Minor-priority issues: Optional (can defer)
-     - **NEVER** proceed with UNFIXABLE critical/major issues — escalate to user
-  3. **Functional:** Check for stubs/hardcoded values against design
-     - If STUBS_FOUND: STOP orchestration, report to user
-     - If FUNCTIONAL: Continue
-
-**Checkpoint selection:**
-- Default: Light checkpoint at every phase, full checkpoint at final phase
-- Runbook can specify `checkpoint: full` at specific phases for additional full checkpoints
-- Criteria for additional full checkpoints during planning:
-  - Phase introduces new public API surface or contract
-  - Phase crosses module boundaries (changes span 3+ packages)
-  - Runbook expected to exceed 20 cycles total
-
-**Rationale:** Fix + Functional catches dangerous issues (broken tests, stubs) cheaply. Vet catches quality debt (naming, duplication, abstraction) best at meaningful boundaries where accumulated changes justify the cost.
-
-**Requirements context in vet review:** Providing FR-* items helps vet-fix-agent evaluate whether implementation aligns with stated requirements, improving review quality without adding full runbook context.
+   Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-vet.md
+   Return filepath or "UNFIXABLE: [description]"
+   ```
+3. Read report: if UNFIXABLE issues, STOP and escalate to user
+4. If all fixed: commit checkpoint, continue to next phase
 
 **3.5 On success:**
 - Log step completion

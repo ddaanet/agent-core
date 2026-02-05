@@ -138,6 +138,9 @@ Review all changes for:
 - Tests included where appropriate
 - Tests cover main cases and edge cases
 - Tests are clear and maintainable
+- Tests verify behavior, not just structure (assert outcomes, not implementation details)
+- Assertions are meaningful (test actual requirements, not trivial properties)
+- Edge cases and error paths tested
 
 **Documentation:**
 - Code comments where logic isn't obvious
@@ -154,6 +157,19 @@ Review all changes for:
 - Check functional requirements are met
 - Check non-functional requirements are addressed
 - Flag requirements gaps as major issues
+
+**Design Anchoring (if design reference provided):**
+- Read design document to understand intended implementation
+- Verify implementation matches design decisions (not just requirements)
+- Check algorithms, data structures, patterns match design spec
+- Flag deviations from design as major issues
+- Do NOT flag items outside provided scope (e.g., future phases)
+
+**Integration Review (for multi-file or accumulated changes):**
+- Check for duplication across files/methods
+- Verify pattern consistency (similar functions follow same patterns)
+- Check cross-cutting concerns (error handling consistent, logging consistent)
+- Identify integration issues between components
 
 ### 4. Write Review Report
 

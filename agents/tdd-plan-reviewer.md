@@ -28,6 +28,8 @@ Check if outline was reviewed before runbook generation:
 - Check for outline review report: `plans/<plan-name>/reports/runbook-outline-review.md`
 - If outline review missing, add warning to report: "No outline review found. Outline should be reviewed before full runbook generation for early feedback."
 
+**Phase file exception:** When reviewing a phase file (`runbook-phase-N.md`), SKIP the outline review check. Phase files are intermediate artifacts created AFTER outline review. The check only applies to final assembled runbooks (`runbook.md`).
+
 **Requirements Inheritance:**
 
 Verify runbook covers requirements from outline:

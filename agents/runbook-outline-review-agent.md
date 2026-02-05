@@ -172,6 +172,43 @@ Analyze outline against these dimensions:
 - Keep fixes minimal and targeted
 - Maintain phase groupings unless rebalancing needed
 
+### 5.5. Append Expansion Guidance to Outline
+
+**Purpose:** Transmit recommendations to phase expansion step by embedding them in the artifact being consumed.
+
+**Process:**
+1. After applying fixes, formulate actionable guidance for runbook expansion
+2. Append "## Expansion Guidance" section to end of runbook-outline.md
+3. Include specific, actionable items the planner should incorporate
+
+**Guidance structure:**
+```markdown
+## Expansion Guidance
+
+The following recommendations should be incorporated during full runbook expansion:
+
+**Cycle expansion:**
+- [Specific guidance for cycle content]
+- [Test case suggestions]
+- [Edge case reminders]
+
+**Checkpoint guidance:**
+- [Validation steps for phase boundaries]
+- [Integration test suggestions]
+
+**References to include:**
+- [Shell line numbers for algorithm verification]
+- [Design sections to propagate]
+```
+
+**Why inline:** Phase expansion already reads the outline. Guidance co-located with structure ensures it's consumed. Report file recommendations are easily overlooked.
+
+**Constraints:**
+- Keep guidance actionable and specific
+- Reference phases/cycles by number
+- Don't repeat what's already in outline body
+- Focus on expansion-time concerns, not structural fixes (those are already applied)
+
 ### 6. Write Review Report
 
 **Create review file** at `plans/<job>/reports/runbook-outline-review.md`
@@ -399,6 +436,7 @@ Before returning filename:
 5. Verify Fixes Applied section lists all changes
 6. Verify assessment reflects post-fix state
 7. Verify runbook-outline.md was edited with all fixes
+8. Verify "## Expansion Guidance" section appended to runbook-outline.md
 
 ## Response Protocol
 
@@ -407,9 +445,10 @@ Before returning filename:
 3. **Build traceability validation** (verify mapping table, check coverage)
 4. **Review against criteria** (coverage, alignment, structure, complexity, dependencies)
 5. **Apply all fixes** (critical, major, AND minor)
-6. **Write review report** with complete structure
-7. **Update runbook-outline.md** with all fixes applied
-8. **Verify** review and outline are complete
-9. **Return** filename only (or error)
+6. **Append expansion guidance** to runbook-outline.md (transmit recommendations to expansion step)
+7. **Write review report** with complete structure
+8. **Update runbook-outline.md** with all fixes applied
+9. **Verify** review, outline, and expansion guidance are complete
+10. **Return** filename only (or error)
 
 Do not provide summary, explanation, or commentary in return message. The review file contains all details.

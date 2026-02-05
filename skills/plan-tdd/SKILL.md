@@ -312,11 +312,19 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 ```markdown
 **GREEN Phase:**
 
-**Implementation:** [Minimal code change]
+**Implementation:** [Brief description of what to add/change]
+
+**Behavior:**
+- [Behavioral requirement 1 — what the code must DO]
+- [Behavioral requirement 2]
+- [Behavioral requirement 3]
+
+**Approach:** [Brief hint about algorithm/strategy, referencing design decisions or shell lines if applicable]
 
 **Changes:**
 - File: [path]
-  Action: [specific change]
+  Action: [what to add/modify — describe, don't write code]
+  Location hint: [where in file, e.g., "after existing method X"]
 
 **Verify GREEN:** [Test command]
 - Must pass
@@ -325,10 +333,18 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 - All existing tests pass
 ```
 
+   **CRITICAL — No prescriptive code:** GREEN phases describe BEHAVIOR and provide HINTS. Do NOT include:
+   - Complete function implementations
+   - Code blocks that can be copied verbatim
+   - Exact logic and control flow
+
+   The executor (haiku) must WRITE the code to satisfy RED tests. That's the TDD discipline.
+
    **Logic:**
-   - Extract approach from design decisions
-   - Identify file locations from design or project structure
-   - Specify minimal change (single feature)
+   - Extract behavioral requirements from design decisions
+   - Describe what the code must DO, not HOW to write it
+   - Provide approach hints (algorithm name, shell line reference, pattern to follow)
+   - Specify file path and insertion location
    - Use same test command as RED
    - Default regression: `pytest` or `just test`
 

@@ -3,7 +3,7 @@ name: memory-refactor
 description: Use this agent when a documentation target file exceeds 400 lines and needs to be split into logical sections. Triggered by remember-task when it encounters a file at the limit. Splits file by H2/H3 topic boundaries, preserves all content, creates 100-300 line sections, runs validate-memory-index.py autofix. Returns list of files created/modified.
 model: sonnet
 color: yellow
-tools: ["Read", "Write", "Edit", "Grep", "Glob"]
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 
 # Memory-Refactor Agent

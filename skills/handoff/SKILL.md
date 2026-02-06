@@ -1,7 +1,7 @@
 ---
 name: handoff
 description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation. NOT for Haiku model orchestrators - use /handoff-haiku instead.
-allowed-tools: Read, Write, Edit, Bash(wc:*), Skill
+allowed-tools: Read, Write, Edit, Bash(wc:*, agent-core/bin/learning-ages.py:*), Task, Skill
 user-invocable: true
 ---
 
@@ -151,6 +151,45 @@ If the session has learnings, append them to `agents/learnings.md` (not session.
 **Action:** Review loaded `agents/learnings.md` context (already in memory via CLAUDE.md @-reference — no Read/Grep needed). If any learning claims something now false (e.g., "X not enforced" when enforcement was just added), remove that learning.
 
 **Rationale:** Learnings load into every session. Stale learnings cause agents to act on false beliefs. Changes and learning cleanup must be atomic within the same commit.
+
+### 4c. Consolidation Trigger Check
+
+Run `agent-core/bin/learning-ages.py agents/learnings.md` to get age data.
+
+**Trigger conditions (any one sufficient):**
+- File exceeds 150 lines (size trigger)
+- 14+ active days since last consolidation (staleness trigger)
+
+**If triggered:**
+1. Filter entries with age ≥ 7 active days
+2. Check batch size ≥ 3 entries
+3. If sufficient: delegate to remember-task agent with filtered entry list
+4. Read report from returned filepath
+5. If report contains escalations:
+   - **Contradictions**: Note in handoff output under Blockers/Gotchas
+   - **File limits**: Execute refactor flow (see below)
+
+**Refactor flow (when file at 400-line limit):**
+
+Handoff executes these steps after reading remember-task report with file-limit escalation:
+
+1. Delegate to memory-refactor agent for the specific target file
+2. Memory-refactor agent splits file, runs `validate-memory-index.py` autofix
+3. Re-invoke remember-task with only the entries that were skipped due to file limit
+4. Read second report
+5. Check for remaining escalations (contradictions or additional file limits)
+
+Note: This is handoff's perspective. Design D-6 describes the full 7-step flow including remember-task's internal steps (detect → skip → report).
+
+**If not triggered or batch insufficient:**
+- Skip consolidation (no action needed)
+- Continue to step 5
+
+**On error:**
+- Catch exception during script execution or agent delegation
+- Log error to stderr: `echo "Consolidation skipped: [error-message]" >&2`
+- Note in handoff output: "Consolidation skipped: [brief-reason]"
+- Continue to step 5 (consolidation failure must not block handoff per NFR-1)
 
 ### 5. Session Size Check and Advice
 

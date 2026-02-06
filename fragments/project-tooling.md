@@ -17,4 +17,6 @@
 
 **Anti-pattern:** Using `ln -sf` to create symlinks in `.claude/` when `just sync-to-parent` exists.
 
+**Partial failure recovery:** If a recipe fails partway through, fix the obstruction and **retry the recipe** — do not complete remaining steps manually. Recipes are atomic units; manually finishing steps bypasses error handling, ordering, and side effects encoded in the recipe.
+
 **Relationship to Script-First Evaluation:** Script-First Evaluation governs the _delegate vs execute_ decision. This rule governs _how_ to execute: prefer existing project recipes over equivalent ad-hoc commands.

@@ -58,7 +58,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Sequence:**
 1. Implement changes directly using Read/Write/Edit tools
 2. Delegate to vet agent for review
-3. Apply critical/major priority fixes from vet review
+3. Apply all fixes from vet review
 4. Tail-call `/handoff --commit`
 
 ### Tier 2: Lightweight Delegation
@@ -72,7 +72,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Sequence:**
 1. Delegate work via `Task(subagent_type="quiet-task", model="haiku", prompt="...")` with relevant context from design included in prompt (file paths, design decisions, conventions). Single agent for cohesive work; break into 2-4 components only if logically distinct.
 2. After delegation complete: delegate to vet agent for review
-3. Apply critical/major priority fixes from vet review
+3. Apply all fixes from vet review
 4. Tail-call `/handoff --commit`
 
 **Design constraints are non-negotiable:**
@@ -212,7 +212,7 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 
 3. **Apply fixes:**
    - Read review report
-   - Apply all critical and major priority fixes
+   - Apply all fixes (critical, major, minor)
    - Update phase file with fixes
 
 4. **Finalize phase:**
@@ -378,7 +378,7 @@ Task(
 1. Read review report from filepath
 2. Check assessment status (Ready / Needs Minor Changes / Needs Significant Changes)
 3. If "Needs Minor Changes" or "Needs Significant Changes":
-   - **REQUIRED:** Apply all critical and major priority fixes
+   - **REQUIRED:** Apply all fixes (critical, major, minor)
    - Update runbook with fixes
    - Delegate re-review if changes are significant
    - Iterate until assessment is "Ready"
@@ -388,9 +388,8 @@ Task(
    - Escalate to user
 
 **Fix Application Policy:**
-- Critical and major priority issues MUST be fixed before proceeding
-- Minor priority issues are optional (document as future improvements if skipped)
-- Never proceed with unaddressed critical/major issues
+- All issues (critical, major, minor) MUST be fixed before proceeding
+- Never proceed with unaddressed issues
 
 **Note:** Individual phase reviews already happened (Point 1). This final review checks holistic consistency only.
 
@@ -593,7 +592,7 @@ Analyzing task:
 *Phase 1: Configuration and Setup*
 - Generates runbook-phase-1.md
 - Delegates to vet-agent (review-only)
-- Applies critical/major fixes
+- Applies all fixes
 
 *Phase 2: Core Implementation*
 - Generates runbook-phase-2.md

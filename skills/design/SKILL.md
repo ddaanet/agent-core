@@ -270,12 +270,10 @@ The design-vet-agent (opus model) performs comprehensive architectural review an
 
 **Read the review report** from the filepath returned by design-vet-agent.
 
-**Address all critical and major priority feedback:**
-- Critical issues MUST be fixed before proceeding
-- Major issues SHOULD be fixed (strongly recommended)
-- Minor issues are optional
+**Address all feedback (critical, major, minor):**
+- All issues MUST be fixed before proceeding
 
-Update design.md with corrections. Low priority items can be deferred or documented as known limitations.
+Update design.md with corrections.
 
 **Re-review if needed:** If changes are significant, re-delegate to design-vet-agent for verification.
 

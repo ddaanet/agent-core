@@ -136,7 +136,7 @@ Minimal session.md scoped to a single task:
 ```markdown
 # Session: Worktree — <task name>
 
-**Status:** Parallel worktree session. Execute task and commit.
+**Status:** Parallel worktree session. First: reset session.md (`git checkout -- agents/session.md`), stage all (`git add -A`), then `/commit`. Then execute task.
 
 ## Pending Tasks
 

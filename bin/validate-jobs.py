@@ -45,10 +45,8 @@ def get_plans_directories(plans_dir: Path) -> set[str]:
         if item.name.startswith("."):
             continue
 
-        # Special handling for plans/claude/
+        # Skip plans/claude/ (gitignored, ephemeral plan-mode files)
         if item.name == "claude" and item.is_dir():
-            for md_file in item.glob("*.md"):
-                plans.add(f"claude/{md_file.stem}")
             continue
 
         # Regular .md files (one-off documents)

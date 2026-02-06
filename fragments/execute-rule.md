@@ -54,12 +54,6 @@ Unscheduled Plans:
 
 **Status source:** Read `agents/jobs.md` as authoritative source for plan status and notes.
 
-**Special handling for `plans/claude/`:**
-- List individual `.md` files within `plans/claude/` as separate entries
-- **Format:** `claude/<filename> — plan` (without .md extension)
-- Excludes `.gitkeep` and other non-plan files
-- These are Claude Code built-in plan mode files
-
 **Parallel task detection:**
 
 After listing pending tasks, analyze for parallelizable groups:

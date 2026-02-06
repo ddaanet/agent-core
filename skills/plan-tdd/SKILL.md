@@ -812,7 +812,7 @@ Checkpoints are verification points inserted between phases. They validate accum
 - **Process:**
   1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes failures, commit when passing
   2. **Vet:** Sonnet reviews accumulated changes (presentation, clarity, design alignment)
-     - **REQUIRED:** Apply all high and medium priority fixes
+     - **REQUIRED:** Apply all fixes (critical, major, minor)
      - Commit when complete
   3. **Functional:** Sonnet reviews implementations against design (same checks as light checkpoint)
 
@@ -874,7 +874,7 @@ def test_output_contains_expected_data():
 
 **Full Checkpoint** (end of Phase 3 - final phase)
 1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
-2. Vet: Review all changes for quality, clarity, design alignment. Apply high/medium fixes. Commit.
+2. Vet: Review all changes for quality, clarity, design alignment. Apply all fixes. Commit.
 3. Functional: Review all implementations against design. Check for stubs.
 ```
 

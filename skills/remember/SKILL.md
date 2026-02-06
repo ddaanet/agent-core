@@ -65,6 +65,39 @@ After consolidating a learning:
 3. **If existing fragment updated**: Ensure memory index entry reflects the updated content (add new entry or update existing one)
 4. **If decision file updated**: Verify corresponding `.claude/rules/` entry exists for path trigger
 
+### Learnings Quality Criteria
+
+**Principle-level (consolidate):** ✅
+- States a general constraint or pattern
+- Applies beyond the specific incident
+- Example: "Always load skill context before editing"
+
+**Incident-specific (reject/revise):** ❌
+- Describes what happened, not what to do
+- Narrow to one case, not generalizable
+- Example: "Edited skill without loading it" → revise to principle
+
+**Meta-learnings (use sparingly):**
+- Rules about rules — only when behavioral constraint required
+- Example: "Soft limits normalize deviance" → consolidate if recurrent
+
+### Staging Retention Guidance
+
+**Keep in staging (do not consolidate):**
+- Entries < 7 active days old (insufficient validation)
+- Entries with pending cross-references (depend on other work)
+- Entries under active investigation
+
+**Consolidate:**
+- Entries ≥ 7 active days with proven validity
+- Entries that have been applied consistently
+- Entries referenced by multiple sessions
+
+**Drop (remove from staging):**
+- Superseded by newer entry on same topic
+- Contradicted by subsequent work
+- Incident-specific without generalizable principle
+
 ### 5. Document
 **Commit**: `Update [file]: [what]\n\n- [change 1]\n- [change 2]\n- [rationale]`
 **Handoff** (if session.md): Note update, explain significance, reference commit

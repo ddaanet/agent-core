@@ -65,5 +65,6 @@ Use this structure when updating session.md for agent handoff:
 **Always preserved:**
 - Tasks completed in current conversation
 - Uncommitted tasks from any conversation
+- All content from prior uncommitted handoffs (merge = append to lists and categories, don't replace entire file)
 
 **Note:** Learnings are written to separate `agents/learnings.md` file (not session.md)

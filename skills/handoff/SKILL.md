@@ -29,10 +29,19 @@ When invoked, immediately update `session.md` with:
 - Identify any pending/remaining tasks
 - Note any blockers or gotchas discovered
 - If reviewing an efficient-model handoff (handoff-haiku), process Session Notes for learnings
+- **Check for uncommitted prior handoff:** Read `agents/session.md` from working tree. If it contains content from a prior handoff that hasn't been committed yet (look for handoff structure: `# Session Handoff: [Date]` header, Completed This Session section, or pending tasks not from this conversation), that content is authoritative base state that must be preserved in Step 2
 
 ### 2. Update session.md
 
 Write a handoff note following the template structure. See **`references/template.md`** for complete template and formatting guidelines.
+
+**Multiple handoffs before commit:** If Step 1 detected uncommitted prior handoff content in session.md, merge this conversation's work into the existing content rather than replacing it. Use Edit to update sections incrementally:
+- Completed This Session: Append new completed work to existing categories or add new categories
+- Pending Tasks: Add new tasks to list, update or remove tasks modified in this conversation
+- Blockers/Gotchas: Append new blockers, update existing if resolved
+- Next Steps: Replace with current next action
+
+Do NOT Write a fresh session.md that discards the prior handoff's completed tasks, pending tasks, or blockers.
 
 **Task naming:** Task names serve as prose key identifiers and must be unique across session.md and disjoint from learning keys in learnings.md. This enables `task-context.sh` to find the session.md where a task was introduced.
 

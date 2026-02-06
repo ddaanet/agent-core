@@ -95,7 +95,8 @@ Compare "Completed This Session" against work done in this conversation:
 - Does it reflect the changes you're about to commit?
 - Are pending tasks and blockers current?
 
-If stale: run `/handoff` (haiku: `/handoff-haiku`) first. Return here after handoff completes.
+If stale: invoke `/handoff --commit` (haiku: `/handoff-haiku --commit`). The `--commit` flag tail-calls `/commit` after handoff completes, so the commit still happens — no user intervention needed. This ensures the full handoff protocol runs (learnings consolidation, invalidation checks, jobs.md, session size) before committing.
+
 If current: proceed to Gate B.
 
 Staleness indicators:

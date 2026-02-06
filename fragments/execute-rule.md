@@ -116,16 +116,16 @@ Set up worktrees for parallel or single-task execution.
 
 **Single-task flow:**
 1. Derive slug from task name (lowercase, hyphens, ≤30 chars)
-2. Create worktree: `just wt-new <slug>` (requires `dangerouslyDisableSandbox: true`)
-3. Write focused session.md in worktree (only that task, marked pending)
+2. Write focused session.md to `tmp/wt-<slug>-session.md` (local, no sandbox needed)
+3. Create worktree: `just wt-new <slug> session=tmp/wt-<slug>-session.md` (requires `dangerouslyDisableSandbox: true`)
 4. Move task from Pending Tasks to Worktree Tasks in main session.md
 5. Print launch command
 
 **Parallel group flow:**
 1. Identify the parallel group (same analysis as STATUS detection)
 2. For each task, derive a slug (lowercase, hyphens, ≤30 chars)
-3. Create worktree: `just wt-new <slug>` (requires `dangerouslyDisableSandbox: true`)
-4. Write focused session.md in the worktree (only that task, marked pending)
+3. Write focused session.md to `tmp/wt-<slug>-session.md` (local, no sandbox needed)
+4. Create worktree: `just wt-new <slug> session=tmp/wt-<slug>-session.md` (requires `dangerouslyDisableSandbox: true`)
 5. Move tasks from Pending Tasks to Worktree Tasks in main session.md
 6. After all worktrees created, print launch commands
 
@@ -136,7 +136,7 @@ Minimal session.md scoped to a single task:
 ```markdown
 # Session: Worktree — <task name>
 
-**Status:** Parallel worktree session. First: reset session.md (`git checkout -- agents/session.md`), stage all (`git add -A`), then `/commit`. Then execute task.
+**Status:** Focused worktree for parallel execution.
 
 ## Pending Tasks
 
@@ -164,7 +164,7 @@ Merge back: git merge wt/<slug>
 Cleanup: just wt-rm <slug>
 ```
 
-**Sandbox:** `just wt-new` and writing session.md to worktrees require `dangerouslyDisableSandbox: true` (writes outside project directory).
+**Sandbox:** Only `just wt-new` requires `dangerouslyDisableSandbox: true` (writes outside project directory). Session.md is written locally and pre-committed to the branch by the recipe via git plumbing.
 
 ### Task Pickup: Context Recovery
 

@@ -26,6 +26,10 @@ Pending:
   - Plan: <plan-directory> | Status: <status>
 - ...
 
+Worktree:
+- <task name> → wt/<slug>
+- <task name 2> → wt/<slug2>
+
 Unscheduled Plans:
 - <plan-name> — <status>
 - ...
@@ -35,6 +39,11 @@ Unscheduled Plans:
 - First line: task name with model if non-default
 - Nested line: plan directory, status from jobs.md, notes if present
 - Omit nested line if task has no associated plan
+
+**Worktree section:**
+- Only shown when worktree tasks exist in session.md
+- Tasks in Worktree section are NOT shown in Pending
+- Format shows task name and worktree slug for `wt-rm` reference
 
 **Unscheduled Plans:** Plans in jobs.md that have no associated pending task.
 - Read `agents/jobs.md` for all plans
@@ -105,17 +114,26 @@ Strict resume: continue in-progress task only. Error if no in-progress task exis
 ### MODE 5: WORKTREE SETUP
 
 **Triggers:**
-- `wt`
+- `wt` (no args) — set up parallel group
+- `wt <task-name>` — branch off single named task
 
 **Behavior:**
-Set up worktrees for parallel task execution using the parallel group identified in STATUS.
+Set up worktrees for parallel or single-task execution.
 
-**Steps:**
+**Single-task flow:**
+1. Derive slug from task name (lowercase, hyphens, ≤30 chars)
+2. Create worktree: `just wt-new <slug>` (requires `dangerouslyDisableSandbox: true`)
+3. Write focused session.md in worktree (only that task, marked pending)
+4. Move task from Pending Tasks to Worktree Tasks in main session.md
+5. Print launch command
+
+**Parallel group flow:**
 1. Identify the parallel group (same analysis as STATUS detection)
 2. For each task, derive a slug (lowercase, hyphens, ≤30 chars)
 3. Create worktree: `just wt-new <slug>` (requires `dangerouslyDisableSandbox: true`)
 4. Write focused session.md in the worktree (only that task, marked pending)
-5. After all worktrees created, print launch commands
+5. Move tasks from Pending Tasks to Worktree Tasks in main session.md
+6. After all worktrees created, print launch commands
 
 **Focused session.md format:**
 
@@ -225,6 +243,22 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 - Command: Backtick-wrapped command to start the task
 - Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
 - Restart: Optional flag — only include if restart needed (omit = no restart)
+
+**Worktree Tasks section:**
+
+Tasks branched off to worktrees move from Pending Tasks to Worktree Tasks:
+
+```markdown
+## Worktree Tasks
+
+- [ ] **Task Name** → `wt/<slug>` — original metadata
+```
+
+**Rules:**
+- Tasks move from Pending Tasks to Worktree Tasks when `wt` creates their worktree
+- `→ wt/<slug>` tracks which worktree holds the task
+- After merge + `wt-rm`, remove the task from Worktree Tasks (move to Completed or delete)
+- Handoff preserves Worktree Tasks section as-is (not trimmed)
 
 **Restart triggers:** Session restart is required for structural changes that load at startup:
 - Sub-agent definitions (`.claude/agents/`)

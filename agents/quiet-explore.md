@@ -52,8 +52,10 @@ Reports must include:
 Caller specifies the report path in the task prompt.
 
 **Standard paths:**
-- Design phase: `plans/{name}/reports/explore-{topic}.md`
-- Ad-hoc exploration: `tmp/explore-{topic}.md`
+- Plan-scoped: `plans/{name}/reports/explore-{topic}.md`
+- Ad-hoc: `plans/reports/explore-{topic}.md`
+
+**Never use `tmp/`** — exploration results are persistent artifacts for reuse across sessions. Only execution logs and scratch belong in tmp/.
 
 ### Return Value
 

@@ -57,7 +57,7 @@ Before invoking Task tool, verify:
 
 **For haiku execution tasks:**
 
-1. Specify output file path in task prompt (e.g., `tmp/execution-report.md` or `plans/[plan-name]/reports/task-name.md`)
+1. Specify output file path in task prompt (e.g., `plans/[plan-name]/reports/task-name.md` or `tmp/task-name.md` for ephemeral output)
 2. Instruct agent to write detailed output to that file
 3. Agent returns ONLY:
    - **Success:** Filename (absolute path or relative to working directory)
@@ -102,7 +102,13 @@ Result: Orchestrator context: ~100 tokens
          Detailed logs: Available in reports/ for inspection
 ```
 
-**Note:** For plan execution, use `plans/[plan-name]/reports/` directory. For ad-hoc work, use project-local `tmp/` directory, not system `/tmp/`.
+**Output location rules:**
+- Plan execution: `plans/[plan-name]/reports/` directory
+- Research deliverables (exploration, audits, designs): `plans/reports/` — persistent, tracked
+- Execution logs, scratch, diagnostics: project-local `tmp/` — ephemeral, gitignored
+- Never use system `/tmp/`
+
+**Key distinction:** If output will be referenced in followup sessions or committed, it must go to `plans/`. Only truly ephemeral output belongs in `tmp/`.
 
 **Integration with plan-specific agent:**
 

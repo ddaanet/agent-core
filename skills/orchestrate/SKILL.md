@@ -89,13 +89,16 @@ CRITICAL: For session handoffs, use /handoff-haiku, NOT /handoff."
 - Missing report file
 - Unexpected results mentioned
 
-**3.3 Post-step tree check:**
+**3.3 Post-step verification and phase boundary:**
+
+<!-- DESIGN RULE: Every step must open with a tool call (Read/Bash/Glob).
+     Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md -->
 
 After agent returns success:
 ```bash
 git status --porcelain
 ```
-- If clean (no output): proceed to next step
+- If clean (no output): proceed to phase boundary check below
 - If ANY output: **STOP orchestration immediately**
   - Report: "Step N left uncommitted changes: [file list]"
   - Do NOT proceed regardless of whether changes look expected
@@ -104,11 +107,17 @@ git status --porcelain
 
 **There are no exceptions.** Every step must leave a clean tree. If a step generates output files, the step itself must commit them. Report files, artifacts, and any other changes must be committed by the step agent before returning success.
 
-**3.4 Checkpoint at phase boundary:**
+**Phase boundary check:**
 
-At every phase boundary, delegate to vet-fix-agent for quality review.
+Read the next step file header (first 10 lines of `plans/<name>/steps/step-{N+1}.md`).
 
-**Phase boundary detection:** When step file `Phase: N` field changes from previous step.
+Compare its `Phase:` field with the current step's phase.
+
+IF same phase: proceed to 3.4.
+
+IF phase changed (or no next step = final phase): delegate to vet-fix-agent for checkpoint.
+
+Do NOT proceed to next step until checkpoint completes.
 
 **Checkpoint delegation:**
 1. Gather context: design path, changed files (`git diff --name-only`), phase scope
@@ -137,11 +146,11 @@ At every phase boundary, delegate to vet-fix-agent for quality review.
 3. Read report: if UNFIXABLE issues, STOP and escalate to user
 4. If all fixed: commit checkpoint, continue to next phase
 
-**3.5 On success:**
+**3.4 On success:**
 - Log step completion
 - Continue to next step
 
-**3.6 On failure:**
+**3.5 On failure:**
 - Read error report
 - Determine escalation level
 - Escalate according to orchestrator plan

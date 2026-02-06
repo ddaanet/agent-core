@@ -81,39 +81,49 @@ Fix authentication bug in login flow
 
 ## Execution Steps
 
-### 0. Session freshness check
+### 1. Pre-commit validation + discovery
 
-**Before any commit work**, verify session.md reflects current state:
+<!-- DESIGN RULE: Every step must open with a tool call (Read/Bash/Glob).
+     Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md
+     Comment placement: after heading, before first prose content. -->
 
-- If session.md is stale (doesn't reflect work done in this conversation), run handoff first:
-  - **Haiku model:** Run `/handoff-haiku --commit`
-  - **Sonnet/Opus:** Run `/handoff --commit`
-- This skill continues only if session.md is already current
+**Gate A — Session freshness:**
 
-**Why:** Every commit is a sync point. Versioned files, submodules, and session context must be consistent. A commit with stale session.md creates drift between code state and documented context.
+Read `agents/session.md`.
 
-**Indicators of staleness:**
+Compare "Completed This Session" against work done in this conversation:
+- Does it reflect the changes you're about to commit?
+- Are pending tasks and blockers current?
+
+If stale: run `/handoff` (haiku: `/handoff-haiku`) first. Return here after handoff completes.
+If current: proceed to Gate B.
+
+Staleness indicators:
 - Completed work not in "Completed This Session"
 - New pending tasks not recorded
 - Blockers/gotchas discovered but not documented
 
-### 0b. Vet checkpoint (all models)
+**Why:** Every commit is a sync point. Stale session.md creates drift between code state and documented context.
 
-**Before committing production artifacts**, verify alignment:
+**Gate B — Vet checkpoint:**
 
-- **Production artifacts created this session?** (code, scripts, plans, skills, agents)
-- **Vet review with alignment check completed?** Report in `plans/*/reports/` or `tmp/`
-- **UNFIXABLE issues addressed?** Any UNFIXABLE items require user escalation before commit
+List changed files:
+```bash
+git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5)  # Fallback: 5 commits if no upstream
+git status --porcelain
+```
 
-**Reports are exempt** — they ARE the verification artifacts.
+Classify each file: is it a production artifact (code, scripts, plans, skills, agents)?
 
-**If no vet review exists for production artifacts:** STOP. Delegate to `vet-fix-agent` first. Return to commit after vet completes.
+- **No production artifacts?** Proceed to validation below.
+- **Production artifacts exist?** Check for vet report in `plans/*/reports/` or `tmp/`.
+- **No vet report?** STOP. Delegate to `vet-fix-agent` first. Return after vet completes.
+- **UNFIXABLE issues in vet report?** Escalate to user before commit.
+- **No criteria for alignment?** If no runbook/design/acceptance criteria exists, escalate to user.
 
-**Alignment verification requires criteria.** If no runbook/design/acceptance criteria exists for the work, the vet cannot verify alignment — escalate to user to establish criteria before proceeding.
+Reports are exempt — they ARE the verification artifacts.
 
-**Why:** All models can produce output that drifts from intent. Vet+fix with alignment catches drift before commit.
-
-### 1. Pre-commit validation + discovery
+**Validation + discovery:**
 
 **Non-context mode** (default):
 ```bash

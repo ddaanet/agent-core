@@ -1,6 +1,14 @@
 ---
+name: plan-adhoc
 description: Create execution runbooks for weak orchestrator agents using 4-point planning process (general workflow)
+model: sonnet
 allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
+requires:
+  - Design document from /design
+  - CLAUDE.md for project conventions (if exists)
+outputs:
+  - Execution runbook at plans/<job-name>/runbook.md
+  - Ready for prepare-runbook.py processing
 user-invocable: true
 ---
 
@@ -118,8 +126,11 @@ Common false escalations:
 **Process overview:**
 - Point 0.5: Discover codebase structure
 - Point 0.75: Generate runbook outline
+- Point 0.85: Consolidation gate (outline)
+- Point 0.9: Complexity check before expansion
 - Point 1: Phase-by-phase expansion with reviews
 - Point 2: Assembly and metadata
+- Point 2.5: Consolidation gate (runbook)
 - Point 3: Final holistic review
 - Point 4: Prepare artifacts and handoff
 
@@ -191,6 +202,97 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 - If outline has ≤3 phases and ≤10 total steps → generate entire runbook at once (skip phase-by-phase)
 - Single review pass instead of per-phase
 - Simpler workflow for simple tasks
+
+---
+
+### Point 0.85: Consolidation Gate — Outline
+
+**Objective:** Merge trivial phases with adjacent complexity before expensive expansion.
+
+**Actions:**
+
+1. **Scan outline for trivial phases:**
+   - Phases with ≤2 steps AND complexity marked "Low"
+   - Single-constant changes or configuration updates
+   - Pattern: setup/cleanup work that could batch with adjacent feature work
+
+2. **Evaluate merge candidates:**
+
+   For each trivial phase, check:
+   - Can it merge with preceding phase? (same domain, natural continuation)
+   - Can it merge with following phase? (prerequisite relationship)
+   - Would merging create >10 steps in target phase? (reject if so)
+
+3. **Apply consolidation:**
+
+   **Merge pattern:**
+   ```markdown
+   ## Phase N: [Combined Name]
+
+   ### [Original feature steps]
+   ### [Trivial work as final steps]
+   ```
+
+   **Do NOT merge if:**
+   - Trivial phase has external dependencies (blocking other work)
+   - Merged phase would exceed 10 steps
+   - Domains are unrelated (forced grouping hurts coherence)
+
+4. **Update traceability:**
+   - Adjust requirements mapping table
+   - Update phase structure in outline
+   - Note consolidation decisions in Expansion Guidance
+
+**When to skip:**
+- Outline has no trivial phases
+- All trivial phases have cross-cutting dependencies
+- Outline is already compact (≤3 phases)
+
+**Rationale:** Rather than standalone trivial steps that fragment execution, batch simple work with adjacent complexity. This reduces orchestrator overhead and creates natural commit boundaries.
+
+---
+
+### Point 0.9: Complexity Check Before Expansion
+
+**Objective:** Assess expansion complexity BEFORE generating step content. Gate expensive expansion with callback mechanism.
+
+**Actions:**
+
+1. **Assess expansion scope:**
+   - Count total steps from outline
+   - Identify pattern-based steps (same structure, different inputs)
+   - Identify algorithmic steps (unique logic, edge cases)
+   - Estimate token cost of full expansion
+
+2. **Apply fast-path if applicable:**
+   - **Pattern steps (≥5 similar):** Generate pattern template + variation list instead of per-step expansion
+   - **Trivial phases (≤2 steps, low complexity):** Inline instructions instead of full step format
+   - **Single constant change:** Skip step, add as inline task
+
+3. **Callback mechanism -- if expansion too large:**
+
+   **Callback triggers:**
+   - Outline exceeds 25 steps → callback to design (scope too large)
+   - Phase exceeds 10 steps → callback to outline (phase needs splitting)
+   - Single step too complex → callback to outline (decompose further)
+
+   **Callback levels:**
+   ```
+   `step` → `runbook outline` → `design` → `design outline` → `requirements`
+   ```
+
+   **When callback triggered:**
+   - STOP expansion
+   - Document issue: "Phase N contains [issue]. Callback to [level] required."
+   - Return to previous level with specific restructuring recommendation
+   - DO NOT proceed with expensive expansion of poorly-structured work
+
+4. **Proceed with expansion:**
+   - Only if complexity checks pass
+   - Fast-path applied where appropriate
+   - Callback mechanism available for discovered issues
+
+**Rationale:** Complexity assessment is a planning concern (sonnet/opus). Don't delegate to haiku executor — they optimize for completion, not scope management. Catch structural problems before expensive expansion.
 
 ---
 
@@ -267,21 +369,30 @@ Implementation:
 
 ### Point 2: Assembly and Weak Orchestrator Metadata
 
-**After all phases are finalized, assemble the complete runbook.**
+**After all phases are finalized, validate phase files are ready for assembly, then delegate to prepare-runbook.py.**
 
-1. **Concatenate phase files:**
-   - Combine all `runbook-phase-N.md` files into `plans/<job>/runbook.md`
-   - Preserve phase structure and ordering
+**Actions:**
 
-2. **Add Weak Orchestrator Metadata:**
-   - Compute from assembled phases
-   - Include metadata section at top of runbook
+1. **Pre-assembly validation:**
+   - Verify all phase files exist (`runbook-phase-1.md` through `runbook-phase-N.md`)
+   - Check phase reviews completed (all phase review reports in `reports/` directory)
+   - Confirm no critical issues remain in review reports
+
+2. **Metadata preparation:**
+   - Count total steps across all phases
+   - Extract Common Context elements from design
+   - Verify Design Decisions section ready for inclusion
 
 3. **Final consistency check:**
    - Review cross-phase dependencies
    - Verify step numbering is sequential
    - Check for phase boundary issues
    - No new content generation, only validation
+
+**IMPORTANT — Do NOT manually assemble:**
+- Phase files remain separate until prepare-runbook.py processes them
+- Manual concatenation bypasses validation logic (step numbering, metadata calculation)
+- prepare-runbook.py will handle assembly in Point 4
 
 Every assembled runbook MUST include this metadata section at the top:
 
@@ -331,6 +442,66 @@ Every assembled runbook MUST include this metadata section at the top:
 2. **Orchestrator trusts agents to report accurately** - no inline validation logic
 3. **Validation is delegated** - if needed, it's a separate plan step
 4. **Planning happens before execution** - orchestrator doesn't make decisions during execution
+
+---
+
+### Point 2.5: Consolidation Gate — Runbook
+
+**Objective:** Merge isolated trivial steps with related features after assembly validation.
+
+**Actions:**
+
+1. **Identify isolated trivial steps:**
+   - Steps marked for fast-path during Point 0.9
+   - Single-line changes or constant updates
+   - Steps with no validation assertions (pure configuration)
+
+2. **Check merge candidates:**
+
+   For each trivial step:
+   - **Same-file steps:** Merge with adjacent step modifying same file
+   - **Setup steps:** Promote to phase preamble (not separate step)
+   - **Cleanup steps:** Demote to phase postamble
+
+3. **Apply step consolidation:**
+
+   **Merge into adjacent step:**
+   ```markdown
+   ## Step N: [Feature Name]
+
+   **Additional setup:** [trivial work folded in — e.g., update constant, add import]
+
+   **Objective**: [Original step objective]
+
+   **Implementation:**
+   [Standard implementation content including merged trivial work]
+   ```
+
+   **Convert to inline instruction:**
+   ```markdown
+   **Pre-phase setup:**
+   - Update config constant to X
+   - Add import statement for Y
+
+   ## Step N: [First real step]
+   ```
+
+4. **Update metadata:**
+   - Adjust Total Steps count
+   - Update step numbering if merges occurred
+   - Note consolidations in runbook header
+
+**Constraints:**
+- Never merge steps across phases
+- Preserve isolation when needed (don't merge if steps would conflict)
+- Keep merged steps manageable (avoid overloading single step)
+
+**When to skip:**
+- No trivial steps identified in Point 0.9
+- All steps have substantial validation coverage
+- Runbook is already compact (<15 steps)
+
+**Rationale:** Trivial steps add orchestrator overhead. A haiku executor can handle "update constant X and then implement feature Y" in one delegation. Consolidation reduces round-trips without losing coverage.
 
 ---
 
@@ -500,6 +671,63 @@ As the **final action** of this skill, invoke `/handoff --commit`. This:
 The next pending task (written by handoff) will instruct: "Restart session, switch to haiku model, paste `/orchestrate {name}` from clipboard."
 
 **Why restart:** prepare-runbook.py creates a new agent in `.claude/agents/`. Claude Code only discovers agents at session start.
+
+---
+
+## Checkpoints
+
+Checkpoints are verification points inserted between phases. They validate accumulated work and create commit points.
+
+**Two checkpoint tiers:**
+
+**Light checkpoint** (Fix + Functional):
+- **Placement:** Every phase boundary
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes failures, commit when passing
+  2. **Functional:** Sonnet reviews implementations against design
+     - Check: Are implementations real or stubs? Do functions compute or return constants?
+     - If stubs found: STOP, report which implementations need real behavior
+     - If all functional: Proceed to next phase
+
+**Full checkpoint** (Fix + Vet + Functional):
+- **Placement:** Final phase boundary, or phases marked `checkpoint: full` in runbook
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes failures, commit when passing
+  2. **Vet:** Sonnet reviews accumulated changes (presentation, clarity, design alignment)
+     - **REQUIRED:** Apply all fixes (critical, major, minor)
+     - Commit when complete
+  3. **Functional:** Sonnet reviews implementations against design (same checks as light checkpoint)
+
+**When to mark `checkpoint: full` during planning:**
+- Phase introduces new public API surface or contract
+- Phase crosses module boundaries (changes span 3+ packages)
+- Runbook expected to exceed 20 steps total
+
+**Rationale:** Light checkpoints catch dangerous issues (broken tests, stubs) at low cost. Full checkpoints catch quality debt (naming, duplication, abstraction) at boundaries where accumulated changes justify the vet review cost.
+
+**Example:**
+```markdown
+## Step 3: Add error handling (final step of Phase 2)
+[standard implementation content]
+
+---
+
+**Light Checkpoint** (end of Phase 2)
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Functional: Review Phase 2 implementations against design. Check for stubs.
+
+---
+
+## Step 4: Add validation (Phase 3 begins)
+[standard implementation content]
+
+---
+
+**Full Checkpoint** (end of Phase 3 - final phase)
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Vet: Review all changes for quality, clarity, design alignment. Apply all fixes. Commit.
+3. Functional: Review all implementations against design. Check for stubs.
+```
 
 ---
 

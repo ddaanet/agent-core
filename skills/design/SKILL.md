@@ -250,6 +250,21 @@ When the design involves Claude Code plugin components, include a skill-loading 
 
 This ensures the planner has domain-specific guidance loaded before creating the runbook.
 
+**Execution model directives:**
+
+When the design involves modifying workflow definitions (`agents/decisions/workflow-*.md`), skill files (`agent-core/skills/`), or agent procedures (`agent-core/agents/`), include an execution directive in "Next steps":
+- Workflow/skill/agent edits: opus required
+
+Ensures architectural artifacts get appropriate scrutiny during execution, not just planning.
+
+#### C.2. Checkpoint Commit
+
+**Objective:** Commit the design document before vet review.
+
+**Process:** Stage and commit `plans/<job-name>/design.md` (and any reports from Phase A).
+
+**Why:** Preserves design state before vet review cycle. Enables diffing original vs post-vet version. Isolates vet changes in separate commit for audit trail.
+
 #### C.3. Vet Design
 
 **CRITICAL: Delegate to design-vet-agent for review.**
@@ -266,16 +281,16 @@ Return only the filepath on success, or 'Error: [description]' on failure.
 
 The design-vet-agent (opus model) performs comprehensive architectural review and writes a structured report with critical/major/minor issues categorized.
 
-#### C.4. Apply Fixes
+#### C.4. Check for Unfixable Issues
 
 **Read the review report** from the filepath returned by design-vet-agent.
 
-**Address all feedback (critical, major, minor):**
-- All issues MUST be fixed before proceeding
+The design-vet-agent applies all fixes (critical, major, minor) directly. This step handles residual issues:
 
-Update design.md with corrections.
+- **No UNFIXABLE issues:** Proceed to C.5.
+- **UNFIXABLE issues found:** Address manually or escalate to user.
 
-**Re-review if needed:** If changes are significant, re-delegate to design-vet-agent for verification.
+**Re-vet if needed:** If user manually addresses UNFIXABLE issues, re-delegate to design-vet-agent for verification.
 
 #### C.5. Handoff and Commit
 

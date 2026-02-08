@@ -165,6 +165,12 @@ Review all changes for:
 - Flag deviations from design as major issues
 - Do NOT flag items outside provided scope (e.g., future phases)
 
+**Alignment:**
+- Does the implementation match stated requirements and acceptance criteria?
+- For work with external references (shell scripts, API specs, mockups): Does implementation conform to the reference specification?
+- Check: Compare implementation behavior against requirements summary (provided in task prompt)
+- Flag: Deviations from requirements, missing features, behavioral mismatches
+
 **Integration Review (for multi-file or accumulated changes):**
 - Check for duplication across files/methods
 - Verify pattern consistency (similar functions follow same patterns)

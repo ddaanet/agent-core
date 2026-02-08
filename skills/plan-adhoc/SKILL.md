@@ -381,6 +381,47 @@ Implementation:
 
 **Action:** Mark task as requiring separate planning session. Delegate planning to sonnet or opus depending on complexity.
 
+### Mandatory Conformance Validation Steps
+
+**Trigger:** When design document includes external reference (shell prototype, API spec, visual mockup) in `Reference:` field or spec sections.
+
+**Requirement:** Runbook MUST include validation steps that verify implementation conforms to the reference specification.
+
+**Mechanism:**
+- Reference is consumed during planning
+- Expected behavior from reference becomes validation criteria in runbook steps
+- Validation can be: conformance test cycles, manual comparison steps, or automated conformance checks
+
+**Validation precision (from Gap 4):**
+- When using test-based validation: Use precise prose descriptions with exact expected strings
+- Example validation criterion: "Output matches shell reference: `🥈 sonnet \033[35m…` with double-space separators"
+- NOT abstracted: "Output contains formatted model with appropriate styling"
+
+**Rationale:** Conformance validation closes the gap between specification and implementation. Exact expected strings prevent abstraction drift.
+
+**Related:** See testing.md "Conformance Validation for Migrations" for detailed guidance.
+
+---
+
+### Point 1.4: Planning-Time File Size Awareness
+
+**Convention:** When a step adds content to an existing file, note current file size and plan splits proactively.
+
+**Process:**
+
+1. **For each step adding content to existing file:** Note `(current: ~N lines, adding ~M)`
+2. **Check threshold:** If `N + M > 350`, include a split step in the same phase
+3. **Threshold rationale:** The 400-line limit is a hard fail at commit time. Planning to 350 leaves a 50-line margin for vet fixes and minor additions
+
+**Why 350:** Planning to the exact 400-line limit creates brittleness. A 50-line margin is pragmatic — accounts for vet review additions, formatting changes, and minor refactoring that happen during execution.
+
+**Example:**
+- Step 2.3 adds authentication handlers to routes.py (current: ~330 lines, adding ~35)
+- Step 2.3: Implement authentication handlers (~365 lines total)
+- Step 2.4: Split routes.py into routes_auth.py + routes_core.py
+
+**No runtime enforcement:** This is a planning convention. The commit-time `check_line_limits.sh` remains the hard gate. This prevents write-then-split rework loops.
+
 ---
 
 ### Point 2: Assembly and Weak Orchestrator Metadata

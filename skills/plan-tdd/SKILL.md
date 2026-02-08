@@ -310,6 +310,34 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ---
 
+### Phase 2.7: Planning-Time File Size Awareness
+
+**Objective:** Track file growth during cycle planning and proactively plan splits before hitting the 400-line limit.
+
+**Convention:** When a cycle adds content to an existing file, note the current file size and plan splits proactively.
+
+**Process:**
+
+1. **For each cycle adding content to existing file:** Note `(current: ~N lines, adding ~M)`
+2. **Check threshold:** If `N + M > 350`, include a split step in the same phase
+3. **Threshold rationale:** The 400-line limit is a hard fail at commit time. Planning to 350 leaves a 50-line margin for vet fixes and minor additions
+
+**Why 350:** Planning to the exact 400-line limit creates brittleness. A 50-line margin is pragmatic — accounts for vet review additions, formatting changes, and minor refactoring that happen during execution.
+
+**Example:**
+- Cycle 3.2 adds `format_model()` to `display.py` (current: ~320 lines, adding ~40)
+- Cycle 3.2: Implement `format_model()` (~360 lines total)
+- Cycle 3.3: Split `display.py` into `display_core.py` + `display_formatters.py`
+
+**No runtime enforcement:** This is a planning convention. The commit-time `check_line_limits.sh` remains the hard gate. This prevents write-then-split rework loops.
+
+**When to apply:**
+- Actively planning file modifications (not exploratory edits)
+- Files tracking toward 400-line limits
+- Runbooks with many phase-spanning changes to same files
+
+---
+
 ### Phase 3: Phase-by-Phase Cycle Expansion (Tier 3 Only)
 
 **Objective:** Generate detailed cycle content for each phase with TDD-specific review.

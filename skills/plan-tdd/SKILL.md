@@ -333,6 +333,22 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Agent writes review report (audit trail)
    - Agent returns review report path (with escalation note if unfixable issues)
 
+   **Domain Validation:**
+
+   When writing vet checkpoint steps for TDD runbooks, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being tested. If found, include domain validation in the checkpoint:
+
+   - Add "Domain validation" instruction to tdd-plan-reviewer or vet-fix-agent delegation
+   - Reference the skill file path
+   - Specify artifact type (e.g., skills, agents, hooks, commands, plugin-structure)
+   - Domain criteria are additive — TDD discipline + generic quality + domain checks all apply
+
+   Example: For plugin development TDD work, include:
+   ```
+   - **Domain validation:** Read and apply criteria from
+     `agent-core/skills/plugin-dev-validation/SKILL.md`
+     for artifact type: [skills|agents|hooks|commands|plugin-structure]
+   ```
+
 3. **Handle review outcome:**
    - Read review report
    - If ESCALATION noted: STOP, address unfixable issues before proceeding

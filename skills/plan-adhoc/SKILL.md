@@ -263,6 +263,26 @@ Implementation:
 
 **Action:** Mark task as requiring separate planning session. Delegate planning to sonnet or opus depending on complexity.
 
+### Mandatory Conformance Validation Steps
+
+**Trigger:** When design document includes external reference (shell prototype, API spec, visual mockup) in `Reference:` field or spec sections.
+
+**Requirement:** Runbook MUST include validation steps that verify implementation conforms to the reference specification.
+
+**Mechanism:**
+- Reference is consumed during planning
+- Expected behavior from reference becomes validation criteria in runbook steps
+- Validation can be: conformance test cycles, manual comparison steps, or automated conformance checks
+
+**Validation precision (from Gap 4):**
+- When using test-based validation: Use precise prose descriptions with exact expected strings
+- Example validation criterion: "Output matches shell reference: `🥈 sonnet \033[35m…` with double-space separators"
+- NOT abstracted: "Output contains formatted model with appropriate styling"
+
+**Rationale:** Conformance validation closes the gap between specification and implementation. Exact expected strings prevent abstraction drift.
+
+**Related:** See testing.md "Conformance Validation for Migrations" for detailed guidance.
+
 ---
 
 ### Point 1.4: Planning-Time File Size Awareness

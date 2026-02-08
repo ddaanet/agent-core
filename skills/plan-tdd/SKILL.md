@@ -440,6 +440,28 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Predict failure message
    - Provide specific test command with actual file path
 
+### Mandatory Conformance Test Cycles
+
+**Trigger:** When design document includes external reference (shell prototype, API spec, visual mockup) in `Reference:` field or spec sections.
+
+**Requirement:** Planner MUST include conformance test cycles that bake expected behavior from the reference into test assertions.
+
+**Mechanism:**
+- Reference is consumed at authoring time (during planning)
+- Expected strings from reference become test assertions
+- Tests are permanent living documentation of expected behavior (reference not preserved as runtime artifact)
+
+**Test precision (from Gap 4):**
+- Use precise prose descriptions with exact expected strings from reference
+- Example: "Assert output contains `🥈` followed by `\033[35msonnet\033[0m` with double-space separator"
+- NOT abstracted: "Assert output contains formatted model with emoji and color"
+
+**Rationale:** Tests that include exact expected strings eliminate translation loss between spec and implementation. This addresses parity failures where tests verified structure but not conformance.
+
+**Related:** See testing.md "Conformance Validation for Migrations" for detailed guidance.
+
+---
+
 3. **Generate GREEN specifications:**
 
 ```markdown

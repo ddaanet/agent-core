@@ -324,6 +324,8 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 **Why 350:** Planning to the exact 400-line limit creates brittleness. A 50-line margin is pragmatic — accounts for vet review additions, formatting changes, and minor refactoring that happen during execution.
 
+**Concrete example:** A file at 360 lines after implementation gets +25 lines from vet error handling improvements, +10 lines from formatting fixes, reaching 395 lines (still under limit). Without the margin, same file at 395 lines would exceed limit after vet fixes.
+
 **Example:**
 - Cycle 3.2 adds `format_model()` to `display.py` (current: ~320 lines, adding ~40)
 - Cycle 3.2: Implement `format_model()` (~360 lines total)

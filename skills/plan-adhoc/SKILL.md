@@ -308,9 +308,25 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
    - Use script evaluation for each task (see section 1.1-1.3 below)
 
 2. **Review phase content:**
-   - Delegate to `vet-agent` (review-only mode)
-   - Agent writes review report, does NOT apply fixes
+   - Delegate to `vet-fix-agent` (fix-all mode)
+   - Agent reviews, applies all fixes, writes report
    - Agent returns review report path
+
+   **Domain Validation:**
+
+   When writing vet checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the vet step:
+
+   - Add "Domain validation" instruction to vet-fix-agent delegation
+   - Reference the skill file path
+   - Specify artifact type (e.g., skills, agents, hooks, commands, plugin-structure)
+   - Domain criteria are additive — generic quality + alignment checks still apply
+
+   Example: For plugin development work, include:
+   ```
+   - **Domain validation:** Read and apply criteria from
+     `agent-core/skills/plugin-dev-validation/SKILL.md`
+     for artifact type: [skills|agents|hooks|commands|plugin-structure]
+   ```
 
 3. **Apply fixes:**
    - Read review report

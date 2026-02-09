@@ -2,6 +2,9 @@
 description: Create git commits for completed work with short, dense, structured messages. Use --context flag when you already know what changed from conversation.
 allowed-tools: Read, Skill, Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
+continuation:
+  cooperative: true
+  default-exit: []
 ---
 
 # Commit Skill

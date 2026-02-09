@@ -43,7 +43,8 @@ The template includes @file references to these shared fragments:
 - `execute-rule.md` - #execute session continuation
 
 **Orchestration patterns:**
-- `delegation.md` - Delegation principle, script-first evaluation, model selection, quiet execution, pre-delegation checkpoint, task agent tool usage
+- `execution-routing.md` - Interactive work routing: examine first, do directly, delegate only when needed
+- `delegation.md` - Orchestration delegation: model selection, quiet execution, pre-delegation checkpoint, task agent tool usage
 - `tool-batching.md` - Tool batching for efficient parallel/sequential operations
 
 ## Customization Areas

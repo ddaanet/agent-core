@@ -28,7 +28,7 @@ set -xeuo pipefail
 Invoke `/token-efficient-bash` when:
 - Writing multi-step bash scripts
 - User asks about "bash patterns", "set -x", "error handling"
-- Implementing Script-First Evaluation (CLAUDE.md) with sequential operations
+- Implementing Execution Routing (CLAUDE.md) with sequential operations
 - Need to reduce bash output tokens
 
 ## Reconciliation with Error Handling

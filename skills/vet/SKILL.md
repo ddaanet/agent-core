@@ -114,6 +114,12 @@ git diff HEAD <file1> <file2> ...
 - Check test function names exist in referenced test files (use Grep)
 - Suggest correct paths when similar files are found
 
+**Self-referential modification (when reviewing runbooks/plans):**
+- Flag any step containing file-mutating commands (`sed -i`, `find ... -exec`, `Edit` tool, `Write` tool)
+- Check if target path overlaps with `plans/<plan-name>/` (excluding `reports/` subdirectory)
+- Mark as MAJOR issue if runbook steps modify their own plan directory during execution
+- Rationale: Runbook steps must not mutate the plan directory they're defined in (creates ordering dependency, breaks re-execution)
+
 **Security:**
 - No hardcoded secrets or credentials
 - Input validation where needed

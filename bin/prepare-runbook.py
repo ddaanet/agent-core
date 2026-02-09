@@ -406,35 +406,52 @@ def assemble_phase_files(directory):
 
     phase_files = sorted(phase_files, key=get_phase_num)
 
-    # Validate sequential phase numbering
+    # Validate sequential phase numbering (accept 0-based or 1-based)
     phase_nums = [get_phase_num(f) for f in phase_files]
-    if phase_nums != list(range(1, len(phase_nums) + 1)):
-        missing = set(range(1, max(phase_nums) + 1)) - set(phase_nums)
-        print(f"ERROR: Phase numbering gaps detected. Missing phases: {sorted(missing)}", file=sys.stderr)
+    start_num = phase_nums[0] if phase_nums else 0
+    expected_nums = list(range(start_num, start_num + len(phase_nums)))
+    if phase_nums != expected_nums:
+        missing = set(expected_nums) - set(phase_nums)
+        print(f"ERROR: Phase numbering gaps detected. Expected {expected_nums}, got {phase_nums}. Missing: {sorted(missing)}", file=sys.stderr)
         return None, None
 
     # Read and validate each phase file
+    # Detect runbook type from first phase file (Step = general, Cycle = TDD)
     assembled_parts = []
-    for phase_file in phase_files:
+    is_tdd = False
+
+    for i, phase_file in enumerate(phase_files):
         content = phase_file.read_text()
         if not content.strip():
             print(f"ERROR: Empty phase file: {phase_file}", file=sys.stderr)
             return None, None
-        if not re.search(r'^##+ Cycle\s+\d+\.\d+:', content, re.MULTILINE):
-            print(f"ERROR: Phase file missing cycle headers: {phase_file}", file=sys.stderr)
-            return None, None
+
+        # Detect runbook type from first file
+        if i == 0:
+            has_cycles = bool(re.search(r'^##+ Cycle\s+\d+\.\d+:', content, re.MULTILINE))
+            has_steps = bool(re.search(r'^##+ Step\s+\d+\.\d+:', content, re.MULTILINE))
+            if has_cycles:
+                is_tdd = True
+            elif not has_steps:
+                print(f"ERROR: Phase file missing Step or Cycle headers: {phase_file}", file=sys.stderr)
+                return None, None
+
         assembled_parts.append(content)
 
     # Derive runbook name from directory (plans/foo -> foo)
     runbook_name = dir_path.name
 
-    # Prepend TDD frontmatter (phase files have no frontmatter)
-    frontmatter = f"""---
+    # Prepend appropriate frontmatter (phase files have no frontmatter)
+    if is_tdd:
+        frontmatter = f"""---
 type: tdd
 model: haiku
 name: {runbook_name}
 ---
 """
+    else:
+        frontmatter = ""  # General runbooks derive frontmatter from assembled content
+
     assembled_body = '\n'.join(assembled_parts)
     assembled_content = frontmatter + assembled_body
 

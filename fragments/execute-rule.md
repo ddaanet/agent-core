@@ -21,42 +21,62 @@ Next: <first pending task name>
 
 Pending:
 - <task 2 name> (<model if non-default>)
+  - Plan: <plan-directory> | Status: <status> | Notes: <notes>
 - <task 3 name>
+  - Plan: <plan-directory> | Status: <status>
 - ...
 
-Jobs:
-  <name> — <status>
-  <name> — <status>
-  ...
+Worktree:
+- <task name> → wt/<slug>
+- <task name 2> → wt/<slug2>
+
+Unscheduled Plans:
+- <plan-name> — <status>
+- ...
 ```
 
-**Jobs listing:** Read `agents/jobs.md` for authoritative status, then list all plans on one line each:
+**Pending list format:**
+- First line: task name with model if non-default
+- Nested line: plan directory, status from jobs.md, notes if present
+- Omit nested line if task has no associated plan
+
+**Worktree section:**
+- Only shown when worktree tasks exist in session.md
+- Tasks in Worktree section are NOT shown in Pending
+- Format shows task name and worktree slug for `wt-rm` reference
+
+**Unscheduled Plans:** Plans in jobs.md that have no associated pending task.
+- Read `agents/jobs.md` for all plans
+- Exclude plans that appear in any pending task's plan directory
 - **Format:** `<plan-name> — <status>`
-- **Status values:** `complete`, `planned`, `designed`, `requirements`, `plan`
+- **Status values:** `complete`, `planned`, `designed`, `requirements`
 - **Sorting:** Alphabetical by plan name
 
-**Status source priority:**
-1. **jobs.md "Complete (Archived)" section** — Extract plan names from Recent bullets (format: `` `plan-name` — description``)
-2. **jobs.md "In Progress" table** — Read Plan column
-3. **jobs.md "Designed" table** — Read Plan column
-4. **jobs.md "Requirements" table** — Read Plan column
-5. **plans/* directories** — For any plans not in jobs.md, infer status from directory contents
+**Status source:** Read `agents/jobs.md` as authoritative source for plan status and notes.
 
-**Special handling for `plans/claude/`:**
-- List individual `.md` files within `plans/claude/` as separate entries
-- **Format:** `claude/<filename> — plan` (without .md extension)
-- Excludes `.gitkeep` and other non-plan files
-- These are Claude Code built-in plan mode files
+**Parallel task detection:**
 
-**Directory-based status detection (fallback):**
-- **planned** — has `runbook.md` and `steps/` directory
-- **designed** — has `design.md` (but no runbook.md)
-- **requirements** — everything else (early stage work)
+After listing pending tasks, analyze for parallelizable groups:
+- No shared plan directory between tasks
+- No logical dependency (check Blockers/Gotchas section)
+- Compatible model tier (all sonnet, or all same)
+- No restart requirement
+
+If a group of 2+ independent tasks exists, append:
+
+```
+Parallel (N tasks, independent):
+  - task name 1
+  - task name 2
+  `wt` to set up worktrees
+```
+
+Show largest independent group only. Omit section if no parallelism detected.
 
 **Graceful degradation:**
 - Missing session.md or no Pending Tasks → "No pending tasks."
 - Old format (no metadata) → use defaults (sonnet, no restart)
-- No plans/ directory or empty → omit Jobs section entirely
+- No unscheduled plans → omit Unscheduled Plans section entirely
 
 ### MODE 2: EXECUTE
 
@@ -84,6 +104,67 @@ Execute task to completion, then chain:
 
 **Behavior:**
 Strict resume: continue in-progress task only. Error if no in-progress task exists.
+
+### MODE 5: WORKTREE SETUP
+
+**Triggers:**
+- `wt` (no args) — set up parallel group
+- `wt <task-name>` — branch off single named task
+
+**Behavior:**
+Set up worktrees for parallel or single-task execution.
+
+**Single-task flow:**
+1. Derive slug from task name (lowercase, hyphens, ≤30 chars)
+2. Write focused session.md to `tmp/wt-<slug>-session.md` (local, no sandbox needed)
+3. Create worktree: `just wt-new <slug> session=tmp/wt-<slug>-session.md` (requires `dangerouslyDisableSandbox: true`)
+4. Move task from Pending Tasks to Worktree Tasks in main session.md
+5. Print launch command
+
+**Parallel group flow:**
+1. Identify the parallel group (same analysis as STATUS detection)
+2. For each task, derive a slug (lowercase, hyphens, ≤30 chars)
+3. Write focused session.md to `tmp/wt-<slug>-session.md` (local, no sandbox needed)
+4. Create worktree: `just wt-new <slug> session=tmp/wt-<slug>-session.md` (requires `dangerouslyDisableSandbox: true`)
+5. Move tasks from Pending Tasks to Worktree Tasks in main session.md
+6. After all worktrees created, print launch commands
+
+**Focused session.md format:**
+
+Minimal session.md scoped to a single task:
+
+```markdown
+# Session: Worktree — <task name>
+
+**Status:** Focused worktree for parallel execution.
+
+## Pending Tasks
+
+- [ ] **<task name>** — <full metadata from original>
+  - <plan info if applicable>
+
+## Blockers / Gotchas
+
+<only blockers relevant to this task>
+
+## Reference Files
+
+<only references relevant to this task>
+```
+
+**Output after setup:**
+
+```
+Worktrees ready:
+  cd ../<repo>-<slug1> && claude    # <task name 1>
+  cd ../<repo>-<slug2> && claude    # <task name 2>
+
+After each completes: `hc` to handoff+commit, then return here.
+Merge back: git merge wt/<slug>
+Cleanup: just wt-rm <slug>
+```
+
+**Sandbox:** Only `just wt-new` requires `dangerouslyDisableSandbox: true` (writes outside project directory). Session.md is written locally and pre-committed to the branch by the recipe via git plumbing.
 
 ### Task Pickup: Context Recovery
 
@@ -120,6 +201,7 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 | `h` | /handoff | Update session.md → status |
 | `hc` | /handoff --commit | Handoff → commit → status |
 | `ci` | /commit | Commit → status |
+| `wt` | #worktree | Set up worktrees for parallel tasks |
 | `?` | #help | List shortcuts, keywords, entry skills |
 
 ### Tier 2 - Directives (colon prefix)
@@ -155,3 +237,28 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 - Command: Backtick-wrapped command to start the task
 - Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
 - Restart: Optional flag — only include if restart needed (omit = no restart)
+
+**Worktree Tasks section:**
+
+Tasks branched off to worktrees move from Pending Tasks to Worktree Tasks:
+
+```markdown
+## Worktree Tasks
+
+- [ ] **Task Name** → `wt/<slug>` — original metadata
+```
+
+**Rules:**
+- Tasks move from Pending Tasks to Worktree Tasks when `wt` creates their worktree
+- `→ wt/<slug>` tracks which worktree holds the task
+- After merge + `wt-rm`, remove the task from Worktree Tasks (move to Completed or delete)
+- Handoff preserves Worktree Tasks section as-is (not trimmed)
+
+**Restart triggers:** Session restart is required for structural changes that load at startup:
+- Sub-agent definitions (`.claude/agents/`)
+- Hook configuration (`.claude/hooks/`, `settings.json` hooks)
+- Plugin changes (`.claude/plugins/`)
+- MCP server configuration (`.mcp.json`)
+- API/provider configuration
+
+**NOT restart triggers:** Model changes (use `/model` command at runtime)

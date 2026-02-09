@@ -52,7 +52,15 @@ Why:
 - No breaking changes to existing code
 ```
 
-**3. Draft commit message**
+**3. Check for invalidated learnings**
+
+**Trigger:** If changes modify enforcement (validators, scripts, precommit) or behavioral rules (fragments, skills, constraints).
+
+**Action:** Check loaded `agents/learnings.md` context (already in memory via CLAUDE.md @-reference — no Read/Grep needed). If any learning claims something now false, remove or update that learning in the same commit.
+
+**Rationale:** Learnings load into every session. Stale learnings cause agents to act on false beliefs. Changes and learning cleanup must be atomic.
+
+**4. Draft commit message**
 
 Use imperative tense, 50-72 character subject line, follow repository style.
 

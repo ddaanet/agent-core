@@ -1,6 +1,14 @@
 ---
+name: plan-adhoc
 description: Create execution runbooks for weak orchestrator agents using 4-point planning process (general workflow)
+model: sonnet
 allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
+requires:
+  - Design document from /design
+  - CLAUDE.md for project conventions (if exists)
+outputs:
+  - Execution runbook at plans/<job-name>/runbook.md
+  - Ready for prepare-runbook.py processing
 user-invocable: true
 ---
 
@@ -58,7 +66,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Sequence:**
 1. Implement changes directly using Read/Write/Edit tools
 2. Delegate to vet agent for review
-3. Apply critical/major priority fixes from vet review
+3. Apply all fixes from vet review
 4. Tail-call `/handoff --commit`
 
 ### Tier 2: Lightweight Delegation
@@ -72,7 +80,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Sequence:**
 1. Delegate work via `Task(subagent_type="quiet-task", model="haiku", prompt="...")` with relevant context from design included in prompt (file paths, design decisions, conventions). Single agent for cohesive work; break into 2-4 components only if logically distinct.
 2. After delegation complete: delegate to vet agent for review
-3. Apply critical/major priority fixes from vet review
+3. Apply all fixes from vet review
 4. Tail-call `/handoff --commit`
 
 **Design constraints are non-negotiable:**
@@ -111,9 +119,20 @@ Common false escalations:
 
 **Sequence:** 4-point process (see below) — existing pipeline unchanged.
 
-## 4-Point Planning Process (Tier 3 Only)
+## Planning Process (Tier 3 Only)
 
 **Use this process only after assessment determines Tier 3 is needed.**
+
+**Process overview:**
+- Point 0.5: Discover codebase structure
+- Point 0.75: Generate runbook outline
+- Point 0.85: Consolidation gate (outline)
+- Point 0.9: Complexity check before expansion
+- Point 1: Phase-by-phase expansion with reviews
+- Point 2: Assembly and metadata
+- Point 2.5: Consolidation gate (runbook)
+- Point 3: Final holistic review
+- Point 4: Prepare artifacts and handoff
 
 ### Point 0.5: Discover Codebase Structure (REQUIRED)
 
@@ -131,12 +150,13 @@ If design document includes "Requirements" section:
 - Note scope boundaries (in/out of scope)
 - Carry requirements context into runbook Common Context
 
-This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory-index scan.
+This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory discovery.
 
 1. **Discover relevant prior knowledge:**
-   - Scan memory-index.md for entries related to the task domain
-   - Read referenced files for relevant matches
+   - Check loaded memory-index context (already in CLAUDE.md) for entries related to the task domain
+   - When entry is relevant, Read the referenced file
    - Factor known constraints into step design and model selection
+   - **Do NOT grep memory-index.md** — it's already loaded, scan it mentally
 
 2. **Verify actual file locations:**
    - Use Glob to find source files referenced by the design
@@ -150,9 +170,158 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 
 ---
 
-### Point 1: Evaluate Script vs Direct Execution
+### Point 0.75: Generate Runbook Outline
 
-For each task in the runbook, decide on execution approach:
+**Before writing full runbook content, create a holistic outline for cross-phase coherence.**
+
+1. **Create runbook outline:**
+   - File: `plans/<job>/runbook-outline.md`
+   - Include:
+     - **Requirements mapping table:** Link each requirement from design to implementation phase/step
+     - **Phase structure:** Break work into logical phases with step titles (no full content yet)
+     - **Key decisions reference:** Link to design sections with architectural decisions
+     - **Complexity per phase:** Estimated scope and model requirements per phase
+
+2. **Review outline:**
+   - Delegate to `runbook-outline-review-agent` (fix-all mode)
+   - Agent fixes all issues (critical, major, minor)
+   - Agent returns review report path
+
+3. **Validate and proceed:**
+   - Read review report
+   - If critical issues remain: STOP and escalate to user
+   - Otherwise: proceed to phase-by-phase expansion
+
+**Why outline-first:**
+- Establishes cross-phase structure before expensive content generation
+- Enables early feedback on phase boundaries and dependencies
+- Catches requirements gaps before implementation details
+- Provides roadmap for phase-by-phase expansion
+
+**Fallback for small runbooks:**
+- If outline has ≤3 phases and ≤10 total steps → generate entire runbook at once (skip phase-by-phase)
+- Single review pass instead of per-phase
+- Simpler workflow for simple tasks
+
+---
+
+### Point 0.85: Consolidation Gate — Outline
+
+**Objective:** Merge trivial phases with adjacent complexity before expensive expansion.
+
+**Actions:**
+
+1. **Scan outline for trivial phases:**
+   - Phases with ≤2 steps AND complexity marked "Low"
+   - Single-constant changes or configuration updates
+   - Pattern: setup/cleanup work that could batch with adjacent feature work
+
+2. **Evaluate merge candidates:**
+
+   For each trivial phase, check:
+   - Can it merge with preceding phase? (same domain, natural continuation)
+   - Can it merge with following phase? (prerequisite relationship)
+   - Would merging create >10 steps in target phase? (reject if so)
+
+3. **Apply consolidation:**
+
+   **Merge pattern:**
+   ```markdown
+   ## Phase N: [Combined Name]
+
+   ### [Original feature steps]
+   ### [Trivial work as final steps]
+   ```
+
+   **Do NOT merge if:**
+   - Trivial phase has external dependencies (blocking other work)
+   - Merged phase would exceed 10 steps
+   - Domains are unrelated (forced grouping hurts coherence)
+
+4. **Update traceability:**
+   - Adjust requirements mapping table
+   - Update phase structure in outline
+   - Note consolidation decisions in Expansion Guidance
+
+**When to skip:**
+- Outline has no trivial phases
+- All trivial phases have cross-cutting dependencies
+- Outline is already compact (≤3 phases)
+
+**Rationale:** Rather than standalone trivial steps that fragment execution, batch simple work with adjacent complexity. This reduces orchestrator overhead and creates natural commit boundaries.
+
+---
+
+### Point 0.9: Complexity Check Before Expansion
+
+**Objective:** Assess expansion complexity BEFORE generating step content. Gate expensive expansion with callback mechanism.
+
+**Actions:**
+
+1. **Assess expansion scope:**
+   - Count total steps from outline
+   - Identify pattern-based steps (same structure, different inputs)
+   - Identify algorithmic steps (unique logic, edge cases)
+   - Estimate token cost of full expansion
+
+2. **Apply fast-path if applicable:**
+   - **Pattern steps (≥5 similar):** Generate pattern template + variation list instead of per-step expansion
+   - **Trivial phases (≤2 steps, low complexity):** Inline instructions instead of full step format
+   - **Single constant change:** Skip step, add as inline task
+
+3. **Callback mechanism -- if expansion too large:**
+
+   **Callback triggers:**
+   - Outline exceeds 25 steps → callback to design (scope too large)
+   - Phase exceeds 10 steps → callback to outline (phase needs splitting)
+   - Single step too complex → callback to outline (decompose further)
+
+   **Callback levels:**
+   ```
+   `step` → `runbook outline` → `design` → `design outline` → `requirements`
+   ```
+
+   **When callback triggered:**
+   - STOP expansion
+   - Document issue: "Phase N contains [issue]. Callback to [level] required."
+   - Return to previous level with specific restructuring recommendation
+   - DO NOT proceed with expensive expansion of poorly-structured work
+
+4. **Proceed with expansion:**
+   - Only if complexity checks pass
+   - Fast-path applied where appropriate
+   - Callback mechanism available for discovered issues
+
+**Rationale:** Complexity assessment is a planning concern (sonnet/opus). Don't delegate to haiku executor — they optimize for completion, not scope management. Catch structural problems before expensive expansion.
+
+---
+
+### Point 1: Phase-by-Phase Runbook Expansion
+
+**For each phase identified in the outline, generate detailed content with review.**
+
+**For each phase:**
+
+1. **Generate phase content:**
+   - File: `plans/<job>/runbook-phase-N.md`
+   - Include full step details for this phase
+   - Use script evaluation for each task (see section 1.1-1.3 below)
+
+2. **Review phase content:**
+   - Delegate to `vet-agent` (review-only mode)
+   - Agent writes review report, does NOT apply fixes
+   - Agent returns review report path
+
+3. **Apply fixes:**
+   - Read review report
+   - Apply all fixes (critical, major, minor)
+   - Update phase file with fixes
+
+4. **Finalize phase:**
+   - Phase content approved
+   - Proceed to next phase
+
+**Script evaluation for tasks within each phase:**
 
 **1.1 Small Tasks (≤25 lines)**: Write complete script inline
 
@@ -198,9 +367,34 @@ Implementation:
 
 ---
 
-### Point 2: Include Weak Orchestrator Metadata
+### Point 2: Assembly and Weak Orchestrator Metadata
 
-Every runbook MUST include this metadata section at the top:
+**After all phases are finalized, validate phase files are ready for assembly, then delegate to prepare-runbook.py.**
+
+**Actions:**
+
+1. **Pre-assembly validation:**
+   - Verify all phase files exist (`runbook-phase-1.md` through `runbook-phase-N.md`)
+   - Check phase reviews completed (all phase review reports in `reports/` directory)
+   - Confirm no critical issues remain in review reports
+
+2. **Metadata preparation:**
+   - Count total steps across all phases
+   - Extract Common Context elements from design
+   - Verify Design Decisions section ready for inclusion
+
+3. **Final consistency check:**
+   - Review cross-phase dependencies
+   - Verify step numbering is sequential
+   - Check for phase boundary issues
+   - No new content generation, only validation
+
+**IMPORTANT — Do NOT manually assemble:**
+- Phase files remain separate until prepare-runbook.py processes them
+- Manual concatenation bypasses validation logic (step numbering, metadata calculation)
+- prepare-runbook.py will handle assembly in Point 4
+
+Every assembled runbook MUST include this metadata section at the top:
 
 ```markdown
 ## Weak Orchestrator Metadata
@@ -251,15 +445,69 @@ Every runbook MUST include this metadata section at the top:
 
 ---
 
-### Point 3: Plan Review by Vet Agent
+### Point 2.5: Consolidation Gate — Runbook
 
-Before finalizing the runbook, delegate review to the vet agent.
+**Objective:** Merge isolated trivial steps with related features after assembly validation.
 
-**Why vet agent:**
-- **Fresh eyes**: Sub-agent reviews with no orchestrator bias
-- **Autonomous fixing**: Agent applies high/medium fixes directly (not just reports)
-- **Quiet execution**: Writes detailed review to file, returns terse result
-- **Specialized**: Dedicated agent with vet review protocol built-in
+**Actions:**
+
+1. **Identify isolated trivial steps:**
+   - Steps marked for fast-path during Point 0.9
+   - Single-line changes or constant updates
+   - Steps with no validation assertions (pure configuration)
+
+2. **Check merge candidates:**
+
+   For each trivial step:
+   - **Same-file steps:** Merge with adjacent step modifying same file
+   - **Setup steps:** Promote to phase preamble (not separate step)
+   - **Cleanup steps:** Demote to phase postamble
+
+3. **Apply step consolidation:**
+
+   **Merge into adjacent step:**
+   ```markdown
+   ## Step N: [Feature Name]
+
+   **Additional setup:** [trivial work folded in — e.g., update constant, add import]
+
+   **Objective**: [Original step objective]
+
+   **Implementation:**
+   [Standard implementation content including merged trivial work]
+   ```
+
+   **Convert to inline instruction:**
+   ```markdown
+   **Pre-phase setup:**
+   - Update config constant to X
+   - Add import statement for Y
+
+   ## Step N: [First real step]
+   ```
+
+4. **Update metadata:**
+   - Adjust Total Steps count
+   - Update step numbering if merges occurred
+   - Note consolidations in runbook header
+
+**Constraints:**
+- Never merge steps across phases
+- Preserve isolation when needed (don't merge if steps would conflict)
+- Keep merged steps manageable (avoid overloading single step)
+
+**When to skip:**
+- No trivial steps identified in Point 0.9
+- All steps have substantial validation coverage
+- Runbook is already compact (<15 steps)
+
+**Rationale:** Trivial steps add orchestrator overhead. A haiku executor can handle "update constant X and then implement feature Y" in one delegation. Consolidation reduces round-trips without losing coverage.
+
+---
+
+### Point 3: Final Holistic Review
+
+**After assembly, perform final cross-phase review of complete runbook.**
 
 **Delegation Pattern:**
 
@@ -267,7 +515,13 @@ Before finalizing the runbook, delegate review to the vet agent.
 Task(
   subagent_type="vet-agent",
   model="sonnet",
-  prompt="Review the runbook at [runbook-path] for completeness, correctness, and executability.
+  prompt="Review the assembled runbook at [runbook-path] for completeness, correctness, and executability.
+
+  Focus on cross-phase issues:
+  - Step numbering consistency
+  - Dependency ordering across phases
+  - Metadata accuracy (step counts, model assignments)
+  - Overall coherence
 
   CRITICAL: Also validate all file paths referenced in the runbook exist in the codebase.
   Use Glob to verify each path. Flag missing files as critical issues.
@@ -281,10 +535,11 @@ Task(
 ```
 
 **Agent responsibilities:**
-1. Review runbook file using vet protocol
-2. Validate all referenced file paths exist
-3. Write review report to specified path
-4. Return filepath or error to orchestrator
+1. Review assembled runbook using vet protocol
+2. Focus on cross-phase consistency (individual phases already reviewed)
+3. Validate all referenced file paths exist
+4. Write review report to specified path
+5. Return filepath or error to orchestrator
 
 **Orchestrator receives:**
 - Filepath: `plans/foo/reports/runbook-review.md` (success)
@@ -294,7 +549,7 @@ Task(
 1. Read review report from filepath
 2. Check assessment status (Ready / Needs Minor Changes / Needs Significant Changes)
 3. If "Needs Minor Changes" or "Needs Significant Changes":
-   - **REQUIRED:** Apply all critical and major priority fixes
+   - **REQUIRED:** Apply all fixes (critical, major, minor)
    - Update runbook with fixes
    - Delegate re-review if changes are significant
    - Iterate until assessment is "Ready"
@@ -304,9 +559,10 @@ Task(
    - Escalate to user
 
 **Fix Application Policy:**
-- Critical and major priority issues MUST be fixed before proceeding
-- Minor priority issues are optional (document as future improvements if skipped)
-- Never proceed with unaddressed critical/major issues
+- All issues (critical, major, minor) MUST be fixed before proceeding
+- Never proceed with unaddressed issues
+
+**Note:** Individual phase reviews already happened (Point 1). This final review checks holistic consistency only.
 
 ---
 
@@ -418,6 +674,63 @@ The next pending task (written by handoff) will instruct: "Restart session, swit
 
 ---
 
+## Checkpoints
+
+Checkpoints are verification points inserted between phases. They validate accumulated work and create commit points.
+
+**Two checkpoint tiers:**
+
+**Light checkpoint** (Fix + Functional):
+- **Placement:** Every phase boundary
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes failures, commit when passing
+  2. **Functional:** Sonnet reviews implementations against design
+     - Check: Are implementations real or stubs? Do functions compute or return constants?
+     - If stubs found: STOP, report which implementations need real behavior
+     - If all functional: Proceed to next phase
+
+**Full checkpoint** (Fix + Vet + Functional):
+- **Placement:** Final phase boundary, or phases marked `checkpoint: full` in runbook
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes failures, commit when passing
+  2. **Vet:** Sonnet reviews accumulated changes (presentation, clarity, design alignment)
+     - **REQUIRED:** Apply all fixes (critical, major, minor)
+     - Commit when complete
+  3. **Functional:** Sonnet reviews implementations against design (same checks as light checkpoint)
+
+**When to mark `checkpoint: full` during planning:**
+- Phase introduces new public API surface or contract
+- Phase crosses module boundaries (changes span 3+ packages)
+- Runbook expected to exceed 20 steps total
+
+**Rationale:** Light checkpoints catch dangerous issues (broken tests, stubs) at low cost. Full checkpoints catch quality debt (naming, duplication, abstraction) at boundaries where accumulated changes justify the vet review cost.
+
+**Example:**
+```markdown
+## Step 3: Add error handling (final step of Phase 2)
+[standard implementation content]
+
+---
+
+**Light Checkpoint** (end of Phase 2)
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Functional: Review Phase 2 implementations against design. Check for stubs.
+
+---
+
+## Step 4: Add validation (Phase 3 begins)
+[standard implementation content]
+
+---
+
+**Full Checkpoint** (end of Phase 3 - final phase)
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Vet: Review all changes for quality, clarity, design alignment. Apply all fixes. Commit.
+3. Functional: Review all implementations against design. Check for stubs.
+```
+
+---
+
 ## Critical Constraints
 
 **Tool Usage:**
@@ -491,27 +804,44 @@ Analyzing task:
 
 **Assessment: Create runbook** (orchestration justified)
 
-**Point 1: Evaluating Tasks**
+**Point 0.5: Discover Codebase**
 
-Let me break this down:
+*Uses Glob/Grep to verify file paths from design*
+*Scans memory-index.md for related constraints*
 
-1. Setup OAuth2 configuration (small - inline script)
-2. Implement auth routes and handlers (medium - prose description)
-3. Add session management (medium - prose description)
-4. Create user profile integration (medium - prose description)
-5. Write integration tests (large - separate planning needed)
+**Point 0.75: Generate Runbook Outline**
 
-**Point 2: Creating Runbook with Metadata**
+*Creates runbook outline with 3 phases, 8 steps*
+*Delegates to runbook-outline-review-agent (fix-all)*
+*Receives: "plans/oauth2-auth/reports/outline-review.md"*
 
-*Creates initial runbook draft with orchestrator metadata*
+**Point 1: Phase-by-Phase Expansion**
 
-**Point 3: Runbook Review**
+*Phase 1: Configuration and Setup*
+- Generates runbook-phase-1.md
+- Delegates to vet-agent (review-only)
+- Applies all fixes
 
-*Delegates to sonnet task agent for review*
-*Receives: "Review complete - 2 critical issues, 3 major issues - NEEDS_REVISION"*
+*Phase 2: Core Implementation*
+- Generates runbook-phase-2.md
+- Delegates to vet-agent (review-only)
+- Applies fixes
 
-*Addresses issues and requests re-review*
-*Receives: "Re-review complete - All critical issues resolved - READY"*
+*Phase 3: Testing*
+- Generates runbook-phase-3.md
+- Marks for separate planning session
+- Delegates to vet-agent (review-only)
+
+**Point 2: Assembly and Metadata**
+
+*Concatenates phases into runbook.md*
+*Adds Weak Orchestrator Metadata*
+*Final consistency check*
+
+**Point 3: Final Holistic Review**
+
+*Delegates to vet-agent for cross-phase review*
+*Receives: "Review complete - All checks passed - READY"*
 
 **Point 4: Prepare Artifacts**
 
@@ -523,9 +853,8 @@ agent-core/bin/prepare-runbook.py plans/oauth2-auth/runbook.md
 
 Artifacts created:
 - Plan-specific agent: `.claude/agents/oauth2-auth-task.md`
-- Steps: `plans/oauth2-auth/steps/step-{1,2,3,4}.md`
+- Steps: `plans/oauth2-auth/steps/step-{1,2,3,4,5,6,7,8}.md`
 - Orchestrator plan: `plans/oauth2-auth/orchestrator-plan.md`
-- Note: Step 5 (tests) marked for separate planning session
 
 Ready for execution. Use `/orchestrate` to execute the runbook."
 
@@ -666,6 +995,8 @@ Default behavior if omitted:
 **Avoid:**
 - Creating runbooks when direct implementation is better (skipping Point 0)
 - Assuming file paths from conventions without Glob/Grep verification (skipping Point 0.5)
+- Skipping outline generation (Point 0.75) for complex runbooks
+- Generating entire runbook monolithically instead of phase-by-phase
 - Assuming prerequisites are met without verification
 - Assigning semantic analysis tasks to haiku
 - Leaving design decisions for "during execution"

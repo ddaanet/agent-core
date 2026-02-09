@@ -101,7 +101,7 @@ This creates symlinks in the parent project's `.claude/` directory pointing to s
 **Plan archival policy:** Plans are NOT archived to `plans/archive/`. Git is the archive. Delete completed plans after extracting key decisions to documentation.
 
 **Key decisions go to:**
-- Parent project's `agents/design-decisions.md` - Architectural patterns
+- Parent project's `agents/decisions/` - Architectural patterns
 - This README - Structure and usage
 - Workflow docs - Process improvements
 

@@ -47,12 +47,19 @@ If `requirements.md` exists in job directory (`plans/<job-name>/requirements.md`
 - Read and summarize functional/non-functional requirements
 - Note scope boundaries (in/out of scope)
 - Carry requirements context into outline and design
+- **Skill dependency scan:** Check if requirements mention creating agents, skills, hooks, or plugins → load corresponding `plugin-dev:*` skill immediately (don't defer to A.1)
 
 If no requirements.md exists:
 - Document requirements discovered during research
 - Can be inline in design.md or separate requirements.md (designer's judgment)
 
-**Output:** Requirements summary available for Phase A.5 (outline) and Phase C.1 (design).
+**Skill dependency indicators:**
+- "sub-agent", "delegate to agent", "agent definition" → `plugin-dev:agent-development`
+- "skill", "invoke skill", "skill preloaded" → `plugin-dev:skill-development`
+- "hook", "PreToolUse", "PostToolUse" → `plugin-dev:hook-development`
+- "plugin", "MCP server" → `plugin-dev:plugin-structure`, `plugin-dev:mcp-integration`
+
+**Output:** Requirements summary + skill dependencies loaded, available for Phase A.5 (outline) and Phase C.1 (design).
 
 #### A.1. Documentation Checkpoint
 
@@ -62,7 +69,7 @@ If no requirements.md exists:
 
 | Level | Source | How | When |
 |-------|--------|-----|------|
-| 1. Local knowledge | `memory-index.md` for keyword discovery → read referenced files. `agents/design-decisions.md` always. Other `agents/decisions/*.md` and `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, quiet-explore or Grep on decision/fragment directories is also valid. | Direct Read, quiet-explore, or Grep | Always (core), flexible method |
+| 1. Local knowledge | `memory-index.md` for keyword discovery → read referenced files. `agents/decisions/*.md` always. `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, quiet-explore or Grep on decision/fragment directories is also valid. | Direct Read, quiet-explore, or Grep | Always (core), flexible method |
 | 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
 | 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
 | 4. Local explore | Codebase exploration | Delegate to quiet-explore agent | Always for complex designs |
@@ -93,7 +100,7 @@ Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/
 
 #### A.5. Produce Plan Outline
 
-**Output:** Freeform summary presented to user in conversation (not a file).
+**Output:** Write outline to `plans/<job>/outline.md` (create directory if needed).
 
 **Content:**
 - Approach summary
@@ -111,6 +118,29 @@ Scope: API gateway only. Dashboard/monitoring out of scope.
 
 **Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
 
+#### A.6. FP-1 Checkpoint: Review Outline
+
+**Objective:** Validate outline before presenting to user.
+
+**Process:**
+
+Delegate to `outline-review-agent` using Task tool with `subagent_type="outline-review-agent"`:
+
+```
+Review plans/<job>/outline.md for completeness, clarity, and alignment with requirements.
+
+Apply all fixes (critical, major, minor) directly to outline.md.
+
+Write review report to: plans/<job>/reports/outline-review.md
+
+Return only the filepath on success (with ESCALATION note if unfixable issues), or 'Error: [description]' on failure.
+```
+
+**Handle review outcome:**
+- Read the review report from the returned filepath
+- If ESCALATION noted: Address unfixable issues before proceeding to user presentation
+- If all issues fixed: Proceed to Phase B (report is audit trail)
+
 ---
 
 ### Phase B: Iterative Discussion
@@ -118,10 +148,11 @@ Scope: API gateway only. Dashboard/monitoring out of scope.
 **Objective:** Validate approach with user before expensive design generation.
 
 **Process:**
-- User provides feedback on outline
-- Designer responds with **incremental deltas only** — not full outline regeneration
-- Loop until user validates approach
-- This is conversation, not document generation — keep it light
+1. Open outline for user review: `open plans/<job>/outline.md`
+2. User reads outline in editor, provides feedback in chat
+3. Designer applies deltas to outline.md file (not inline conversation)
+4. Re-review via outline-review-agent if significant changes made
+5. Loop until user validates approach
 
 **Plugin-topic detection (reminder):** If design involves Claude Code plugin components (hooks, agents, skills), note which skill to load before planning: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."
 
@@ -219,6 +250,21 @@ When the design involves Claude Code plugin components, include a skill-loading 
 
 This ensures the planner has domain-specific guidance loaded before creating the runbook.
 
+**Execution model directives:**
+
+When the design involves modifying workflow definitions (`agents/decisions/workflow-*.md`), skill files (`agent-core/skills/`), or agent procedures (`agent-core/agents/`), include an execution directive in "Next steps":
+- Workflow/skill/agent edits: opus required
+
+Ensures architectural artifacts get appropriate scrutiny during execution, not just planning.
+
+#### C.2. Checkpoint Commit
+
+**Objective:** Commit the design document before vet review.
+
+**Process:** Stage and commit `plans/<job-name>/design.md` (and any reports from Phase A).
+
+**Why:** Preserves design state before vet review cycle. Enables diffing original vs post-vet version. Isolates vet changes in separate commit for audit trail.
+
 #### C.3. Vet Design
 
 **CRITICAL: Delegate to design-vet-agent for review.**
@@ -235,18 +281,16 @@ Return only the filepath on success, or 'Error: [description]' on failure.
 
 The design-vet-agent (opus model) performs comprehensive architectural review and writes a structured report with critical/major/minor issues categorized.
 
-#### C.4. Apply Fixes
+#### C.4. Check for Unfixable Issues
 
 **Read the review report** from the filepath returned by design-vet-agent.
 
-**Address all critical and major priority feedback:**
-- Critical issues MUST be fixed before proceeding
-- Major issues SHOULD be fixed (strongly recommended)
-- Minor issues are optional
+The design-vet-agent applies all fixes (critical, major, minor) directly. This step handles residual issues:
 
-Update design.md with corrections. Low priority items can be deferred or documented as known limitations.
+- **No UNFIXABLE issues:** Proceed to C.5.
+- **UNFIXABLE issues found:** Address manually or escalate to user.
 
-**Re-review if needed:** If changes are significant, re-delegate to design-vet-agent for verification.
+**Re-vet if needed:** If user manually addresses UNFIXABLE issues, re-delegate to design-vet-agent for verification.
 
 #### C.5. Handoff and Commit
 

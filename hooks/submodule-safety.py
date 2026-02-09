@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""
-Dual-mode hook: Block commands from wrong cwd (PreToolUse) and warn after
-cwd drift (PostToolUse).
+"""Dual-mode hook: Block commands from wrong cwd.
+
+Blocks PreToolUse commands from wrong cwd, warns PostToolUse after cwd drift.
 
 PreToolUse behavior:
 - cwd == project root → allow silently

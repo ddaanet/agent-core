@@ -1,7 +1,10 @@
 ---
 description: Execute prepared runbooks with weak orchestrator pattern
-allowed-tools: Task, Read, Write, Bash(git:*)
+allowed-tools: Task, Read, Write, Bash(git:*), Skill
 user-invocable: true
+continuation:
+  cooperative: true
+  default-exit: ["/handoff --commit", "/commit"]
 ---
 
 # Orchestrate Skill
@@ -89,13 +92,16 @@ CRITICAL: For session handoffs, use /handoff-haiku, NOT /handoff."
 - Missing report file
 - Unexpected results mentioned
 
-**3.3 Post-step tree check:**
+**3.3 Post-step verification and phase boundary:**
+
+<!-- DESIGN RULE: Every step must open with a tool call (Read/Bash/Glob).
+     Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md -->
 
 After agent returns success:
 ```bash
 git status --porcelain
 ```
-- If clean (no output): proceed to next step
+- If clean (no output): proceed to phase boundary check below
 - If ANY output: **STOP orchestration immediately**
   - Report: "Step N left uncommitted changes: [file list]"
   - Do NOT proceed regardless of whether changes look expected
@@ -104,47 +110,50 @@ git status --porcelain
 
 **There are no exceptions.** Every step must leave a clean tree. If a step generates output files, the step itself must commit them. Report files, artifacts, and any other changes must be committed by the step agent before returning success.
 
-**3.4 Checkpoint execution (tiered approach):**
+**Phase boundary check:**
 
-**Two checkpoint tiers:**
+Read the next step file header (first 10 lines of `plans/<name>/steps/step-{N+1}.md`).
 
-**Light checkpoint** (Fix + Functional):
-- Runs at: Every phase boundary
-- Steps:
-  1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
-  2. **Functional:** Check for stubs/hardcoded values against design
-     - If STUBS_FOUND: STOP orchestration, report to user
-     - If FUNCTIONAL: Continue
+Compare its `Phase:` field with the current step's phase.
 
-**Full checkpoint** (Fix + Vet + Functional):
-- Runs at: Final phase boundary, or explicit `checkpoint: full` markers in runbook
-- Steps:
-  1. **Fix:** Run `just dev` or equivalent, fix failures, commit when passing
-  2. **Vet:** Quality review of accumulated changes
-     - Delegate to vet-fix-agent: "Review accumulated changes. Write review to plans/{name}/reports/checkpoint-{N}-vet.md"
-     - Agent reviews AND applies critical/major fixes directly (has Edit tool)
-     - Read review report: check for UNFIXABLE issues
-     - Minor-priority issues: Optional (can defer)
-     - **NEVER** proceed with UNFIXABLE critical/major issues — escalate to user
-  3. **Functional:** Check for stubs/hardcoded values against design
-     - If STUBS_FOUND: STOP orchestration, report to user
-     - If FUNCTIONAL: Continue
+IF same phase: proceed to 3.4.
 
-**Checkpoint selection:**
-- Default: Light checkpoint at every phase, full checkpoint at final phase
-- Runbook can specify `checkpoint: full` at specific phases for additional full checkpoints
-- Criteria for additional full checkpoints during planning:
-  - Phase introduces new public API surface or contract
-  - Phase crosses module boundaries (changes span 3+ packages)
-  - Runbook expected to exceed 20 cycles total
+IF phase changed (or no next step = final phase): delegate to vet-fix-agent for checkpoint.
 
-**Rationale:** Fix + Functional catches dangerous issues (broken tests, stubs) cheaply. Vet catches quality debt (naming, duplication, abstraction) best at meaningful boundaries where accumulated changes justify the cost.
+Do NOT proceed to next step until checkpoint completes.
 
-**3.5 On success:**
+**Checkpoint delegation:**
+1. Gather context: design path, changed files (`git diff --name-only`), phase scope
+2. Delegate to vet-fix-agent with prompt:
+   ```
+   Phase N Checkpoint
+
+   **First:** Run `just dev`, fix any failures, commit.
+
+   **Scope:**
+   - IN: [list methods/features implemented in this phase]
+   - OUT: [list methods/features for future phases — do NOT flag these]
+
+   **Review (read changed files):**
+   - Test quality: behavior-focused, meaningful assertions, edge cases
+   - Implementation quality: clarity, patterns, appropriate abstractions
+   - Integration: duplication across phase methods, pattern consistency
+   - Design anchoring: verify implementation matches design decisions
+
+   **Design reference:** plans/<name>/design.md
+   **Changed files:** [file list from git diff --name-only]
+
+   Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-vet.md
+   Return filepath or "UNFIXABLE: [description]"
+   ```
+3. Read report: if UNFIXABLE issues, STOP and escalate to user
+4. If all fixed: commit checkpoint, continue to next phase
+
+**3.4 On success:**
 - Log step completion
 - Continue to next step
 
-**3.6 On failure:**
+**3.5 On failure:**
 - Read error report
 - Determine escalation level
 - Escalate according to orchestrator plan
@@ -415,6 +424,46 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 - Output: Executed steps with reports
 - Next (general): Delegate to vet-fix-agent to review and fix changes
 - Next (TDD): Delegate to vet-fix-agent, then review-tdd-process for process analysis
+
+## Continuation Protocol
+
+**This skill is cooperative** with the continuation passing system.
+
+**Consumption:**
+
+After completing the orchestration, check the Skill args suffix for `[CONTINUATION: ...]` transport.
+
+IF continuation present:
+1. Parse the `[CONTINUATION: ...]` structured list
+2. Peel first entry: `(/skill args)` or `/skill` (if no args)
+3. Strip continuation from current context (delete `[CONTINUATION: ...]` suffix)
+4. Invoke next skill: `Skill(/skill args="args [CONTINUATION: remainder]")` where remainder = remaining entries (if any)
+
+IF no continuation present:
+- Use default-exit from frontmatter: `/handoff --commit` then `/commit`
+- Invoke first entry, pass remainder as continuation to that skill
+
+**Example:**
+
+Incoming: `/orchestrate myplan [CONTINUATION: /commit]`
+- Complete orchestration
+- Strip continuation from current context
+- Peel first entry: `/commit`
+- No remainder, so invoke: `Skill(/commit)`
+
+Incoming: `/orchestrate myplan [CONTINUATION: /handoff --commit, /commit]`
+- Complete orchestration
+- Strip continuation from current context
+- Peel first: `/handoff --commit`
+- Remainder: `/commit`
+- Invoke: `Skill(/handoff args="--commit [CONTINUATION: /commit]")`
+
+Incoming: `/orchestrate myplan` (no continuation)
+- Complete orchestration
+- Use default-exit: `["/handoff --commit", "/commit"]`
+- Invoke: `Skill(/handoff args="--commit [CONTINUATION: /commit]")`
+
+**Constraint:** This skill does NOT pass continuations to sub-agents (Task tool). Continuations apply only to the main session skill chain.
 
 ## References
 

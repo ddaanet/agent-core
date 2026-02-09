@@ -1,17 +1,19 @@
 ---
 name: review-tdd-plan
-description: This skill should be used when reviewing TDD runbooks after generation by /plan-tdd. Use when the user asks to "review TDD runbook", "check runbook for prescriptive code", "validate RED/GREEN discipline", "check for implementation anti-patterns", or when /plan-tdd Phase 5 delegates to tdd-plan-reviewer agent. Detects GREEN phases containing exact implementation code (violates TDD principles) and validates proper RED/GREEN sequencing.
+description: This skill should be used when reviewing TDD runbooks after generation by /plan-tdd. Use when the user asks to "review TDD runbook", "check runbook for prescriptive code", "validate RED/GREEN discipline", "check for implementation anti-patterns", or when /plan-tdd Phase 3/5 delegates to tdd-plan-reviewer agent. Detects GREEN phases containing exact implementation code (violates TDD principles) and validates proper RED/GREEN sequencing.
 user-invocable: false
 model: sonnet
 ---
 
 # /review-tdd-plan Skill
 
-Review TDD runbooks to ensure proper RED/GREEN discipline and non-prescriptive implementation guidance.
+Review TDD runbooks, fix all issues, and report findings (audit trail + escalation).
 
 ---
 
 ## Purpose
+
+**Review agent behavior:** Write review (audit trail) → Fix ALL issues → Escalate unfixable
 
 **Critical anti-pattern:** Runbooks that prescribe exact implementation code violate TDD principles. Tests should drive implementation, not scripts.
 
@@ -20,6 +22,10 @@ Review TDD runbooks to ensure proper RED/GREEN discipline and non-prescriptive i
 - Identifies RED/GREEN sequencing violations
 - Checks for proper minimal implementation guidance
 - Validates stop conditions and error handling
+- **Fixes ALL issues directly** (critical, major, minor)
+- **Reports unfixable issues** for caller escalation
+
+**Why review even when fixing:** The review report is an audit trail. It documents what was wrong and what was fixed, enabling process improvement and deviation monitoring.
 
 **Target users:** T2 agents (sonnet for review)
 
@@ -116,20 +122,53 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 ### 5. Weak RED Phase Assertions (CRITICAL)
 
-**Violation:** RED test only verifies structure, not behavior
+**Violation:** RED test prose only verifies structure, not behavior
 
-**Indicators:**
+**Indicators (prose format):**
+- Prose says "returns correct value" without specifying what value
+- Prose says "handles error" without specifying error type/message
+- Prose says "processes correctly" without expected output
+- No specific values, patterns, or behaviors specified
+
+**Indicators (legacy code format):**
 - Test only checks `exit_code == 0` or `exit_code != 0`
 - Test only checks key existence (`"KEY" in dict`) without value verification
 - Test only checks class/method existence (would pass with `pass` body)
 - Test has no mocking for I/O-dependent behavior
 
-**Check:** For each RED phase, ask: "Would a stub that returns a constant/empty value pass this test?" If yes → VIOLATION: weak assertion
+**Check:** For each RED phase, ask: "Could an executor write different tests that all satisfy this description?" If yes → VIOLATION: prose too vague
 
-**Correct pattern:**
-- Assert on output content, mock interactions, or computed values
-- Mock external dependencies and verify interaction
-- Use fixtures for filesystem state
+**Correct prose pattern:**
+- Specific values: "returns string containing 🥈 emoji"
+- Specific errors: "raises ValueError with message 'invalid input'"
+- Specific structure: "output dict contains 'count' key with integer > 0"
+- Mock requirements: "mock keychain, verify get_password called with service='claude'"
+
+### 5.5. Prose Test Quality (NEW)
+
+**Violation:** RED phase uses full test code instead of prose description
+
+**Check:** Scan RED phases for python code blocks containing test implementations
+
+**Indicators:**
+- `def test_*():` pattern in RED phase code block
+- `assert` statements in code blocks (not in prose)
+- Complete test function with imports and fixtures
+
+**Why this matters:**
+- Full test code wastes planning tokens
+- Haiku executors can generate tests from prose
+- Prose is easier to review for behavioral coverage
+
+**Acceptable in RED:**
+- Prose test descriptions with specific assertions
+- Expected failure message/pattern (in code block OK)
+- Fixture setup hints (prose, not code)
+
+**Not acceptable:**
+- Complete pytest function implementations
+- Multiple assert statements in code blocks
+- Full test file content
 
 ### 6. Metadata Accuracy
 
@@ -146,7 +185,33 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 - If empty case requires special handling → acceptable
 - If empty case arises naturally from list processing → WARNING: reorder to test simplest happy path first
 
-### 8. File Reference Validation (CRITICAL)
+### 8. Consolidation Quality
+
+**Check:** Merged cycles maintain test isolation
+
+**Indicators of bad consolidation:**
+- Merged cycle has >5 assertions (overloaded)
+- Setup/teardown conflicts in same cycle
+- Unrelated domains merged (forced grouping)
+- Phase preamble contains testable behavior (should be a cycle)
+
+**Check:** Trivial work placement
+
+**Good patterns:**
+- Config constants as phase preamble
+- Import additions as setup instructions
+- Single-file trivial changes merged with adjacent same-file cycle
+
+**Bad patterns:**
+- Trivial cycles left isolated (should merge or inline)
+- Testable behavior hidden in preamble (needs assertion)
+- Cross-phase merges (never allowed)
+
+**Why this matters:** Consolidation reduces orchestrator overhead but shouldn't sacrifice test isolation. Bad merges create flaky tests or miss coverage.
+
+---
+
+### 9. File Reference Validation (CRITICAL)
 
 **Violation:** Runbook references file paths that don't exist in the codebase
 
@@ -171,6 +236,8 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 ### Phase 1: Scan for Code Blocks
 
+**1a. Check GREEN phases for implementation code:**
+
 Use Grep tool to find code blocks in GREEN phases:
 
 **Pattern:** `^\*\*GREEN Phase:\*\*`
@@ -181,6 +248,17 @@ Use Grep tool to find code blocks in GREEN phases:
 1. Check if it's implementation code (not test code)
 2. Check if it's in GREEN phase
 3. Mark as VIOLATION
+
+**1b. Check RED phases for full test code (new check):**
+
+**Pattern:** `^\*\*RED Phase:\*\*`
+**Context:** Use -A 30 to see test content
+**Check for:** `def test_.*\(\):` pattern inside code blocks
+
+**For full test functions found:**
+1. Check if it's a complete test implementation (not just expected failure)
+2. If complete test with multiple asserts → VIOLATION: use prose instead
+3. Exception: Expected failure message snippets are OK
 
 ### Phase 2: Validate File References
 
@@ -197,52 +275,111 @@ Extract all file paths referenced in the runbook (Common Context, RED/GREEN phas
 
 **For each cycle (X.Y):**
 
-1. **Extract RED phase:** What test assertions?
-2. **Extract GREEN phase:** What implementation guidance?
-3. **Check sequence:** Will RED fail before GREEN?
+1. **Extract RED phase:** What test assertions (prose or code)?
+2. **Validate prose quality:** Are assertions behaviorally specific?
+3. **Extract GREEN phase:** What implementation guidance?
+4. **Check sequence:** Will RED fail before GREEN?
+
+**Prose quality check:**
+- Each assertion specifies concrete expected value or pattern
+- Not vague ("works correctly", "handles error")
+- Could haiku write the test from this prose? If unclear → WARNING
 
 **Sequencing check:**
 - If cycle X.1 includes complete signature + error handling → VIOLATION
 - If cycle X.1 includes all features → VIOLATION
 - If "minimal implementation" has 10+ lines → WARNING
 
-### Phase 4: Generate Report
+### Phase 4: Apply Fixes
+
+**Fix-all policy:** Apply ALL fixes (critical, major, AND minor) directly to the runbook/phase file.
+
+**Fix process:**
+1. For each violation identified:
+   - Determine if fixable (most are) or requires escalation (design gaps, scope issues)
+   - Apply fix using Edit tool
+   - Document fix in report with Status: FIXED
+2. For unfixable issues:
+   - Mark clearly in report with Status: UNFIXABLE
+   - Explain why (missing design decision, scope conflict, etc.)
+   - These require caller escalation
+
+**Common fixes:**
+- **Prescriptive code in GREEN:** Replace with behavior description + hints
+- **Vague prose in RED:** Add specific expected values/patterns
+- **Sequencing violation:** Note in report, suggest cycle restructuring (may need outline revision → UNFIXABLE)
+- **Trivial cycles not consolidated:** Merge or inline trivial work
+- **Metadata mismatch:** Update Total Steps count
+- **File path errors:** Correct paths or mark for verification
+
+**Fix constraints:**
+- Preserve cycle intent and scope
+- Don't change requirements coverage
+- Don't add new cycles (escalate if needed)
+- Keep behavioral descriptions accurate to design
+
+### Phase 5: Generate Report
 
 **Structure:**
 
 ```markdown
 # TDD Runbook Review: {name}
 
+**Artifact**: [path]
+**Date**: [ISO timestamp]
+**Mode**: review + fix-all
+
 ## Summary
 - Total cycles: N
-- Violations found: N critical, N warnings
-- Overall assessment: PASS | NEEDS REVISION
+- Issues found: N critical, N major, N minor
+- Issues fixed: N
+- Unfixable (escalation required): N
+- Overall assessment: Ready | Needs Escalation
 
 ## Critical Issues
 
 ### Issue 1: GREEN phase contains implementation code
 **Location**: Cycle 2.1, line 490-528
 **Problem**: Complete load_config() implementation prescribed
-**Recommendation**: Replace with behavior description
+**Fix**: Replaced with behavior description
+**Status**: FIXED
 
 ### Issue 2: RED/GREEN sequencing violation
 **Location**: Cycle 3.1
 **Problem**: "Minimal" implementation includes all features
-**Recommendation**: Split into incremental cycles
+**Fix**: N/A - requires outline restructuring
+**Status**: UNFIXABLE (escalation: cycle decomposition needed)
 
-## Warnings
+## Major Issues
 
-### Warning 1: Large "minimal" implementation
-**Location**: Cycle 4.1
-**Details**: 50 lines in first cycle suggests not minimal
+### Issue 1: Vague prose in RED phase
+**Location**: Cycle 1.2
+**Problem**: "returns correct value" without specifying value
+**Fix**: Added specific assertion: "returns string containing 🥈 emoji"
+**Status**: FIXED
+
+## Minor Issues
+
+### Issue 1: Metadata mismatch
+**Location**: Weak Orchestrator Metadata
+**Problem**: Total Steps says 12, actual count is 14
+**Fix**: Updated to 14
+**Status**: FIXED
+
+## Fixes Applied
+
+- Cycle 2.1 GREEN: Replaced implementation code with behavior description
+- Cycle 1.2 RED: Strengthened prose assertions
+- Metadata: Corrected Total Steps count
+
+## Unfixable Issues (Escalation Required)
+
+1. **Cycle 3.1 sequencing** — Requires outline revision to split into incremental cycles
+   - Recommendation: Return to runbook outline, decompose Phase 3
+
+(If none: "None — all issues fixed")
 
 ## Recommendations
-
-1. **Remove implementation code from GREEN phases**
-   - Describe behavior, not code
-   - Provide hints for approach, not exact solution
-
-2. **Restructure cycles for proper RED→GREEN**
    - Cycle X.1: Happy path only
    - Cycle X.2: Error handling
    - Cycle X.3: Optional features
@@ -256,28 +393,35 @@ Extract all file paths referenced in the runbook (Common Context, RED/GREEN phas
 
 ## Output Format
 
-**Report file:** plans/<feature-name>/reports/runbook-review.md
+**Report file:** plans/<feature-name>/reports/runbook-review.md (or phase-N-review.md for phase files)
 
-**Return to caller:** Summary + path to report
+**Return to caller:** Filepath only (or with escalation note)
 
-```markdown
-Review complete: 6 violations found
+**On success (all issues fixed):**
+```
+plans/<feature>/reports/runbook-review.md
+```
 
-**Critical:**
-- 4 cycles contain implementation code
-- 2 cycles violate RED/GREEN sequence
+**On success with unfixable issues:**
+```
+plans/<feature>/reports/runbook-review.md
+ESCALATION: 2 unfixable issues require attention (see report)
+```
 
-**Report**: plans/unification/consolidation/reports/runbook-review.md
-
-**Recommendation**: Apply fixes before execution
+**On failure:**
+```
+Error: [What failed]
+Details: [Error message]
+Context: [What was being attempted]
+Recommendation: [What to do]
 ```
 
 ---
 
 ## Invocation
 
-**Automatic:** /plan-tdd Phase 5 delegates to tdd-plan-reviewer agent
-**Manual:** Delegate to tdd-plan-reviewer agent with runbook path
+**Automatic:** /plan-tdd Phase 3 (per-phase) and Phase 5 (final) delegate to tdd-plan-reviewer agent
+**Manual:** Delegate to tdd-plan-reviewer agent with runbook/phase file path
 
 ---
 
@@ -285,10 +429,12 @@ Review complete: 6 violations found
 
 **Workflow:**
 ```
-/design (TDD mode) → /plan-tdd → tdd-plan-reviewer agent → [apply fixes] → prepare-runbook.py → /orchestrate
+/design (TDD mode) → /plan-tdd → tdd-plan-reviewer agent (fix-all) → [escalate if needed] → prepare-runbook.py → /orchestrate
 ```
 
-**Automatic review:** /plan-tdd Phase 5 triggers tdd-plan-reviewer agent automatically
+**Automatic review:** /plan-tdd Phase 3 triggers per-phase review, Phase 5 triggers final holistic review
+
+**Escalation path:** If ESCALATION noted in return, caller must address unfixable issues before proceeding
 
 ---
 
@@ -299,8 +445,11 @@ Review complete: 6 violations found
 3. **RED must fail** - Before GREEN can pass
 4. **Describe behavior** - Not code
 5. **Provide hints** - Not solutions
+6. **Fix everything** - Review agents fix, not just report
+7. **Escalate unfixable** - Clear communication of blockers
 
 ---
 
 **Created**: 2026-01-26
-**Purpose**: Prevent prescriptive TDD runbooks, ensure proper RED/GREEN discipline
+**Updated**: 2026-02-05
+**Purpose**: Prevent prescriptive TDD runbooks, ensure proper RED/GREEN discipline, autofix all issues

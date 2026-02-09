@@ -26,7 +26,7 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 **Behavioral rules** → `agent-core/fragments/*.md`: Workflow patterns • Anti-patterns • Directive conflicts • Agent behavior
 **Technical details** → `agents/decisions/*.md`: Architecture • Implementation patterns • Technology choices (consult `agents/decisions/README.md` for domain → file routing)
-**Implementation patterns** → `agents/implementation-notes.md`: Mock patterns • Python quirks • API details
+**Implementation patterns** → `agents/decisions/implementation-notes.md`: Mock patterns • Python quirks • API details
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
 **Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
 **Other**: `.claude/agents/*.md` • Plan files (historical only)
@@ -64,6 +64,39 @@ After consolidating a learning:
 2. **If new fragment created**: Add `@`-reference to CLAUDE.md OR create `.claude/rules/` entry if path-scoped. **Heuristic:** If the learning applies regardless of which files are being edited → `@`-ref in CLAUDE.md. If it only applies when working with a specific file type or directory → `.claude/rules/` entry with path frontmatter.
 3. **If existing fragment updated**: Ensure memory index entry reflects the updated content (add new entry or update existing one)
 4. **If decision file updated**: Verify corresponding `.claude/rules/` entry exists for path trigger
+
+### Learnings Quality Criteria
+
+**Principle-level (consolidate):** ✅
+- States a general constraint or pattern
+- Applies beyond the specific incident
+- Example: "Always load skill context before editing"
+
+**Incident-specific (reject/revise):** ❌
+- Describes what happened, not what to do
+- Narrow to one case, not generalizable
+- Example: "Edited skill without loading it" → revise to principle
+
+**Meta-learnings (use sparingly):**
+- Rules about rules — only when behavioral constraint required
+- Example: "Soft limits normalize deviance" → consolidate if recurrent
+
+### Staging Retention Guidance
+
+**Keep in staging (do not consolidate):**
+- Entries < 7 active days old (insufficient validation)
+- Entries with pending cross-references (depend on other work)
+- Entries under active investigation
+
+**Consolidate:**
+- Entries ≥ 7 active days with proven validity
+- Entries that have been applied consistently
+- Entries referenced by multiple sessions
+
+**Drop (remove from staging):**
+- Superseded by newer entry on same topic
+- Contradicted by subsequent work
+- Incident-specific without generalizable principle
 
 ### 5. Document
 **Commit**: `Update [file]: [what]\n\n- [change 1]\n- [change 2]\n- [rationale]`

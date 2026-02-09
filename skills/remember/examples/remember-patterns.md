@@ -47,14 +47,14 @@ Commit: "Add tool batching guidance"
 **When**: Architectural or design choice made that affects future work
 
 **Steps**:
-1. Check if agents/design-decisions.md exists (create if needed)
+1. Check if agents/decisions/ directory exists with appropriate file for this decision
 2. Add: problem, options considered, choice made, rationale
 3. Reference from CLAUDE.md if decision creates rules
 
 **Example**:
 ```
 Decided to use weak orchestrator pattern for runbook execution.
-Create agents/design-decisions.md if needed.
+Create or update agents/decisions/*.md as appropriate.
 Add section: Weak Orchestrator Pattern
   - Problem: Complex runbooks need structured execution
   - Options: Direct, strong orchestrator, weak orchestrator

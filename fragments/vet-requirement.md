@@ -1,10 +1,6 @@
 ## Vet Requirement
 
-**Rule:** After creating any production artifact, delegate to vet agent for review.
-
-**Two vet agents — choose by caller context:**
-- `vet-agent` — review only. Use when caller has context to apply fixes (Tier 1/2, direct work)
-- `vet-fix-agent` — review + apply critical/major fixes. Use in orchestration where no other agent has context (Tier 3)
+**Rule:** After creating any production artifact, delegate to `vet-fix-agent` for review and fix.
 
 **Production artifacts requiring vet:**
 - Plans (runbooks)
@@ -14,7 +10,7 @@
 - Skill definitions
 - Documentation that defines behavior or contracts
 
-**Design documents:** Reviewed by opus.
+**Design documents:** Reviewed by opus (`design-vet-agent`).
 
 **Artifacts NOT requiring vet:**
 - Execution reports
@@ -23,31 +19,20 @@
 - Temporary analysis
 - Session handoffs (already reviewed during /handoff)
 
-**Vet process (Tier 1/2 — caller has context):**
+**Vet process:**
 1. Create artifact
-2. Delegate to `vet-agent`: review, write report to file
-3. Read report, apply critical/major fixes with full context
-4. Document minor issues for later if appropriate
-
-**Vet process (Tier 3 — orchestration):**
-1. Create artifact
-2. Delegate to `vet-fix-agent`: review, apply critical/major fixes, write report
+2. Delegate to `vet-fix-agent`: review, apply ALL fixes, write report
 3. Read report, check for UNFIXABLE issues
-4. Escalate UNFIXABLE critical/major issues to user
+4. Escalate UNFIXABLE issues to user
 
-**Why:** Early review catches issues before they propagate. Sonnet provides objective analysis without author bias. Agent selection ensures fixes happen where context exists.
+**No importance filtering.** The vet-fix-agent applies all fixes (critical, major, minor). The caller does not triage or defer fixes.
+
+**Why:** Early review catches issues before they propagate. Applying all fixes eliminates drift from deferred minor issues accumulating across sessions.
 
 **Example:**
 ```
-# Tier 1/2: After writing test procedure (caller has context)
 1. Create: agent-core/agents/test-hooks.md
-2. Vet: Task(subagent_type="vet-agent") → writes report
-3. Read report, apply critical/major fixes directly
-4. Result: Higher quality artifact
-
-# Tier 3: During orchestration (orchestrator has no context)
-1. Step agent creates implementation
-2. Checkpoint: Task(subagent_type="vet-fix-agent") → reviews AND fixes
-3. Orchestrator reads report, checks for UNFIXABLE issues
-4. Result: Fixes applied by agent with context
+2. Vet: Task(subagent_type="vet-fix-agent") → reviews, fixes ALL issues, writes report
+3. Read report, check for UNFIXABLE issues
+4. Result: All fixable issues resolved
 ```

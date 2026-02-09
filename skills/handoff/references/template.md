@@ -21,6 +21,12 @@ Use this structure when updating session.md for agent handoff:
 - [ ] **Task name** — description | model
 - [ ] **Another task** — description | model | restart
 
+## Worktree Tasks
+
+- [ ] **Task name** → `wt/<slug>` — description | model
+
+*Section present only when tasks are in active worktrees. Preserved on handoff.*
+
 ## Blockers / Gotchas
 
 **[Issue description]:**
@@ -59,5 +65,6 @@ Use this structure when updating session.md for agent handoff:
 **Always preserved:**
 - Tasks completed in current conversation
 - Uncommitted tasks from any conversation
+- All content from prior uncommitted handoffs (merge = append to lists and categories, don't replace entire file)
 
 **Note:** Learnings are written to separate `agents/learnings.md` file (not session.md)

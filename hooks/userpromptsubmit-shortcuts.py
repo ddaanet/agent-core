@@ -75,8 +75,6 @@ DIRECTIVES = {
 BUILTIN_SKILLS: Dict[str, Any] = {}
 
 # Context filtering constants
-LOOKBEHIND_CHARS = 20  # Characters to check before skill reference for path markers
-LOOKAHEAD_CHARS = 50   # Characters to check after skill reference for file extensions
 
 
 def extract_frontmatter(skill_path: Path) -> Optional[Dict[str, Any]]:
@@ -365,91 +363,37 @@ def build_registry() -> Dict[str, Dict[str, Any]]:
     return registry
 
 
-def _is_in_xml_context(prompt: str, pos: int) -> bool:
-    """Check if position is inside XML/structured output markers."""
-    # Look backward for opening tag
-    before = prompt[:pos]
-    xml_patterns = ['<command-', '<bash-', '<local-command-']
+def _is_line_prefixed_note(prompt: str, pos: int) -> bool:
+    """Check if skill reference is on a line starting with 'note:'.
 
-    for pattern in xml_patterns:
-        last_open = before.rfind(pattern)
-        if last_open == -1:
-            continue
+    Args:
+        prompt: User input
+        pos: Position of skill reference
 
-        # Found opening tag, check if closing tag comes after position
-        after = prompt[pos:]
-        if '>' in after:
-            # Inside XML context
-            return True
+    Returns:
+        True if line starts with 'note:' (case-insensitive)
+    """
+    # Find start of current line
+    line_start = prompt.rfind('\n', 0, pos)
+    if line_start == -1:
+        line_start = 0
+    else:
+        line_start += 1  # Move past the newline
 
-    return False
+    # Get line content up to position
+    line_prefix = prompt[line_start:pos].strip().lower()
 
-
-def _is_in_file_path(prompt: str, pos: int) -> bool:
-    """Check if position is part of a file path."""
-    # Check for path separators before skill reference
-    before = prompt[max(0, pos-LOOKBEHIND_CHARS):pos]
-    if any(marker in before for marker in ['plans/', 'steps/', 'reports/', '.claude/', 'tests/']):
-        return True
-
-    # Check for file path pattern: /word-word/ or /word/ (path separator after)
-    # Look for next few characters after the skill name
-    after = prompt[pos:]
-    # Match file path patterns like: /orchestrate-redesign/ or /path/to/
-    if re.match(r'/\w+[-/]', after):
-        return True
-
-    # Check for file extensions or directory paths after skill reference
-    # Catches: /orchestrate-redesign/design.md OR /orchestrate-redesign/ (directory)
-    after_extended = prompt[pos:min(len(prompt), pos+LOOKAHEAD_CHARS)]
-    # Match: /word[/-]anything.extension OR /word-word/ (directory path)
-    if re.search(r'/\w+(?:[/-].*\.(md|py|txt|json|sh|yaml|yml)|[-/]\w+/)', after_extended):
-        return True
-
-    return False
-
-
-def _is_meta_discussion(prompt: str, pos: int) -> bool:
-    """Check if skill reference is meta-discussion (talking about skills)."""
-    # Get word before the slash
-    before = prompt[:pos].lower()
-
-    # Meta-discussion keywords (from empirical validation + common patterns)
-    meta_keywords = [
-        'use the ', 'invoke the ', 'remember to ', 'directive to ',
-        'call the ', 'using the ', 'with the ', 'via the ',
-        'use /', 'invoke /', 'call /', 'using /', 'via /',
-        'about /', 'discuss /', 'the ', 'on the ', 'work on the ',
-        'execute step from:', 'step from: plans/',  # Instructional context
-    ]
-
-    for keyword in meta_keywords:
-        if before.endswith(keyword.rstrip('/')):
-            return True
-
-    return False
-
-
-def _is_invocation_pattern(prompt: str, pos: int) -> bool:
-    """Check if position matches clear invocation patterns."""
-    # Pattern 1: Prompt starts with /skill
-    if prompt[:pos].strip() == '':
-        return True
-
-    # Pattern 2: After continuation delimiter
-    before = prompt[:pos].rstrip()
-    if before.endswith((',', ' and', ' then', ' finally')):
-        return True
-
-    # Pattern 3: Multi-line list (and\n- /skill)
-    if re.search(r'and\s*\n\s*-\s*$', before):
-        return True
-
-    return False
+    # Check if line starts with "note:"
+    return line_prefix.startswith('note:')
 
 
 def _should_exclude_reference(prompt: str, pos: int, skill_name: str) -> bool:
     """Determine if skill reference should be excluded from parsing.
+
+    Simplified approach matching Claude CLI behavior:
+    - Only match /skill when preceded by whitespace or at line start
+    - Exclude file path patterns (/word-word/, /word/)
+    - Exclude lines prefixed with "note:"
 
     Args:
         prompt: User input
@@ -460,39 +404,28 @@ def _should_exclude_reference(prompt: str, pos: int, skill_name: str) -> bool:
         True if reference should be EXCLUDED (false positive context).
         False if reference is a valid invocation (should be parsed).
     """
-    # 1. Check invocation patterns FIRST - early exit for confirmed invocations
-    # If this is clearly an invocation (prompt start, after delimiter), skip all other checks
-    if _is_invocation_pattern(prompt, pos):
-        return False  # Explicit invocation, NOT a false positive
+    # 1. Primary filter: Only match when preceded by whitespace or at line start
+    # This aligns with Claude CLI behavior and handles most false positives:
+    # - Quoted references: "/skill" (preceded by quote, not whitespace)
+    # - File paths: plans/skill/ (preceded by letter, not whitespace)
+    # - Mid-word: foo/bar (preceded by letter, not whitespace)
+    if pos > 0 and not prompt[pos - 1].isspace():
+        return True  # Not preceded by whitespace - exclude
 
-    # 2. XML/structured output check
-    if _is_in_xml_context(prompt, pos):
+    # 2. File path check: Exclude /skill-word/ or /skill/ patterns
+    # These indicate directory paths, not skill invocations
+    skill_end = pos + len(skill_name) + 1  # +1 for the '/'
+    if skill_end < len(prompt):
+        next_char = prompt[skill_end]
+        # Check if followed by '-' or '/' (path continuation)
+        if next_char in ('-', '/'):
+            return True
+
+    # 3. Exclude lines prefixed with "note:" (meta-discussion marker)
+    if _is_line_prefixed_note(prompt, pos):
         return True
 
-    # 3. File path check
-    if _is_in_file_path(prompt, pos):
-        return True
-
-    # 4. Meta-discussion check
-    if _is_meta_discussion(prompt, pos):
-        return True
-
-    # 5. Check if preceded by word characters (part of larger word/path)
-    if pos > 0 and prompt[pos-1].isalnum():
-        return True  # Part of larger word/path
-
-    # 6. Conservative mid-sentence heuristic
-    # If skill reference appears mid-sentence (not after clear delimiter), exclude it
-    # This prefers false negatives over false positives
-    before = prompt[:pos].rstrip()
-    if before and not before.endswith((',', '.', '!', '?', ':', ';')):
-        # Check if preceded by lowercase word (mid-sentence indicator)
-        words_before = before.split()
-        if words_before and words_before[-1][0].islower():
-            return True  # Likely prose mention, not invocation
-
-    # 7. Allow /skill at sentence boundaries or after punctuation
-    # If we reach here, reference passed all exclusion checks
+    # If we reach here, this is a valid invocation
     return False
 
 
@@ -530,10 +463,14 @@ def find_skill_references(prompt: str, registry: Dict[str, Dict[str, Any]]) -> L
 
 
 def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """Parse prompt for continuation.
+    """Parse prompt for multi-skill continuation chains.
+
+    Only activates when multiple skills are present (continuation patterns).
+    Single skill invocations pass through — Claude's skill system handles them,
+    and skills manage their own default-exit logic.
 
     Returns:
-        None if no skill detected (pass-through)
+        None if no continuation detected (pass-through)
         {
             "current": {"skill": str, "args": str},
             "continuation": [{"skill": str, "args": str}, ...]
@@ -542,36 +479,11 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
     # Find all skill references
     references = find_skill_references(prompt, registry)
 
-    if not references:
-        # No skills found - pass through (early return)
+    if len(references) <= 1:
+        # No skills or single skill — pass through
+        # Single skills are handled by Claude's built-in skill system.
+        # Skills manage their own default-exit (standalone or last-in-chain).
         return None
-
-    if len(references) == 1:
-        # Mode 1: Single skill
-        pos, skill_name, args_start = references[0]
-        args = prompt[args_start:].strip()
-
-        # Get default exit for this skill
-        default_exit = registry[skill_name].get('default-exit', [])
-
-        # Special case: /handoff without --commit flag is terminal
-        if skill_name == 'handoff' and '--commit' not in args:
-            default_exit = []
-
-        # Build continuation entries from default exit
-        continuation = []
-        for exit_entry in default_exit:
-            # Parse each default exit entry
-            exit_match = re.match(r'/(\w+)(?:\s+(.*))?', exit_entry.strip())
-            if exit_match:
-                exit_skill = exit_match.group(1)
-                exit_args = exit_match.group(2) or ''
-                continuation.append({'skill': exit_skill, 'args': exit_args.strip()})
-
-        return {
-            'current': {'skill': skill_name, 'args': args},
-            'continuation': continuation
-        }
 
     # Multiple skills detected - check Mode 3 first (more specific)
     # Mode 3: Multi-line list pattern: "and\n- /skill"
@@ -603,33 +515,6 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
                                 'skill': list_skill,
                                 'args': list_args.strip()
                             })
-
-            # Append default exit of last skill
-            if continuation_entries:
-                last_skill_name = continuation_entries[-1]['skill']
-            else:
-                last_skill_name = first_skill
-
-            default_exit = registry[last_skill_name].get('default-exit', [])
-
-            # Special case: /handoff without --commit is terminal
-            if last_skill_name == 'handoff':
-                if continuation_entries:
-                    last_args = continuation_entries[-1]['args']
-                else:
-                    last_args = current_args
-
-                if '--commit' not in last_args:
-                    default_exit = []
-
-            # Append default exit
-            for exit_entry in default_exit:
-                exit_match = re.match(r'/(\w+)(?:\s+(.*))?', exit_entry.strip())
-                if exit_match:
-                    continuation_entries.append({
-                        'skill': exit_match.group(1),
-                        'args': exit_match.group(2) or ''
-                    })
 
             return {
                 'current': {'skill': first_skill, 'args': current_args},
@@ -677,33 +562,6 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
                 skill_args = prompt[args_start:].strip()
 
             continuation_entries.append({'skill': skill_name, 'args': skill_args})
-
-    # Append default exit of last skill
-    if continuation_entries:
-        last_skill_name = continuation_entries[-1]['skill']
-    else:
-        last_skill_name = current_skill
-
-    default_exit = registry.get(last_skill_name, {}).get('default-exit', [])
-
-    # Special case: /handoff without --commit is terminal
-    if last_skill_name == 'handoff':
-        if continuation_entries:
-            last_args = continuation_entries[-1]['args']
-        else:
-            last_args = current_args or ''
-
-        if '--commit' not in last_args:
-            default_exit = []
-
-    # Append default exit
-    for exit_entry in default_exit:
-        exit_match = re.match(r'/(\w+)(?:\s+(.*))?', exit_entry.strip())
-        if exit_match:
-            continuation_entries.append({
-                'skill': exit_match.group(1),
-                'args': exit_match.group(2) or ''
-            })
 
     return {
         'current': {'skill': current_skill, 'args': current_args},

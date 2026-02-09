@@ -11,10 +11,12 @@ No match: silent pass-through (exit 0, no output)
 """
 
 import glob
+import hashlib
 import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -172,8 +174,96 @@ def scan_skill_files(base_path: Path) -> List[Path]:
     return [Path(p) for p in glob.glob(pattern, recursive=True)]
 
 
+def get_cache_path(paths: List[str], project_dir: str) -> Path:
+    """Generate cache file path based on hash of skill paths and project dir.
+
+    Args:
+        paths: List of skill file paths
+        project_dir: Project directory path
+
+    Returns:
+        Path to cache file
+    """
+    # Sort paths for consistent hashing
+    sorted_paths = sorted(paths)
+
+    # Concatenate paths + project dir
+    hash_input = ''.join(sorted_paths) + project_dir
+    hash_digest = hashlib.sha256(hash_input.encode('utf-8')).hexdigest()[:16]
+
+    # Use TMPDIR from environment, fall back to /tmp/claude
+    tmp_dir = os.environ.get('TMPDIR', '/tmp/claude')
+    cache_dir = Path(tmp_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    return cache_dir / f'continuation-registry-{hash_digest}.json'
+
+
+def get_cached_registry(cache_path: Path) -> Optional[Dict[str, Any]]:
+    """Load registry from cache if valid.
+
+    Args:
+        cache_path: Path to cache file
+
+    Returns:
+        Cached registry dict if valid, None if cache invalid or missing
+    """
+    if not cache_path.exists():
+        return None
+
+    try:
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            cache_data = json.load(f)
+
+        # Validate cache structure
+        if 'paths' not in cache_data or 'registry' not in cache_data or 'timestamp' not in cache_data:
+            return None
+
+        cache_timestamp = cache_data['timestamp']
+
+        # Check if any source file modified since cache
+        for path_str in cache_data['paths']:
+            path = Path(path_str)
+            if not path.exists():
+                # Source file deleted, invalidate cache
+                return None
+
+            if path.stat().st_mtime > cache_timestamp:
+                # File modified, invalidate cache
+                return None
+
+        return cache_data['registry']
+    except Exception:
+        # Cache corrupted or unreadable
+        return None
+
+
+def save_registry_cache(registry: Dict[str, Any], paths: List[str], cache_path: Path) -> None:
+    """Save registry to cache.
+
+    Args:
+        registry: Registry dict to cache
+        paths: List of skill file paths
+        cache_path: Path to cache file
+    """
+    try:
+        cache_data = {
+            'paths': paths,
+            'registry': registry,
+            'timestamp': time.time()
+        }
+
+        with open(cache_path, 'w', encoding='utf-8') as f:
+            json.dump(cache_data, f)
+    except Exception:
+        # If caching fails, continue in degraded mode
+        pass
+
+
 def build_registry() -> Dict[str, Dict[str, Any]]:
     """Build registry of cooperative skills from all sources.
+
+    Uses caching for performance. Cache is invalidated when skill files are modified.
 
     Returns:
         Dictionary mapping skill names to continuation metadata:
@@ -185,18 +275,47 @@ def build_registry() -> Dict[str, Dict[str, Any]]:
             ...
         }
     """
-    registry: Dict[str, Dict[str, Any]] = {}
-
     # Get project directory
     project_dir = os.environ.get('CLAUDE_PROJECT_DIR', '')
     if not project_dir:
-        return registry
+        return {}
 
     project_path = Path(project_dir)
 
+    # Collect all skill file paths for cache key generation
+    all_paths: List[str] = []
+    registry: Dict[str, Dict[str, Any]] = {}
+
     # 1. Scan project-local skills
     project_skills_path = project_path / '.claude' / 'skills'
-    for skill_file in scan_skill_files(project_skills_path):
+    project_skill_files = scan_skill_files(project_skills_path)
+    all_paths.extend([str(p) for p in project_skill_files])
+
+    # 2. Scan enabled plugin skills
+    plugin_skill_files: List[Path] = []
+    enabled_plugins = get_enabled_plugins()
+    for plugin_name in enabled_plugins:
+        install_path = get_plugin_install_path(plugin_name, project_dir)
+        if not install_path:
+            continue
+
+        plugin_path = Path(install_path)
+        skills_path = plugin_path / 'skills'
+        plugin_files = scan_skill_files(skills_path)
+        plugin_skill_files.extend(plugin_files)
+        all_paths.extend([str(p) for p in plugin_files])
+
+    # Generate cache path and check cache
+    cache_path = get_cache_path(all_paths, project_dir)
+    cached_registry = get_cached_registry(cache_path)
+
+    if cached_registry is not None:
+        # Cache hit - return cached registry
+        return cached_registry
+
+    # Cache miss - build registry from scratch
+    # Process project-local skills
+    for skill_file in project_skill_files:
         frontmatter = extract_frontmatter(skill_file)
         if not frontmatter:
             continue
@@ -216,36 +335,30 @@ def build_registry() -> Dict[str, Dict[str, Any]]:
             'default_exit': continuation.get('default-exit', [])
         }
 
-    # 2. Scan enabled plugin skills
-    enabled_plugins = get_enabled_plugins()
-    for plugin_name in enabled_plugins:
-        install_path = get_plugin_install_path(plugin_name, project_dir)
-        if not install_path:
+    # Process plugin skills
+    for skill_file in plugin_skill_files:
+        frontmatter = extract_frontmatter(skill_file)
+        if not frontmatter:
             continue
 
-        plugin_path = Path(install_path)
-        skills_path = plugin_path / 'skills'
+        continuation = frontmatter.get('continuation', {})
+        if not continuation.get('cooperative'):
+            continue
 
-        for skill_file in scan_skill_files(skills_path):
-            frontmatter = extract_frontmatter(skill_file)
-            if not frontmatter:
-                continue
+        skill_name = frontmatter.get('name')
+        if not skill_name:
+            skill_name = skill_file.parent.name
 
-            continuation = frontmatter.get('continuation', {})
-            if not continuation.get('cooperative'):
-                continue
-
-            skill_name = frontmatter.get('name')
-            if not skill_name:
-                skill_name = skill_file.parent.name
-
-            registry[skill_name] = {
-                'cooperative': True,
-                'default_exit': continuation.get('default-exit', [])
-            }
+        registry[skill_name] = {
+            'cooperative': True,
+            'default_exit': continuation.get('default-exit', [])
+        }
 
     # 3. Add built-in skills
     registry.update(BUILTIN_SKILLS)
+
+    # Save to cache
+    save_registry_cache(registry, all_paths, cache_path)
 
     return registry
 

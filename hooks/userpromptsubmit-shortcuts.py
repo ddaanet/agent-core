@@ -72,9 +72,7 @@ DIRECTIVES = {
 }
 
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
-BUILTIN_SKILLS: Dict[str, Any] = {
-    # Add entries here if built-in skills need continuation support
-}
+BUILTIN_SKILLS: Dict[str, Any] = {}
 
 
 def extract_frontmatter(skill_path: Path) -> Optional[Dict[str, Any]]:
@@ -270,7 +268,7 @@ def build_registry() -> Dict[str, Dict[str, Any]]:
         {
             "design": {
                 "cooperative": True,
-                "default_exit": ["/handoff --commit", "/commit"]
+                "default-exit": ["/handoff --commit", "/commit"]
             },
             ...
         }
@@ -332,7 +330,7 @@ def build_registry() -> Dict[str, Dict[str, Any]]:
 
         registry[skill_name] = {
             'cooperative': True,
-            'default_exit': continuation.get('default-exit', [])
+            'default-exit': continuation.get('default-exit', [])
         }
 
     # Process plugin skills
@@ -351,7 +349,7 @@ def build_registry() -> Dict[str, Dict[str, Any]]:
 
         registry[skill_name] = {
             'cooperative': True,
-            'default_exit': continuation.get('default-exit', [])
+            'default-exit': continuation.get('default-exit', [])
         }
 
     # 3. Add built-in skills
@@ -398,7 +396,7 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
     references = find_skill_references(prompt, registry)
 
     if not references:
-        # No skills found - pass through
+        # No skills found - pass through (early return)
         return None
 
     if len(references) == 1:
@@ -407,7 +405,7 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
         args = prompt[args_start:].strip()
 
         # Get default exit for this skill
-        default_exit = registry[skill_name].get('default_exit', [])
+        default_exit = registry[skill_name].get('default-exit', [])
 
         # Special case: /handoff without --commit flag is terminal
         if skill_name == 'handoff' and '--commit' not in args:
@@ -465,34 +463,26 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
             else:
                 last_skill_name = first_skill
 
-            default_exit = registry[last_skill_name].get('default_exit', [])
+            default_exit = registry[last_skill_name].get('default-exit', [])
 
-            # Special case: /handoff without --commit in mid-chain
-            if continuation_entries and last_skill_name == 'handoff':
-                last_args = continuation_entries[-1]['args']
-                if '--commit' not in last_args:
-                    # Check if there are more entries after handoff in user's chain
-                    # If yes, preserve them; if no, use empty default
-                    # This is terminal only for solo /handoff, not mid-chain
-                    pass  # User-specified continuation preserved
+            # Special case: /handoff without --commit is terminal
+            if last_skill_name == 'handoff':
+                if continuation_entries:
+                    last_args = continuation_entries[-1]['args']
                 else:
-                    # Append commit for --commit flag
-                    for exit_entry in default_exit:
-                        exit_match = re.match(r'/(\w+)(?:\s+(.*))?', exit_entry.strip())
-                        if exit_match:
-                            continuation_entries.append({
-                                'skill': exit_match.group(1),
-                                'args': exit_match.group(2) or ''
-                            })
-            else:
-                # Regular default exit appending
-                for exit_entry in default_exit:
-                    exit_match = re.match(r'/(\w+)(?:\s+(.*))?', exit_entry.strip())
-                    if exit_match:
-                        continuation_entries.append({
-                            'skill': exit_match.group(1),
-                            'args': exit_match.group(2) or ''
-                        })
+                    last_args = current_args
+
+                if '--commit' not in last_args:
+                    default_exit = []
+
+            # Append default exit
+            for exit_entry in default_exit:
+                exit_match = re.match(r'/(\w+)(?:\s+(.*))?', exit_entry.strip())
+                if exit_match:
+                    continuation_entries.append({
+                        'skill': exit_match.group(1),
+                        'args': exit_match.group(2) or ''
+                    })
 
             return {
                 'current': {'skill': first_skill, 'args': current_args},
@@ -547,9 +537,9 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
     else:
         last_skill_name = current_skill
 
-    default_exit = registry.get(last_skill_name, {}).get('default_exit', [])
+    default_exit = registry.get(last_skill_name, {}).get('default-exit', [])
 
-    # Special case: /handoff without --commit
+    # Special case: /handoff without --commit is terminal
     if last_skill_name == 'handoff':
         if continuation_entries:
             last_args = continuation_entries[-1]['args']
@@ -557,10 +547,7 @@ def parse_continuation(prompt: str, registry: Dict[str, Dict[str, Any]]) -> Opti
             last_args = current_args or ''
 
         if '--commit' not in last_args:
-            # Mid-chain handoff: check if user specified more skills after
-            # If this is the last skill in user's chain, it's terminal
-            if not continuation_entries or continuation_entries[-1]['skill'] == 'handoff':
-                default_exit = []
+            default_exit = []
 
     # Append default exit
     for exit_entry in default_exit:
@@ -593,7 +580,7 @@ def format_continuation_context(parsed: Dict[str, Any]) -> str:
     cont_list = []
     for entry in continuation:
         if entry['args']:
-            cont_list.append(f"/{entry['skill']} {entry['args']}")
+            cont_list.append(f"/{entry['skill']} {entry['args']}".strip())
         else:
             cont_list.append(f"/{entry['skill']}")
 

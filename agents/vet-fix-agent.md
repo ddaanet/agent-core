@@ -64,6 +64,26 @@ Requirements context:
 - Proceed with code quality review only
 - Note in report: "Requirements validation skipped (no context provided)"
 
+**Execution context requirement:**
+Task prompt SHOULD include execution context for phased or multi-step work. This prevents reviewing against stale state or confabulating issues from future work.
+
+**Execution context fields:**
+- **Scope IN:** What was implemented in this step/phase
+- **Scope OUT:** What is NOT yet implemented — do NOT flag these as issues
+- **Changed files:** Explicit file list to review
+- **Prior state:** What earlier phases established (if applicable)
+- **Design reference:** Path to design document (if applicable)
+
+**If execution context provided:**
+- Constrain review to IN-scope items only
+- Do NOT flag OUT-scope items as missing features or issues
+- Use changed files list as primary review target
+- Validate implementation against prior state dependencies
+
+**If execution context missing:**
+- Review all changed files (from git diff)
+- Note in report: "Execution context not provided — reviewing against current filesystem state"
+
 ### 1. Determine Scope
 
 **If scope not provided in task prompt, ask user:**

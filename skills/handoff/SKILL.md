@@ -3,6 +3,9 @@ name: handoff
 description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation. NOT for Haiku model orchestrators - use /handoff-haiku instead.
 allowed-tools: Read, Write, Edit, Bash(wc:*, agent-core/bin/learning-ages.py:*), Task, Skill
 user-invocable: true
+continuation:
+  cooperative: true
+  default-exit: ["/commit"]
 ---
 
 # Skill: handoff
@@ -298,17 +301,16 @@ Skip STATUS display. The `/commit` skill will show it after committing.
 - Append validated learnings to `agents/learnings.md`
 - Apply judgment that efficient model skipped
 
-## Tail-Call: --commit Flag
+## Continuation
 
-**If `--commit` flag was provided:** As the **final action** of this skill, invoke `/commit` using the Skill tool.
+As the **final action** of this skill:
 
-This is a tail-call — handoff is complete, and `/commit` takes over. The commit skill will:
-- Commit all staged/unstaged changes
-- Display the next pending task from session.md
+1. Read continuation from `additionalContext` (first skill in chain) or from `[CONTINUATION: ...]` suffix in Skill args (chained skills)
+2. If continuation is empty: stop (terminal)
+3. Consume first entry as tail-call target
+4. Invoke via Skill tool: `Skill(skill: "<target>", args: "<target-args> [CONTINUATION: <remainder>]")`
 
-**If `--commit` flag was NOT provided:** Do not invoke `/commit`. End normally.
-
-**Why tail-calls work:** Skills terminate when another skill is invoked. A tail-call (invoking a skill as the very last action) is safe because the current skill was done anyway. This enables skill composition without the mid-execution termination problem.
+**CRITICAL:** Do NOT include continuation metadata in Task tool prompts. Continuation is for main-agent skill chaining only.
 
 ## Additional Resources
 

@@ -74,6 +74,10 @@ DIRECTIVES = {
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
 BUILTIN_SKILLS: Dict[str, Any] = {}
 
+# Context filtering constants
+LOOKBEHIND_CHARS = 20  # Characters to check before skill reference for path markers
+LOOKAHEAD_CHARS = 50   # Characters to check after skill reference for file extensions
+
 
 def extract_frontmatter(skill_path: Path) -> Optional[Dict[str, Any]]:
     """Extract YAML frontmatter from a SKILL.md file.
@@ -361,23 +365,166 @@ def build_registry() -> Dict[str, Dict[str, Any]]:
     return registry
 
 
+def _is_in_xml_context(prompt: str, pos: int) -> bool:
+    """Check if position is inside XML/structured output markers."""
+    # Look backward for opening tag
+    before = prompt[:pos]
+    xml_patterns = ['<command-', '<bash-', '<local-command-']
+
+    for pattern in xml_patterns:
+        last_open = before.rfind(pattern)
+        if last_open == -1:
+            continue
+
+        # Found opening tag, check if closing tag comes after position
+        after = prompt[pos:]
+        if '>' in after:
+            # Inside XML context
+            return True
+
+    return False
+
+
+def _is_in_file_path(prompt: str, pos: int) -> bool:
+    """Check if position is part of a file path."""
+    # Check for path separators before skill reference
+    before = prompt[max(0, pos-LOOKBEHIND_CHARS):pos]
+    if any(marker in before for marker in ['plans/', 'steps/', 'reports/', '.claude/', 'tests/']):
+        return True
+
+    # Check for file path pattern: /word-word/ or /word/ (path separator after)
+    # Look for next few characters after the skill name
+    after = prompt[pos:]
+    # Match file path patterns like: /orchestrate-redesign/ or /path/to/
+    if re.match(r'/\w+[-/]', after):
+        return True
+
+    # Check for file extensions or directory paths after skill reference
+    # Catches: /orchestrate-redesign/design.md OR /orchestrate-redesign/ (directory)
+    after_extended = prompt[pos:min(len(prompt), pos+LOOKAHEAD_CHARS)]
+    # Match: /word[/-]anything.extension OR /word-word/ (directory path)
+    if re.search(r'/\w+(?:[/-].*\.(md|py|txt|json|sh|yaml|yml)|[-/]\w+/)', after_extended):
+        return True
+
+    return False
+
+
+def _is_meta_discussion(prompt: str, pos: int) -> bool:
+    """Check if skill reference is meta-discussion (talking about skills)."""
+    # Get word before the slash
+    before = prompt[:pos].lower()
+
+    # Meta-discussion keywords (from empirical validation + common patterns)
+    meta_keywords = [
+        'use the ', 'invoke the ', 'remember to ', 'directive to ',
+        'call the ', 'using the ', 'with the ', 'via the ',
+        'use /', 'invoke /', 'call /', 'using /', 'via /',
+        'about /', 'discuss /', 'the ', 'on the ', 'work on the ',
+        'execute step from:', 'step from: plans/',  # Instructional context
+    ]
+
+    for keyword in meta_keywords:
+        if before.endswith(keyword.rstrip('/')):
+            return True
+
+    return False
+
+
+def _is_invocation_pattern(prompt: str, pos: int) -> bool:
+    """Check if position matches clear invocation patterns."""
+    # Pattern 1: Prompt starts with /skill
+    if prompt[:pos].strip() == '':
+        return True
+
+    # Pattern 2: After continuation delimiter
+    before = prompt[:pos].rstrip()
+    if before.endswith((',', ' and', ' then', ' finally')):
+        return True
+
+    # Pattern 3: Multi-line list (and\n- /skill)
+    if re.search(r'and\s*\n\s*-\s*$', before):
+        return True
+
+    return False
+
+
+def _should_exclude_reference(prompt: str, pos: int, skill_name: str) -> bool:
+    """Determine if skill reference should be excluded from parsing.
+
+    Args:
+        prompt: User input
+        pos: Position of skill reference
+        skill_name: Detected skill name
+
+    Returns:
+        True if reference should be EXCLUDED (false positive context).
+        False if reference is a valid invocation (should be parsed).
+    """
+    # 1. Check invocation patterns FIRST - early exit for confirmed invocations
+    # If this is clearly an invocation (prompt start, after delimiter), skip all other checks
+    if _is_invocation_pattern(prompt, pos):
+        return False  # Explicit invocation, NOT a false positive
+
+    # 2. XML/structured output check
+    if _is_in_xml_context(prompt, pos):
+        return True
+
+    # 3. File path check
+    if _is_in_file_path(prompt, pos):
+        return True
+
+    # 4. Meta-discussion check
+    if _is_meta_discussion(prompt, pos):
+        return True
+
+    # 5. Check if preceded by word characters (part of larger word/path)
+    if pos > 0 and prompt[pos-1].isalnum():
+        return True  # Part of larger word/path
+
+    # 6. Conservative mid-sentence heuristic
+    # If skill reference appears mid-sentence (not after clear delimiter), exclude it
+    # This prefers false negatives over false positives
+    before = prompt[:pos].rstrip()
+    if before and not before.endswith((',', '.', '!', '?', ':', ';')):
+        # Check if preceded by lowercase word (mid-sentence indicator)
+        words_before = before.split()
+        if words_before and words_before[-1][0].islower():
+            return True  # Likely prose mention, not invocation
+
+    # 7. Allow /skill at sentence boundaries or after punctuation
+    # If we reach here, reference passed all exclusion checks
+    return False
+
+
 def find_skill_references(prompt: str, registry: Dict[str, Dict[str, Any]]) -> List[tuple]:
-    """Find all skill references in the prompt.
+    """Find all skill references in the prompt with context-aware filtering.
+
+    Filters out false positives:
+    - XML/structured output contexts
+    - Meta-discussion (prose mentions of skills)
+    - File paths
 
     Args:
         prompt: User input
         registry: Skill registry mapping names to metadata
 
     Returns:
-        List of (position, skill_name, args_start) tuples for found skills
+        List of (position, skill_name, args_start) tuples for valid invocations
     """
     references = []
 
-    # Find all /word patterns
     for match in re.finditer(r'/(\w+)', prompt):
         skill_name = match.group(1)
-        if skill_name in registry:
-            references.append((match.start(), skill_name, match.end()))
+        if skill_name not in registry:
+            continue
+
+        pos = match.start()
+
+        # Context filtering
+        if _should_exclude_reference(prompt, pos, skill_name):
+            continue
+
+        references.append((pos, skill_name, match.end()))
 
     return references
 

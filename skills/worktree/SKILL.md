@@ -70,7 +70,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
 2. **Analyze Pending Tasks for parallel group candidates.** Examine each pending task to determine which tasks can run in parallel. Apply these criteria to identify an independent group:
 
-   - **Plan directory independence:** Examine each pending task's plan directory (if specified). Tasks with different plan directories OR no plan directory specified are potentially independent. A task without a plan property and another task with plan pointing to the same directory share a dependency. Skip tasks that belong to the same plan directory.
+   - **Plan directory independence:** Examine each pending task's plan directory (if specified). Tasks with different plan directories OR no plan directory specified are potentially independent. Tasks with no plan property are independent from each other. A task without a plan and another task with a plan share no dependency. Skip tasks that belong to the same plan directory.
 
    - **Logical dependencies:** Check the Blockers/Gotchas section for mentions of other tasks. If Task B's blockers mention Task A, they cannot run parallel. Similarly, examine the Pending Tasks section for explicit ordering hints (e.g., "Task X blocks Task Y"). Build a dependency graph and exclude tasks that depend on each other.
 
@@ -82,7 +82,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
 3. **If no parallel group found** (all tasks have dependencies, different tiers, or restart requirements), output the message: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees.
 
-4. **If group found, for each task in the parallel group, execute Mode A steps 1-7.** Reference the Mode A section above: derive slug, generate focused session, write to tmp, invoke CLI creation, edit session.md to move task to Worktree Tasks, and print launch command. Process tasks sequentially within this loop (one task at a time, in order).
+4. **If group found, for each task in the parallel group, execute Mode A steps 2-7.** Derive slug, generate focused session, write to tmp, invoke CLI creation, edit session.md to move task to Worktree Tasks, and print launch command. Process tasks sequentially within this loop (one task at a time, in order).
 
 5. **Print consolidated launch commands** after all worktrees are created:
 

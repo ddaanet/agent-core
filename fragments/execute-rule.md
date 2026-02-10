@@ -112,59 +112,7 @@ Strict resume: continue in-progress task only. Error if no in-progress task exis
 - `wt <task-name>` — branch off single named task
 
 **Behavior:**
-Set up worktrees for parallel or single-task execution.
-
-**Single-task flow:**
-1. Derive slug from task name (lowercase, hyphens, ≤30 chars)
-2. Write focused session.md to `tmp/wt-<slug>-session.md` (local, no sandbox needed)
-3. Create worktree: `just wt-new <slug> session=tmp/wt-<slug>-session.md` (requires `dangerouslyDisableSandbox: true`)
-4. Move task from Pending Tasks to Worktree Tasks in main session.md
-5. Print launch command
-
-**Parallel group flow:**
-1. Identify the parallel group (same analysis as STATUS detection)
-2. For each task, derive a slug (lowercase, hyphens, ≤30 chars)
-3. Write focused session.md to `tmp/wt-<slug>-session.md` (local, no sandbox needed)
-4. Create worktree: `just wt-new <slug> session=tmp/wt-<slug>-session.md` (requires `dangerouslyDisableSandbox: true`)
-5. Move tasks from Pending Tasks to Worktree Tasks in main session.md
-6. After all worktrees created, print launch commands
-
-**Focused session.md format:**
-
-Minimal session.md scoped to a single task:
-
-```markdown
-# Session: Worktree — <task name>
-
-**Status:** Focused worktree for parallel execution.
-
-## Pending Tasks
-
-- [ ] **<task name>** — <full metadata from original>
-  - <plan info if applicable>
-
-## Blockers / Gotchas
-
-<only blockers relevant to this task>
-
-## Reference Files
-
-<only references relevant to this task>
-```
-
-**Output after setup:**
-
-```
-Worktrees ready:
-  cd ../<repo>-<slug1> && claude    # <task name 1>
-  cd ../<repo>-<slug2> && claude    # <task name 2>
-
-After each completes: `hc` to handoff+commit, then return here.
-Merge back: git merge wt/<slug>
-Cleanup: just wt-rm <slug>
-```
-
-**Sandbox:** Only `just wt-new` requires `dangerouslyDisableSandbox: true` (writes outside project directory). Session.md is written locally and pre-committed to the branch by the recipe via git plumbing.
+Set up worktrees for parallel or single-task execution. See `agent-core/skills/worktree/SKILL.md` for implementation details.
 
 ### Task Pickup: Context Recovery
 

@@ -532,25 +532,11 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - **For composition tasks:** Plan xfail integration test at phase start, passing at phase end (see Checkpoints)
    - Metadata cycle count MUST equal actual cycles defined
 
-6. **Generate stop conditions:**
+6. **Stop conditions (auto-generated):**
 
-```markdown
-**Stop Conditions:**
+   Standard TDD stop/error conditions are injected by `prepare-runbook.py` into Common Context during assembly. Expansion agents do NOT need to include per-cycle stop conditions.
 
-**STOP IMMEDIATELY if:**
-- Test passes on first run (expected RED failure)
-- Test failure message doesn't match expected
-- Test passes after partial GREEN implementation
-- Any existing test breaks (regression failure)
-
-**Actions when stopped:**
-1. Document in plans/{feature}/reports/cycle-{X}-{Y}-notes.md
-2. If test passes unexpectedly: Investigate, mark [REGRESSION] if already implemented, or fix test
-3. If regression: STOP execution, report broken tests, escalate
-4. If scope unclear: STOP, document ambiguity, request clarification
-```
-
-   **Custom conditions (add if needed):** External dependencies, performance, security
+   **Custom conditions only:** If a cycle has domain-specific stop conditions beyond standard TDD (external dependencies, performance, security), add them to the cycle content. Standard conditions are inherited from Common Context.
 
 6. **Validate dependency graph:**
    - All referenced cycles exist
@@ -645,24 +631,12 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 ## Cycle {X.Y}: {Name} {[DEPENDS: A.B]} {[REGRESSION]}
 
 **Objective**: {goal}
-**Script Evaluation**: Direct execution (TDD cycle)
-**Execution Model**: Haiku
-
-**Implementation:**
 
 {RED_phase}
 
 ---
 
 {GREEN_phase}
-
----
-
-**Expected Outcome**: GREEN verification, no regressions
-**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
-**Report Path**: plans/{name}/reports/cycle-{X}-{Y}-notes.md
 
 ---
 

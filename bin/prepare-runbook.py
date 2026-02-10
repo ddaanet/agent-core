@@ -41,6 +41,24 @@ import os
 import subprocess
 from pathlib import Path
 
+# Standard TDD stop/error conditions injected into Common Context
+# when phase files don't include them. Satisfies validate_cycle_structure
+# which checks for 'stop condition' or 'error condition' in content or common context.
+DEFAULT_TDD_COMMON_CONTEXT = """## Common Context
+
+**TDD Protocol:**
+Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: Minimal implementation, 4) Verify GREEN, 5) Verify Regression, 6) REFACTOR (optional)
+
+**Stop/Error Conditions (all cycles):**
+STOP IMMEDIATELY if: RED phase test passes (expected failure) • RED phase failure message doesn't match expected • GREEN phase tests don't pass after implementation • Any existing tests break (regression)
+
+Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test passes unexpectedly → Investigate if feature exists 3) Regression → STOP, report broken tests 4) Scope unclear → STOP, document ambiguity
+
+**Conventions:**
+- Use Read/Write/Edit/Grep tools (not Bash for file ops)
+- Report errors explicitly (never suppress)
+"""
+
 
 def parse_frontmatter(content):
     """Extract YAML frontmatter from markdown content.
@@ -453,6 +471,13 @@ name: {runbook_name}
         frontmatter = ""  # General runbooks derive frontmatter from assembled content
 
     assembled_body = '\n'.join(assembled_parts)
+
+    # Inject default Common Context for TDD runbooks assembled from phase files
+    # when phases don't include one. Provides standard stop/error conditions
+    # that validate_cycle_structure requires.
+    if is_tdd and '## Common Context' not in assembled_body:
+        assembled_body = DEFAULT_TDD_COMMON_CONTEXT + '\n' + assembled_body
+
     assembled_content = frontmatter + assembled_body
 
     return assembled_content, str(dir_path)

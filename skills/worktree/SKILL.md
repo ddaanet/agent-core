@@ -26,20 +26,18 @@ Manage git worktree lifecycle for parallel task execution and focused work.
 
 ## Mode A: Single Task
 
-Used when the user specifies a single task name: `wt <task-name>`. This mode branches off one task from the main session to a dedicated worktree, enabling focused work in isolation.
+Used when user specifies `wt <task-name>`.
 
-1. **Read `agents/session.md`** to locate the task by name in the Pending Tasks section. Extract the full task block including name, command, model, and any metadata (continuation lines).
+1. **Read `agents/session.md`** to locate task in Pending Tasks. Extract full task block including name, command, model, and metadata.
 
-2. **Derive slug** from the task name: Use deterministic transformation (lowercase, replace spaces with hyphens, remove special characters, truncate to 30 chars). Examples: "Implement foo bar" → "implement-foo-bar", "Task: X/Y" → "task-x-y". The slug is deterministic: same task name always produces the same slug. Implement via helper function or inline logic.
+2. **Derive slug** from task name: lowercase, replace spaces with hyphens, remove special characters, truncate to 30 chars. Examples: "Implement foo bar" → "implement-foo-bar", "Task: X/Y" → "task-x-y". Same task name always produces same slug.
 
-3. **Generate focused session.md content** with minimal scope. Structure the content explicitly as:
+3. **Generate focused session.md content** with minimal scope:
    - H1 title: "Session: Worktree — <task name>"
    - Status line: "Focused worktree for parallel execution."
    - Pending Tasks section: single task with full metadata
-   - Blockers/Gotchas section: only entries relevant to this task
-   - Reference Files section: only references relevant to this task
-
-   The focused session acts as the worktree-local view of work, using same format as main session.md but filtered to single task.
+   - Blockers/Gotchas section: only relevant entries
+   - Reference Files section: only relevant references
 
 4. **Write to `tmp/wt-<slug>-session.md`** using the generated focused session content. Template structure:
 

@@ -310,6 +310,36 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 ---
 
+### Phase 2.7: Planning-Time File Size Awareness
+
+**Objective:** Track file growth during cycle planning and proactively plan splits before hitting the 400-line limit.
+
+**Convention:** When a cycle adds content to an existing file, note the current file size and plan splits proactively.
+
+**Process:**
+
+1. **For each cycle adding content to existing file:** Note `(current: ~N lines, adding ~M)`
+2. **Check threshold:** If `N + M > 350`, include a split step in the same phase
+3. **Threshold rationale:** The 400-line limit is a hard fail at commit time. Planning to 350 leaves a 50-line margin for vet fixes and minor additions
+
+**Why 350:** Planning to the exact 400-line limit creates brittleness. A 50-line margin is pragmatic — accounts for vet review additions, formatting changes, and minor refactoring that happen during execution.
+
+**Concrete example:** A file at 360 lines after implementation gets +25 lines from vet error handling improvements, +10 lines from formatting fixes, reaching 395 lines (still under limit). Without the margin, same file at 395 lines would exceed limit after vet fixes.
+
+**Example:**
+- Cycle 3.2 adds `format_model()` to `display.py` (current: ~320 lines, adding ~40)
+- Cycle 3.2: Implement `format_model()` (~360 lines total)
+- Cycle 3.3: Split `display.py` into `display_core.py` + `display_formatters.py`
+
+**No runtime enforcement:** This is a planning convention. The commit-time `check_line_limits.sh` remains the hard gate. This prevents write-then-split rework loops.
+
+**When to apply:**
+- Actively planning file modifications (not exploratory edits)
+- Files tracking toward 400-line limits
+- Runbooks with many phase-spanning changes to same files
+
+---
+
 ### Phase 3: Phase-by-Phase Cycle Expansion (Tier 3 Only)
 
 **Objective:** Generate detailed cycle content for each phase with TDD-specific review.
@@ -332,6 +362,22 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Agent fixes ALL issues directly in phase file
    - Agent writes review report (audit trail)
    - Agent returns review report path (with escalation note if unfixable issues)
+
+   **Domain Validation:**
+
+   When writing vet checkpoint steps for TDD runbooks, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being tested. If found, include domain validation in the checkpoint:
+
+   - Add "Domain validation" instruction to tdd-plan-reviewer or vet-fix-agent delegation
+   - Reference the skill file path
+   - Specify artifact type (e.g., skills, agents, hooks, commands, plugin-structure)
+   - Domain criteria are additive — TDD discipline + generic quality + domain checks all apply
+
+   Example: For plugin development TDD work, include:
+   ```
+   - **Domain validation:** Read and apply criteria from
+     `agent-core/skills/plugin-dev-validation/SKILL.md`
+     for artifact type: [skills|agents|hooks|commands|plugin-structure]
+   ```
 
 3. **Handle review outcome:**
    - Read review report
@@ -409,6 +455,28 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Generate prose assertion from behavior (specific values/patterns)
    - Predict failure message
    - Provide specific test command with actual file path
+
+### Mandatory Conformance Test Cycles
+
+**Trigger:** When design document includes external reference (shell prototype, API spec, visual mockup) in `Reference:` field or spec sections.
+
+**Requirement:** Planner MUST include conformance test cycles that bake expected behavior from the reference into test assertions.
+
+**Mechanism:**
+- Reference is consumed at authoring time (during planning)
+- Expected strings from reference become test assertions
+- Tests are permanent living documentation of expected behavior (reference not preserved as runtime artifact)
+
+**Test precision (from Gap 4):**
+- Use precise prose descriptions with exact expected strings from reference
+- Example: "Assert output contains `🥈` followed by `\033[35msonnet\033[0m` with double-space separator"
+- NOT abstracted: "Assert output contains formatted model with emoji and color"
+
+**Rationale:** Tests that include exact expected strings eliminate translation loss between spec and implementation. This addresses parity failures where tests verified structure but not conformance.
+
+**Related:** See testing.md "Conformance Validation for Migrations" for detailed guidance.
+
+---
 
 3. **Generate GREEN specifications:**
 

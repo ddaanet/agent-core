@@ -25,9 +25,12 @@ Create a git commit for the current changes using a consistent, high-quality com
 - `--context` - Skip git discovery (status/diff) when you already know what changed from conversation
 
 **Validation level:**
+
+**Scope:** WIP commits only. All feature/fix commits must use full `just precommit`.
+
 - (none) - `just precommit` (default, full validation)
-- `--test` - `just test` only (TDD cycle commits before lint)
-- `--lint` - `just lint` only (post-lint, pre-complexity fixes)
+- `--test` - `just test` only (TDD GREEN phase WIP commits only)
+- `--lint` - `just lint` only (Post-lint WIP commits only)
 
 **Gitmoji:**
 - `--no-gitmoji` - Skip gitmoji selection
@@ -39,8 +42,8 @@ Create a git commit for the current changes using a consistent, high-quality com
 - `/commit --context --no-gitmoji` - skip discovery and gitmoji
 
 **TDD workflow pattern:**
-- After GREEN phase: `/commit --test` for WIP commit
-- After REFACTOR complete: `/commit` for final amend
+- After GREEN phase: `/commit --test` for WIP commit (bypasses lint/complexity, test-only validation)
+- After REFACTOR complete: `/commit` for final amend (full precommit required, no flags)
 
 ## Commit Message Style
 

@@ -30,9 +30,16 @@ Used when the user specifies a single task name: `wt <task-name>`. This mode bra
 
 1. **Read `agents/session.md`** to locate the task by name in the Pending Tasks section. Extract the full task block including name, command, model, and any metadata (continuation lines).
 
-2. **Derive slug** from the task name using deterministic transformation: lowercase, replace spaces with hyphens, remove special characters, truncate to 30 characters maximum. Examples: "Implement foo bar" → "implement-foo-bar", "Task: X/Y" → "task-x-y". The slug serves as the worktree directory name and must be unique within the repository.
+2. **Derive slug** from the task name: Use deterministic transformation (lowercase, replace spaces with hyphens, remove special characters, truncate to 30 chars). Examples: "Implement foo bar" → "implement-foo-bar", "Task: X/Y" → "task-x-y". The slug is deterministic: same task name always produces the same slug. Implement via helper function or inline logic.
 
-3. **Generate focused session.md content** with minimal scope. Create a session file containing only the selected task's metadata and blockers/references relevant to that task. The focused session acts as the worktree-local view of work: same format as main session.md but filtered to single task.
+3. **Generate focused session.md content** with minimal scope. Structure the content explicitly as:
+   - H1 title: "Session: Worktree — <task name>"
+   - Status line: "Focused worktree for parallel execution."
+   - Pending Tasks section: single task with full metadata
+   - Blockers/Gotchas section: only entries relevant to this task
+   - Reference Files section: only references relevant to this task
+
+   The focused session acts as the worktree-local view of work, using same format as main session.md but filtered to single task.
 
 4. **Write to `tmp/wt-<slug>-session.md`** using the generated focused session content. Template structure:
 
@@ -60,7 +67,7 @@ Used when the user specifies a single task name: `wt <task-name>`. This mode bra
 
        - [ ] **Task Name** → `wt/task-slug` — `command` | model
 
-7. **Print launch command** for the user: `cd wt/<slug> && claude    # <task name>`. This tells the user how to enter the worktree and start the task in a new Claude Code session.
+7. **Output launch command** (use Bash or direct output): Print the exact command for the user: `cd ../<repo>-<slug> && claude    # <task name>`. This tells the user how to enter the worktree and start the task in a new Claude Code session.
 
 ## Mode B: Parallel Group
 
@@ -68,27 +75,27 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
 1. **Read `agents/session.md` and `agents/jobs.md`** to identify all pending tasks and their properties. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
 
-2. **Analyze Pending Tasks for parallel group candidates.** Examine each pending task to determine which tasks can run in parallel. Apply these criteria to identify an independent group:
+2. **Check for shared plan directories and dependencies.** For each pending task, extract the plan directory (if specified). Build a dependency map:
 
-   - **Plan directory independence:** Examine each pending task's plan directory (if specified). Tasks with different plan directories OR no plan directory specified are potentially independent. Tasks with no plan property are independent from each other. A task without a plan and another task with a plan share no dependency. Skip tasks that belong to the same plan directory.
+   - **Plan directory independence:** Tasks with different plan directories OR no plan directory can run parallel. Tasks with no plan property are independent from each other. Skip any task that shares a plan directory with another.
 
-   - **Logical dependencies:** Check the Blockers/Gotchas section for mentions of other tasks. If Task B's blockers mention Task A, they cannot run parallel. Similarly, examine the Pending Tasks section for explicit ordering hints (e.g., "Task X blocks Task Y"). Build a dependency graph and exclude tasks that depend on each other.
+   - **Logical dependencies:** Scan the Blockers/Gotchas section for mentions of other tasks. If Task B's blockers mention Task A, exclude both from parallel group. Check Pending Tasks section for explicit ordering hints (e.g., "Task X blocks Task Y").
 
-   - **Model tier compatibility:** Verify model tiers match for all tasks in the candidate group. Tasks requiring different model tiers (e.g., one haiku and one opus) cannot be batched together. Tasks with no model specified default to sonnet. A valid group has all tasks with the same tier OR all tasks without a specified tier (defaulting to sonnet).
+   - **Model tier compatibility:** Extract model tier for each candidate task (haiku/sonnet/opus, default sonnet). All tasks in the group must have the same tier.
 
-   - **Restart requirement check:** Examine the restart flag for each task. Any task marked with "Restart: yes" cannot be batched with others. Tasks must all have restart=no (or no restart flag) to be grouped.
+   - **Restart requirement check:** Check restart flag for each task. Any task marked "Restart: yes" disqualifies from parallel grouping.
 
-   Select the **largest independent group** that satisfies all four criteria. If multiple groups of different sizes exist, prefer the larger group (e.g., batch 3 tasks over batching 2 if both groups are valid).
+   Select the **largest independent group** satisfying all four criteria. If multiple group sizes exist, prefer the larger group.
 
-3. **If no parallel group found** (all tasks have dependencies, different tiers, or restart requirements), output the message: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees.
+3. **Check for parallel group existence.** If analysis found no independent group (all tasks have dependencies, different tiers, or restart requirements), **output message**: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees. Return to the user prompt.
 
 4. **If group found, for each task in the parallel group, execute Mode A steps 2-7.** Derive slug, generate focused session, write to tmp, invoke CLI creation, edit session.md to move task to Worktree Tasks, and print launch command. Process tasks sequentially within this loop (one task at a time, in order).
 
-5. **Print consolidated launch commands** after all worktrees are created:
+5. **Output consolidated launch commands** (use Bash or direct output) after all worktrees are created:
 
        Worktrees ready:
-         cd wt/<slug1> && claude    # <task name 1>
-         cd wt/<slug2> && claude    # <task name 2>
+         cd ../<repo>-<slug1> && claude    # <task name 1>
+         cd ../<repo>-<slug2> && claude    # <task name 2>
          ...
 
        After each completes: `hc` to handoff+commit, then return here.
@@ -104,10 +111,34 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 3. **Exit code 0 (success):** The merge completed successfully. Use Edit tool on `agents/session.md`: Remove task from Worktree Tasks section. If Worktree Tasks section is missing, note that no cleanup is needed (task may have been removed already). Locate the line matching the pattern `→ wt/<slug>` marker and remove the entire task entry (and any continuation lines). Then use Bash to invoke: `claudeutils _worktree rm <slug>` to clean up the worktree branch and directory. Output: "Merged and cleaned up wt/<slug>. Task complete."
 
-4. **Exit code 1 (conflicts or precommit failure):** The merge encountered conflicts or failed precommit validation. Read stderr from the merge command and parse for conflict indicators or precommit failure messages.
+4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
 
-   - **If conflicts:** List the conflicted files. Note that session files (`agents/session.md`, `agents/learnings.md`, `agents/jobs.md`) should resolve automatically using deterministic strategies — report as a bug if these files appear in the conflict list. For source files: resolve manually (edit to fix conflicts), stage with `git add`, then re-run `claudeutils _worktree merge <slug>` (merge is idempotent and can resume after resolution).
+   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`, `agents/jobs.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
+     1. **Edit** each conflicted file to fix conflicts manually
+     2. **Use Bash:** `git add <conflicted-file>`
+     3. **Re-run:** `claudeutils _worktree merge <slug>` (idempotent, resumes after resolution)
 
-   - **If precommit failure:** Show which checks failed. Explain that the merge commit already exists (do not re-merge). Fix the reported issues in the working tree, stage the fixes with `git add`, amend the merge commit with `git commit --amend --no-edit`, verify with `just precommit`, and then re-run `claudeutils _worktree merge <slug>` to continue cleanup.
+   - **If precommit failure detected:** The merge commit already exists in git (do NOT re-merge).
+     1. **Review** the failed precommit checks in stderr
+     2. **Fix** the reported issues in the working tree (edit files as needed)
+     3. **Use Bash:** `git add <fixed-file>`
+     4. **Use Bash:** `git commit --amend --no-edit`
+     5. **Use Bash:** `just precommit` to verify
+     6. **Re-run:** `claudeutils _worktree merge <slug>` to resume cleanup phase
 
-5. **Exit code 2 (error):** Output: "Merge error: " followed by the stderr content from the failed command. Generic error handling: review the error output and resolve before retrying.
+5. **Parse merge exit code 2** (fatal error). Output: "Merge error: " followed by stderr. Generic error handling: review error output for root cause. Common issues:
+   - Submodule initialization failures: Check `git submodule status`, ensure parent repo internet connectivity
+   - Git state corruption: Run `git status` to inspect tree, check for stale locks (`rm .git/index.lock` if present)
+   - Branch mismatch: Verify `git branch` shows correct upstream, check `git log` for expected commits
+
+   After resolving root cause, **retry:** `claudeutils _worktree merge <slug>` (same command, will resume from current state).
+
+## Usage Notes
+
+- **Slug derivation is deterministic:** The transformation of task names to slugs is repeatable. The same task name will always produce the same slug. This ensures consistency across sessions and enables command reuse (e.g., `wt merge <slug>` always operates on the correct worktree).
+
+- **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. You can fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
+
+- **Cleanup is user-initiated:** The worktree merge ceremony does not automatically delete branches or cleanup. After merging a worktree back to main, you must explicitly invoke `wt merge <slug>` to complete the cleanup phase (branch deletion, worktree removal, session.md tidying). Merge and cleanup are separate user actions.
+
+- **Parallel execution requires individual merge:** When you have created multiple worktrees via `wt` (Mode B), each worktree must be merged back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.

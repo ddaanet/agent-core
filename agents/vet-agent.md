@@ -132,6 +132,19 @@ Review all changes for:
 - Check non-functional requirements are addressed
 - Flag requirements gaps as major issues
 
+**Runbook File References (when reviewing runbooks/plans):**
+- Extract all file paths referenced in steps/cycles
+- Use Glob to verify each path exists in the codebase
+- Flag missing files as CRITICAL issues (runbooks with wrong paths fail immediately)
+- Check test function names exist in referenced test files (use Grep)
+- Suggest correct paths when similar files are found
+
+**Self-referential modification (when reviewing runbooks/plans):**
+- Flag any step containing file-mutating commands (`sed -i`, `find ... -exec`, `Edit` tool, `Write` tool)
+- Check if target path overlaps with `plans/<plan-name>/` (excluding `reports/` subdirectory)
+- Mark as MAJOR issue if runbook steps modify their own plan directory during execution
+- Rationale: Runbook steps must not mutate the plan directory they're defined in (creates ordering dependency, breaks re-execution)
+
 ### 4. Write Review Report
 
 **Create review file** at:

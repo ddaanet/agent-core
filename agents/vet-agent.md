@@ -97,6 +97,11 @@ Review all changes for:
 - Code clarity and readability
 - Appropriate abstractions (not over/under-engineered)
 - No debug code or commented-out code
+- No trivial docstrings that restate the function signature
+- No narration comments that restate code in English
+- No section banner comments (`# --- Helpers ---`)
+- No premature abstraction (single-use interfaces, factories, unused extension points)
+- No unnecessary defensive checks (guarding states guaranteed impossible by caller)
 
 **Project Standards:**
 - Follows existing patterns and conventions
@@ -314,6 +319,7 @@ Recommendation: [What to do]
 - Focus on "what" and "why", not just "this is wrong"
 - Acknowledge good practices in Positive Observations
 - Be constructive, not critical
+- State conclusions directly — no hedging, filler, or framing ("it might be worth considering...")
 
 ## Edge Cases
 

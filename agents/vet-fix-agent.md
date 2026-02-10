@@ -140,6 +140,11 @@ Review all changes for:
 - Code clarity and readability
 - Appropriate abstractions (not over/under-engineered)
 - No debug code or commented-out code
+- No trivial docstrings that restate the function signature
+- No narration comments that restate code in English
+- No section banner comments (`# --- Helpers ---`)
+- No premature abstraction (single-use interfaces, factories, unused extension points)
+- No unnecessary defensive checks (guarding states guaranteed impossible by caller)
 
 **Project Standards:**
 - Follows existing patterns and conventions
@@ -328,6 +333,7 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
 - If a fix would require architectural changes, mark UNFIXABLE
 - If a fix is ambiguous (multiple valid approaches), mark UNFIXABLE
 - After all fixes applied, update the Overall Assessment
+- Do not introduce slop in fix code: no trivial docstrings, no narration comments, no premature abstractions
 
 ### 6. Return Result
 
@@ -360,6 +366,7 @@ Recommendation: [What to do]
 - Return ONLY filename on success
 - Return structured error on failure
 - Do NOT provide summary in return message (file contains all details)
+- State findings directly in reviews — no hedging, filler, or framing
 
 **Fix Boundaries:**
 - Fix all issues (critical, major, minor)

@@ -64,4 +64,34 @@ Used when the user specifies a single task name: `wt <task-name>`. This mode bra
 
 ## Mode B: Parallel Group
 
+Used when the user invokes `wt` with no arguments. This mode detects a group of independent parallel tasks and creates multiple worktrees simultaneously, enabling concurrent work on independent tasks.
+
+1. **Read `agents/session.md` and `agents/jobs.md`** to identify all pending tasks and their properties. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
+
+2. **Analyze Pending Tasks for parallel group candidates.** Examine each pending task to determine which tasks can run in parallel. Apply these criteria to identify an independent group:
+
+   - **Plan directory independence:** Examine each pending task's plan directory (if specified). Tasks with different plan directories OR no plan directory specified are potentially independent. A task without a plan property and another task with plan pointing to the same directory share a dependency. Skip tasks that belong to the same plan directory.
+
+   - **Logical dependencies:** Check the Blockers/Gotchas section for mentions of other tasks. If Task B's blockers mention Task A, they cannot run parallel. Similarly, examine the Pending Tasks section for explicit ordering hints (e.g., "Task X blocks Task Y"). Build a dependency graph and exclude tasks that depend on each other.
+
+   - **Model tier compatibility:** Verify model tiers match for all tasks in the candidate group. Tasks requiring different model tiers (e.g., one haiku and one opus) cannot be batched together. Tasks with no model specified default to sonnet. A valid group has all tasks with the same tier OR all tasks without a specified tier (defaulting to sonnet).
+
+   - **Restart requirement check:** Examine the restart flag for each task. Any task marked with "Restart: yes" cannot be batched with others. Tasks must all have restart=no (or no restart flag) to be grouped.
+
+   Select the **largest independent group** that satisfies all four criteria. If multiple groups of different sizes exist, prefer the larger group (e.g., batch 3 tasks over batching 2 if both groups are valid).
+
+3. **If no parallel group found** (all tasks have dependencies, different tiers, or restart requirements), output the message: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees.
+
+4. **If group found, for each task in the parallel group, execute Mode A steps 1-7.** Reference the Mode A section above: derive slug, generate focused session, write to tmp, invoke CLI creation, edit session.md to move task to Worktree Tasks, and print launch command. Process tasks sequentially within this loop (one task at a time, in order).
+
+5. **Print consolidated launch commands** after all worktrees are created:
+
+       Worktrees ready:
+         cd wt/<slug1> && claude    # <task name 1>
+         cd wt/<slug2> && claude    # <task name 2>
+         ...
+
+       After each completes: `hc` to handoff+commit, then return here.
+       Merge back: `wt merge <slug>` (uses skill)
+
 ## Mode C: Merge Ceremony

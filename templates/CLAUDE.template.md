@@ -56,9 +56,11 @@
 - `docs/` - Documentation
 -->
 
+@agent-core/fragments/execution-routing.md
+
 @agent-core/fragments/delegation.md
 
-<!-- CUSTOMIZE: Add project-specific delegation rules if needed -->
+<!-- CUSTOMIZE: Add project-specific delegation or routing rules if needed -->
 <!-- Example:
 ### Skill Development
 

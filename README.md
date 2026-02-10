@@ -33,7 +33,8 @@ agent-core/
 │   ├── ruff.toml                   # Ruff linter configuration
 │   ├── mypy.toml                   # Mypy type checker configuration
 │   ├── communication.md            # Communication guidelines
-│   ├── delegation.md               # Delegation patterns
+│   ├── execution-routing.md        # Interactive work routing
+│   ├── delegation.md               # Orchestration delegation
 │   ├── tool-batching.md            # Tool batching guidelines
 │   └── ... (other fragments)       # Additional instruction fragments
 ├── skills/              # Workflow skills

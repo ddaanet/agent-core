@@ -110,6 +110,9 @@ For detailed routing, see `agent-core/skills/remember/references/consolidation-p
 - Examples over abstractions
 - Constraints over guidelines ("Do not" > "avoid", "Always" > "consider")
 - Atomic changes (one concept, self-contained)
+- State rules directly — no hedging ("consider", "you might want to")
+- Lead with the directive, follow with rationale — no preamble
+- Concrete ✅/❌ pairs where possible
 
 **Format:**
 ```markdown

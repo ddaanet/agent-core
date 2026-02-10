@@ -270,6 +270,17 @@ Use specialized tools over Bash for file operations:
 - Use **Edit** instead of `sed` or `awk`
 - Use **Write** instead of `echo >` or `cat <<EOF`
 
+### Code Quality
+
+- Write docstrings only when they explain non-obvious behavior, not restating the signature
+- Write comments only to explain *why*, never *what* the code does
+- No section banner comments (`# --- Helpers ---`)
+- Introduce abstractions only when a second use exists — no single-use interfaces or factories
+- Guard only against states that can actually occur at trust boundaries
+- Expose fields directly until access control logic is needed
+- Build for current requirements; extend when complexity arrives
+- **Deletion test** — Remove the construct. Keep it only if behavior or safety is lost.
+
 ## Verification Protocol
 
 After each phase, verify success through appropriate checks:

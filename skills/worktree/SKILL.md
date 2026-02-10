@@ -95,3 +95,19 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
        Merge back: `wt merge <slug>` (uses skill)
 
 ## Mode C: Merge Ceremony
+
+Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge ceremony that returns worktree commits to the main branch, handling the handoff, commit, merge, and cleanup sequence.
+
+1. **Invoke `/handoff --commit`** to ensure clean tree and session context committed. This ceremony step is mandatory: merge operations require a clean working tree, and handoff ensures that `agents/session.md` and related context files reflect the current state and are committed as a sync point. If handoff or commit fails, STOP. Merge requires clean tree. Resolve handoff/commit issues before retrying merge.
+
+2. **Invoke: `claudeutils _worktree merge <slug>`** to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. Capture the exit code and stderr output.
+
+3. **Exit code 0 (success):** The merge completed successfully. Edit `agents/session.md`: Remove task from Worktree Tasks section. Locate the line matching the pattern `→ wt/<slug>` marker and remove the entire task entry (and any continuation lines). Then invoke: `claudeutils _worktree rm <slug>` to clean up the worktree branch and directory. Output: "Merged and cleaned up wt/<slug>. Task complete."
+
+4. **Exit code 1 (conflicts or precommit failure):** The merge encountered conflicts or failed precommit validation. Read stderr from the merge command and parse for conflict indicators or precommit failure messages.
+
+   - **If conflicts:** List the conflicted files. Note that session files (`agents/session.md`, `agents/learnings.md`, `agents/jobs.md`) should resolve automatically using deterministic strategies — report as a bug if these files appear in the conflict list. For source files: resolve manually (edit to fix conflicts), stage with `git add`, then re-run `claudeutils _worktree merge <slug>` (merge is idempotent and can resume after resolution).
+
+   - **If precommit failure:** Show which checks failed. Explain that the merge commit already exists (do not re-merge). Fix the reported issues in the working tree, stage the fixes with `git add`, amend the merge commit with `git commit --amend --no-edit`, verify with `just precommit`, and then re-run `claudeutils _worktree merge <slug>` to continue cleanup.
+
+5. **Exit code 2 (error):** Report stderr as-is. Generic error handling: "Merge command error. Review output above and resolve before retrying."

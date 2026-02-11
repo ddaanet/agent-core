@@ -30,7 +30,7 @@ Used when user specifies `wt <task-name>`.
 
 1. **Read `agents/session.md`** to locate task in Pending Tasks. Extract full task block including name, command, model, and metadata.
 
-2. **Derive slug** from task name: lowercase, replace spaces with hyphens, remove special characters, truncate to 30 chars. Examples: "Implement foo bar" → "implement-foo-bar", "Task: X/Y" → "task-x-y". Same task name always produces same slug.
+2. **Derive slug** from task name: lowercase, replace spaces with hyphens, remove any characters not matching `[a-z0-9]` (replace with hyphen), truncate to 30 chars. Examples: "Implement foo bar" → "implement-foo-bar", "Task: X/Y" → "task-x-y". Same task name always produces same slug.
 
 3. **Generate focused session.md content** with minimal scope:
    - H1 title: "Session: Worktree — <task name>"
@@ -137,6 +137,6 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 - **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. You can fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
 
-- **Cleanup is user-initiated:** The worktree merge ceremony does not automatically delete branches or cleanup. After merging a worktree back to main, you must explicitly invoke `wt merge <slug>` to complete the cleanup phase (branch deletion, worktree removal, session.md tidying). Merge and cleanup are separate user actions.
+- **Cleanup is user-initiated:** Mode A and Mode B require separate cleanup after merge. Mode C includes cleanup automatically after successful merge (branch deletion, worktree removal, session.md tidying via `claudeutils _worktree rm <slug>`).
 
 - **Parallel execution requires individual merge:** When you have created multiple worktrees via `wt` (Mode B), each worktree must be merged back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.

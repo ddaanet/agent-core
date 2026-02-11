@@ -390,6 +390,15 @@ diff -u /path/to/file1 /path/to/file2 > output.patch || true
 echo "Diff size: $(wc -c < output.patch) bytes"
 ```
 
+**Step type classification:**
+
+Before writing step content, classify each step:
+
+- **Transformation** (delete, move, rename, replace pattern): Self-contained recipe sufficient. Executor applies mechanically.
+- **Creation** (new test for existing behavior, new integration, new code touching existing paths): MUST include investigation prerequisite: `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
+
+**Why:** Executors in throughput mode treat all steps as recipes. Creation steps attempted without understanding the target code produce trial-and-error failures. The planner encodes the investigation the executor would otherwise skip.
+
 **1.2 Medium Tasks**: Provide prose description of implementation
 
 **Criteria:**

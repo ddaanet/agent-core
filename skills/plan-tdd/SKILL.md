@@ -527,7 +527,22 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Use same test command as RED
    - Default regression: `pytest` or `just test`
 
-4. **Assign dependencies:**
+4. **Classify step type and add investigation prerequisites:**
+
+   **Transformation cycles** (delete, move, rename, replace pattern): Self-contained recipe sufficient. Executor can apply mechanically.
+
+   **Creation cycles** (new test for existing behavior, new integration, new feature touching existing code paths): MUST include investigation prerequisite specifying which production code to read and what to understand before writing.
+
+   **Format for creation cycles:**
+   ```markdown
+   **Prerequisite:** Read `[file:lines]` — understand [specific behavior/flow/trigger conditions]
+   ```
+
+   **Why:** Executors in throughput mode treat all cycles as recipes. Without explicit investigation prerequisites, creation cycles get attempted without understanding the code being tested, leading to trial-and-error failures. The planner has (or can acquire) the system understanding; the executor optimizes for output.
+
+   **Example:** A cycle testing precommit fallback behavior needs: "Read `merge_phases.py:220-260` — understand when `apply_theirs_resolution` is called and what merge state triggers it."
+
+5. **Assign dependencies:**
    - **Default:** Sequential within phase (1.1 → 1.2 → 1.3)
    - **Cross-phase:** `[DEPENDS: X.Y]` if design requires
    - **Regression:** `[REGRESSION]` for existing behavior tests

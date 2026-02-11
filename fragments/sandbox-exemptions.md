@@ -37,7 +37,7 @@ When a command is in `permissions.allow`, invoke it with the **exact prefix** th
 
 ### Worktree Operations
 
-**Location advantage:** Git worktrees are created inside the project root (`worktrees/<slug>/`), eliminating sandbox bypass needs for most operations. Files within the project root are writable in sandbox mode.
+**Location advantage:** Git worktrees are created inside the project root (`wt/<slug>/`), eliminating sandbox bypass needs for most operations. Files within the project root are writable in sandbox mode.
 
 **Remaining exceptions:** Some environment initialization steps require bypass:
 - `uv sync` — Network access for package downloads + writes to `.venv/` inside worktree

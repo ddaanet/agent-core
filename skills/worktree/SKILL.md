@@ -65,7 +65,7 @@ Used when user specifies `wt <task-name>`.
 
        - [ ] **Task Name** → `wt/task-slug` — `command` | model
 
-7. **Output launch command** (use Bash or direct output): Print the exact command for the user: `cd ../<repo>-<slug> && claude    # <task name>`. This tells the user how to enter the worktree and start the task in a new Claude Code session.
+7. **Output launch command** (use Bash or direct output): Print the exact command for the user: `cd wt/<slug> && claude    # <task name>`. This tells the user how to enter the worktree and start the task in a new Claude Code session.
 
 ## Mode B: Parallel Group
 
@@ -92,8 +92,8 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 5. **Output consolidated launch commands** (use Bash or direct output) after all worktrees are created:
 
        Worktrees ready:
-         cd ../<repo>-<slug1> && claude    # <task name 1>
-         cd ../<repo>-<slug2> && claude    # <task name 2>
+         cd wt/<slug1> && claude    # <task name 1>
+         cd wt/<slug2> && claude    # <task name 2>
          ...
 
        After each completes: `hc` to handoff+commit, then return here.

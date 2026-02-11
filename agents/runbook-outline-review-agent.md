@@ -119,6 +119,14 @@ Analyze outline against these dimensions:
 - Step scope is bounded (not too large)
 - Success criteria are implicit or explicit
 
+**Execution Readiness** (terminology: "steps" below applies to both steps in plan-adhoc and cycles in plan-tdd — use the artifact's native terminology):
+- **Decision completeness** — Flag "choose" / "decide" / "determine" / "select approach" / "evaluate which" language. Mark UNFIXABLE — design decisions must be resolved by planner, not reviewer.
+- **Step dependency declarations** — For steps that reference output of prior steps (new files, renamed modules, consolidated fixtures), verify explicit dependency is declared. Fix: add `Depends on: Step N.K` declaration.
+- **Code fix specificity** — Steps targeting code must enumerate affected call sites. Flag steps that say "fix function X" without listing where X is called and what changes per call site. Mark UNFIXABLE — requires codebase analysis the outline reviewer lacks.
+- **Phase checkpoint frequency** — Flag phases with >8 steps and no internal checkpoint as Major issue. Fix: insert checkpoint step at mid-phase or split phase.
+- **Post-phase state awareness** — Steps in Phase N+1 that modify files changed in Phase N must note the expected post-phase state. Flag steps that reference file state from before Phase N completed. Fix: add post-phase state note. Example: ✅ "Extend parse_config() (added in Phase 1, returns dict) to validate fields" ❌ "Update parse_config() to handle validation"
+- **Scope boundary declarations** — Cross-cutting issues must have explicit "addressed by steps X, Y" and "out of scope: Z" notes. Fix: add scope boundary annotations.
+
 ### 4. Traceability Matrix Validation
 
 **Verify mapping table exists:**

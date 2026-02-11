@@ -146,12 +146,20 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
      - RED/GREEN markers in cycle titles where appropriate
      - Test-first sequencing visible in structure
 
-2. **Review outline:**
+2. **Verify outline quality:**
+   - **All implementation choices resolved** — No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each cycle commits to one approach. If uncertain, use `/opus-design-question` to resolve.
+   - **Inter-cycle dependencies declared** — If cycle N.M depends on cycle N.K having created a file/module/function, declare `Depends on: Cycle N.K`.
+   - **Code fix cycles enumerate affected sites** — For cycles fixing code: list all affected call sites (file:function or file:line). If different sites need different treatment, specify per-site decision tree.
+   - **Later cycles reference post-phase state** — Cycles in Phase N+1 that modify files changed in Phase N must note expected state after Phase N (e.g., "After Phase 2 refactor, helpers are in conftest.py").
+   - **Phases ≤8 cycles each** — Split phases with >8 cycles or add an internal checkpoint. Large phases without checkpoints make diagnosis difficult when early cycles break things.
+   - **Cross-cutting issues scope-bounded** — If a cross-cutting issue is only partially addressed, explicitly note what's in scope and what's deferred. Prevents executing agent from attempting unscoped refactors.
+
+3. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-3. **Validate and proceed:**
+4. **Validate and proceed:**
    - Read review report
    - If critical issues remain: STOP and escalate to user
    - Otherwise: proceed to phase-by-phase cycle expansion

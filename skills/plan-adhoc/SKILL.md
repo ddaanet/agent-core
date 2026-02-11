@@ -182,12 +182,20 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
      - **Key decisions reference:** Link to design sections with architectural decisions
      - **Complexity per phase:** Estimated scope and model requirements per phase
 
-2. **Review outline:**
+2. **Verify outline quality:**
+   - **All implementation choices resolved** — No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each step commits to one approach. If uncertain, use `/opus-design-question` to resolve.
+   - **Inter-step dependencies declared** — If step N.M depends on step N.K having created a file/module/function, declare `Depends on: Step N.K`.
+   - **Code fix steps enumerate affected sites** — For steps fixing code: list all affected call sites (file:function or file:line). If different sites need different treatment, specify per-site decision tree.
+   - **Later steps reference post-phase state** — Steps in Phase N+1 that modify files changed in Phase N must note expected state after Phase N (e.g., "After Phase 3 consolidation, helpers are in conftest.py").
+   - **Phases ≤8 steps each** — Split phases with >8 steps or add an internal checkpoint. Large phases without checkpoints make diagnosis difficult when early steps break things.
+   - **Cross-cutting issues scope-bounded** — If a cross-cutting issue is only partially addressed, explicitly note what's in scope and what's deferred. Prevents executing agent from attempting unscoped refactors.
+
+3. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-3. **Validate and proceed:**
+4. **Validate and proceed:**
    - Read review report
    - If critical issues remain: STOP and escalate to user
    - Otherwise: proceed to phase-by-phase expansion

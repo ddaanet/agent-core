@@ -23,3 +23,10 @@ It is not a default mode for interactive work.
 - Making a few edits across known files
 - Running project recipes or short bash sequences
 - Answering questions about code you can Read directly
+- Content already loaded via CLAUDE.md @-references
+
+**Anti-pattern:** "Scan X.md" or "check X.md for..." where X is @-referenced.
+
+**Correct pattern:** "Check loaded X context" — content already in memory, no Read/Grep needed.
+
+**Applies to:** memory-index.md, learnings.md, session.md, any @-referenced file.

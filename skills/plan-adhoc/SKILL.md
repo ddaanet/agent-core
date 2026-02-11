@@ -128,6 +128,7 @@ Common false escalations:
 - Point 0.75: Generate runbook outline
 - Point 0.85: Consolidation gate (outline)
 - Point 0.9: Complexity check before expansion
+- Point 0.95: Outline sufficiency check (skip expansion if outline is execution-ready)
 - Point 1: Phase-by-phase expansion with reviews
 - Point 2: Assembly and metadata
 - Point 2.5: Consolidation gate (runbook)
@@ -210,6 +211,7 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 - If outline has ≤3 phases and ≤10 total steps → generate entire runbook at once (skip phase-by-phase)
 - Single review pass instead of per-phase
 - Simpler workflow for simple tasks
+- See also Point 0.95: if steps are already execution-ready, skip expansion entirely
 
 ---
 
@@ -301,6 +303,32 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
    - Callback mechanism available for discovered issues
 
 **Rationale:** Complexity assessment is a planning concern (sonnet/opus). Don't delegate to haiku executor — they optimize for completion, not scope management. Catch structural problems before expensive expansion.
+
+---
+
+### Point 0.95: Outline Sufficiency Check
+
+**Objective:** Skip expensive expansion when the outline is already detailed enough to serve as the runbook.
+
+**Sufficiency criteria — ALL must hold:**
+- Every step specifies target files/locations
+- Every step has a concrete action (no "determine"/"evaluate options"/"choose between" language remaining)
+- Every step has verification criteria or is self-evidently complete (deletion, path correction)
+- No unresolved design decisions in step descriptions
+
+**If sufficient → promote outline to runbook:**
+
+1. **Reformat step headings:** Convert `**Step N.M: title**` → `## Step N.M: title` (prepare-runbook.py requires H2 headers)
+2. **Convert step content:** Step bullets become body content under each H2 heading
+3. **Add Common Context:** Extract from outline's Key Decisions, Requirements Mapping, and design reference into `## Common Context` section
+4. **Add frontmatter:** name, model (from outline metadata or design)
+5. **Preserve phase structure:** `### Phase N: title` headers kept as-is (prepare-runbook.py skips them, uses for grouping)
+6. **Write to:** `plans/<job>/runbook.md`
+7. **Skip to Point 4** — Points 1, 2, 2.5, 3 are unnecessary (expansion adds boilerplate around content that's already there; assembly is N/A for single-file promotion; reviews already happened at outline level)
+
+**If not sufficient → proceed with normal Point 1 expansion.**
+
+**Rationale:** Outlines that have been through quality checklist (Point 0.75 step 2) and review (Point 0.75 step 3) often contain execution-ready detail. Expansion rewrites the same information in a different format. The sufficiency check prevents this waste while ensuring under-specified outlines still get full expansion.
 
 ---
 

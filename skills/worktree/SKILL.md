@@ -126,7 +126,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 5. **Parse merge exit code 2** (fatal error). Output: "Merge error: " followed by stderr. Generic error handling: review error output for root cause. Common issues:
    - Submodule initialization failures: Check `git submodule status`, ensure parent repo internet connectivity
-   - Git state corruption: Run `git status` to inspect tree, check for stale locks (`rm .git/index.lock` if present)
+   - Git state corruption: Run `git status` to inspect tree. If lock file errors occur, stop and report to user.
    - Branch mismatch: Verify `git branch` shows correct upstream, check `git log` for expected commits
 
    After resolving root cause, **retry:** `claudeutils _worktree merge <slug>` (same command, will resume from current state).

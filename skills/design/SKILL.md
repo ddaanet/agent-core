@@ -59,6 +59,12 @@ If no requirements.md exists:
 - "hook", "PreToolUse", "PostToolUse" → `plugin-dev:hook-development`
 - "plugin", "MCP server" → `plugin-dev:plugin-structure`, `plugin-dev:mcp-integration`
 
+**Anti-pattern:** Deferring skill loading to A.1 judgment when requirements explicitly mention agent/skill creation.
+
+**Correct pattern:** Scan requirements for skill dependency indicators during A.0, load immediately.
+
+**Rationale:** Skill content must be available for outline (A.5) and design (C.1) phases. Late loading causes missing context.
+
 **Output:** Requirements summary + skill dependencies loaded, available for Phase A.5 (outline) and Phase C.1 (design).
 
 #### A.1. Documentation Checkpoint

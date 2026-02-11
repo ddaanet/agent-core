@@ -30,6 +30,14 @@
 
 **Why:** Early review catches issues before they propagate. Applying all fixes eliminates drift from deferred minor issues accumulating across sessions.
 
+**Alignment verification:** Vet must verify output matches design/requirements/acceptance criteria. This is not optional — vet checks presence AND correctness.
+
+**Model-agnostic:** Applies to haiku, sonnet, opus equally.
+
+**Delegation requires specification:** If delegating implementation, provide criteria for alignment verification. Without criteria, executing agent cannot verify alignment, vet cannot check drift.
+
+**Reports exempt:** Reports ARE the verification artifacts.
+
 ### Execution Context
 
 **Rule:** Every vet delegation must include execution context — what was done, what state the system should be in, and what's in/out of scope.
@@ -41,6 +49,14 @@
 - **Scope OUT:** What is NOT yet implemented (future phases, deferred items) — prevents false positives
 - **Changed files:** Explicit file list (from `git diff --name-only` or known from implementation)
 - **Requirements summary:** What the implementation should satisfy (from design/requirements)
+
+**Anti-pattern:** Give vet-fix-agent full design.md when reviewing phase checkpoint — agent may confabulate issues from future phases.
+
+**Correct pattern:** Precommit-first grounds agent in real work; explicit IN/OUT scope prevents confabulating future-phase issues.
+
+**Rationale:** Agent saw content in Phase 2 design, invented that test existed and claimed to fix it. Fix claims are dangerous (trusted by orchestrator), observations less so.
+
+**Mitigations:** Precommit-first, explicit scope, "Do NOT flag items outside provided scope" constraint.
 
 **Optional context fields (for phased work):**
 - **Prior state:** What earlier phases established (dependencies, data models, interfaces)

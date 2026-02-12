@@ -48,7 +48,7 @@ The workflow automatically detects TDD methodology based on:
 The TDD workflow follows this progression:
 
 ```
-/design (TDD mode) → /plan-tdd → /orchestrate → [vet-fix-agent] → /review-analysis
+/design (TDD mode) → /runbook → /orchestrate → [vet-fix-agent] → /review-analysis
 ```
 
 ### Stage 1: Design Session (TDD Mode)
@@ -64,15 +64,15 @@ The TDD workflow follows this progression:
 - **Flag reference table** - If adding CLI options
 - **"What might already work" analysis** - Identify existing behavior
 
-**Output:** Design document with TDD-specific sections consumed by `/plan-tdd`.
+**Output:** Design document with TDD-specific sections consumed by `/runbook`.
 
 ---
 
 ### Stage 2: TDD Planning
 
-**Skill:** `/plan-tdd`
+**Skill:** `/runbook`
 **Model:** Sonnet
-**Documentation:** `agent-core/skills/plan-tdd/skill.md`
+**Documentation:** `agent-core/skills/runbook/SKILL.md`
 
 **Purpose:** Create TDD runbook with RED/GREEN/REFACTOR cycles from design document.
 
@@ -132,9 +132,9 @@ model: haiku
 
 **Output:** Reviewed TDD runbook at `plans/<feature-name>/runbook.md`
 
-**Review completed:** /plan-tdd automatically delegates review to clean sonnet agent before finalization.
+**Review completed:** /runbook automatically delegates review to plan-reviewer agent before finalization.
 
-**After /plan-tdd (runbook reviewed and finalized), run prepare-runbook.py:**
+**After /runbook (runbook reviewed and finalized), run prepare-runbook.py:**
 ```bash
 python3 agent-core/bin/prepare-runbook.py plans/<feature-name>/runbook.md
 ```
@@ -482,7 +482,7 @@ Agent stops and reports when encountering:
 | Aspect | General Workflow | TDD Workflow |
 |--------|------------------|--------------|
 | **Unit of work** | Steps | Cycles (RED/GREEN/REFACTOR) |
-| **Planning skill** | `/plan-adhoc` | `/plan-tdd` |
+| **Planning skill** | `/runbook` | `/runbook` |
 | **Baseline agent** | `quiet-task.md` | `tdd-task.md` |
 | **Execution focus** | Sequential steps | Test-first development |
 | **Refactoring** | Optional | Mandatory per cycle |

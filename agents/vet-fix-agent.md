@@ -248,7 +248,7 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
    - Location: [file:line or commit hash]
    - Problem: [What's wrong]
    - Fix: [What to do]
-   - **Status**: [FIXED / UNFIXABLE — reason]
+   - **Status**: [FIXED / DEFERRED — reason / UNFIXABLE — reason]
 
 ### Major Issues
 
@@ -258,14 +258,14 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
    - Location: [file:line or commit hash]
    - Problem: [What's wrong]
    - Suggestion: [Recommended fix]
-   - **Status**: [FIXED / UNFIXABLE — reason]
+   - **Status**: [FIXED / DEFERRED — reason / UNFIXABLE — reason]
 
 ### Minor Issues
 
 1. **[Issue title]**
    - Location: [file:line or commit hash]
    - Note: [Improvement idea]
-   - **Status**: [FIXED / UNFIXABLE — reason]
+   - **Status**: [FIXED / DEFERRED — reason / UNFIXABLE — reason]
 
 ## Fixes Applied
 
@@ -324,8 +324,14 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
 **Fix process:**
 1. Read the file containing the issue
 2. Apply fix using Edit tool
-3. Update the review report: mark issue as FIXED with brief description
-4. If a fix cannot be applied safely, mark as UNFIXABLE with reason
+3. Update the review report: mark issue status (see below)
+
+**Issue status labels:**
+- **FIXED** — Applied the fix
+- **DEFERRED** — Issue is real but explicitly out of scope (matches execution context OUT section or known future work). Not a blocker.
+- **UNFIXABLE** — Technical blocker: cannot fix without architectural changes, ambiguous approach, or fix would introduce new issues
+
+**DEFERRED vs UNFIXABLE:** If the execution context OUT section lists the item, or the item is documented as future work, use DEFERRED. Reserve UNFIXABLE for issues where no fix path exists given current constraints. Scope deferrals are not technical blockers.
 
 **Fix constraints:**
 - Fix ALL issues regardless of priority level
@@ -411,7 +417,7 @@ Recommendation: [What to do]
 
 Before returning filename:
 1. Verify review file was created successfully
-2. Verify all issues have Status (FIXED or UNFIXABLE)
+2. Verify all issues have Status (FIXED, DEFERRED, or UNFIXABLE)
 3. Verify Fixes Applied section lists all changes made
 4. Verify assessment reflects post-fix state
 

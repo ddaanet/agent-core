@@ -83,12 +83,19 @@ Return filepath or error.
 
 **Rule:** After vet-fix-agent returns, mechanically check for UNFIXABLE issues before proceeding.
 
+**Three issue statuses:**
+- **FIXED** — Applied. No action needed.
+- **DEFERRED** — Real issue, explicitly out of scope. Informational only — does NOT block.
+- **UNFIXABLE** — Technical blocker. Requires user decision.
+
 **Detection steps:**
 1. Read the report file returned by vet-fix-agent
 2. Use Grep to search for `UNFIXABLE` in the report content
 3. If found: **STOP** — do NOT proceed to next step
 4. Report UNFIXABLE issues to user with report path
 5. Wait for user guidance
+
+**DEFERRED is not UNFIXABLE.** DEFERRED items match the execution context OUT section — they are known future work, not blockers. Do not escalate DEFERRED items.
 
 **Why mechanical grep, not judgment:** Weak orchestrator pattern requires mechanical checks. UNFIXABLE detection is pattern-matching (grep), not evaluation — consistent with "trust agents, escalate failures."
 
@@ -98,6 +105,6 @@ Return filepath or error.
 ```
 1. Create: agent-core/agents/test-hooks.md
 2. Vet: Task(subagent_type="vet-fix-agent") with execution context
-3. Read report → grep UNFIXABLE → none found
+3. Read report → grep UNFIXABLE → none found (DEFERRED items present but non-blocking)
 4. Result: All fixable issues resolved, proceed
 ```

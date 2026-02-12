@@ -5,10 +5,10 @@ Skills chain through continuation passing — a hook-based system that replaces 
 ## How It Works
 
 ```
-User: "/design plans/foo, /plan-adhoc and /orchestrate"
+User: "/design plans/foo, /runbook and /orchestrate"
   → Hook parses multi-skill input, injects continuation via additionalContext
-  → /design executes, peels /plan-adhoc, tail-calls with remainder
-  → /plan-adhoc executes, peels /orchestrate, tail-calls with remainder
+  → /design executes, peels /runbook, tail-calls with remainder
+  → /runbook executes, peels /orchestrate, tail-calls with remainder
   → /orchestrate executes, no continuation → uses own default-exit
 ```
 
@@ -50,7 +50,7 @@ As the **final action** of this skill:
 
 **Subsequent invocations** (skill → skill): Suffix in Skill args parameter:
 ```
-[CONTINUATION: /plan-adhoc, /orchestrate, /handoff --commit, /commit]
+[CONTINUATION: /runbook, /orchestrate, /handoff --commit, /commit]
 ```
 
 Bracket-delimited, comma-separated entries. Each entry: `/skill optional-args`.
@@ -67,8 +67,7 @@ Continuation metadata must never reach sub-agents:
 | Skill | Default Exit | Notes |
 |-------|-------------|-------|
 | `/design` | `["/handoff --commit", "/commit"]` | Planning entry point |
-| `/plan-adhoc` | `["/handoff --commit", "/commit"]` | General workflow planning |
-| `/plan-tdd` | `["/handoff --commit", "/commit"]` | TDD workflow planning |
+| `/runbook` | `["/handoff --commit", "/commit"]` | Runbook planning (unified) |
 | `/orchestrate` | `["/handoff --commit", "/commit"]` | Runbook execution |
 | `/handoff` | `["/commit"]` | Context preservation |
 | `/commit` | `[]` | Terminal skill |

@@ -60,7 +60,7 @@ Before proceeding, verify the document is a design document:
 Error: Wrong agent type
 Details: design-vet-agent reviews design documents, not runbooks
 Context: File appears to be a runbook (contains Step/Cycle headers or type: tdd)
-Recommendation: Use vet-agent for runbook review, or tdd-plan-reviewer for TDD runbooks
+Recommendation: Use vet-agent for runbook review, or plan-reviewer for runbook phase review
 ```
 
 **Validate requirements exist:**

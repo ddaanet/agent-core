@@ -122,7 +122,7 @@ Discussion → [Design] → Planning → Execution → Review → Completion
 ## Stage 3: Planning Session
 
 **Model:** Sonnet
-**Skill:** `/plan-adhoc`
+**Skill:** `/runbook`
 
 **Purpose:** Create executable runbook from requirements or design.
 
@@ -146,10 +146,11 @@ Add weak orchestrator coordination info:
 - Sequencing constraints
 
 ### 3. Review
-Delegate to sonnet sub-agent for validation:
+Delegate to plan-reviewer agent for validation:
 - Completeness check
 - Executability verification
 - Context sufficiency
+- LLM failure mode detection
 - Apply review fixes
 
 ### 4. Split
@@ -257,7 +258,7 @@ Run `prepare-runbook.py` to create:
 
 ---
 
-### `/plan-adhoc`
+### `/runbook`
 **Stage:** 3 (Planning)
 **Model:** Sonnet
 **Use when:** Ready to create implementation steps
@@ -266,9 +267,9 @@ Run `prepare-runbook.py` to create:
 - Starts with tier assessment (evaluates complexity)
 - **Tier 1** (Direct): Implements directly, vets, commits
 - **Tier 2** (Lightweight): Delegates to quiet-task agents, vets, commits
-- **Tier 3** (Full Runbook): Executes 4-point runbook prep process, delegates review, invokes `prepare-runbook.py` to create execution artifacts, primes session.md for orchestrator handoff
+- **Tier 3** (Full Runbook): Executes 4-point runbook prep process, delegates review to plan-reviewer agent, invokes `prepare-runbook.py` to create execution artifacts, primes session.md for orchestrator handoff
 
-**Complemented by:** `/plan-tdd` for feature development with TDD methodology.
+**Note:** Unified skill supporting both TDD and general workflows via per-phase typing.
 
 ---
 
@@ -283,7 +284,7 @@ Run `prepare-runbook.py` to create:
 - Tracks progress
 - Reports to specified locations
 
-**Prerequisites:** Must have prepared runbook from `/plan-adhoc`.
+**Prerequisites:** Must have prepared runbook from `/runbook`.
 
 ---
 
@@ -346,7 +347,7 @@ User: /design "refactor auth system to support OAuth providers"
 Agent: Assesses as complex task requiring design
 Agent: Sets up workflow in session.md:
        - [ ] Design - Explore architecture (/design - Opus)
-       - [ ] Planning - Create runbook (/plan-adhoc)
+       - [ ] Planning - Create runbook (/runbook)
        - [ ] Execution - Run steps (/orchestrate - Haiku)
        - [ ] Review - Check changes (vet-fix-agent)
        - [ ] Completion - Finalize docs
@@ -368,7 +369,7 @@ Agent: Calls /handoff: "Switch to Sonnet for Planning stage"
 ```
 User: #load
 Agent: Reads session.md, sees Planning stage pending
-Agent: Invokes /plan-adhoc
+Agent: Invokes /runbook
 Agent: Creates runbook with implementation steps
 Agent: Runs prepare-runbook.py to generate artifacts
 Agent: Updates session.md (Planning complete, Execution next)
@@ -424,7 +425,7 @@ Agent: Calls /handoff: "All workflow tasks complete. Start fresh session for new
 
 **Flow:**
 1. **Discussion** (Stage 1): Requirements clear, approach straightforward
-2. **Planning** (Stage 3): Create runbook with `/plan-adhoc`
+2. **Planning** (Stage 3): Create runbook with `/runbook`
 3. **Execution** (Stage 4): Run steps with `/orchestrate`
 4. **Review** (Stage 5): Delegate to vet-fix-agent
 5. **Completion** (Stage 6): Update docs, finalize
@@ -438,7 +439,7 @@ Agent: Calls /handoff: "All workflow tasks complete. Start fresh session for new
 **Flow:**
 1. **Discussion** (Stage 1): Complex, multiple approaches possible
 2. **Design** (Stage 2): Use `/design` to explore options (WebSockets vs SSE vs polling)
-3. **Planning** (Stage 3): Create runbook from design with `/plan-adhoc`
+3. **Planning** (Stage 3): Create runbook from design with `/runbook`
 4. **Execution** (Stage 4): Run Phase 1 steps with `/orchestrate`
 5. **Planning** (Stage 3): Plan Phase 2 after Phase 1 validation
 6. **Execution** (Stage 4): Run Phase 2 steps

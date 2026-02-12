@@ -25,7 +25,7 @@ Route learnings to appropriate documentation based on domain.
 **Examples:**
 - Handoff mechanics → `.claude/skills/handoff/references/learnings.md`
 - Commit patterns → `.claude/skills/commit/references/learnings.md`
-- Planning techniques → `.claude/skills/plan-adhoc/references/learnings.md`
+- Planning techniques → `.claude/skills/runbook/references/learnings.md`
 
 **Rationale:** Skills have built-in discoverability via triggering conditions. Documentation requires grep to discover.
 

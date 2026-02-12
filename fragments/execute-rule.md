@@ -176,7 +176,7 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 
 **Examples:**
 ```markdown
-- [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
+- [ ] **Implement ambient awareness** — `/runbook plans/ambient-awareness/design.md` | sonnet
 - [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/problem.md` | opus | restart
 ```
 

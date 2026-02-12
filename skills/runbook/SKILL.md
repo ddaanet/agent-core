@@ -1,0 +1,820 @@
+---
+name: runbook
+description: |
+  Create execution runbooks with per-phase typing (TDD cycles or general steps).
+  Supports mixed runbooks: behavioral phases use TDD discipline, infrastructure
+  phases use general steps. Routes based on design context and phase requirements.
+model: sonnet
+allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
+requires:
+  - Design document from /design
+  - CLAUDE.md for project conventions (if exists)
+outputs:
+  - Execution runbook at plans/<job-name>/runbook.md
+  - Ready for prepare-runbook.py processing
+user-invocable: true
+---
+
+# /runbook Skill
+
+**Usage:** `/runbook plans/<job-name>/design.md`
+
+Create detailed execution runbooks suitable for weak orchestrator agents. Transforms designs into structured runbooks with per-phase type tagging — behavioral phases get TDD cycles (RED/GREEN), infrastructure phases get general steps.
+
+**Workflow context:** Part of implementation workflow (see `agents/decisions/pipeline-contracts.md` for full pipeline): `/design` → `/runbook` → [plan-reviewer] → prepare-runbook.py → `/orchestrate`
+
+## Per-Phase Type Model
+
+Each phase in a runbook declares its type: `type: tdd` or `type: general` (default: general).
+
+**Type determines:**
+- **Expansion format:** TDD phases → RED/GREEN cycles. General phases → task steps with script evaluation.
+- **Review criteria:** TDD discipline for TDD phases, step quality for general phases. LLM failure modes for ALL phases.
+
+**Type does NOT affect:** Tier assessment, outline generation, consolidation gates, assembly (prepare-runbook.py auto-detects), orchestration, checkpoints.
+
+**Phase type tagging format in outlines:**
+```markdown
+### Phase 1: Core behavior (type: tdd)
+- Cycle 1.1: Load configuration
+- Cycle 1.2: Parse entries
+
+### Phase 2: Skill definition updates (type: general)
+- Step 2.1: Update SKILL.md frontmatter
+- Step 2.2: Add new section
+```
+
+prepare-runbook.py already detects per-file via headers (`## Cycle X.Y:` vs `## Step N.M:`). The type tag is consumed by planner and reviewer.
+
+---
+
+## When to Use
+
+**Use this skill when:**
+- Creating execution runbooks for multi-step tasks
+- Delegating work to weak orchestrator agents (haiku/sonnet)
+- Complex tasks need explicit design decisions documented
+- Tasks require clear error escalation and validation criteria
+- Feature development requiring TDD approach (behavioral phases)
+- Infrastructure, refactoring, migrations (general phases)
+- Mixed work requiring both TDD and general phases
+
+**Do NOT use when:**
+- Task requires user input or interactive decisions
+- Plan already exists and just needs execution (use `/orchestrate`)
+
+---
+
+## Three-Tier Assessment
+
+**Evaluate implementation complexity before proceeding. Assessment runs first, before any other work.**
+
+### Assessment Criteria
+
+Analyze the task and produce explicit assessment output:
+
+```
+**Tier Assessment:**
+- Files affected: ~N
+- Open decisions: none / [list]
+- Components: N (sequential / parallel / mixed)
+- Cycles/steps estimated: ~N (rough count from design)
+- Model requirements: single / multiple
+- Session span: single / multi
+
+**Tier: [1/2/3] — [Direct Implementation / Lightweight Delegation / Full Runbook]**
+**Rationale:** [1-2 sentences]
+```
+
+When uncertain between tiers, prefer the lower tier (less overhead). Ask user only if genuinely ambiguous.
+
+### Tier 1: Direct Implementation
+
+**Criteria:**
+- Design complete (no open decisions)
+- All edits straightforward (<100 lines each)
+- Total scope: <6 files
+- Single session, single model
+- No parallelization benefit
+
+**Sequence:**
+1. Implement changes directly using Read/Write/Edit tools
+2. Delegate to vet agent for review
+3. Apply all fixes from vet review
+4. Tail-call `/handoff --commit`
+
+### Tier 2: Lightweight Delegation
+
+**Criteria:**
+- Design complete, scope moderate (6-15 files or 2-4 logical components)
+- Work benefits from agent isolation but not full orchestration
+- Components are sequential (no parallelization benefit)
+- No model switching needed
+
+**For TDD work (~4-10 cycles):**
+- Plan cycle descriptions (lightweight — no full runbook format)
+- For each cycle: delegate via `Task(subagent_type="tdd-task", model="haiku", prompt="...")` with context included in prompt (requires tdd-task agent definition)
+- Intermediate checkpoints: every 3-5 delegated cycles, run tests and review accumulated changes
+
+**For general work (6-15 files):**
+- Delegate work via `Task(subagent_type="quiet-task", model="haiku", prompt="...")` with relevant context from design included in prompt (standard delegation pattern — agent executes and reports to file)
+- Single agent for cohesive work; break into 2-4 components only if logically distinct
+
+**Common tail:**
+- After delegation complete: delegate to vet agent for review
+- Apply all fixes from vet review
+- Tail-call `/handoff --commit`
+
+**Design constraints are non-negotiable:**
+
+When design specifies explicit classifications (tables, rules, decision lists):
+1. Include them LITERALLY in the delegation prompt
+2. Delegated agents must NOT invent alternative heuristics
+3. Agent "judgment" means applying design rules to specific cases, not creating new rules
+
+**Key distinction from Tier 3:** No prepare-runbook.py, no orchestrator plan, no plan-specific agent. The planner acts as ad-hoc orchestrator.
+
+**Handling agent escalations:**
+
+When delegated agent escalates "ambiguity" or "design gap":
+1. **Verify against design source** — Re-read the design document section
+2. **If design provides explicit rules:** Resolve using those rules, do not accept the escalation
+3. **If genuinely ambiguous:** Use `/opus-design-question` or ask user
+4. **Re-delegate with clarification** if agent misread design
+
+### Tier 3: Full Runbook
+
+**Criteria:**
+- Multiple independent steps (parallelizable)
+- Steps need different models
+- Long-running / multi-session execution
+- Complex error recovery
+- >15 files or complex coordination
+- >10 TDD cycles with cross-component dependencies
+
+**Sequence:** Planning process below — existing pipeline unchanged.
+
+---
+
+## Planning Process (Tier 3 Only)
+
+**Process overview:**
+- Phase 0.5: Discover codebase structure
+- Phase 0.75: Generate runbook outline
+- Phase 0.85: Consolidation gate (outline)
+- Phase 0.9: Complexity check before expansion
+- Phase 0.95: Outline sufficiency check
+- Phase 1: Phase-by-phase expansion with reviews
+- Phase 1.4: File size awareness
+- Phase 2: Assembly and metadata
+- Phase 2.5: Consolidation gate (runbook)
+- Phase 3: Final holistic review
+- Phase 4: Prepare artifacts and handoff
+
+---
+
+### Phase 0.5: Discover Codebase Structure (REQUIRED)
+
+**Before writing any runbook content:**
+
+0. **Read documentation perimeter and requirements (if present):**
+
+If design document includes "Documentation Perimeter" section:
+- Read all files listed under "Required reading"
+- Note Context7 references (may need additional queries)
+- Factor knowledge into step design
+
+If design document includes "Requirements" section:
+- Read and summarize functional/non-functional requirements
+- Note scope boundaries (in/out of scope)
+- Carry requirements context into runbook Common Context
+
+1. **Discover relevant prior knowledge:**
+   - Check loaded memory-index context (already in CLAUDE.md) for entries related to the task domain
+   - When entry is relevant, Read the referenced file
+   - Factor known constraints into step design and model selection
+   - **Do NOT grep memory-index.md** — it's already loaded, scan it mentally
+
+2. **Verify actual file locations:**
+   - Use Glob to find source files referenced by the design
+   - Use Glob to find test files: `tests/test_*.py`, `tests/**/test_*.py`
+   - Use Grep to find specific functions, classes, or patterns mentioned in the design
+   - Record actual file paths for use in runbook steps
+   - **NEVER assume file paths from conventions alone** — always verify with Glob/Grep
+   - STOP if expected files not found: report missing files to user
+
+---
+
+### Phase 0.75: Generate Runbook Outline
+
+**Before writing full runbook content, create a holistic outline for cross-phase coherence.**
+
+1. **Create runbook outline:**
+   - File: `plans/<job>/runbook-outline.md`
+   - Include:
+     - **Requirements mapping table:** Link each requirement from design to implementation phase
+     - **Phase structure:** Break work into logical phases with item titles and type tags
+     - **Key decisions reference:** Link to design sections with architectural decisions
+     - **Complexity per phase:** Estimated scope and model requirements per phase
+   - **Per-phase type tagging:** Each phase in the outline declares `type: tdd` or `type: general` (defaults to general if omitted)
+     - TDD phases use cycle titles (X.Y numbering), RED/GREEN markers
+     - General phases use step titles, action descriptions
+
+2. **Verify outline quality:**
+   - **All implementation choices resolved** — No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each item commits to one approach. If uncertain, use `/opus-design-question`.
+   - **Inter-item dependencies declared** — If item N.M depends on item N.K, declare `Depends on: [Cycle|Step] N.K`.
+   - **Code fix items enumerate affected sites** — For items fixing code: list all affected call sites (file:function or file:line).
+   - **Later items reference post-phase state** — Items in Phase N+1 that modify files changed in Phase N must note expected state.
+   - **Phases ≤8 items each** — Split phases with >8 items or add internal checkpoint.
+   - **Cross-cutting issues scope-bounded** — Partially addressed issues must note what's in vs out of scope.
+   - **No vacuous items** — Every item must produce a functional outcome. TDD: test a branch point. General: produce a behavioral change. Scaffolding-only items merge into nearest behavioral item.
+   - **Foundation-first ordering** — Order: existence → structure → behavior → refinement. No forward dependencies.
+   - **Collapsible item detection** — Adjacent items modifying same file or testing edge cases of same function should collapse. Note candidates for Phase 0.85.
+
+3. **Review outline:**
+   - Delegate to `runbook-outline-review-agent` (fix-all mode)
+   - Agent fixes all issues (critical, major, minor)
+   - Agent returns review report path
+
+4. **Validate and proceed:**
+   - Read review report
+   - If critical issues remain: STOP and escalate to user
+   - Otherwise: proceed to phase-by-phase expansion
+
+**Fallback for small runbooks:**
+- If outline has ≤3 phases and ≤10 total items → generate entire runbook at once (skip phase-by-phase)
+- Single review pass instead of per-phase
+- See also Phase 0.95: if items are already execution-ready, skip expansion entirely
+
+---
+
+### Phase 0.85: Consolidation Gate — Outline
+
+**Objective:** Merge trivial phases with adjacent complexity before expensive expansion.
+
+**Actions:**
+
+1. **Scan outline for trivial phases:**
+   - Phases with ≤2 items AND complexity marked "Low"
+   - Single-constant changes or configuration updates
+   - Pattern: setup/cleanup work that could batch with adjacent feature work
+
+2. **Evaluate merge candidates:**
+   For each trivial phase, check:
+   - Can it merge with preceding phase? (same domain, natural continuation)
+   - Can it merge with following phase? (prerequisite relationship)
+   - Would merging create >10 items in target phase? (reject if so)
+
+3. **Apply consolidation:**
+   ```markdown
+   ## Phase N: [Combined Name]
+   ### [Original feature items]
+   ### [Trivial work as final items]
+   ```
+
+   **Do NOT merge if:**
+   - Trivial phase has external dependencies
+   - Merged phase would exceed 10 items
+   - Domains are unrelated (forced grouping hurts coherence)
+
+4. **Update traceability:**
+   - Adjust requirements mapping table
+   - Update phase structure in outline
+   - Note consolidation decisions in Expansion Guidance
+
+**When to skip:** No trivial phases, all have cross-cutting dependencies, or outline already compact (≤3 phases).
+
+---
+
+### Phase 0.9: Complexity Check Before Expansion
+
+**Objective:** Gate expensive expansion with callback mechanism.
+
+**Actions:**
+
+1. **Assess expansion scope:**
+   - Count total items from outline
+   - Identify pattern-based items (same structure, different inputs)
+   - Identify algorithmic items (unique logic, edge cases)
+
+2. **Apply fast-path if applicable:**
+   - **Pattern items (≥5 similar):** Generate pattern template + variation list
+   - **Trivial phases (≤2 items, low complexity):** Inline instructions
+   - **Single constant change:** Skip item, add as inline task
+
+3. **Callback mechanism — if expansion too large:**
+
+   **Callback triggers:**
+   - Outline exceeds 25 items → callback to design (scope too large)
+   - Phase exceeds 10 items → callback to outline (phase needs splitting)
+   - Single item too complex → callback to outline (decompose further)
+
+   **Callback levels:**
+   ```
+   item → runbook outline → design → design outline → requirements
+   ```
+
+   **When callback triggered:**
+   - STOP expansion
+   - Document issue: "Phase N contains [issue]. Callback to [level] required."
+   - Return to previous level with specific restructuring recommendation
+
+4. **Proceed with expansion:** Only if complexity checks pass.
+
+---
+
+### Phase 0.95: Outline Sufficiency Check
+
+**Objective:** Skip expensive expansion when the outline is already detailed enough to serve as the runbook.
+
+**Sufficiency criteria — ALL must hold:**
+- Every item specifies target files/locations
+- Every item has a concrete action (no "determine"/"evaluate options" language)
+- Every item has verification criteria or is self-evidently complete
+- No unresolved design decisions in item descriptions
+
+**TDD threshold:** Also skip expansion when outline has <3 phases AND <10 cycles total (small TDD work doesn't need full cycle expansion).
+
+**If sufficient → promote outline to runbook:**
+
+1. **Reformat headings:** Convert item headings to H2 (`## Step N.M:` or `## Cycle X.Y:`)
+2. **Convert content:** Bullets become body content under each H2
+3. **Add Common Context:** Extract from outline's Key Decisions, Requirements, design reference
+4. **Add frontmatter:** name, model (from outline metadata or design)
+5. **Preserve phase structure:** `### Phase N: title` kept as-is
+6. **Write to:** `plans/<job>/runbook.md`
+7. **Skip to Phase 4** — expansion, assembly, consolidation gate, holistic review unnecessary
+
+**If not sufficient → proceed with Phase 1 expansion.**
+
+---
+
+### Phase 1: Phase-by-Phase Expansion
+
+**For each phase identified in the outline, generate detailed content with review.**
+
+**For each phase:**
+
+1. **Generate phase content:**
+   - **Read Expansion Guidance:** Check `plans/<job>/runbook-outline.md` for `## Expansion Guidance` section.
+   - File: `plans/<job>/runbook-phase-N.md`
+   - Check phase type tag from outline phase heading (e.g., `### Phase 1: Core behavior (type: tdd)`)
+
+2. **Expand based on phase type:**
+
+   **[TDD phases] — Cycle Planning:**
+
+   Use cycle planning guidance (see TDD Cycle Planning section below):
+   - Number cycles X.Y format, sequential within phase
+   - Generate RED specifications (prose test descriptions — NOT full code)
+   - Generate GREEN specifications (behavior + hints — NOT prescriptive code)
+   - Classify step type and add investigation prerequisites for creation cycles
+   - Assign dependencies (sequential default, cross-phase with `[DEPENDS: X.Y]`)
+   - Verify integration coverage
+
+   **[General phases] — Script Evaluation:**
+
+   - Classify each task: small (≤25 lines inline), medium (25-100 prose), large (>100 separate planning)
+   - Classify step type: transformation (self-contained) vs creation (needs investigation prerequisite)
+   - For creation steps: `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
+   - Each step: Objective, Implementation, Expected Outcome, Error Conditions, Validation
+
+3. **Review phase content:**
+   - Delegate to `plan-reviewer` (fix-all mode)
+   - Agent applies type-aware criteria: TDD discipline for TDD phases, step quality for general phases, LLM failure modes for ALL phases
+   - Agent returns review report path
+
+   **Background review pattern:** After writing each phase file, launch review with `run_in_background=true` and proceed to generating next phase. Reviews run concurrently. Per-phase reviews are independent; cross-phase consistency checked in Phase 3.
+
+   **Domain Validation:**
+
+   When writing vet checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the vet step:
+
+   ```
+   - **Domain validation:** Read and apply criteria from
+     `agent-core/skills/<domain>-validation/SKILL.md`
+     for artifact type: [skills|agents|hooks|commands|plugin-structure]
+   ```
+
+4. **Handle review outcome:**
+   - Read review report
+   - If ESCALATION: STOP, address unfixable issues
+   - If all fixed: proceed to next phase
+
+---
+
+### TDD Cycle Planning Guidance
+
+**Applied within TDD-type phases during Phase 1 expansion.**
+
+**1. Number cycles:** X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
+   - Start at 1.1 (not 0.1 or 1.0)
+   - Sequential within phases
+   - No duplicates (error), gaps acceptable (warn)
+
+**2. Generate RED specifications (prose format):**
+
+```markdown
+**RED Phase:**
+
+**Test:** [test function name]
+**Assertions:**
+- [Specific assertion 1 — behavioral, not structural]
+- [Specific assertion 2]
+- [Expected values/behaviors]
+
+**Expected failure:** [Error type or pattern]
+
+**Why it fails:** [Missing implementation]
+
+**Verify RED:** `pytest [file]::[test_function] -v`
+```
+
+**Prose Test Description Rules:**
+
+RED phase uses **prose descriptions**, not full code blocks. Saves planning tokens while providing enough specificity for haiku.
+
+**Assertion Quality Requirements:**
+
+| Weak (vague) | Strong (specific) |
+|---|---|
+| "returns correct value" | "returns string containing 🥈 emoji" |
+| "handles error case" | "raises ValueError with message 'invalid input'" |
+| "processes input correctly" | "output dict contains 'count' key with integer > 0" |
+
+**Validation rule:** Prose must specify exact expected values, patterns, or behaviors. If assertion could be satisfied by multiple implementations, it's too vague.
+
+**3. Generate GREEN specifications:**
+
+```markdown
+**GREEN Phase:**
+
+**Implementation:** [Brief description]
+
+**Behavior:**
+- [What the code must DO — not HOW to write it]
+
+**Approach:** [Brief hint about algorithm/strategy]
+
+**Changes:**
+- File: [path]
+  Action: [what to add/modify — describe, don't write code]
+  Location hint: [where in file]
+
+**Verify GREEN:** [Test command]
+**Verify no regression:** [Full test suite]
+```
+
+**CRITICAL — No prescriptive code:** GREEN phases describe BEHAVIOR and provide HINTS. Do NOT include complete function implementations or code blocks that can be copied verbatim.
+
+**4. Classify and add investigation prerequisites:**
+- **Transformation cycles** (delete, move, rename): Self-contained recipe sufficient
+- **Creation cycles** (new test, new integration, touching existing paths): MUST include `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
+
+**5. Assign dependencies:**
+- **Default:** Sequential within phase (1.1 → 1.2 → 1.3)
+- **Cross-phase:** `[DEPENDS: X.Y]`
+- **Regression:** `[REGRESSION]`
+
+**6. Stop conditions:**
+
+Common TDD stop/error conditions (auto-injected by prepare-runbook.py into Common Context):
+- RED fails to fail → STOP, diagnose test
+- GREEN passes without implementation → STOP, test too weak
+- Test requires mocking not yet available → STOP, add prerequisite cycle
+- Implementation needs architectural decision → STOP, escalate to opus
+
+Only add custom domain-specific stop conditions per-cycle when needed.
+
+### Mandatory Conformance Validation
+
+**Trigger:** When design includes external reference (shell prototype, API spec) in `Reference:` field.
+
+**Requirement:** Runbook MUST include validation items that verify implementation conforms to the reference.
+
+**Validation precision:**
+- Use precise descriptions with exact expected strings from reference
+- Example: "Output matches reference: `🥈 sonnet \033[35m…` with double-space separators"
+- NOT abstracted: "Output contains formatted model with appropriate styling"
+
+**Related:** See `agents/decisions/testing.md` "Conformance Validation for Migrations".
+
+---
+
+### Phase 1.4: File Size Awareness
+
+**Convention:** When an item adds content to an existing file, note current file size and plan splits proactively.
+
+**Process:**
+1. For each item adding content: Note `(current: ~N lines, adding ~M)`
+2. If `N + M > 350`: include a split step in the same phase
+3. Threshold rationale: 400-line hard limit at commit, 350 leaves ~50-line margin (heuristic)
+
+---
+
+### Phase 2: Assembly and Metadata
+
+**After all phases are finalized, validate phase files are ready, then delegate to prepare-runbook.py.**
+
+**Actions:**
+
+1. **Pre-assembly validation:**
+   - Verify all phase files exist (`runbook-phase-1.md` through `runbook-phase-N.md`)
+   - Check phase reviews completed (all reports in `reports/` directory)
+   - Confirm no critical issues remain
+
+2. **Metadata preparation:**
+   - Count total items across all phases
+   - Extract Common Context elements from design
+   - Verify Design Decisions section ready
+
+3. **Final consistency check:**
+   - Cross-phase dependencies
+   - Item numbering sequential
+   - Phase boundary issues
+   - No new content generation, only validation
+
+**IMPORTANT — Do NOT manually assemble:** Phase files remain separate until prepare-runbook.py processes them. Manual concatenation bypasses validation logic.
+
+Every assembled runbook MUST include this metadata section:
+
+```markdown
+## Weak Orchestrator Metadata
+
+**Total Steps**: [N]
+
+**Execution Model**:
+- Steps X-Y: Haiku (simple file operations, scripted tasks)
+- Steps A-B: Sonnet (semantic analysis, judgment required)
+
+**Step Dependencies**: [sequential | parallel | specific graph]
+
+**Error Escalation**:
+- Haiku → Sonnet: [triggers]
+- Sonnet → User: [triggers]
+
+**Report Locations**: [pattern]
+
+**Success Criteria**: [overall runbook success]
+
+**Prerequisites**:
+- [Prerequisite 1] (✓ verified via [method])
+```
+
+**Key principles:**
+1. Orchestrator metadata is coordination info only — not execution details
+2. Validation is delegated — if needed, it's a separate step
+3. Planning happens before execution — orchestrator doesn't decide during execution
+
+---
+
+### Phase 2.5: Consolidation Gate — Runbook
+
+**Objective:** Merge isolated trivial items with related features after assembly validation.
+
+**Actions:**
+
+1. **Identify isolated trivial items:**
+   - Items marked for fast-path during Phase 0.9
+   - Single-line changes or constant updates
+   - Items with no validation assertions (pure configuration)
+
+2. **Check merge candidates:**
+   - **Same-file items:** Merge with adjacent item modifying same file
+   - **Setup items:** Promote to phase preamble
+   - **Cleanup items:** Demote to phase postamble
+
+3. **Apply consolidation and update metadata** (Total Steps count, numbering).
+
+**Constraints:**
+- Never merge items across phases
+- Preserve isolation when needed
+- Keep merged items manageable
+
+**When to skip:** No trivial items, all have substantial coverage, or runbook already compact (<15 items).
+
+---
+
+### Phase 3: Final Holistic Review
+
+**After assembly validation, perform final cross-phase review.**
+
+Delegate to `plan-reviewer` (fix-all mode) for cross-phase consistency:
+
+**Review scope:**
+- Cross-phase dependency ordering
+- Item numbering consistency
+- Metadata accuracy
+- File path validation (all referenced paths exist — use Glob)
+- Requirements satisfaction
+- **Type-specific criteria:**
+  - TDD phases: Cross-phase RED/GREEN sequencing, no prescriptive code
+  - General phases: Step clarity, script evaluation completeness
+- **LLM failure modes (all phases):** Vacuity, ordering, density, checkpoints
+
+**Handle outcome:**
+- Read review report
+- If ESCALATION: STOP, address unfixable issues
+- If all fixed: proceed to Phase 4
+
+**Note:** Individual phase reviews already happened in Phase 1. This review checks holistic consistency only.
+
+---
+
+### Phase 4: Prepare Artifacts and Handoff
+
+**CRITICAL: This step is MANDATORY. Use `prepare-runbook.py` to create execution artifacts.**
+
+**Why:** Context isolation. Each step gets a fresh agent with ONLY common context and the specific step — no accumulated transcript.
+
+**Step 1: Run prepare-runbook.py** with sandbox bypass:
+```bash
+agent-core/bin/prepare-runbook.py plans/{name}/runbook.md
+# MUST use dangerouslyDisableSandbox: true (writes to .claude/agents/)
+```
+If script fails: STOP and report error.
+
+**Step 2: Copy orchestrate command to clipboard:**
+```bash
+echo -n "/orchestrate {name}" | pbcopy
+```
+
+**Step 3: Tail-call `/handoff --commit`**
+
+This:
+- Hands off session context (marks planning complete, adds orchestration as pending)
+- Then tail-calls `/commit` which commits everything and displays next pending task
+
+Next pending task instructs: "Restart session, paste `/orchestrate {name}` from clipboard."
+
+**Why restart:** prepare-runbook.py creates a new agent in `.claude/agents/`. Claude Code discovers agents at session start.
+
+---
+
+## Checkpoints
+
+Checkpoints are verification points between phases. They validate accumulated work and create commit points.
+
+**Two checkpoint tiers:**
+
+**Light checkpoint** (Fix + Functional):
+- **Placement:** Every phase boundary
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes, commit when passing
+  2. **Functional:** Sonnet reviews implementations against design
+     - Check: Real implementations or stubs? Functions compute or return constants?
+     - If stubs found: STOP, report which need real behavior
+     - If all functional: proceed
+
+**Full checkpoint** (Fix + Vet + Functional):
+- **Placement:** Final phase boundary, or phases marked `checkpoint: full`
+- **Process:**
+  1. **Fix:** Run `just dev`, sonnet fixes, commit when passing
+  2. **Vet:** Sonnet reviews accumulated changes (presentation, clarity, alignment). Apply all fixes. Commit.
+  3. **Functional:** Same checks as light checkpoint
+
+**Integration tests (TDD composition tasks):**
+- Phase start: xfail integration test calling top-level entry point
+- Phase end: Remove xfail, verify passes
+- Catches gaps unit tests miss (results consumed, not just functions called)
+
+**When to mark `checkpoint: full`:**
+- Phase introduces new public API surface
+- Phase crosses module boundaries (3+ packages)
+- Runbook exceeds 20 items total
+
+---
+
+## What NOT to Test (TDD phases)
+
+TDD tests **behavior**, not **presentation**:
+
+| Category | Skip Testing | Test Instead |
+|----------|--------------|--------------|
+| CLI help text | Exact phrasing | Command parses correctly, options work |
+| Error messages | Exact wording | Error raised, exit code, error type |
+| Log output | Format, phrasing | Logged events occur, data captured |
+| Documentation | Generated content | Generation process works |
+
+**Exceptions:** Regulatory requirements, complex generated content, machine-parsed output.
+
+---
+
+## Cycle/Step Ordering Guidance
+
+**TDD phases:**
+- Start with simplest happy path, not empty/degenerate case
+- Foundation-first: existence → structure → behavior → refinement
+- Each cycle must test a branch point — if RED can pass with `assert callable(X)`, the cycle is vacuous
+
+**General phases:**
+- Order by dependency: prerequisite steps before dependent steps
+- Group by file/module for efficient execution
+- Place validation/verification after implementation
+
+**Detailed guidance:** See `references/patterns.md` for granularity criteria, numbering, common patterns.
+
+---
+
+## Common Pitfalls
+
+**Avoid:**
+- Creating runbooks when direct implementation is better (skipping tier assessment)
+- Assuming file paths from conventions without Glob/Grep verification (skipping Phase 0.5)
+- Skipping outline generation for complex runbooks
+- Generating entire runbook monolithically instead of phase-by-phase
+- Leaving design decisions for "during execution"
+- Vague success criteria ("analysis complete" vs "analysis has 6 sections with line numbers")
+- Success criteria that only check structure ("file exists") when step should verify content/behavior
+- Forgetting to run prepare-runbook.py after review
+- Prescriptive code in TDD GREEN phases (describe behavior, provide hints)
+- Missing investigation prerequisites for creation steps
+
+**Instead:**
+- Verify prerequisites explicitly
+- Match model to task complexity
+- Make all decisions during planning
+- Define measurable success criteria
+- Document clear escalation triggers
+- Always run prepare-runbook.py to create artifacts
+
+---
+
+## Runbook Template Structure
+
+```markdown
+---
+name: runbook-name
+model: haiku
+---
+
+# [Runbook Name]
+
+**Context**: [Brief description]
+**Design**: [Reference to design document]
+**Status**: [Draft / Ready / Complete]
+**Created**: YYYY-MM-DD
+
+---
+
+## Weak Orchestrator Metadata
+[As defined in Phase 2]
+
+---
+
+## Common Context
+
+**Requirements (from design):**
+- FR-1: [summary] — addressed by [element]
+
+**Scope boundaries:** [in/out]
+
+**Key Constraints:**
+- [Constraint]
+
+**Project Paths:**
+- [Path]: [Description]
+
+---
+
+## Cycle 1.1: [Name] (TDD phase)
+[RED/GREEN content]
+
+---
+
+## Step 2.1: [Name] (General phase)
+
+**Objective**: [Clear objective]
+**Script Evaluation**: [Direct / Small / Prose / Separate]
+**Execution Model**: [Haiku / Sonnet]
+
+**Implementation**: [Content]
+
+**Expected Outcome**: [What happens on success]
+**Error Conditions**: [Escalation actions]
+**Validation**: [Checks]
+```
+
+---
+
+## References
+
+- **`references/patterns.md`** — Granularity criteria, numbering, common patterns
+- **`references/anti-patterns.md`** — Patterns to avoid with corrections
+- **`references/error-handling.md`** — Error catalog, edge cases, recovery protocols
+- **`references/examples.md`** — Complete runbook examples
+- **`agents/decisions/pipeline-contracts.md`** — I/O contracts for pipeline transformations
+
+---
+
+## Integration
+
+**Workflow:**
+```
+/design → /runbook → plan-reviewer (fix-all) → prepare-runbook.py → /orchestrate
+```
+
+**Handoff:**
+- Input: Design document from `/design`
+- Output: Ready-to-execute artifacts (agent, steps, orchestrator plan), committed and handed off
+- Next: User restarts session and pastes orchestrate command from clipboard

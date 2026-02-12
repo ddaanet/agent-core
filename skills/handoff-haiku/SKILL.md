@@ -51,7 +51,7 @@ Use this convention when writing tasks:
 
 Examples:
 ```
-- [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
+- [ ] **Implement ambient awareness** — `/runbook plans/ambient-awareness/design.md` | sonnet
 - [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/problem.md` | opus | restart
 ```
 

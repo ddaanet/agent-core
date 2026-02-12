@@ -355,12 +355,21 @@ Full review written to: scratch/reviews/vet-review-2026-01-19-142530.md
 **Direct `/vet` invocation** is still valid when the user explicitly requests a review in conversation.
 
 **Workflow stages:**
-1. `/design` - Opus creates design document
-2. `/plan-adhoc` - Sonnet creates runbook
-3. `/orchestrate` - Haiku executes runbook
-4. vet-fix-agent - Review and fix changes before commit
-5. `/commit` - Commit changes
+1. `/design` — Opus creates design document
+2. `/runbook` — Sonnet creates runbook (per-phase typing: TDD + general)
+3. `/orchestrate` — Executes runbook
+4. vet-fix-agent — Review and fix changes before commit
+5. `/commit` — Commit changes
 6. Complete job
+
+## Execution Context for Review Delegations
+
+When delegating to vet-fix-agent, include scope context per `agent-core/fragments/vet-requirement.md`:
+
+**Required:** Scope IN, Scope OUT, Changed files, Requirements summary
+**Optional:** Prior state, Design reference
+
+See `agent-core/fragments/vet-requirement.md` for full template and rationale.
 
 ## References
 

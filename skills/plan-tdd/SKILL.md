@@ -153,6 +153,9 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - **Later cycles reference post-phase state** — Cycles in Phase N+1 that modify files changed in Phase N must note expected state after Phase N (e.g., "After Phase 2 refactor, helpers are in conftest.py").
    - **Phases ≤8 cycles each** — Split phases with >8 cycles or add an internal checkpoint. Large phases without checkpoints make diagnosis difficult when early cycles break things.
    - **Cross-cutting issues scope-bounded** — If a cross-cutting issue is only partially addressed, explicitly note what's in scope and what's deferred. Prevents executing agent from attempting unscoped refactors.
+   - **No vacuous cycles** — Every cycle must test a branch point (conditional, state transformation, error path). Cycles that only verify scaffolding (import exists, function callable) or integration wiring (A calls B when B is already tested) are vacuous. Merge into the nearest behavioral cycle.
+   - **Foundation-first ordering within phases** — Order cycles: existence → structure → behavior → refinement. If cycle N tests dedup, the container it deduplicates must exist from cycle N-k, not cycle N+k. Forward dependencies cause haiku to implement against wrong structural assumptions.
+   - **Edge-case clusters collapse** — Multiple cycles testing edge cases of the same function (special chars, truncation, empty input) collapse into one cycle with parametrized test description. Exception: edge cases requiring different setup or teardown stay separate.
 
 3. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)
@@ -826,6 +829,9 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 - Start with simplest happy path, not empty/degenerate case
 - Only test empty case if it requires special-casing that wouldn't arise naturally from list processing or normal control flow
 - Anti-pattern: Cycle 1 tests empty input → GREEN returns `[]` → stub never replaced
+- Foundation-first within phase: existence → structure → behavior → refinement
+- Anti-pattern: Dedup cycle before the container/key-path creation cycle it operates on
+- Each cycle must test a branch point — if RED can pass with `assert callable(X)`, the cycle is vacuous
 
 **Dependency markers:**
 - **Sequential (default):** 1.1 → 1.2 → 1.3

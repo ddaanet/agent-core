@@ -113,6 +113,28 @@ Analyze outline against these dimensions:
 - External dependencies are identified early
 - No missing dependencies that would block progress
 
+**Vacuity** (ref: `agents/decisions/runbook-review.md`):
+- Each step/cycle must test a branch point or produce a functional outcome
+- Flag steps where RED can be satisfied by `import X; assert callable(X)` (TDD) or where the step only creates scaffolding without behavior (adhoc)
+- Flag steps that test integration wiring (A calls B) when the called function is already tested in a prior phase
+- Flag steps that test presentation format (output shape) rather than semantic correctness
+
+**Intra-Phase Ordering** (ref: `agents/decisions/runbook-review.md`):
+- Within each phase, steps/cycles must be ordered foundation-first: existence → structure → behavior → refinement
+- Flag when step N tests behavior depending on structure created in step N+k (k>0)
+- Flag when step N's implementation must assume a data shape that a later step establishes
+- Common pattern: dedup logic ordered before the container creation it operates on
+
+**Step/Cycle Density** (ref: `agents/decisions/runbook-review.md`):
+- Flag adjacent steps testing the same function with <1 branch point difference
+- Flag steps that test a single edge case expressible as a parametrized row in the prior step
+- Flag entire phases with ≤3 steps, all Low complexity, on a function that already exists — collapse candidate
+- Note collapsible groups in Expansion Guidance section
+
+**Checkpoint Spacing** (ref: `agents/decisions/runbook-review.md`):
+- Flag gaps >10 steps/cycles or >2 phases without a checkpoint
+- Recommend checkpoints after phases with complex data manipulation, integration points, or ≥8 steps
+
 **Step Clarity:**
 - Each step has clear objective
 - Step titles are descriptive

@@ -190,6 +190,9 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
    - **Later steps reference post-phase state** — Steps in Phase N+1 that modify files changed in Phase N must note expected state after Phase N (e.g., "After Phase 3 consolidation, helpers are in conftest.py").
    - **Phases ≤8 steps each** — Split phases with >8 steps or add an internal checkpoint. Large phases without checkpoints make diagnosis difficult when early steps break things.
    - **Cross-cutting issues scope-bounded** — If a cross-cutting issue is only partially addressed, explicitly note what's in scope and what's deferred. Prevents executing agent from attempting unscoped refactors.
+   - **No vacuous steps** — Every step must produce a functional outcome (behavior change, data transformation, verified state). Steps that only create scaffolding (directory, import, registration) without functional result merge into the nearest behavioral step.
+   - **Foundation-first ordering within phases** — Order steps: existence → structure → behavior → refinement. If step N operates on a structure, that structure must exist from step N-k, not step N+k.
+   - **Collapsible step detection** — Adjacent steps modifying the same file or testing edge cases of the same function should collapse. Note collapse candidates for Point 0.85 consolidation gate.
 
 3. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)

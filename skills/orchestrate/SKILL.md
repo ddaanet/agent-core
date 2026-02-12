@@ -11,7 +11,7 @@ continuation:
 
 Execute prepared runbooks using the weak orchestrator pattern. This skill coordinates step-by-step execution through plan-specific agents, handling progress tracking, error escalation, and report management.
 
-**Prerequisites:** Runbook must be prepared with `/plan-adhoc` skill (artifacts created by `prepare-runbook.py`)
+**Prerequisites:** Runbook must be prepared with `/runbook` skill (artifacts created by `prepare-runbook.py`)
 
 ## When to Use
 
@@ -22,7 +22,7 @@ Execute prepared runbooks using the weak orchestrator pattern. This skill coordi
 - Want automated error escalation
 
 **Do NOT use when:**
-- Runbook not yet prepared (use `/plan-adhoc` first)
+- Runbook not yet prepared (use `/runbook` first)
 - Single-step task (execute directly)
 - Interactive execution needed (user decisions during execution)
 
@@ -45,7 +45,7 @@ ls -1 plans/<runbook-name>/orchestrator-plan.md
 - Orchestrator plan: `plans/<runbook-name>/orchestrator-plan.md`
 
 **If artifacts missing:**
-- ERROR: "Runbook not prepared. Run `/plan-adhoc` first to create execution artifacts."
+- ERROR: "Runbook not prepared. Run `/runbook` first to create execution artifacts."
 - Stop execution
 
 ### 2. Read Orchestrator Plan
@@ -245,30 +245,13 @@ Current status: Blocked on Step 3
 
 **When all steps successful:**
 
-**For TDD runbooks** (runbook frontmatter has `type: tdd`):
 1. Delegate to vet-fix-agent for quality review
-2. After vet completes, delegate to review-tdd-process agent for process analysis
-3. Report overall success with links to both reports
-4. Next action: `/commit` to commit changes
-
-**TDD completion delegation:**
-```
-Task(subagent_type="vet-fix-agent",
-     prompt="Review all changes from TDD execution. Write report to plans/<name>/reports/vet-review.md",
-     description="Vet review of TDD execution")
-
-# After vet completes:
-Task(subagent_type="review-tdd-process",
-     prompt="Analyze TDD execution for runbook: plans/<name>/runbook.md
-             Commit range: <start-commit>..<end-commit>
-             Write report to: plans/<name>/reports/tdd-process-review.md",
-     description="TDD process quality analysis")
-```
-
-**For general runbooks:**
-- Report overall success
-- List created artifacts
-- Suggest next action: delegate to vet-fix-agent to review changes, then `/commit`
+   - Write report to `plans/<name>/reports/vet-review.md`
+2. If runbook frontmatter has `type: tdd`:
+   - Delegate to review-tdd-process for process analysis
+   - Write report to `plans/<name>/reports/tdd-process-review.md`
+3. Report overall success with report links
+4. Default-exit: `/handoff --commit` → `/commit`
 
 **When blocked:**
 - Report which step failed
@@ -282,7 +265,7 @@ Task(subagent_type="review-tdd-process",
 
 **Delegate, don't decide:**
 - Orchestrator does NOT make judgment calls
-- All decisions made during planning (/plan-adhoc)
+- All decisions made during planning (/runbook)
 - Execution is mechanical: invoke agent, check result, continue or escalate
 
 **Trust agents:**
@@ -404,26 +387,18 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 
 ## Integration with Workflows
 
-**General workflow:**
-1. `/design` - Opus creates design document
-2. `/plan-adhoc` - Sonnet creates runbook and artifacts
-3. `/orchestrate` - Haiku executes runbook (THIS SKILL)
-4. vet-fix-agent - Review and fix changes before commit
-5. Complete job
-
-**TDD workflow reference:**
-1. `/design` (TDD mode) - Opus creates design with TDD sections
-2. `/plan-tdd` - Sonnet creates TDD runbook and artifacts
-3. `/orchestrate` - Haiku executes TDD cycles (THIS SKILL)
-4. vet-fix-agent - Review and fix changes
-5. review-tdd-process - Analyze TDD process quality
+**Implementation workflow:**
+1. `/design` — Opus creates design document
+2. `/runbook` — Sonnet creates runbook and artifacts (per-phase typing: TDD + general)
+3. `/orchestrate` — Executes runbook (THIS SKILL)
+4. vet-fix-agent — Review and fix changes
+5. review-tdd-process — TDD process analysis (if runbook has TDD phases)
 6. Complete job
 
 **Handoff:**
-- Input: Prepared artifacts from `/plan-adhoc` or `/plan-tdd`
+- Input: Prepared artifacts from `/runbook`
 - Output: Executed steps with reports
-- Next (general): Delegate to vet-fix-agent to review and fix changes
-- Next (TDD): Delegate to vet-fix-agent, then review-tdd-process for process analysis
+- Next: vet-fix-agent review, then `/handoff --commit` → `/commit`
 
 ## Continuation Protocol
 

@@ -8,12 +8,11 @@ user-invocable: true
 
 Produce dense design documents that guide implementation by downstream agents (Sonnet/Haiku).
 
-## Mode Detection
+## Downstream Consumer
 
-**TDD Mode:** Test-first culture, user mentions TDD/tests, behavioral verification needed.
-**General Mode:** Infrastructure, refactoring, migrations, prototypes. Default.
+All planning routes to `/runbook` (unified — handles both TDD and general phases).
 
-Mode determines downstream consumer: TDD → `/plan-tdd`, General → `/plan-adhoc`.
+Design should note which phases are behavioral (TDD) vs infrastructure (general) to guide per-phase type tagging during planning.
 
 ## Process
 
@@ -27,7 +26,7 @@ Before doing design work, assess whether design is actually needed:
 
 **Moderate (planning needed, not design):**
 - Clear requirements, no architectural uncertainty, well-defined scope
-- → Skip design. Route to `/plan-adhoc` (or `/plan-tdd` in TDD mode), which has its own tier assessment.
+- → Skip design. Route to `/runbook`, which has its own tier assessment.
 
 **Complex (design needed):**
 - Architectural decisions, multiple valid approaches, uncertain requirements, significant codebase impact
@@ -222,7 +221,7 @@ When requirements.md exists in job directory, include traceability mapping:
 
 Each requirement should map to a design element for downstream validation.
 
-**TDD mode additions:** Spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
+**TDD mode additions:** For designs with behavioral phases, include spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
 
 **Documentation Perimeter section:**
 
@@ -238,6 +237,8 @@ Include this section specifying what the planner should read before starting:
 
 **Context7 references:**
 - `/anthropics/claude-code` — hook configuration patterns (query: "PostToolUse hooks")
+
+**Pipeline contracts:** `agents/decisions/pipeline-contracts.md` (for tasks producing runbooks)
 
 **Additional research allowed:** Planner may do additional Context7 queries or exploration for technical implementation details not covered above.
 ```
@@ -307,13 +308,13 @@ This tail-call chains:
 2. Tail-calls `/commit` which commits the design document
 3. `/commit` displays STATUS showing next pending task
 
-The next pending task will typically be the planning phase (`/plan-adhoc` or `/plan-tdd`).
+The next pending task will typically be the planning phase (`/runbook`).
 
 **Why:** Universal tail behavior ensures consistent workflow termination. User always sees what's next.
 
 ## Output Expectations
 
-Design documents are consumed by planning agents (`/plan-tdd` or `/plan-adhoc`).
+Design documents are consumed by the planning skill (`/runbook`).
 
 **Minimize designer output tokens** by relying on planner inference:
 - Omit obvious details planners can infer

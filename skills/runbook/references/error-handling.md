@@ -9,7 +9,7 @@ Guidance for handling errors and edge cases during TDD runbook generation.
 | Error | Trigger | Action | Example |
 |-------|---------|--------|---------|
 | **Design not found** | File doesn't exist | List recent designs, suggest /design, STOP | "Design not found at plans/auth/design.md. Recent: plans/reporting/design.md (2h ago). Create with /design first." |
-| **Missing TDD sections** | No phases/increments/tests | Report missing sections, offer /plan-adhoc, STOP | "Missing: behavioral increments, test scenarios. Add to design or use /plan-adhoc?" |
+| **Missing TDD sections** | No phases/increments/tests | Report missing sections, suggest adding TDD sections to design, STOP | "Missing: behavioral increments, test scenarios. Add TDD sections to design before proceeding." |
 | **Unresolved items** | Contains (TBD), (REQUIRES CONFIRMATION) | List all with context/line numbers, STOP | "Found 3 unresolved: Line 45 'OAuth2 or API keys (REQUIRES CONFIRMATION)'. Resolve before proceeding." |
 
 ---

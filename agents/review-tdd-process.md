@@ -403,7 +403,7 @@ TDD process review complete.
 
 **Workflow Position:**
 ```
-/design (TDD) → /plan-tdd → /orchestrate → [vet-fix-agent] → [review-tdd-process] → /commit
+/design → /runbook → /orchestrate → [vet-fix-agent] → [review-tdd-process] → /commit
 ```
 
 **Typical Invocation:**

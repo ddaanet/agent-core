@@ -44,8 +44,7 @@ Natural language — no hook expansion needed, Claude understands directly.
 | `/commit` | Commit with gitmoji, structured message |
 | `/handoff` | Update session.md for agent continuation |
 | `/orchestrate` | Execute prepared runbooks |
-| `/plan-adhoc` | Create runbook (general workflow) |
-| `/plan-tdd` | Create TDD runbook |
+| `/runbook` | Create execution runbook (unified — TDD + general phases) |
 | `/remember` | Consolidate learnings into permanent docs |
 | `/shelve` | Archive session context, reset for new work |
 | `/vet` | Review artifacts for quality |

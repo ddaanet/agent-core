@@ -135,7 +135,7 @@ description: Commit tool
 
 - **Triggering examples:** Description includes invocation patterns
   - Example: "delegate to vet-fix-agent"
-  - Example: "use tdd-plan-reviewer for TDD runbooks"
+  - Example: "use plan-reviewer for runbook review"
   - Rationale: Helps orchestrators discover correct agent
 
 **Minor:**

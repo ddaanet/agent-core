@@ -128,6 +128,7 @@ Common false escalations:
 - Point 0.75: Generate runbook outline
 - Point 0.85: Consolidation gate (outline)
 - Point 0.9: Complexity check before expansion
+- Point 0.95: Outline sufficiency check (skip expansion if outline is execution-ready)
 - Point 1: Phase-by-phase expansion with reviews
 - Point 2: Assembly and metadata
 - Point 2.5: Consolidation gate (runbook)
@@ -182,12 +183,23 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
      - **Key decisions reference:** Link to design sections with architectural decisions
      - **Complexity per phase:** Estimated scope and model requirements per phase
 
-2. **Review outline:**
+2. **Verify outline quality:**
+   - **All implementation choices resolved** — No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each step commits to one approach. If uncertain, use `/opus-design-question` to resolve.
+   - **Inter-step dependencies declared** — If step N.M depends on step N.K having created a file/module/function, declare `Depends on: Step N.K`.
+   - **Code fix steps enumerate affected sites** — For steps fixing code: list all affected call sites (file:function or file:line). If different sites need different treatment, specify per-site decision tree.
+   - **Later steps reference post-phase state** — Steps in Phase N+1 that modify files changed in Phase N must note expected state after Phase N (e.g., "After Phase 3 consolidation, helpers are in conftest.py").
+   - **Phases ≤8 steps each** — Split phases with >8 steps or add an internal checkpoint. Large phases without checkpoints make diagnosis difficult when early steps break things.
+   - **Cross-cutting issues scope-bounded** — If a cross-cutting issue is only partially addressed, explicitly note what's in scope and what's deferred. Prevents executing agent from attempting unscoped refactors.
+   - **No vacuous steps** — Every step must produce a functional outcome (behavior change, data transformation, verified state). Steps that only create scaffolding (directory, import, registration) without functional result merge into the nearest behavioral step.
+   - **Foundation-first ordering within phases** — Order steps: existence → structure → behavior → refinement. If step N operates on a structure, that structure must exist from step N-k, not step N+k.
+   - **Collapsible step detection** — Adjacent steps modifying the same file or testing edge cases of the same function should collapse. Note collapse candidates for Point 0.85 consolidation gate.
+
+3. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-3. **Validate and proceed:**
+4. **Validate and proceed:**
    - Read review report
    - If critical issues remain: STOP and escalate to user
    - Otherwise: proceed to phase-by-phase expansion
@@ -202,6 +214,7 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 - If outline has ≤3 phases and ≤10 total steps → generate entire runbook at once (skip phase-by-phase)
 - Single review pass instead of per-phase
 - Simpler workflow for simple tasks
+- See also Point 0.95: if steps are already execution-ready, skip expansion entirely
 
 ---
 
@@ -296,6 +309,32 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 
 ---
 
+### Point 0.95: Outline Sufficiency Check
+
+**Objective:** Skip expensive expansion when the outline is already detailed enough to serve as the runbook.
+
+**Sufficiency criteria — ALL must hold:**
+- Every step specifies target files/locations
+- Every step has a concrete action (no "determine"/"evaluate options"/"choose between" language remaining)
+- Every step has verification criteria or is self-evidently complete (deletion, path correction)
+- No unresolved design decisions in step descriptions
+
+**If sufficient → promote outline to runbook:**
+
+1. **Reformat step headings:** Convert `**Step N.M: title**` → `## Step N.M: title` (prepare-runbook.py requires H2 headers)
+2. **Convert step content:** Step bullets become body content under each H2 heading
+3. **Add Common Context:** Extract from outline's Key Decisions, Requirements Mapping, and design reference into `## Common Context` section
+4. **Add frontmatter:** name, model (from outline metadata or design)
+5. **Preserve phase structure:** `### Phase N: title` headers kept as-is (prepare-runbook.py skips them, uses for grouping)
+6. **Write to:** `plans/<job>/runbook.md`
+7. **Skip to Point 4** — Points 1, 2, 2.5, 3 are unnecessary (expansion adds boilerplate around content that's already there; assembly is N/A for single-file promotion; reviews already happened at outline level)
+
+**If not sufficient → proceed with normal Point 1 expansion.**
+
+**Rationale:** Outlines that have been through quality checklist (Point 0.75 step 2) and review (Point 0.75 step 3) often contain execution-ready detail. Expansion rewrites the same information in a different format. The sufficiency check prevents this waste while ensuring under-specified outlines still get full expansion.
+
+---
+
 ### Point 1: Phase-by-Phase Runbook Expansion
 
 **For each phase identified in the outline, generate detailed content with review.**
@@ -303,6 +342,7 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 **For each phase:**
 
 1. **Generate phase content:**
+   - **Read Expansion Guidance:** Check for `## Expansion Guidance` section at end of `plans/<job>/runbook-outline.md`. If present, incorporate recommendations (consolidation candidates, step expansion notes, checkpoint guidance) into phase content generation.
    - File: `plans/<job>/runbook-phase-N.md`
    - Include full step details for this phase
    - Use script evaluation for each task (see section 1.1-1.3 below)
@@ -353,6 +393,15 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 diff -u /path/to/file1 /path/to/file2 > output.patch || true
 echo "Diff size: $(wc -c < output.patch) bytes"
 ```
+
+**Step type classification:**
+
+Before writing step content, classify each step:
+
+- **Transformation** (delete, move, rename, replace pattern): Self-contained recipe sufficient. Executor applies mechanically.
+- **Creation** (new test for existing behavior, new integration, new code touching existing paths): MUST include investigation prerequisite: `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
+
+**Why:** Executors in throughput mode treat all steps as recipes. Creation steps attempted without understanding the target code produce trial-and-error failures. The planner encodes the investigation the executor would otherwise skip.
 
 **1.2 Medium Tasks**: Provide prose description of implementation
 

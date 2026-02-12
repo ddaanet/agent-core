@@ -146,12 +146,23 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
      - RED/GREEN markers in cycle titles where appropriate
      - Test-first sequencing visible in structure
 
-2. **Review outline:**
+2. **Verify outline quality:**
+   - **All implementation choices resolved** — No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each cycle commits to one approach. If uncertain, use `/opus-design-question` to resolve.
+   - **Inter-cycle dependencies declared** — If cycle N.M depends on cycle N.K having created a file/module/function, declare `Depends on: Cycle N.K`.
+   - **Code fix cycles enumerate affected sites** — For cycles fixing code: list all affected call sites (file:function or file:line). If different sites need different treatment, specify per-site decision tree.
+   - **Later cycles reference post-phase state** — Cycles in Phase N+1 that modify files changed in Phase N must note expected state after Phase N (e.g., "After Phase 2 refactor, helpers are in conftest.py").
+   - **Phases ≤8 cycles each** — Split phases with >8 cycles or add an internal checkpoint. Large phases without checkpoints make diagnosis difficult when early cycles break things.
+   - **Cross-cutting issues scope-bounded** — If a cross-cutting issue is only partially addressed, explicitly note what's in scope and what's deferred. Prevents executing agent from attempting unscoped refactors.
+   - **No vacuous cycles** — Every cycle must test a branch point (conditional, state transformation, error path). Cycles that only verify scaffolding (import exists, function callable) or integration wiring (A calls B when B is already tested) are vacuous. Merge into the nearest behavioral cycle.
+   - **Foundation-first ordering within phases** — Order cycles: existence → structure → behavior → refinement. If cycle N tests dedup, the container it deduplicates must exist from cycle N-k, not cycle N+k. Forward dependencies cause haiku to implement against wrong structural assumptions.
+   - **Edge-case clusters collapse** — Multiple cycles testing edge cases of the same function (special chars, truncation, empty input) collapse into one cycle with parametrized test description. Exception: edge cases requiring different setup or teardown stay separate.
+
+3. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-3. **Validate and proceed:**
+4. **Validate and proceed:**
    - Read review report
    - If critical issues remain: STOP and escalate to user
    - Otherwise: proceed to phase-by-phase cycle expansion
@@ -349,6 +360,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **For each phase identified in the outline:**
 
 1. **Generate phase cycles:**
+   - **Read Expansion Guidance:** Check for `## Expansion Guidance` section at end of `plans/<feature>/runbook-outline.md`. If present, incorporate recommendations (consolidation candidates, cycle expansion notes, checkpoint guidance) into phase content generation.
    - File: `plans/<feature>/runbook-phase-N.md`
    - Include cycle details using **prose test descriptions** (not full code)
    - Use cycle planning guidance from Phase 3.1-3.6 below
@@ -519,7 +531,22 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Use same test command as RED
    - Default regression: `pytest` or `just test`
 
-4. **Assign dependencies:**
+4. **Classify step type and add investigation prerequisites:**
+
+   **Transformation cycles** (delete, move, rename, replace pattern): Self-contained recipe sufficient. Executor can apply mechanically.
+
+   **Creation cycles** (new test for existing behavior, new integration, new feature touching existing code paths): MUST include investigation prerequisite specifying which production code to read and what to understand before writing.
+
+   **Format for creation cycles:**
+   ```markdown
+   **Prerequisite:** Read `[file:lines]` — understand [specific behavior/flow/trigger conditions]
+   ```
+
+   **Why:** Executors in throughput mode treat all cycles as recipes. Without explicit investigation prerequisites, creation cycles get attempted without understanding the code being tested, leading to trial-and-error failures. The planner has (or can acquire) the system understanding; the executor optimizes for output.
+
+   **Example:** A cycle testing precommit fallback behavior needs: "Read `merge_phases.py:220-260` — understand when `apply_theirs_resolution` is called and what merge state triggers it."
+
+5. **Assign dependencies:**
    - **Default:** Sequential within phase (1.1 → 1.2 → 1.3)
    - **Cross-phase:** `[DEPENDS: X.Y]` if design requires
    - **Regression:** `[REGRESSION]` for existing behavior tests
@@ -803,6 +830,9 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 - Start with simplest happy path, not empty/degenerate case
 - Only test empty case if it requires special-casing that wouldn't arise naturally from list processing or normal control flow
 - Anti-pattern: Cycle 1 tests empty input → GREEN returns `[]` → stub never replaced
+- Foundation-first within phase: existence → structure → behavior → refinement
+- Anti-pattern: Dedup cycle before the container/key-path creation cycle it operates on
+- Each cycle must test a branch point — if RED can pass with `assert callable(X)`, the cycle is vacuous
 
 **Dependency markers:**
 - **Sequential (default):** 1.1 → 1.2 → 1.3

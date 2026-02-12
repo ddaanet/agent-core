@@ -360,6 +360,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **For each phase identified in the outline:**
 
 1. **Generate phase cycles:**
+   - **Read Expansion Guidance:** Check for `## Expansion Guidance` section at end of `plans/<feature>/runbook-outline.md`. If present, incorporate recommendations (consolidation candidates, cycle expansion notes, checkpoint guidance) into phase content generation.
    - File: `plans/<feature>/runbook-phase-N.md`
    - Include cycle details using **prose test descriptions** (not full code)
    - Use cycle planning guidance from Phase 3.1-3.6 below

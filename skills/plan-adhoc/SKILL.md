@@ -342,6 +342,7 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 **For each phase:**
 
 1. **Generate phase content:**
+   - **Read Expansion Guidance:** Check for `## Expansion Guidance` section at end of `plans/<job>/runbook-outline.md`. If present, incorporate recommendations (consolidation candidates, step expansion notes, checkpoint guidance) into phase content generation.
    - File: `plans/<job>/runbook-phase-N.md`
    - Include full step details for this phase
    - Use script evaluation for each task (see section 1.1-1.3 below)

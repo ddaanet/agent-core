@@ -375,6 +375,15 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
    - Agent writes review report (audit trail)
    - Agent returns review report path (with escalation note if unfixable issues)
 
+   **Background review pattern:** After writing each phase file, launch its review agent with `run_in_background=true` and immediately proceed to generating the next phase. Reviews run concurrently with subsequent phase generation.
+
+   ```
+   Write runbook-phase-1.md → launch review (background) → write runbook-phase-2.md → launch review (background) → ...
+   After all phases written: read output files to collect report paths, check for escalations
+   ```
+
+   Per-phase reviews are independent (no cross-phase input needed). Cross-phase consistency is checked in Phase 5 (holistic review).
+
    **Domain Validation:**
 
    When writing vet checkpoint steps for TDD runbooks, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being tested. If found, include domain validation in the checkpoint:
@@ -750,7 +759,11 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
 **Actions:**
 
-1. **Delegate holistic review across phase files:**
+1. **Collect per-phase review results:**
+
+   If Phase 3 launched background review agents, read all output files now. For each report: check for ESCALATION. If any escalation found, STOP before holistic review.
+
+2. **Delegate holistic review across phase files:**
 
    **Agent:** `tdd-plan-reviewer` (fix-all mode)
 
@@ -774,17 +787,17 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
    **NOTE:** Batched reads of N files = same efficiency as reading 1 file. No monolithic assembly needed.
 
-2. **Handle review outcome:**
+3. **Handle review outcome:**
    - Read review report
    - If ESCALATION noted: STOP, address unfixable issues before proceeding
-   - If all issues fixed: proceed to step 3
+   - If all issues fixed: proceed to step 4
 
-3. **Validate phase file completeness:**
+4. **Validate phase file completeness:**
    - All expected phase files exist
    - Design Decisions section ready for inclusion
    - No missing cycles or gaps in numbering
 
-4. **Run prepare-runbook.py** (automated, with sandbox bypass):
+5. **Run prepare-runbook.py** (automated, with sandbox bypass):
    ```bash
    agent-core/bin/prepare-runbook.py plans/{name}/
    # MUST use dangerouslyDisableSandbox: true (writes to .claude/agents/)
@@ -799,12 +812,12 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
    **NOTE:** prepare-runbook.py handles assembly. Planner provides phase files + metadata preparation.
 
-5. **Copy orchestrate command to clipboard:**
+6. **Copy orchestrate command to clipboard:**
    ```bash
    echo -n "/orchestrate {name}" | pbcopy
    ```
 
-6. **Tail-call `/handoff --commit`**
+7. **Tail-call `/handoff --commit`**
 
    As the **final action** of this skill, invoke `/handoff --commit`. This:
    - Hands off session context (marks planning complete, adds orchestration as pending)

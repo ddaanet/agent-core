@@ -109,6 +109,66 @@ DIRECTIVES = {
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
 BUILTIN_SKILLS: Dict[str, Any] = {}
 
+
+def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
+    """Check if a line is inside a fenced code block.
+
+    Tracks fence depth while scanning from start to line_idx.
+    Opening fence: 3+ consecutive backticks or tildes at line start.
+    Closing fence: same character, same or greater count.
+
+    Args:
+        lines: List of text lines
+        line_idx: Index of line to check
+
+    Returns:
+        True if line is inside or part of a fence, False otherwise
+    """
+    if line_idx >= len(lines):
+        return False
+
+    fence_char = None  # Current fence character (` or ~)
+    fence_count = 0    # Minimum count for closing fence
+    in_fence = False
+
+    for i in range(line_idx + 1):
+        line = lines[i]
+        stripped = line.strip()
+
+        # Check for fence markers (3+ backticks or tildes at start)
+        if stripped.startswith('```') or stripped.startswith('~~~'):
+            # Determine fence character
+            char = stripped[0]
+
+            # Count consecutive fence characters
+            count = 0
+            for c in stripped:
+                if c == char:
+                    count += 1
+                else:
+                    break
+
+            if count >= 3:
+                if not in_fence:
+                    # Opening fence
+                    fence_char = char
+                    fence_count = count
+                    in_fence = True
+                    # If this is the line we're checking, it's part of the fence
+                    if i == line_idx:
+                        return True
+                elif char == fence_char and count >= fence_count:
+                    # Closing fence (same char, same or greater count)
+                    # If this is the line we're checking, it's part of the fence
+                    if i == line_idx:
+                        return True
+                    fence_char = None
+                    fence_count = 0
+                    in_fence = False
+
+    return in_fence
+
+
 # Context filtering constants
 
 

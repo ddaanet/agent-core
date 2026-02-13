@@ -16,7 +16,7 @@ When evaluating proposals in discussion mode (d: prefix):
 - State your confidence level
 - Name what evidence would change your assessment
 
-**Frame as evaluation, not adversarial role-play.** Evaluate critically, examining strengths and weaknesses. Do not "play devil's advocate" — that's performative. This is substantive assessment.
+**Evaluate critically, examining strengths and weaknesses.** Do not "play devil's advocate" — that's performative. This is substantive assessment.
 
 ### Agreement Momentum Detection
 

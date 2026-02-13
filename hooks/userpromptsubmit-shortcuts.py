@@ -59,13 +59,37 @@ COMMANDS = {
 # Tier 2: Directive shortcuts (colon prefix)
 DIRECTIVES = {
     'd': (
-        '[DIRECTIVE: DISCUSS] Discussion mode. Analyze and discuss only — '
-        'do not execute, implement, or invoke workflow skills. '
+        '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.\n'
+        '\n'
+        'Before agreeing with a proposal or approach:\n'
+        '- Identify assumptions being made\n'
+        '- Articulate failure conditions — what would make this approach fail?\n'
+        '- Name alternatives — what other approaches exist?\n'
+        '\n'
+        'If the idea is sound:\n'
+        '- State specifically WHY it works\n'
+        '- State your confidence level\n'
+        '\n'
+        'Context: Sycophancy (reflexive agreement) undermines design quality. '
+        'Genuine evaluation means articulating both strengths and risks.\n'
+        '\n'
         "The user's topic follows in their message."
     ),
     'discuss': (
-        '[DIRECTIVE: DISCUSS] Discussion mode. Analyze and discuss only — '
-        'do not execute, implement, or invoke workflow skills. '
+        '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.\n'
+        '\n'
+        'Before agreeing with a proposal or approach:\n'
+        '- Identify assumptions being made\n'
+        '- Articulate failure conditions — what would make this approach fail?\n'
+        '- Name alternatives — what other approaches exist?\n'
+        '\n'
+        'If the idea is sound:\n'
+        '- State specifically WHY it works\n'
+        '- State your confidence level\n'
+        '\n'
+        'Context: Sycophancy (reflexive agreement) undermines design quality. '
+        'Genuine evaluation means articulating both strengths and risks.\n'
+        '\n'
         "The user's topic follows in their message."
     ),
     'p': (
@@ -666,13 +690,28 @@ def main() -> None:
         directive_key = match.group(1)
         if directive_key in DIRECTIVES:
             expansion = DIRECTIVES[directive_key]
-            output = {
-                'hookSpecificOutput': {
-                    'hookEventName': 'UserPromptSubmit',
-                    'additionalContext': expansion
-                },
-                'systemMessage': expansion
-            }
+
+            # For discussion directives (d:, discuss:), use dual output:
+            # - Full evaluation framework to additionalContext (Claude sees)
+            # - Concise mode indicator to systemMessage (user sees)
+            if directive_key in ('d', 'discuss'):
+                concise_message = '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.'
+                output = {
+                    'hookSpecificOutput': {
+                        'hookEventName': 'UserPromptSubmit',
+                        'additionalContext': expansion
+                    },
+                    'systemMessage': concise_message
+                }
+            else:
+                # Other directives: same message to both
+                output = {
+                    'hookSpecificOutput': {
+                        'hookEventName': 'UserPromptSubmit',
+                        'additionalContext': expansion
+                    },
+                    'systemMessage': expansion
+                }
             print(json.dumps(output))
             return
 

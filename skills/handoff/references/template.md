@@ -23,7 +23,7 @@ Use this structure when updating session.md for agent handoff:
 
 ## Worktree Tasks
 
-- [ ] **Task name** → `wt/<slug>` — description | model
+- [ ] **Task name** → `<slug>` — description | model
 
 *Section present only when tasks are in active worktrees. Preserved on handoff.*
 

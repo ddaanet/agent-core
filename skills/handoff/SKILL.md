@@ -38,9 +38,16 @@ When invoked, immediately update `session.md` with:
 
 Write a handoff note following the template structure. See **`references/template.md`** for complete template and formatting guidelines.
 
+**Pending Tasks are carry-forward data, not prose to regenerate.** Read the current Pending Tasks and Worktree Tasks sections from session.md. Carry them forward verbatim — preserving every sub-item, metadata line, blocker note, and nested bullet. Then apply only these mutations:
+- Mark completed tasks `[x]` (or remove per Step 7 rules)
+- Append new tasks discovered this session
+- Update a specific task's metadata only if this session changed it (e.g., new blocker, status change)
+
+Do NOT rewrite, compress, summarize, or de-duplicate existing task sub-items. Sub-items are accumulated context from prior sessions — they cannot be reconstructed from conversation history.
+
 **Multiple handoffs before commit:** If Step 1 detected uncommitted prior handoff content in session.md, merge this conversation's work into the existing content rather than replacing it. Use Edit to update sections incrementally:
 - Completed This Session: Append new completed work to existing categories or add new categories
-- Pending Tasks: Add new tasks to list, update or remove tasks modified in this conversation
+- Pending Tasks: Apply carry-forward mutations (above)
 - Blockers/Gotchas: Append new blockers, update existing if resolved
 - Next Steps: Replace with current next action
 

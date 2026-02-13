@@ -56,6 +56,15 @@ Use this structure when updating session.md for agent handoff:
 - Sub-bullets: Specific steps, file references, prerequisites
 - Checkboxes `- [ ]` for pending tasks
 
+## Pending Task Carry-Forward
+
+**Pending Tasks and Worktree Tasks are data, not prose.** Carry forward verbatim from existing session.md. Only mutate:
+- Mark completed → `[x]` or remove (per retention rules)
+- Append new tasks
+- Update specific metadata changed this session
+
+**Never** rewrite, compress, or summarize existing sub-items. They are accumulated context from prior sessions.
+
 ## Retention Guidelines
 
 **Completed tasks are trimmed on handoff if BOTH:**
@@ -66,5 +75,6 @@ Use this structure when updating session.md for agent handoff:
 - Tasks completed in current conversation
 - Uncommitted tasks from any conversation
 - All content from prior uncommitted handoffs (merge = append to lists and categories, don't replace entire file)
+- All sub-items of pending tasks (accumulated cross-session context)
 
 **Note:** Learnings are written to separate `agents/learnings.md` file (not session.md)

@@ -4,15 +4,17 @@
 
 ### Design Discussion Evaluation
 
-When evaluating proposals in discussion mode (d: prefix):
+When evaluating proposals in discussion mode (`d:` directive — see execute-rule.md):
 
-**Before agreeing, identify:**
-- What assumptions does the proposal make?
-- What conditions would cause this approach to fail?
-- What alternative approaches exist that weren't considered?
+**Before agreeing:**
+- Articulate what assumptions the proposal makes
+- Identify what would need to be true for the approach to fail
+- Name at least one unconsidered alternative
 
 **When the idea is sound:**
 - Articulate specifically WHY it works (not vague agreement)
+
+**Always:**
 - State your confidence level
 - Name what evidence would change your assessment
 
@@ -20,7 +22,7 @@ When evaluating proposals in discussion mode (d: prefix):
 
 ### Agreement Momentum Detection
 
-**Track agreement patterns.** If you've agreed with 3+ consecutive proposals without substantive pushback, flag it explicitly:
+If you've agreed with 3+ consecutive proposals without substantive pushback, flag it explicitly:
 
 "I notice I've agreed with several proposals in a row. Let me re-evaluate the most recent suggestion..."
 

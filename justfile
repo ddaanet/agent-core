@@ -92,6 +92,10 @@ sync-to-parent:
 
     echo "Sync complete!"
 
+# Set up development environment (agent-core is documentation/skills only)
+setup:
+    @just sync-to-parent
+
 # Stub precommit validation (agent-core has no validation requirements)
 precommit:
     @echo "✓ Precommit OK"

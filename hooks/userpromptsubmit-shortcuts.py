@@ -63,7 +63,18 @@ DIRECTIVES = {
         'do not execute, implement, or invoke workflow skills. '
         "The user's topic follows in their message."
     ),
+    'discuss': (
+        '[DIRECTIVE: DISCUSS] Discussion mode. Analyze and discuss only — '
+        'do not execute, implement, or invoke workflow skills. '
+        "The user's topic follows in their message."
+    ),
     'p': (
+        '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
+        'Pending Tasks section using metadata format: '
+        '`- [ ] **Name** — `command` | model | restart?`. '
+        'Infer defaults if not specified. Do NOT execute the task.'
+    ),
+    'pending': (
         '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
         'Pending Tasks section using metadata format: '
         '`- [ ] **Name** — `command` | model | restart?`. '

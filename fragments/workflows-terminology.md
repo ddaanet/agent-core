@@ -2,6 +2,7 @@
 
 **Entry point:**
 - **Questions/research/discussion** → Handle directly (no workflow needed)
+- **Requirements capture** → Use `/requirements` skill (extract from conversation or elicit through questions)
 - **Implementation tasks** → Use `/design` skill (triages complexity, routes to appropriate workflow)
 - **Workflow in progress** (check session.md) → Continue from current state
 
@@ -9,6 +10,7 @@ The `/design` skill includes complexity triage: simple tasks execute directly, m
 
 **Implementation workflow** — unified planning for all implementation work:
 - **Route:** `/design` → `/runbook` → [plan-reviewer] → prepare-runbook.py (auto) → tail: `/handoff --commit` → tail: `/commit` → restart → `/orchestrate` → [vet agent]
+- **Entry:** `/requirements` (optional) → `/design` → `/runbook` for requirements-led workflow
 - **Per-phase typing:** Each phase tagged TDD or general. TDD phases get RED/GREEN cycles, general phases get task steps. Mixed runbooks supported.
 - **Review:** plan-reviewer agent checks TDD discipline, step quality, and LLM failure modes (type-aware per phase)
 - **Post-planning:** Automated via tail-call chain: prepare-runbook.py runs, orchestrate command copied to clipboard, then `/handoff --commit` → `/commit` → displays next pending task

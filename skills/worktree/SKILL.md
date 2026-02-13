@@ -30,42 +30,17 @@ Used when user specifies `wt <task-name>`.
 
 1. **Read `agents/session.md`** to locate task in Pending Tasks. Extract full task block including name, command, model, and metadata.
 
-2. **Derive slug** from task name: lowercase, replace spaces with hyphens, remove any characters not matching `[a-z0-9]` (replace with hyphen), truncate to 30 chars. Examples: "Implement foo bar" → "implement-foo-bar", "Task: X/Y" → "task-x-y". Same task name always produces same slug.
+2. **Invoke: `claudeutils _worktree new --task "<task name>"`** to create the worktree with focused session. The command derives the slug, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`.
 
-3. **Generate focused session.md content** with minimal scope:
-   - H1 title: "Session: Worktree — <task name>"
-   - Status line: "Focused worktree for parallel execution."
-   - Pending Tasks section: single task with full metadata
-   - Blockers/Gotchas section: only relevant entries
-   - Reference Files section: only relevant references
+3. **Parse output** to extract slug and worktree path from the tab-separated line.
 
-4. **Write to `tmp/wt-<slug>-session.md`** using the generated focused session content. Template structure:
-
-       # Session: Worktree — <task name>
-
-       **Status:** Focused worktree for parallel execution.
-
-       ## Pending Tasks
-
-       - [ ] **<task name>** — <full metadata from original>
-
-       ## Blockers / Gotchas
-
-       <only blockers relevant to this task>
-
-       ## Reference Files
-
-       <only references relevant to this task>
-
-5. **Invoke: `claudeutils _worktree new <slug> --session tmp/wt-<slug>-session.md`** to create the git worktree with its own branch and initialize the focused session context. This command handles branch naming, worktree setup, and session.md placement.
-
-6. **Edit `agents/session.md`** to move the task from Pending Tasks to Worktree Tasks section. Locate the task in Pending Tasks, extract the full task block (including continuation lines with indented metadata), create a Worktree Tasks section if it doesn't exist, and append the task with the marker `→ wt/<slug>` indicating which worktree contains it. Example:
+4. **Edit `agents/session.md`** to move the task from Pending Tasks to Worktree Tasks section. Locate the task in Pending Tasks, extract the full task block (including continuation lines with indented metadata), create a Worktree Tasks section if it doesn't exist, and append the task with the marker `→ <slug>` indicating which worktree contains it. Example:
 
        ## Worktree Tasks
 
-       - [ ] **Task Name** → `wt/task-slug` — `command` | model
+       - [ ] **Task Name** → `task-slug` — `command` | model
 
-7. **Output launch command** (use Bash or direct output): Print the exact command for the user: `cd wt/<slug> && claude    # <task name>`. This tells the user how to enter the worktree and start the task in a new Claude Code session.
+5. **Output launch command** using the path from step 3: `cd <path> && claude    # <task name>`.
 
 ## Mode B: Parallel Group
 
@@ -87,13 +62,19 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
 3. **Check for parallel group existence.** If analysis found no independent group (all tasks have dependencies, different tiers, or restart requirements), **output message**: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees. Return to the user prompt.
 
-4. **If group found, for each task in the parallel group, execute Mode A steps 2-7.** Derive slug, generate focused session, write to tmp, invoke CLI creation, edit session.md to move task to Worktree Tasks, and print launch command. Process tasks sequentially within this loop (one task at a time, in order).
+4. **If group found, for each task in the parallel group:**
+   - Invoke `claudeutils _worktree new --task "<task name>"` (captures `<slug>\t<path>` output)
+   - Parse slug and path from output
+   - Edit `agents/session.md` to move task to Worktree Tasks with `→ <slug>` marker
+   - Collect launch commands
 
-5. **Output consolidated launch commands** (use Bash or direct output) after all worktrees are created:
+   Process tasks sequentially (one at a time, in order).
+
+5. **Output consolidated launch commands** after all worktrees are created:
 
        Worktrees ready:
-         cd wt/<slug1> && claude    # <task name 1>
-         cd wt/<slug2> && claude    # <task name 2>
+         cd <path1> && claude    # <task name 1>
+         cd <path2> && claude    # <task name 2>
          ...
 
        After each completes: `hc` to handoff+commit, then return here.
@@ -107,7 +88,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
 
-3. **Exit code 0 (success):** The merge completed successfully. Use Edit tool on `agents/session.md`: Remove task from Worktree Tasks section. If Worktree Tasks section is missing, note that no cleanup is needed (task may have been removed already). Locate the line matching the pattern `→ wt/<slug>` marker and remove the entire task entry (and any continuation lines). Then use Bash to invoke: `claudeutils _worktree rm <slug>` to clean up the worktree branch and directory. Output: "Merged and cleaned up wt/<slug>. Task complete."
+3. **Exit code 0 (success):** The merge completed successfully. Use Edit tool on `agents/session.md`: Remove task from Worktree Tasks section. If Worktree Tasks section is missing, note that no cleanup is needed (task may have been removed already). Locate the line matching the `→ <slug>` marker and remove the entire task entry (and any continuation lines). Then use Bash to invoke: `claudeutils _worktree rm <slug>` to clean up the worktree branch and directory. Output: "Merged and cleaned up <slug>. Task complete."
 
 4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
 

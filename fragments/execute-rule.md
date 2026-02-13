@@ -27,8 +27,8 @@ Pending:
 - ...
 
 Worktree:
-- <task name> → wt/<slug>
-- <task name 2> → wt/<slug2>
+- <task name> → <slug>
+- <task name 2> → <slug2>
 
 Unscheduled Plans:
 - <plan-name> — <status>
@@ -193,12 +193,12 @@ Tasks branched off to worktrees move from Pending Tasks to Worktree Tasks:
 ```markdown
 ## Worktree Tasks
 
-- [ ] **Task Name** → `wt/<slug>` — original metadata
+- [ ] **Task Name** → `<slug>` — original metadata
 ```
 
 **Rules:**
 - Tasks move from Pending Tasks to Worktree Tasks when `wt` creates their worktree
-- `→ wt/<slug>` tracks which worktree holds the task
+- `→ <slug>` tracks which worktree holds the task
 - After merge + `wt-rm`, remove the task from Worktree Tasks (move to Completed or delete)
 - Handoff preserves Worktree Tasks section as-is (not trimmed)
 

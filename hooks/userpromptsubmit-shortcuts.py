@@ -57,53 +57,36 @@ COMMANDS = {
 }
 
 # Tier 2: Directive shortcuts (colon prefix)
+_DISCUSS_EXPANSION = (
+    '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.\n'
+    '\n'
+    'Before agreeing with a proposal or approach:\n'
+    '- Identify assumptions being made\n'
+    '- Articulate failure conditions — what would make this approach fail?\n'
+    '- Name alternatives — what other approaches exist?\n'
+    '\n'
+    'If the idea is sound:\n'
+    '- State specifically WHY it works\n'
+    '- State your confidence level\n'
+    '\n'
+    'Context: Sycophancy (reflexive agreement) undermines design quality. '
+    'Genuine evaluation means articulating both strengths and risks.\n'
+    '\n'
+    "The user's topic follows in their message."
+)
+
+_PENDING_EXPANSION = (
+    '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
+    'Pending Tasks section using metadata format: '
+    '`- [ ] **Name** — `command` | model | restart?`. '
+    'Infer defaults if not specified. Do NOT execute the task.'
+)
+
 DIRECTIVES = {
-    'd': (
-        '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.\n'
-        '\n'
-        'Before agreeing with a proposal or approach:\n'
-        '- Identify assumptions being made\n'
-        '- Articulate failure conditions — what would make this approach fail?\n'
-        '- Name alternatives — what other approaches exist?\n'
-        '\n'
-        'If the idea is sound:\n'
-        '- State specifically WHY it works\n'
-        '- State your confidence level\n'
-        '\n'
-        'Context: Sycophancy (reflexive agreement) undermines design quality. '
-        'Genuine evaluation means articulating both strengths and risks.\n'
-        '\n'
-        "The user's topic follows in their message."
-    ),
-    'discuss': (
-        '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.\n'
-        '\n'
-        'Before agreeing with a proposal or approach:\n'
-        '- Identify assumptions being made\n'
-        '- Articulate failure conditions — what would make this approach fail?\n'
-        '- Name alternatives — what other approaches exist?\n'
-        '\n'
-        'If the idea is sound:\n'
-        '- State specifically WHY it works\n'
-        '- State your confidence level\n'
-        '\n'
-        'Context: Sycophancy (reflexive agreement) undermines design quality. '
-        'Genuine evaluation means articulating both strengths and risks.\n'
-        '\n'
-        "The user's topic follows in their message."
-    ),
-    'p': (
-        '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
-        'Pending Tasks section using metadata format: '
-        '`- [ ] **Name** — `command` | model | restart?`. '
-        'Infer defaults if not specified. Do NOT execute the task.'
-    ),
-    'pending': (
-        '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
-        'Pending Tasks section using metadata format: '
-        '`- [ ] **Name** — `command` | model | restart?`. '
-        'Infer defaults if not specified. Do NOT execute the task.'
-    )
+    'd': _DISCUSS_EXPANSION,
+    'discuss': _DISCUSS_EXPANSION,
+    'p': _PENDING_EXPANSION,
+    'pending': _PENDING_EXPANSION,
 }
 
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
@@ -172,17 +155,44 @@ def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
 def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
     """Scan prompt lines for directive pattern, excluding fenced blocks.
 
+    Single-pass: tracks fence state while scanning instead of re-scanning
+    from line 0 per line.
+
     Args:
         prompt: Full prompt text
 
     Returns:
         (key, value) tuple for first non-fenced directive match, or None
     """
-    lines = prompt.split('\n')
+    fence_char = None
+    fence_count = 0
+    in_fence = False
 
-    for i, line in enumerate(lines):
-        # Skip lines inside fenced blocks
-        if is_line_in_fence(lines, i):
+    for line in prompt.split('\n'):
+        stripped = line.strip()
+
+        # Track fence state
+        if stripped.startswith('```') or stripped.startswith('~~~'):
+            char = stripped[0]
+            count = 0
+            for c in stripped:
+                if c == char:
+                    count += 1
+                else:
+                    break
+            if count >= 3:
+                if not in_fence:
+                    fence_char = char
+                    fence_count = count
+                    in_fence = True
+                    continue
+                elif char == fence_char and count >= fence_count:
+                    fence_char = None
+                    fence_count = 0
+                    in_fence = False
+                    continue
+
+        if in_fence:
             continue
 
         # Match directive pattern: <word>: <text>
@@ -190,8 +200,7 @@ def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
         if match:
             directive_key = match.group(1)
             if directive_key in DIRECTIVES:
-                directive_value = match.group(2)
-                return (directive_key, directive_value)
+                return (directive_key, match.group(2))
 
     return None
 

@@ -1,4 +1,4 @@
-## Pushback in Design Discussions
+## Pushback
 
 **Why this matters:** Sycophantic agreement degrades decision quality. It misses risks, creates false confidence, and validates flawed assumptions. Good decisions require genuine evaluation.
 
@@ -20,7 +20,7 @@ When evaluating proposals in discussion mode (`d:` directive — see execute-rul
 
 **Evaluate critically, examining strengths and weaknesses.** Do not "play devil's advocate" — that's performative. This is substantive assessment.
 
-### Agreement Momentum Detection
+### Agreement Momentum
 
 If you've agreed with 3+ consecutive proposals without substantive pushback, flag it explicitly:
 

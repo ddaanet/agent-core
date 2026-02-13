@@ -60,7 +60,15 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 After consolidating a learning:
 
-1. **Append to memory index**: Add one-line entry (summary + file reference) to appropriate section in `agents/memory-index.md`
+1. **Append to memory index**: Generate `/when` or `/how` entry in `agents/memory-index.md`:
+   - **Trigger naming**:
+     - Plain prose, no hyphens or special characters
+     - 2-5 words typical
+     - Optimize for discovery: what would agent type when facing this problem?
+     - Use key compression tool (`agent-core/bin/compress-key.py`) to verify uniqueness
+   - **Operator selection**:
+     - `/when` for behavioral knowledge (when to do X, when X applies)
+     - `/how` for procedural knowledge (how to do X, technique for X)
 2. **If new fragment created**: Add `@`-reference to CLAUDE.md OR create `.claude/rules/` entry if path-scoped. **Heuristic:** If the learning applies regardless of which files are being edited → `@`-ref in CLAUDE.md. If it only applies when working with a specific file type or directory → `.claude/rules/` entry with path frontmatter.
 3. **If existing fragment updated**: Ensure memory index entry reflects the updated content (add new entry or update existing one)
 4. **If decision file updated**: Verify corresponding `.claude/rules/` entry exists for path trigger

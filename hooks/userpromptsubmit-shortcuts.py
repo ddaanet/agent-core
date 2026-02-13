@@ -18,7 +18,7 @@ import re
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import yaml
@@ -167,6 +167,33 @@ def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
                     in_fence = False
 
     return in_fence
+
+
+def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
+    """Scan prompt lines for directive pattern, excluding fenced blocks.
+
+    Args:
+        prompt: Full prompt text
+
+    Returns:
+        (key, value) tuple for first non-fenced directive match, or None
+    """
+    lines = prompt.split('\n')
+
+    for i, line in enumerate(lines):
+        # Skip lines inside fenced blocks
+        if is_line_in_fence(lines, i):
+            continue
+
+        # Match directive pattern: <word>: <text>
+        match = re.match(r'^(\w+):\s+(.+)', line)
+        if match:
+            directive_key = match.group(1)
+            if directive_key in DIRECTIVES:
+                directive_value = match.group(2)
+                return (directive_key, directive_value)
+
+    return None
 
 
 # Context filtering constants
@@ -745,35 +772,34 @@ def main() -> None:
         return
 
     # Tier 2: Directive pattern (shortcut: <rest>)
-    match = re.match(r'^(\w+):\s+(.+)', prompt)
-    if match:
-        directive_key = match.group(1)
-        if directive_key in DIRECTIVES:
-            expansion = DIRECTIVES[directive_key]
+    directive_match = scan_for_directive(prompt)
+    if directive_match:
+        directive_key, directive_value = directive_match
+        expansion = DIRECTIVES[directive_key]
 
-            # For discussion directives (d:, discuss:), use dual output:
-            # - Full evaluation framework to additionalContext (Claude sees)
-            # - Concise mode indicator to systemMessage (user sees)
-            if directive_key in ('d', 'discuss'):
-                concise_message = '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.'
-                output = {
-                    'hookSpecificOutput': {
-                        'hookEventName': 'UserPromptSubmit',
-                        'additionalContext': expansion
-                    },
-                    'systemMessage': concise_message
-                }
-            else:
-                # Other directives: same message to both
-                output = {
-                    'hookSpecificOutput': {
-                        'hookEventName': 'UserPromptSubmit',
-                        'additionalContext': expansion
-                    },
-                    'systemMessage': expansion
-                }
-            print(json.dumps(output))
-            return
+        # For discussion directives (d:, discuss:), use dual output:
+        # - Full evaluation framework to additionalContext (Claude sees)
+        # - Concise mode indicator to systemMessage (user sees)
+        if directive_key in ('d', 'discuss'):
+            concise_message = '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.'
+            output = {
+                'hookSpecificOutput': {
+                    'hookEventName': 'UserPromptSubmit',
+                    'additionalContext': expansion
+                },
+                'systemMessage': concise_message
+            }
+        else:
+            # Other directives: same message to both
+            output = {
+                'hookSpecificOutput': {
+                    'hookEventName': 'UserPromptSubmit',
+                    'additionalContext': expansion
+                },
+                'systemMessage': expansion
+            }
+        print(json.dumps(output))
+        return
 
     # Tier 3: Continuation parsing
     try:

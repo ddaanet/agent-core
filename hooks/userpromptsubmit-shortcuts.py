@@ -28,37 +28,37 @@ except ImportError:
 # Tier 1: Command shortcuts (exact match)
 COMMANDS = {
     's': (
-        '[SHORTCUT: #status] List pending tasks with metadata from session.md. '
+        '[#status] List pending tasks with metadata from session.md. '
         'Display in STATUS format. Wait for instruction.'
     ),
     'x': (
-        '[SHORTCUT: #execute] Smart execute: if an in-progress task exists, '
-        'resume it. Otherwise start the first pending task from session.md. '
+        '[#execute] If in-progress task exists, resume it. '
+        'Otherwise start first pending task from session.md. '
         'Complete the task, then stop. Do NOT commit or handoff.'
     ),
     'xc': (
-        '[SHORTCUT: #execute --commit] Execute task to completion, '
+        '[#execute --commit] Complete task, '
         'then handoff → commit → status display.'
     ),
     'r': (
-        '[SHORTCUT: #resume] Strict resume: continue in-progress task only. '
+        '[#resume] Continue in-progress task only. '
         'Error if no in-progress task exists.'
     ),
-    'h': '[SHORTCUT: /handoff] Update session.md with current context, '
+    'h': '[/handoff] Update session.md with current context, '
          'then display status.',
-    'hc': '[SHORTCUT: /handoff --commit] Handoff → commit → status display.',
-    'ci': '[SHORTCUT: /commit] Commit changes → status display.',
+    'hc': '[/handoff --commit] Handoff → commit → status display.',
+    'ci': '[/commit] Commit changes → status display.',
     '?': (
-        '[SHORTCUT: #help] List all workflow shortcuts (both tiers), '
-        'workflow keywords (y/go/continue), and entry point skills '
+        '[#help] List shortcuts (both tiers), '
+        'keywords (y/go/continue), and entry skills '
         '(/design, /commit, /handoff, /orchestrate, /remember, /shelve, /vet). '
-        'Format as a compact reference table.'
+        'Format as compact reference table.'
     )
 }
 
 # Tier 2: Directive shortcuts (colon prefix)
 _DISCUSS_EXPANSION = (
-    '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.\n'
+    '[DISCUSS] Evaluate critically, do not execute.\n'
     '\n'
     'Evaluate this as if a colleague proposed it, not the person asking you:\n'
     '- First: articulate the strongest case AGAINST the proposed conclusion\n'
@@ -77,7 +77,7 @@ _DISCUSS_EXPANSION = (
 )
 
 _PENDING_EXPANSION = (
-    '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
+    '[PENDING] Append to session.md '
     'Pending Tasks section using metadata format: '
     '`- [ ] **Name** — `command` | model | restart?`. '
     'Infer defaults if not specified. Do NOT execute the task.'
@@ -791,7 +791,7 @@ def main() -> None:
         # - Full evaluation framework to additionalContext (Claude sees)
         # - Concise mode indicator to systemMessage (user sees)
         if directive_key in ('d', 'discuss'):
-            concise_message = '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.'
+            concise_message = '[DISCUSS] Evaluate critically, do not execute.'
             output = {
                 'hookSpecificOutput': {
                     'hookEventName': 'UserPromptSubmit',

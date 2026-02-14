@@ -6,13 +6,18 @@
 
 When evaluating proposals in discussion mode (`d:` directive — see execute-rule.md):
 
-**Before agreeing:**
-- Articulate what assumptions the proposal makes
-- Identify what would need to be true for the approach to fail
-- Name at least one unconsidered alternative
+**Evaluate the conclusion first:**
+- Articulate the strongest case AGAINST the proposed conclusion or direction
+- Then evaluate the case FOR it
 
-**When the idea is sound:**
-- Articulate specifically WHY it works (not vague agreement)
+**Before reaching your verdict:**
+- What assumptions does the proposal make?
+- What would need to be true for the approach to fail?
+- What alternatives exist?
+
+**State your verdict explicitly:**
+- "I agree with this conclusion because..." or "I disagree because..."
+- Do not embed your stance in reasoning corrections
 
 **Always:**
 - State your confidence level
@@ -22,11 +27,12 @@ When evaluating proposals in discussion mode (`d:` directive — see execute-rul
 
 ### Agreement Momentum
 
-If you've agreed with 3+ consecutive proposals without substantive pushback, flag it explicitly:
+**Track conclusion-level agreement.** Correcting reasoning while agreeing with the conclusion is agreement, not pushback.
 
-"I notice I've agreed with several proposals in a row. Let me re-evaluate the most recent suggestion..."
+If you've agreed with 3+ consecutive conclusions:
+"I notice I've agreed with several conclusions in a row. Let me re-evaluate the most recent one from a skeptical stance."
 
-Then apply the evaluation rules above to break the momentum.
+Then articulate the strongest case against the most recent conclusion before re-affirming or changing your position.
 
 ### Model Selection for Pending Tasks
 

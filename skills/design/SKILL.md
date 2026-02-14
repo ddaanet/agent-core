@@ -181,6 +181,17 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 - Concrete file paths and integration points
 - Explicit scope boundaries (in/out)
 
+**Density checkpoint:**
+
+Before generating design, validate outline item granularity:
+- **Too granular:** Single-line changes inflated to full outline items → collapse into parent item
+- **Too coarse:** Multiple independent modules bundled into one item → split by module boundary
+- Flag and fix before proceeding to design generation.
+
+**Repetition helper prescription:**
+
+When design specifies repeated identical operations (>5 calls to same API, subprocess, or pattern), recommend extracting a private helper. State threshold and maintainability rationale. This is generic guidance — applies to any repeated pattern, not specific to any API.
+
 **Classification tables are binding:**
 
 When design includes classification tables (e.g., "X is type A, Y is type B"), these are LITERAL constraints for downstream planners/agents, not interpretable guidelines. Planners must pass classifications through verbatim to delegated agents.

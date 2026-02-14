@@ -5,6 +5,7 @@ description: |
 model: opus
 color: purple
 tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+skills: ["project-conventions"]
 ---
 
 # Design Vet Agent

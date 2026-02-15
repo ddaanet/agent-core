@@ -14,6 +14,11 @@ allowed-tools:
   - Bash(just precommit)
   - Bash(git status:*)
   - Bash(git worktree:*)
+  - Bash(git add:*)
+  - Bash(git commit:*)
+  - Bash(git submodule:*)
+  - Bash(git branch:*)
+  - Bash(git log:*)
   - Skill
 user-invocable: true
 continuation:
@@ -112,10 +117,10 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 - **Slug derivation is deterministic:** The transformation of task names to slugs is repeatable. The same task name will always produce the same slug. This ensures consistency across sessions and enables command reuse (e.g., `wt merge <slug>` always operates on the correct worktree).
 
-- **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. You can fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
+- **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. Fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
 
 - **Session.md task movement is automated:** `new --task` moves the task from Pending Tasks to Worktree Tasks (with `→ \`slug\`` marker). `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`). No manual session.md editing required for task movement.
 
 - **Cleanup is user-initiated:** Mode A and Mode B require separate cleanup after merge. Mode C includes cleanup automatically after successful merge (branch deletion, worktree removal, session.md cleanup via `claudeutils _worktree rm <slug>`).
 
-- **Parallel execution requires individual merge:** When you have created multiple worktrees via `wt` (Mode B), each worktree must be merged back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
+- **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.

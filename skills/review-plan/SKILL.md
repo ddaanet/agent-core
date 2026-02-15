@@ -331,7 +331,7 @@ Extract all file paths referenced in the runbook. For each path:
 1. Extract RED phase: What test assertions (prose or code)?
 2. Validate prose quality: Are assertions behaviorally specific?
 3. Extract GREEN phase: What implementation guidance?
-4. Check sequence: Will RED fail before GREEN?
+4. Verify RED can fail: Read the function under test, check whether expected failure actually occurs against current implementation. For `[REGRESSION]` cycles, verify assertions pass. Arithmetic verification required (e.g., compute output lengths against thresholds).
 
 **For general steps:**
 1. Check prerequisite validation presence

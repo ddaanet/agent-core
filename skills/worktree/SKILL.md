@@ -2,9 +2,10 @@
 name: worktree
 description: >-
   This skill should be used when the user asks to "create a worktree",
-  "set up parallel work", "merge a worktree", "branch off a task",
-  or uses the `wt` shortcut. Handles worktree lifecycle: creation with
-  focused sessions, merge with ceremony, and parallel task setup.
+  "set up parallel work", "merge a worktree", "remove a worktree",
+  "branch off a task", or uses the `wt`, `wt merge`, or `wt-rm`
+  shortcuts. Handles worktree lifecycle: creation with focused sessions,
+  merge with ceremony, cleanup, and parallel task setup.
 allowed-tools:
   - Read
   - Write
@@ -13,6 +14,11 @@ allowed-tools:
   - Bash(just precommit)
   - Bash(git status:*)
   - Bash(git worktree:*)
+  - Bash(git add:*)
+  - Bash(git commit:*)
+  - Bash(git submodule:*)
+  - Bash(git branch:*)
+  - Bash(git log:*)
   - Skill
 user-invocable: true
 continuation:
@@ -34,13 +40,9 @@ Used when user specifies `wt <task-name>`.
 
 3. **Parse output** to extract slug and worktree path from the tab-separated line.
 
-4. **Edit `agents/session.md`** to move the task from Pending Tasks to Worktree Tasks section. Locate the task in Pending Tasks, extract the full task block (including continuation lines with indented metadata), create a Worktree Tasks section if it doesn't exist, and append the task with the marker `→ <slug>` indicating which worktree contains it. Example:
+4. **Output launch command** using the path from step 3: `cd <path> && claude    # <task name>`.
 
-       ## Worktree Tasks
-
-       - [ ] **Task Name** → `task-slug` — `command` | model
-
-5. **Output launch command** using the path from step 3: `cd <path> && claude    # <task name>`.
+The `new --task` command automatically moves the task from Pending Tasks to Worktree Tasks in `agents/session.md`, appending the `→ \`slug\`` marker. No manual session.md editing needed.
 
 ## Mode B: Parallel Group
 
@@ -65,10 +67,9 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 4. **If group found, for each task in the parallel group:**
    - Invoke `claudeutils _worktree new --task "<task name>"` (captures `<slug>\t<path>` output)
    - Parse slug and path from output
-   - Edit `agents/session.md` to move task to Worktree Tasks with `→ <slug>` marker
    - Collect launch commands
 
-   Process tasks sequentially (one at a time, in order).
+   Process tasks sequentially (one at a time, in order). The `new --task` command automatically moves each task to the Worktree Tasks section.
 
 5. **Output consolidated launch commands** after all worktrees are created:
 
@@ -88,7 +89,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
 
-3. **Exit code 0 (success):** The merge completed successfully. Use Edit tool on `agents/session.md`: Remove task from Worktree Tasks section. If Worktree Tasks section is missing, note that no cleanup is needed (task may have been removed already). Locate the line matching the `→ <slug>` marker and remove the entire task entry (and any continuation lines). Then use Bash to invoke: `claudeutils _worktree rm <slug>` to clean up the worktree branch and directory. Output: "Merged and cleaned up <slug>. Task complete."
+3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm <slug>` to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` if the task was removed from Pending Tasks in the worktree branch's session.md. Output: "Merged and cleaned up <slug>. Task complete."
 
 4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
 
@@ -116,8 +117,10 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 - **Slug derivation is deterministic:** The transformation of task names to slugs is repeatable. The same task name will always produce the same slug. This ensures consistency across sessions and enables command reuse (e.g., `wt merge <slug>` always operates on the correct worktree).
 
-- **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. You can fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
+- **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. Fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
 
-- **Cleanup is user-initiated:** Mode A and Mode B require separate cleanup after merge. Mode C includes cleanup automatically after successful merge (branch deletion, worktree removal, session.md tidying via `claudeutils _worktree rm <slug>`).
+- **Session.md task movement is automated:** `new --task` moves the task from Pending Tasks to Worktree Tasks (with `→ \`slug\`` marker). `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`). No manual session.md editing required for task movement.
 
-- **Parallel execution requires individual merge:** When you have created multiple worktrees via `wt` (Mode B), each worktree must be merged back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
+- **Cleanup is user-initiated:** Mode A and Mode B require separate cleanup after merge. Mode C includes cleanup automatically after successful merge (branch deletion, worktree removal, session.md cleanup via `claudeutils _worktree rm <slug>`).
+
+- **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.

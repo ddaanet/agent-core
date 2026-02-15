@@ -137,10 +137,29 @@ Analyze outline against these dimensions:
 
 **Growth Projection:**
 - For each target file, estimate net new lines added per item from outline descriptions
+- Formula: `current_lines + (items × avg_lines_per_item)` — use outline step descriptions to estimate avg_lines_per_item
 - Flag when projected cumulative size exceeds 350 lines (400-line enforcement threshold minus buffer)
 - Flag outlines with >10 items modifying same file but no growth projection in outline
-- Phases producing files >350 projected lines must include split point before that phase
-- Fix: Add split recommendation to Expansion Guidance section
+- Split phases must precede first phase exceeding 350 cumulative lines
+- Fix: Add split recommendation to Expansion Guidance section with split point and projected sizes
+
+**Semantic Propagation:**
+- When design introduces new terminology, types, or renames: verify artifact inventory is complete
+- Grep-based classification of affected files:
+  - **Producer files**: rewrite with new semantics (definitions, primary implementations)
+  - **Consumer files**: update to use new semantics (references, imports, call sites)
+- All files referencing old semantics must appear in outline: producers as rewrites, consumers as updates
+- Detection: Grep design for "terminology change", "rename", "semantic shift", "replaces", "supersedes" patterns
+- Flag outlines where design introduces new terminology but outline only covers producer files (missing consumers)
+- Fix: List missing consumer files, recommend outline items for each
+
+**Deliverable-Level Traceability:**
+- Cross-reference outline coverage against design deliverables table, not just FR numbers
+- Extract each row from design deliverables table(s) and verify it maps to an outline step
+- FRs with multiple deliverables need multiple step mappings — one step per deliverable row
+- Detection: Parse design `| Artifact | Action | FR |` tables, verify each artifact+action pair appears in outline
+- Flag deliverables with no corresponding outline step
+- Fix: Identify unmapped deliverables, recommend outline additions with phase placement
 
 **Step Clarity:**
 - Each step has clear objective

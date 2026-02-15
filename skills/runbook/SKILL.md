@@ -231,12 +231,16 @@ If design document includes "Requirements" section:
    - **Foundation-first ordering** — Order: existence → structure → behavior → refinement. No forward dependencies.
    - **Collapsible item detection** — Adjacent items modifying same file or testing edge cases of same function should collapse. Note candidates for Phase 0.85.
 
-3. **Review outline:**
+3. **Commit outline before review:**
+   - Commit `runbook-outline.md` to create clean checkpoint
+   - Review agents operate on filesystem state — committed state prevents dirty-tree issues
+
+4. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-4. **Validate and proceed:**
+5. **Validate and proceed:**
    - Read review report
    - If critical issues remain: STOP and escalate to user
    - Otherwise: proceed to phase-by-phase expansion
@@ -387,12 +391,16 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
    - For creation steps: `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
    - Each step: Objective, Implementation, Expected Outcome, Error Conditions, Validation
 
-3. **Review phase content:**
+3. **Commit phase file before review:**
+   - Commit `runbook-phase-N.md` to create clean checkpoint
+   - Review agents operate on filesystem state — committed state prevents dirty-tree issues
+
+4. **Review phase content:**
    - Delegate to `plan-reviewer` (fix-all mode)
    - Agent applies type-aware criteria: TDD discipline for TDD phases, step quality for general phases, LLM failure modes for ALL phases
    - Agent returns review report path
 
-   **Background review pattern:** After writing each phase file, launch review with `run_in_background=true` and proceed to generating next phase. Reviews run concurrently. Per-phase reviews are independent; cross-phase consistency checked in Phase 3.
+   **Background review pattern:** After writing and committing each phase file, launch review with `run_in_background=true` and proceed to generating next phase. Reviews run concurrently. Per-phase reviews are independent; cross-phase consistency checked in Phase 3.
 
    **Domain Validation:**
 
@@ -404,7 +412,7 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
      for artifact type: [skills|agents|hooks|commands|plugin-structure]
    ```
 
-4. **Handle review outcome:**
+5. **Handle review outcome:**
    - Read review report
    - If ESCALATION: STOP, address unfixable issues
    - If all fixed: proceed to next phase

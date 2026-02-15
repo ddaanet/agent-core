@@ -10,6 +10,7 @@ description: |
 model: sonnet
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+skills: ["project-conventions"]
 ---
 
 # Outline Review Agent
@@ -135,6 +136,7 @@ Analyze outline against these dimensions:
    - Add traceability references where missing
    - Correct technical inaccuracies
    - Improve clarity and readability
+   - **Merge, don't append:** Before adding content, Grep for the target heading. If it exists, Edit within that section. If no match, append as new section.
 4. Document each fix in review report
 
 **Fix constraints:**

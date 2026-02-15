@@ -5,6 +5,7 @@ description: |
 model: opus
 color: purple
 tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
+skills: ["project-conventions"]
 ---
 
 # Design Vet Agent
@@ -97,6 +98,7 @@ Review the design document for:
 - Affected files/components identified
 - Testing strategy included
 - Next steps defined
+- Agent/file cross-references resolve to actual paths (see Cross-Reference Validation below)
 
 **Clarity:**
 - Decisions are unambiguous
@@ -113,6 +115,7 @@ Review the design document for:
 - Performance implications considered
 - Error handling addressed
 - Migration path defined (if changing existing behavior)
+- Each behavioral requirement has a concrete mechanism (see Mechanism-Check Validation below)
 
 **Consistency:**
 - Aligns with existing architectural patterns
@@ -125,6 +128,24 @@ Review the design document for:
 - If design references "memory-index.md" or specific documentation: verify those entries exist
 - If design references existing files/patterns: use Glob to verify paths exist
 - If design claims "follows pattern X": search for that pattern in codebase
+
+**Cross-Reference Validation:**
+
+Glob `agent-core/agents/` and `.claude/agents/` to verify all agent names referenced in the design resolve to actual files on disk.
+
+- Check deliverables tables, phase specifications, and any prose mentioning agents by name
+- Flag mismatches: agent referenced but file doesn't exist, or name is a near-miss typo (e.g., `outline-review-agent` vs `runbook-outline-review-agent` — two distinct agents)
+- Include Glob output showing what exists in the directory so the designer can correct the reference
+- Severity: critical if deliverable targets wrong agent, major if prose reference is ambiguous
+
+**Mechanism-Check Validation:**
+
+For each FR or deliverable specifying a behavior change, verify a concrete implementation mechanism is present.
+
+- Red flags: "improve", "enhance", "better", "strengthen" without specifying *how*
+- Required: algorithm description, data structure choice, control flow change, specific prose to add, or reference to an existing pattern
+- Flag mechanism-free specifications that a planner cannot implement — the planner needs actionable instructions, not aspirational goals
+- Severity: major if mechanism is missing for a core FR, minor if missing for a supplementary detail
 
 ### 3. Check Documentation Perimeter (if present)
 

@@ -14,8 +14,7 @@ description: |
 model: sonnet
 color: yellow
 tools: ["Read", "Grep", "Glob", "Write", "Edit", "Skill"]
-skills:
-  - review-plan
+skills: ["project-conventions", "review-plan"]
 ---
 
 # Plan Reviewer
@@ -90,7 +89,7 @@ Load and follow the review-plan skill (preloaded via skills field above). Key fo
 
 **Fix process:**
 1. Identify all issues during review
-2. Apply fixes using Edit tool
+2. Apply fixes using Edit tool. **Merge, don't append:** Before adding content, Grep for the target heading. If it exists, Edit within that section. If no match, append as new section.
 3. Document each fix in report with Status: FIXED
 4. Mark UNFIXABLE issues clearly (require caller escalation)
 

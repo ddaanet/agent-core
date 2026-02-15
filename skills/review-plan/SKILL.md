@@ -27,7 +27,7 @@ Review runbook phase files, fix all issues, and report findings (audit trail + e
 - Identifies RED/GREEN sequencing violations (TDD)
 - Validates prerequisite validation and step clarity (general)
 - Checks script evaluation and conformance (general)
-- Detects LLM failure modes: vacuity, ordering, density, checkpoints (all)
+- Detects LLM failure modes: vacuity, ordering, density, checkpoints, file growth (all)
 - Validates file references and metadata accuracy (all)
 - **Fixes ALL issues directly** (critical, major, minor)
 - **Reports unfixable issues** for caller escalation
@@ -187,6 +187,14 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 - Compare to metadata value
 - If mismatch → VIOLATION: metadata inaccurate
 
+**Check:** Restart-reason verification
+- For each phase claiming "Restart required: Yes", verify the stated reason matches restart trigger rules
+- **Restart triggers:** agent definitions (`.claude/agents/`), hook configuration, plugin changes, MCP server configuration
+- **NOT restart triggers:** decision documents, skills, fragments loaded on-demand via `/when` recall
+- **Distinction:** `@`-referenced files have content loaded at startup (restart needed); indexed-but-recalled files load on-demand (no restart)
+- **Detection:** Grep phase headers for "Restart required: Yes", cross-reference artifact type against trigger rules
+- If reason invalid → VIOLATION: incorrect restart metadata (false restart delays execution)
+
 ### 7. Empty-First Cycle Ordering — TDD phases only
 
 **Warning:** First cycle in a phase tests empty/degenerate case
@@ -257,22 +265,33 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 ### 11. LLM Failure Modes (CRITICAL) — all phases
 
-Criteria from `agents/decisions/runbook-review.md` (four axes). Apply regardless of phase type.
+Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless of phase type.
 
 **11.1 Vacuity**
-- TDD: Cycles where RED can pass with `assert callable(X)` or `import X`
-- General: Steps that only create scaffolding without functional outcome
-- Integration wiring steps where called function already tested
+- **TDD:** Cycles where RED can pass with `assert callable(X)` or `import X`
+- **TDD:** Integration wiring items where called function already tested
+- **General:**
+  - Scaffolding-only steps (file creation, directory setup) without functional outcome
+  - Step N+1 produces outcome achievable by extending step N alone — merge
+  - Consecutive steps modifying same artifact with composable changes
+- **Heuristic (both):** items > LOC/20 signals consolidation needed
 - Fix: Merge into nearest behavioral cycle/step
 
 **11.2 Dependency Ordering**
-- Foundation-first within phases: existence → structure → behavior → refinement
-- Item N tests behavior depending on structure from item N+k (k>0)
+- Foundation-first within phases (all types): existence → structure → behavior → refinement
+- **TDD:** Item N tests behavior depending on structure from item N+k (k>0)
+- **General:**
+  - Steps referencing structures or output from later steps
+  - Prerequisites not validated before use (step assumes prior state without check)
+  - Foundation-after-behavior inversions (behavioral step before the foundational step it depends on)
 - Fix: Reorder within phase. If cross-phase: UNFIXABLE (outline revision needed)
 
 **11.3 Density**
-- Adjacent items testing same function with <1 branch point difference
-- Single edge cases expressible as parametrized row in prior item
+- **TDD:** Adjacent cycles testing same function with <1 branch point difference; single edge cases expressible as parametrized row in prior cycle
+- **General:**
+  - Adjacent steps on same artifact with <20 LOC delta
+  - Multi-step sequences collapsible to single step (shared validation, no intermediate checkpoint needed)
+  - Over-granular decomposition without clear boundary (steps split by file section rather than behavioral concern)
 - Entire phases with ≤3 items, all Low complexity
 - Fix: Merge adjacent, parametrize edge cases, collapse trivial phases
 
@@ -280,6 +299,11 @@ Criteria from `agents/decisions/runbook-review.md` (four axes). Apply regardless
 - Gaps >10 items or >2 phases without checkpoint
 - Complex data manipulation phases without checkpoint
 - Fix: Insert checkpoint recommendation
+
+**11.5 File Growth**
+- Project lines added per item from descriptions
+- Flag when projected size exceeds 350 lines (400-line enforcement threshold minus buffer)
+- Fix: Insert proactive file split at phase boundary before projected threshold breach
 
 ---
 

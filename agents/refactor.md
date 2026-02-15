@@ -4,6 +4,7 @@ description: Execute refactoring escalated from TDD cycles with sonnet-level eva
 model: sonnet
 color: yellow
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+skills: ["project-conventions", "error-handling"]
 ---
 
 # Refactor Agent
@@ -131,10 +132,8 @@ just precommit
 Update all references to refactored code:
 
 1. **Plans directory** - All designs and runbooks
-   ```bash
-   grep -r "old_reference" plans/
-   ```
-   Update any references found
+   - Use Grep tool to search for `old_reference` in `plans/` directory
+   - Update any references found
 
 2. **Agent documentation** - Files in `agents/` directory
    - Architecture patterns (design-decisions.md)
@@ -147,14 +146,12 @@ Update all references to refactored code:
 
 4. **Regenerate step files** - If runbook.md changed
    ```bash
-   python agent-core/bin/prepare-runbook.py plans/<runbook-name>/runbook.md
+   agent-core/bin/prepare-runbook.py plans/<runbook-name>/runbook.md
    ```
 
 Verification:
-```bash
-grep -r "old_reference" plans/ agents/ CLAUDE.md
-```
-Should return no results.
+- Use Grep tool to search for `old_reference` across `plans/`, `agents/`, `CLAUDE.md`
+- Should return no results.
 
 ### Step 6: Amend Commit
 

@@ -165,7 +165,6 @@ When delegated agent escalates "ambiguity" or "design gap":
 - Phase 0.9: Complexity check before expansion
 - Phase 0.95: Outline sufficiency check
 - Phase 1: Phase-by-phase expansion with reviews
-- Phase 1.4: File size awareness
 - Phase 2: Assembly and metadata
 - Phase 2.5: Consolidation gate (runbook)
 - Phase 3: Final holistic review
@@ -182,6 +181,7 @@ When delegated agent escalates "ambiguity" or "design gap":
 If design document includes "Documentation Perimeter" section:
 - Read all files listed under "Required reading"
 - Note Context7 references (may need additional queries)
+- If "Skill-loading directives" subsection exists, invoke each listed skill (e.g., `/plugin-dev:skill-development`) before proceeding
 - Factor knowledge into step design
 
 If design document includes "Requirements" section:
@@ -231,12 +231,16 @@ If design document includes "Requirements" section:
    - **Foundation-first ordering** — Order: existence → structure → behavior → refinement. No forward dependencies.
    - **Collapsible item detection** — Adjacent items modifying same file or testing edge cases of same function should collapse. Note candidates for Phase 0.85.
 
-3. **Review outline:**
+3. **Commit outline before review:**
+   - Commit `runbook-outline.md` to create clean checkpoint
+   - Review agents operate on filesystem state — committed state prevents dirty-tree issues
+
+4. **Review outline:**
    - Delegate to `runbook-outline-review-agent` (fix-all mode)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-4. **Validate and proceed:**
+5. **Validate and proceed:**
    - Read review report
    - If critical issues remain: STOP and escalate to user
    - Otherwise: proceed to phase-by-phase expansion
@@ -335,6 +339,14 @@ If design document includes "Requirements" section:
 
 **TDD threshold:** Also skip expansion when outline has <3 phases AND <10 cycles total (small TDD work doesn't need full cycle expansion).
 
+**LLM failure mode gate (before promotion):**
+Check for common planning defects (criteria from runbook-review.md updated in Step 2.1):
+- Vacuity: any items that only create scaffolding without functional outcome?
+- Ordering: any items referencing structures from later items?
+- Density: adjacent items on same target with minimal delta? (TDD: <1 branch difference; General: <20 LOC delta)
+- Checkpoints: gaps >10 items without checkpoint?
+Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
+
 **If sufficient → promote outline to runbook:**
 
 1. **Reformat headings:** Convert item headings to H2 (`## Step N.M:` or `## Cycle X.Y:`)
@@ -379,12 +391,16 @@ If design document includes "Requirements" section:
    - For creation steps: `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
    - Each step: Objective, Implementation, Expected Outcome, Error Conditions, Validation
 
-3. **Review phase content:**
+3. **Commit phase file before review:**
+   - Commit `runbook-phase-N.md` to create clean checkpoint
+   - Review agents operate on filesystem state — committed state prevents dirty-tree issues
+
+4. **Review phase content:**
    - Delegate to `plan-reviewer` (fix-all mode)
    - Agent applies type-aware criteria: TDD discipline for TDD phases, step quality for general phases, LLM failure modes for ALL phases
    - Agent returns review report path
 
-   **Background review pattern:** After writing each phase file, launch review with `run_in_background=true` and proceed to generating next phase. Reviews run concurrently. Per-phase reviews are independent; cross-phase consistency checked in Phase 3.
+   **Background review pattern:** After writing and committing each phase file, launch review with `run_in_background=true` and proceed to generating next phase. Reviews run concurrently. Per-phase reviews are independent; cross-phase consistency checked in Phase 3.
 
    **Domain Validation:**
 
@@ -396,7 +412,7 @@ If design document includes "Requirements" section:
      for artifact type: [skills|agents|hooks|commands|plugin-structure]
    ```
 
-4. **Handle review outcome:**
+5. **Handle review outcome:**
    - Read review report
    - If ESCALATION: STOP, address unfixable issues
    - If all fixed: proceed to next phase
@@ -498,17 +514,6 @@ Only add custom domain-specific stop conditions per-cycle when needed.
 - NOT abstracted: "Output contains formatted model with appropriate styling"
 
 **Related:** See `agents/decisions/testing.md` "Conformance Validation for Migrations".
-
----
-
-### Phase 1.4: File Size Awareness
-
-**Convention:** When an item adds content to an existing file, note current file size and plan splits proactively.
-
-**Process:**
-1. For each item adding content: Note `(current: ~N lines, adding ~M)`
-2. If `N + M > 350`: include a split step in the same phase
-3. Threshold rationale: 400-line hard limit at commit, 350 leaves ~50-line margin (heuristic)
 
 ---
 
@@ -712,7 +717,7 @@ TDD tests **behavior**, not **presentation**:
 - Group by file/module for efficient execution
 - Place validation/verification after implementation
 
-**Detailed guidance:** See `references/patterns.md` for granularity criteria, numbering, common patterns.
+**Detailed guidance:** See `references/patterns.md` for TDD granularity criteria and numbering, `references/general-patterns.md` for general-step granularity and prerequisite validation patterns.
 
 ---
 
@@ -799,10 +804,11 @@ model: haiku
 
 ## References
 
-- **`references/patterns.md`** — Granularity criteria, numbering, common patterns
+- **`references/patterns.md`** — TDD granularity criteria, numbering, common patterns
+- **`references/general-patterns.md`** — General-step granularity, prerequisite validation, step structure
 - **`references/anti-patterns.md`** — Patterns to avoid with corrections
 - **`references/error-handling.md`** — Error catalog, edge cases, recovery protocols
-- **`references/examples.md`** — Complete runbook examples
+- **`references/examples.md`** — Complete runbook examples (TDD and general)
 - **`agents/decisions/pipeline-contracts.md`** — I/O contracts for pipeline transformations
 
 ---

@@ -1,6 +1,8 @@
 # Anti-Patterns to Avoid
 
-Common mistakes in TDD runbook creation and how to fix them.
+Common mistakes in runbook creation and how to fix them.
+
+## TDD Anti-Patterns
 
 ---
 
@@ -15,5 +17,18 @@ Common mistakes in TDD runbook creation and how to fix them.
 | **Weak RED assertions** | `assert result.exit_code == 0` (passes with stub) | Mock filesystem/keychain, assert output content: `assert "Mode: plan" in result.output` |
 | **Missing integration cycles** | Components created in isolation, no wiring cycle | Explicit integration cycle: `Cycle 3.16: Wire providers to keychain` with mocked I/O |
 | **Empty-first ordering** | Cycle 1: "empty list returns []" → stub committed | Start with simplest happy path. Only test empty case if it requires special handling. |
+
+---
+
+## General Step Anti-Patterns
+
+| Anti-Pattern | Bad Example | Correct Pattern |
+|--------------|-------------|-----------------|
+| **Missing investigation prerequisite** | `Step 2.1: Create new taxonomy file` with no prerequisite reads | Add prerequisite: `Read existing-taxonomy.md (understand current structure and naming conventions)` |
+| **Vague success criteria** | Expected Outcome: "Analysis complete" | Expected Outcome: "Analysis has 6 sections covering each status code, with line number references to source" |
+| **Structure-only validation** | Expected Outcome: "File has 3 sections" (ignores content quality) | Expected Outcome: "Each section defines detection criteria with concrete heuristics and at least one example" |
+| **Missing Expected Outcome** | Step lists Implementation but no Expected Outcome section | Every step needs Expected Outcome with verifiable statements about post-step state |
+| **Ambiguous Error Conditions** | Error Conditions: "If something goes wrong, fix it" | Error Conditions: "If target section not found -> Grep file for heading variants, update section name in step" |
+| **Downstream reference in bootstrapping** | "Apply same criteria as outline-review-agent" (agent not yet updated) | "Apply criteria from runbook-review.md" (upstream source where criteria are defined) |
 
 ---

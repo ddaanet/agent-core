@@ -71,16 +71,16 @@ _DISCUSS_EXPANSION = (
 )
 
 _PENDING_EXPANSION = (
-    '[PENDING] Append to session.md '
-    'Pending Tasks section using metadata format: '
-    '`- [ ] **Name** — `command` | model | restart?`. '
-    'Do NOT execute the task.\n'
+    '[PENDING] Do NOT execute. Do NOT write to session.md now.\n'
     '\n'
-    'Assess model tier from cognitive requirements: '
+    'Assess model tier: '
     'opus (design/architecture/synthesis), '
     'sonnet (implementation/planning), '
-    'haiku (mechanical/repetitive). '
-    'State reasoning.'
+    'haiku (mechanical/repetitive).\n'
+    '\n'
+    'Respond: task name, model tier with reasoning, '
+    'restart flag if needed. '
+    'Task written to session.md during next handoff.'
 )
 
 DIRECTIVES = {

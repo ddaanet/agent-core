@@ -140,6 +140,8 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 
 ### Tier 1 - Commands (exact match)
 
+Shortcuts are mechanical expansions — invoke the expansion directly. Do not pre-evaluate whether the expansion has work to do.
+
 | Shortcut | Expansion | Semantics |
 |----------|-----------|-----------|
 | `s` | #status | List tasks with metadata, wait |

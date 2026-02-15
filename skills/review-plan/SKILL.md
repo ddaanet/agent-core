@@ -187,6 +187,14 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 - Compare to metadata value
 - If mismatch → VIOLATION: metadata inaccurate
 
+**Check:** Restart-reason verification
+- For each phase claiming "Restart required: Yes", verify the stated reason matches restart trigger rules
+- **Restart triggers:** agent definitions (`.claude/agents/`), hook configuration, plugin changes, MCP server configuration
+- **NOT restart triggers:** decision documents, skills, fragments loaded on-demand via `/when` recall
+- **Distinction:** `@`-referenced files have content loaded at startup (restart needed); indexed-but-recalled files load on-demand (no restart)
+- **Detection:** Grep phase headers for "Restart required: Yes", cross-reference artifact type against trigger rules
+- If reason invalid → VIOLATION: incorrect restart metadata (false restart delays execution)
+
 ### 7. Empty-First Cycle Ordering — TDD phases only
 
 **Warning:** First cycle in a phase tests empty/degenerate case
@@ -262,18 +270,28 @@ Criteria from `agents/decisions/runbook-review.md` (four axes). Apply regardless
 **11.1 Vacuity**
 - **TDD:** Cycles where RED can pass with `assert callable(X)` or `import X`
 - **TDD:** Integration wiring items where called function already tested
-- **General:** Steps that only create scaffolding without functional outcome; consecutive steps modifying same artifact where step N+1 is achievable by extending step N alone
+- **General:**
+  - Scaffolding-only steps (file creation, directory setup) without functional outcome
+  - Step N+1 produces outcome achievable by extending step N alone — merge
+  - Consecutive steps modifying same artifact with composable changes
+- **Heuristic (both):** steps > LOC/20 signals consolidation needed
 - Fix: Merge into nearest behavioral cycle/step
 
 **11.2 Dependency Ordering**
 - Foundation-first within phases (all types): existence → structure → behavior → refinement
 - **TDD:** Item N tests behavior depending on structure from item N+k (k>0)
-- **General:** Step references output not yet produced by prior step; step assumes file state from a future step
+- **General:**
+  - Steps referencing structures or output from later steps
+  - Prerequisites not validated before use (step assumes prior state without check)
+  - Foundation-after-behavior inversions (behavioral step before the foundational step it depends on)
 - Fix: Reorder within phase. If cross-phase: UNFIXABLE (outline revision needed)
 
 **11.3 Density**
 - **TDD:** Adjacent cycles testing same function with <1 branch point difference; single edge cases expressible as parametrized row in prior cycle
-- **General:** Adjacent steps modifying same file with composable changes; single-line config changes expressible as part of adjacent step
+- **General:**
+  - Adjacent steps on same artifact with <20 LOC delta
+  - Multi-step sequences collapsible to single step (shared validation, no intermediate checkpoint needed)
+  - Over-granular decomposition without clear boundary (steps split by file section rather than behavioral concern)
 - Entire phases with ≤3 items, all Low complexity
 - Fix: Merge adjacent, parametrize edge cases, collapse trivial phases
 

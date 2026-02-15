@@ -165,7 +165,6 @@ When delegated agent escalates "ambiguity" or "design gap":
 - Phase 0.9: Complexity check before expansion
 - Phase 0.95: Outline sufficiency check
 - Phase 1: Phase-by-phase expansion with reviews
-- Phase 1.4: File size awareness
 - Phase 2: Assembly and metadata
 - Phase 2.5: Consolidation gate (runbook)
 - Phase 3: Final holistic review
@@ -514,17 +513,6 @@ Only add custom domain-specific stop conditions per-cycle when needed.
 - NOT abstracted: "Output contains formatted model with appropriate styling"
 
 **Related:** See `agents/decisions/testing.md` "Conformance Validation for Migrations".
-
----
-
-### Phase 1.4: File Size Awareness
-
-**Convention:** When an item adds content to an existing file, note current file size and plan splits proactively.
-
-**Process:**
-1. For each item adding content: Note `(current: ~N lines, adding ~M)`
-2. If `N + M > 350`: include a split step in the same phase
-3. Threshold rationale: 400-line hard limit at commit, 350 leaves ~50-line margin (heuristic)
 
 ---
 

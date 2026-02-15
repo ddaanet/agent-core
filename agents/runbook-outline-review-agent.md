@@ -10,6 +10,7 @@ description: |
 model: sonnet
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+skills: ["project-conventions"]
 ---
 
 # Runbook Outline Review Agent

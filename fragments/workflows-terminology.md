@@ -16,7 +16,7 @@ The `/design` skill includes complexity triage: simple tasks execute directly, m
 - **Post-planning:** Automated via tail-call chain: prepare-runbook.py runs, orchestrate command copied to clipboard, then `/handoff --commit` → `/commit` → displays next pending task
 - **Tier assessment:** `/runbook` includes tier assessment — small tasks (Tier 1/2) bypass runbook creation
 - **TDD process review:** After orchestration of TDD runbooks, review-tdd-process analyzes execution quality
-- **Deliverable review:** Optional post-orchestration review of final artifacts (agents, skills, decision documents). Opus-tier agents (runbook-review-agent, skill-reviewer, agent-creator) invoked in parallel. Applied when artifacts define contracts, behavior, or workflow. Execution reports and diagnostic outputs exempt.
+- **Deliverable review:** Optional post-orchestration review of final artifacts (agents, skills, decision documents). Opus-tier agents (plan-reviewer, skill-reviewer, agent-creator) invoked in parallel. Applied when artifacts define contracts, behavior, or workflow. Execution reports and diagnostic outputs exempt.
 
 **Progressive discovery:** Don't preload all workflow documentation. Read detailed guides only when executing that specific workflow type. Use references as needed during execution.
 

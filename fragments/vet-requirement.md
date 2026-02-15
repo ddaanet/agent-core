@@ -90,7 +90,7 @@ Review [scope description].
 Fix all issues. Write report to: [report-path]
 Return filepath or error.
 
-**Enforcement:** If a delegation prompt has empty IN, empty OUT, or missing changed files, the orchestrator must halt and populate the fields before delegating. An incomplete execution context produces unreliable vet results — better to fail early than review against incomplete scope.
+**Enforcement:** If a delegation prompt has empty IN, empty OUT, missing changed files, or missing Constraints section, the orchestrator must halt and populate the fields before delegating. An incomplete execution context produces unreliable vet results — better to fail early than review against incomplete scope.
 
 ### UNFIXABLE Detection Protocol
 
@@ -114,7 +114,7 @@ Return filepath or error.
 
 **UNFIXABLE validation (per issue):**
 - Has subcategory code (U-REQ, U-ARCH, or U-DESIGN)
-- Has investigation summary showing all 4 gates checked (scope OUT, design deferral, codebase patterns, conclusion)
+- Has investigation summary showing all 3 gates checked (scope OUT, design deferral, codebase patterns) with conclusion
 - Does NOT overlap with scope OUT list (overlap → should be DEFERRED, not UNFIXABLE)
 - If any check fails: resume vet-fix-agent with specific reclassification guidance (e.g., "Issue X overlaps scope OUT — reclassify as DEFERRED" or "Issue Y missing investigation summary — complete 4-gate checklist or downgrade")
 

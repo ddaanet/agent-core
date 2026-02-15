@@ -342,7 +342,7 @@ If design document includes "Requirements" section:
 Check for common planning defects (criteria from runbook-review.md updated in Step 2.1):
 - Vacuity: any items that only create scaffolding without functional outcome?
 - Ordering: any items referencing structures from later items?
-- Density: adjacent items on same function with <1 branch difference?
+- Density: adjacent items on same target with minimal delta? (TDD: <1 branch difference; General: <20 LOC delta)
 - Checkpoints: gaps >10 items without checkpoint?
 Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
 
@@ -716,7 +716,7 @@ TDD tests **behavior**, not **presentation**:
 - Group by file/module for efficient execution
 - Place validation/verification after implementation
 
-**Detailed guidance:** See `references/patterns.md` for granularity criteria, numbering, common patterns.
+**Detailed guidance:** See `references/patterns.md` for TDD granularity criteria and numbering, `references/general-patterns.md` for general-step granularity and prerequisite validation patterns.
 
 ---
 
@@ -803,10 +803,11 @@ model: haiku
 
 ## References
 
-- **`references/patterns.md`** — Granularity criteria, numbering, common patterns
+- **`references/patterns.md`** — TDD granularity criteria, numbering, common patterns
+- **`references/general-patterns.md`** — General-step granularity, prerequisite validation, step structure
 - **`references/anti-patterns.md`** — Patterns to avoid with corrections
 - **`references/error-handling.md`** — Error catalog, edge cases, recovery protocols
-- **`references/examples.md`** — Complete runbook examples
+- **`references/examples.md`** — Complete runbook examples (TDD and general)
 - **`agents/decisions/pipeline-contracts.md`** — I/O contracts for pipeline transformations
 
 ---

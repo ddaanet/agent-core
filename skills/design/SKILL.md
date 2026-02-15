@@ -196,7 +196,7 @@ When design specifies 5+ operations following the same pattern (e.g., "update fi
 **Agent-name validation:**
 
 Before finalizing design, verify all referenced agent names exist on disk:
-- Glob `agent-core/agents/*.md` and `.claude/agents/*.md`
+- Glob `agent-core/agents/*.md`, `.claude/agents/*.md`, and `.claude/plugins/*/agents/*.md`
 - Every agent name in the design must resolve to an actual file
 - If an agent name doesn't exist: flag as design error, not an implementation detail to defer
 - Prevention: catches naming mismatches (e.g., `outline-review-agent` vs `runbook-outline-review-agent`) before they propagate to planning and execution

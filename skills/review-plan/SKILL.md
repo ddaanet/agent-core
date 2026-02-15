@@ -274,7 +274,6 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
   - Scaffolding-only steps (file creation, directory setup) without functional outcome
   - Step N+1 produces outcome achievable by extending step N alone — merge
   - Consecutive steps modifying same artifact with composable changes
-  - **Behavioral vacuity detection:** For consecutive steps modifying the same artifact, verify step N+1 produces an outcome not achievable by extending step N's implementation alone. If achievable, steps should be merged.
 - **Heuristic (both):** items > LOC/20 signals consolidation needed
 - Fix: Merge into nearest behavioral cycle/step
 

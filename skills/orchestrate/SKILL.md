@@ -158,7 +158,7 @@ Return filepath or "UNFIXABLE: [description]"
 - **MUST run precommit first** to ensure changed files reflect actual state
 - **MUST include changed files list** from `git diff --name-only`
 - **MUST specify requirements** from design or phase objective
-- **Fail loudly if template fields empty** (IN, OUT, Changed files, Requirements)
+- **Fail loudly if template fields empty:** If IN list is empty, OUT list is empty, Changed files is missing, or Requirements has no bullet items — STOP orchestration and report which field is incomplete before delegating to vet
 
 **Rationale:** Prevents confabulating future-phase issues. Vet validates current filesystem, not execution-time state — without explicit OUT scope, vet may flag unimplemented features from future phases as missing.
 

@@ -30,9 +30,9 @@ agent-core/bin/when-resolve.py when ".Section Title"
 agent-core/bin/when-resolve.py when "..file.md"
 ```
 
-**Index syntax:** Same as main agent `/when` invocations. All triggers below work with the Bash transport.
+**Index syntax:** Triggers below are the same keys used by the `/when` skill. Invoke via Bash as shown above.
 
-**Append-only.** Do not index content already loaded via CLAUDE.md fragments.
+<!-- Synced from agents/memory-index.md — update both when index changes -->
 
 ---
 

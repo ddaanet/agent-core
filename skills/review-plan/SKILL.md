@@ -27,7 +27,7 @@ Review runbook phase files, fix all issues, and report findings (audit trail + e
 - Identifies RED/GREEN sequencing violations (TDD)
 - Validates prerequisite validation and step clarity (general)
 - Checks script evaluation and conformance (general)
-- Detects LLM failure modes: vacuity, ordering, density, checkpoints (all)
+- Detects LLM failure modes: vacuity, ordering, density, checkpoints, file growth (all)
 - Validates file references and metadata accuracy (all)
 - **Fixes ALL issues directly** (critical, major, minor)
 - **Reports unfixable issues** for caller escalation
@@ -265,7 +265,7 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 ### 11. LLM Failure Modes (CRITICAL) — all phases
 
-Criteria from `agents/decisions/runbook-review.md` (four axes). Apply regardless of phase type.
+Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless of phase type.
 
 **11.1 Vacuity**
 - **TDD:** Cycles where RED can pass with `assert callable(X)` or `import X`

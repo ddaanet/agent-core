@@ -340,7 +340,7 @@ If design document includes "Requirements" section:
 **TDD threshold:** Also skip expansion when outline has <3 phases AND <10 cycles total (small TDD work doesn't need full cycle expansion).
 
 **LLM failure mode gate (before promotion):**
-Check for common planning defects (same criteria as runbook-outline-review-agent):
+Check for common planning defects (criteria from runbook-review.md updated in Step 2.1):
 - Vacuity: any items that only create scaffolding without functional outcome?
 - Ordering: any items referencing structures from later items?
 - Density: adjacent items on same function with <1 branch difference?

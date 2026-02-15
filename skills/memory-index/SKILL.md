@@ -145,9 +145,9 @@ agent-core/bin/when-resolve.py when "..file.md"
 
 ## agents/decisions/runbook-review.md
 
-/when detecting vacuous tdd cycles
+/when detecting vacuous items
 /when ordering runbook dependencies
-/when evaluating cycle density
+/when evaluating item density
 /when spacing runbook checkpoints
 /when planning for file growth | lines-per-cycle projection split points
 

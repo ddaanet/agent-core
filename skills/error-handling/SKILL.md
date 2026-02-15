@@ -1,7 +1,7 @@
 ---
 name: error-handling
 description: |
-  This skill should be used when bash-heavy agents need error suppression guidance. Provides error handling rules for agents that execute bash commands frequently.
+  This skill should be used when agents execute bash commands and need error handling rules. Prevents silent failures, inappropriate error suppression, and documents the || true exception for token-efficient bash scripts.
 user-invocable: false
 ---
 

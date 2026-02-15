@@ -149,7 +149,7 @@ agent-core/bin/when-resolve.py when "..file.md"
 /when ordering runbook dependencies
 /when evaluating item density
 /when spacing runbook checkpoints
-/when planning for file growth | lines-per-cycle projection split points
+/when planning for file growth
 
 ## agents/decisions/testing.md
 

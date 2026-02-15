@@ -274,7 +274,8 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
   - Scaffolding-only steps (file creation, directory setup) without functional outcome
   - Step N+1 produces outcome achievable by extending step N alone — merge
   - Consecutive steps modifying same artifact with composable changes
-- **Heuristic (both):** steps > LOC/20 signals consolidation needed
+  - **Behavioral vacuity detection:** For consecutive steps modifying the same artifact, verify step N+1 produces an outcome not achievable by extending step N's implementation alone. If achievable, steps should be merged.
+- **Heuristic (both):** items > LOC/20 signals consolidation needed
 - Fix: Merge into nearest behavioral cycle/step
 
 **11.2 Dependency Ordering**
@@ -299,6 +300,11 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
 - Gaps >10 items or >2 phases without checkpoint
 - Complex data manipulation phases without checkpoint
 - Fix: Insert checkpoint recommendation
+
+**11.5 File Growth**
+- Project lines added per item from descriptions
+- Flag when projected size exceeds 350 lines (400-line enforcement threshold minus buffer)
+- Fix: Insert proactive file split at phase boundary before projected threshold breach
 
 ---
 

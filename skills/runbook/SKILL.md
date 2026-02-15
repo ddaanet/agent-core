@@ -181,6 +181,7 @@ When delegated agent escalates "ambiguity" or "design gap":
 If design document includes "Documentation Perimeter" section:
 - Read all files listed under "Required reading"
 - Note Context7 references (may need additional queries)
+- If "Skill-loading directives" subsection exists, invoke each listed skill (e.g., `/plugin-dev:skill-development`) before proceeding
 - Factor knowledge into step design
 
 If design document includes "Requirements" section:

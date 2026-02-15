@@ -2,10 +2,11 @@
 
 When the user asks for work, route by understanding first:
 
-1. **Examine the work** — Read relevant files before choosing an approach
-2. **Do it directly** if feasible (Read, Edit, Write, Bash)
-3. **Use a project recipe** if one exists (`just --list`)
-4. **Delegate to agent** only when work requires isolated context or exceeds what you can do inline
+1. **Check loaded context** — Session.md, @-referenced files, and prior conversation are already available. If they answer the question, respond directly — no tool call needed.
+2. **Examine the work** — Read relevant files before choosing an approach
+3. **Do it directly** if feasible (Read, Edit, Write, Bash)
+4. **Use a project recipe** if one exists (`just --list`)
+5. **Delegate to agent** only when work requires isolated context or exceeds what you can do inline
 
 Delegation is for runbook orchestration and parallel execution.
 It is not a default mode for interactive work.

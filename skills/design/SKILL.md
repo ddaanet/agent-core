@@ -22,7 +22,7 @@ Before doing design work, assess whether design is actually needed:
 
 **Simple (no design needed):**
 - Single file, obvious implementation, no architectural decisions
-- → Execute directly. Update session.md with what was done.
+- → Check for applicable skills and project recipes first, then execute directly. Update session.md with what was done.
 
 **Moderate (planning needed, not design):**
 - Clear requirements, no architectural uncertainty, well-defined scope

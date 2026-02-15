@@ -157,7 +157,7 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 | Shortcut | Semantics |
 |----------|-----------|
 | `d: <text>` | Discussion mode — analyze, don't execute |
-| `p: <text>` | Pending task — append to session.md, don't execute |
+| `p: <text>` | Pending task — assess model, defer write to handoff |
 
 ---
 

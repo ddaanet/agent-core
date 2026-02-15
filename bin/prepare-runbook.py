@@ -92,7 +92,7 @@ def parse_frontmatter(content):
         metadata['type'] = 'general'
     else:
         # Validate type field
-        valid_types = ['tdd', 'general']
+        valid_types = ['tdd', 'general', 'mixed']
         if metadata['type'] not in valid_types:
             print(f"WARNING: Unknown runbook type '{metadata['type']}', defaulting to 'general'", file=sys.stderr)
             metadata['type'] = 'general'
@@ -230,10 +230,8 @@ def validate_cycle_numbering(cycles):
             errors.append(f"ERROR: Duplicate cycle number: {cycle_id}")
         seen.add(cycle_id)
 
-    # Check major numbers start correctly (fatal - unexpected)
+    # Check major numbers (info only - mixed runbooks may start cycles at any phase)
     major_nums = sorted(set(c['major'] for c in cycles))
-    if major_nums[0] not in (0, 1):
-        errors.append(f"ERROR: First cycle must start at 0.x or 1.x, found {major_nums[0]}.x")
 
     # Check major number gaps (warn only - document order is authoritative)
     for i in range(len(major_nums) - 1):
@@ -507,7 +505,7 @@ def read_baseline_agent(runbook_type='general'):
     """Read baseline agent template based on runbook type.
 
     Args:
-        runbook_type: 'tdd' or 'general'
+        runbook_type: 'tdd' or 'general' (caller maps 'mixed' to 'general')
 
     Returns:
         Baseline agent body (without frontmatter)
@@ -611,7 +609,7 @@ def validate_file_references(sections, cycles=None, runbook_path=''):
     if cycles:
         for cycle in cycles:
             step_items.append((f"Cycle {cycle['number']}", cycle['content']))
-    elif sections.get('steps'):
+    if sections.get('steps'):
         for step_num, content in sections['steps'].items():
             step_items.append((f"Step {step_num}", content))
 
@@ -708,12 +706,14 @@ def generate_cycle_file(cycle, runbook_path, default_model='haiku'):
     return '\n'.join(header_lines)
 
 
-def generate_default_orchestrator(runbook_name, cycles=None):
+def generate_default_orchestrator(runbook_name, cycles=None, steps=None, step_phases=None):
     """Generate default orchestrator instructions.
 
     Args:
         runbook_name: Name of the runbook
-        cycles: Optional list of cycles (for TDD runbooks) to detect phase boundaries
+        cycles: Optional list of cycles (TDD items)
+        steps: Optional dict of step_num -> content (general items)
+        step_phases: Optional dict of step_num -> phase_number
 
     Returns:
         Orchestrator plan content with phase boundary markers
@@ -725,28 +725,34 @@ Execute steps sequentially using {runbook_name}-task agent.
 Stop on error and escalate to sonnet for diagnostic/fix.
 """
 
-    # Add phase boundary markers for TDD runbooks
+    # Build unified item list: (phase, minor, file_stem, display)
+    items = []
     if cycles:
-        content += "\n## Step Execution Order\n\n"
-        prev_major = None
-        for i, cycle in enumerate(sorted(cycles, key=lambda c: (c['major'], c['minor']))):
-            step_num = f"{cycle['major']}-{cycle['minor']}"
+        for cycle in cycles:
+            file_stem = f"step-{cycle['major']}-{cycle['minor']}"
+            items.append((cycle['major'], cycle['minor'], file_stem, f"Cycle {cycle['number']}"))
+    if steps:
+        step_phases = step_phases or {}
+        for step_num in steps:
+            parts = step_num.split('.')
+            phase = step_phases.get(step_num, int(parts[0]) if parts else 1)
+            minor = int(parts[1]) if len(parts) > 1 else 0
+            file_stem = f"step-{step_num.replace('.', '-')}"
+            items.append((phase, minor, file_stem, f"Step {step_num}"))
 
-            # Check if this is a phase boundary (last cycle of a phase)
-            is_phase_boundary = False
-            if i + 1 < len(cycles):
-                next_cycle = sorted(cycles, key=lambda c: (c['major'], c['minor']))[i + 1]
-                if next_cycle['major'] != cycle['major']:
-                    is_phase_boundary = True
-            elif i + 1 == len(cycles):
-                # Last cycle is also a phase boundary
-                is_phase_boundary = True
+    if not items:
+        return content
 
-            if is_phase_boundary:
-                content += f"## Step {step_num} (Cycle {cycle['number']}) — PHASE_BOUNDARY\n"
-                content += f"[Last cycle of phase {cycle['major']}. Insert functional review checkpoint before Phase {cycle['major'] + 1}.]\n\n"
-            else:
-                content += f"## Step {step_num} (Cycle {cycle['number']})\n\n"
+    items.sort(key=lambda x: (x[0], x[1]))
+    content += "\n## Step Execution Order\n\n"
+
+    for i, (phase, minor, file_stem, display) in enumerate(items):
+        is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
+        if is_phase_boundary:
+            content += f"## {file_stem} ({display}) — PHASE_BOUNDARY\n"
+            content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
+        else:
+            content += f"## {file_stem} ({display})\n\n"
 
     return content
 
@@ -760,13 +766,25 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
         if not cycles:
             print("ERROR: No cycles found in TDD runbook", file=sys.stderr)
             return False
+    elif runbook_type == 'mixed':
+        if not cycles:
+            print("ERROR: No cycles found in mixed runbook", file=sys.stderr)
+            return False
+        if not sections['steps']:
+            print("ERROR: No steps found in mixed runbook", file=sys.stderr)
+            return False
     else:
         if not sections['steps']:
             print("ERROR: No steps found in general runbook", file=sys.stderr)
             return False
 
-        # Validate phase numbering for general runbooks
-        phase_errors, phase_warnings = validate_phase_numbering(sections.get('step_phases', {}))
+    # Validate phase numbering (include cycle phases for mixed runbooks)
+    if sections['steps'] or cycles:
+        all_phases = dict(sections.get('step_phases', {}))
+        if cycles:
+            for cycle in cycles:
+                all_phases[cycle['number']] = cycle['major']
+        phase_errors, phase_warnings = validate_phase_numbering(all_phases)
         for warning in phase_warnings:
             print(warning, file=sys.stderr)
         if phase_errors:
@@ -791,7 +809,7 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
         pass
 
     # Generate plan-specific agent
-    baseline_body = read_baseline_agent(runbook_type)
+    baseline_body = read_baseline_agent('general' if runbook_type == 'mixed' else runbook_type)
     model = metadata.get('model', 'haiku')
     frontmatter = generate_agent_frontmatter(runbook_name, model)
 
@@ -805,25 +823,23 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     agent_path.write_text(agent_content)
     print(f"✓ Created agent: {agent_path}")
 
-    # Generate step files (uniform naming for all runbook types)
-    if runbook_type == 'tdd':
-        # Generate step files for TDD cycles (phase = major cycle number)
+    # Generate step files for TDD cycles
+    if cycles:
         for cycle in sorted(cycles, key=lambda c: (c['major'], c['minor'])):
             step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
             step_path = steps_dir / step_file_name
-
             step_file_content = generate_cycle_file(cycle, str(runbook_path), model)
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
-    else:
-        # Generate step files with phase metadata
+
+    # Generate step files for general steps
+    if sections['steps']:
         step_phases = sections.get('step_phases', {})
         for step_num in sorted(sections['steps'].keys(), key=lambda x: tuple(map(int, x.split('.')))):
             step_content = sections['steps'][step_num]
             step_file_name = f"step-{step_num.replace('.', '-')}.md"
             step_path = steps_dir / step_file_name
             phase = step_phases.get(step_num, 1)
-
             step_file_content = generate_step_file(step_num, step_content, str(runbook_path), model, phase)
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
@@ -832,7 +848,10 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     if sections['orchestrator']:
         orchestrator_content = sections['orchestrator']
     else:
-        orchestrator_content = generate_default_orchestrator(runbook_name, cycles)
+        orchestrator_content = generate_default_orchestrator(
+            runbook_name, cycles, sections['steps'] if sections else None,
+            sections.get('step_phases') if sections else None
+        )
 
     orchestrator_path.write_text(orchestrator_content)
     print(f"✓ Created orchestrator: {orchestrator_path}")
@@ -841,10 +860,8 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     print(f"\nSummary:")
     print(f"  Runbook: {runbook_name}")
     print(f"  Type: {runbook_type}")
-    if runbook_type == 'tdd':
-        print(f"  Steps: {len(cycles)}")
-    else:
-        print(f"  Steps: {len(sections['steps'])}")
+    total_steps = len(cycles or []) + len(sections['steps'])
+    print(f"  Steps: {total_steps}")
     print(f"  Model: {model}")
 
     # Stage all generated artifacts
@@ -902,12 +919,24 @@ def main():
     # Parse runbook
     metadata, body = parse_frontmatter(content)
 
-    runbook_type = metadata.get('type', 'general')
+    # Always extract both general sections and TDD cycles
+    sections = extract_sections(body)
+    if sections is None:
+        sys.exit(1)
+    cycles = extract_cycles(body)
 
-    # Extract sections based on runbook type
-    if runbook_type == 'tdd':
-        # Extract cycles and validate numbering
-        cycles = extract_cycles(body)
+    # Auto-detect effective type from content
+    has_cycles = bool(cycles)
+    has_steps = bool(sections['steps'])
+    if has_cycles and has_steps:
+        metadata['type'] = 'mixed'
+    elif has_cycles:
+        metadata['type'] = 'tdd'
+    elif not has_steps:
+        metadata['type'] = metadata.get('type', 'general')
+
+    # Validate cycles if present
+    if has_cycles:
         errors, warnings = validate_cycle_numbering(cycles)
         for warning in warnings:
             print(warning, file=sys.stderr)
@@ -916,13 +945,16 @@ def main():
                 print(error, file=sys.stderr)
             sys.exit(1)
 
-        # Extract Common Context for inherited section validation
-        common_context = ''
+        # Build validation context from Common Context + phase preambles
+        common_parts = []
         common_match = re.search(r'## Common Context\s*\n(.*?)(?=\n## |\Z)', body, re.DOTALL)
         if common_match:
-            common_context = common_match.group(1)
+            common_parts.append(common_match.group(1))
+        # Phase preambles (text between ### Phase N: and first ## child)
+        for m in re.finditer(r'### Phase\s+\d+:.*?\n(.*?)(?=\n## )', body, re.DOTALL):
+            common_parts.append(m.group(1))
+        common_context = '\n'.join(common_parts)
 
-        # Validate cycle structure (mandatory sections)
         all_messages = []
         critical_errors = []
         for cycle in cycles:
@@ -930,28 +962,12 @@ def main():
             all_messages.extend(messages)
             critical_errors.extend([m for m in messages if m.startswith('ERROR:')])
 
-        # Print all validation messages
         for msg in all_messages:
-            if msg.startswith('ERROR:'):
-                print(msg, file=sys.stderr)
-            else:
-                print(msg, file=sys.stderr)  # Warnings also to stderr
+            print(msg, file=sys.stderr)
 
-        # Stop if critical errors found
         if critical_errors:
             print(f"\nERROR: Found {len(critical_errors)} critical validation error(s)", file=sys.stderr)
             sys.exit(1)
-
-        # Extract common context and orchestrator (reuse extract_sections for these)
-        sections = extract_sections(body)
-        if sections is None:
-            sys.exit(1)
-    else:
-        # Extract steps (general runbook)
-        sections = extract_sections(body)
-        if sections is None:
-            sys.exit(1)
-        cycles = None
 
     # Validate file references in steps
     ref_warnings = validate_file_references(sections, cycles, runbook_path)

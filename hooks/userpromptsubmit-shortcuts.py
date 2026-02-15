@@ -18,7 +18,7 @@ import re
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import yaml
@@ -28,51 +28,183 @@ except ImportError:
 # Tier 1: Command shortcuts (exact match)
 COMMANDS = {
     's': (
-        '[SHORTCUT: #status] List pending tasks with metadata from session.md. '
+        '[#status] List pending tasks with metadata from session.md. '
         'Display in STATUS format. Wait for instruction.'
     ),
     'x': (
-        '[SHORTCUT: #execute] Smart execute: if an in-progress task exists, '
-        'resume it. Otherwise start the first pending task from session.md. '
+        '[#execute] If in-progress task exists, resume it. '
+        'Otherwise start first pending task from session.md. '
         'Complete the task, then stop. Do NOT commit or handoff.'
     ),
     'xc': (
-        '[SHORTCUT: #execute --commit] Execute task to completion, '
+        '[#execute --commit] Complete task, '
         'then handoff → commit → status display.'
     ),
     'r': (
-        '[SHORTCUT: #resume] Strict resume: continue in-progress task only. '
+        '[#resume] Continue in-progress task only. '
         'Error if no in-progress task exists.'
     ),
-    'h': '[SHORTCUT: /handoff] Update session.md with current context, '
+    'h': '[/handoff] Update session.md with current context, '
          'then display status.',
-    'hc': '[SHORTCUT: /handoff --commit] Handoff → commit → status display.',
-    'ci': '[SHORTCUT: /commit] Commit changes → status display.',
+    'hc': '[/handoff --commit] Handoff → commit → status display.',
+    'ci': '[/commit] Commit changes → status display.',
     '?': (
-        '[SHORTCUT: #help] List all workflow shortcuts (both tiers), '
-        'workflow keywords (y/go/continue), and entry point skills '
+        '[#help] List shortcuts (both tiers), '
+        'keywords (y/go/continue), and entry skills '
         '(/design, /commit, /handoff, /orchestrate, /remember, /shelve, /vet). '
-        'Format as a compact reference table.'
+        'Format as compact reference table.'
     )
 }
 
 # Tier 2: Directive shortcuts (colon prefix)
+_DISCUSS_EXPANSION = (
+    '[DISCUSS] Evaluate critically, do not execute.\n'
+    '\n'
+    'Form your assessment first, then stress-test it.\n'
+    'Argue against your OWN position, not the proposal.\n'
+    '\n'
+    'State verdict explicitly: agree or disagree with reasons.\n'
+    'Agreement with specific reasons is substantive. '
+    'Reflexive disagreement is as harmful as reflexive agreement.\n'
+    '\n'
+    "The user's topic follows in their message."
+)
+
+_PENDING_EXPANSION = (
+    '[PENDING] Do NOT execute. Do NOT write to session.md now.\n'
+    '\n'
+    'Assess model tier: '
+    'opus (design/architecture/synthesis), '
+    'sonnet (implementation/planning), '
+    'haiku (mechanical/repetitive).\n'
+    '\n'
+    'Respond: task name, model tier with reasoning, '
+    'restart flag if needed. '
+    'Task written to session.md during next handoff.'
+)
+
 DIRECTIVES = {
-    'd': (
-        '[DIRECTIVE: DISCUSS] Discussion mode. Analyze and discuss only — '
-        'do not execute, implement, or invoke workflow skills. '
-        "The user's topic follows in their message."
-    ),
-    'p': (
-        '[DIRECTIVE: PENDING] Record pending task. Append to session.md '
-        'Pending Tasks section using metadata format: '
-        '`- [ ] **Name** — `command` | model | restart?`. '
-        'Infer defaults if not specified. Do NOT execute the task.'
-    )
+    'd': _DISCUSS_EXPANSION,
+    'discuss': _DISCUSS_EXPANSION,
+    'p': _PENDING_EXPANSION,
+    'pending': _PENDING_EXPANSION,
 }
 
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
 BUILTIN_SKILLS: Dict[str, Any] = {}
+
+
+def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
+    """Check if a line is inside a fenced code block.
+
+    Tracks fence depth while scanning from start to line_idx.
+    Opening fence: 3+ consecutive backticks or tildes at line start.
+    Closing fence: same character, same or greater count.
+
+    Args:
+        lines: List of text lines
+        line_idx: Index of line to check
+
+    Returns:
+        True if line is inside or part of a fence, False otherwise
+    """
+    if line_idx >= len(lines):
+        return False
+
+    fence_char = None  # Current fence character (` or ~)
+    fence_count = 0    # Minimum count for closing fence
+    in_fence = False
+
+    for i in range(line_idx + 1):
+        line = lines[i]
+        stripped = line.strip()
+
+        # Check for fence markers (3+ backticks or tildes at start)
+        if stripped.startswith('```') or stripped.startswith('~~~'):
+            # Determine fence character
+            char = stripped[0]
+
+            # Count consecutive fence characters
+            count = 0
+            for c in stripped:
+                if c == char:
+                    count += 1
+                else:
+                    break
+
+            if count >= 3:
+                if not in_fence:
+                    # Opening fence
+                    fence_char = char
+                    fence_count = count
+                    in_fence = True
+                    # If this is the line we're checking, it's part of the fence
+                    if i == line_idx:
+                        return True
+                elif char == fence_char and count >= fence_count:
+                    # Closing fence (same char, same or greater count)
+                    # If this is the line we're checking, it's part of the fence
+                    if i == line_idx:
+                        return True
+                    fence_char = None
+                    fence_count = 0
+                    in_fence = False
+
+    return in_fence
+
+
+def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
+    """Scan prompt lines for directive pattern, excluding fenced blocks.
+
+    Single-pass: tracks fence state while scanning instead of re-scanning
+    from line 0 per line.
+
+    Args:
+        prompt: Full prompt text
+
+    Returns:
+        (key, value) tuple for first non-fenced directive match, or None
+    """
+    fence_char = None
+    fence_count = 0
+    in_fence = False
+
+    for line in prompt.split('\n'):
+        stripped = line.strip()
+
+        # Track fence state
+        if stripped.startswith('```') or stripped.startswith('~~~'):
+            char = stripped[0]
+            count = 0
+            for c in stripped:
+                if c == char:
+                    count += 1
+                else:
+                    break
+            if count >= 3:
+                if not in_fence:
+                    fence_char = char
+                    fence_count = count
+                    in_fence = True
+                    continue
+                elif char == fence_char and count >= fence_count:
+                    fence_char = None
+                    fence_count = 0
+                    in_fence = False
+                    continue
+
+        if in_fence:
+            continue
+
+        # Match directive pattern: <word>: <text>
+        match = re.match(r'^(\w+):\s+(.+)', line)
+        if match:
+            directive_key = match.group(1)
+            if directive_key in DIRECTIVES:
+                return (directive_key, match.group(2))
+
+    return None
+
 
 # Context filtering constants
 
@@ -650,11 +782,25 @@ def main() -> None:
         return
 
     # Tier 2: Directive pattern (shortcut: <rest>)
-    match = re.match(r'^(\w+):\s+(.+)', prompt)
-    if match:
-        directive_key = match.group(1)
-        if directive_key in DIRECTIVES:
-            expansion = DIRECTIVES[directive_key]
+    directive_match = scan_for_directive(prompt)
+    if directive_match:
+        directive_key, directive_value = directive_match
+        expansion = DIRECTIVES[directive_key]
+
+        # For discussion directives (d:, discuss:), use dual output:
+        # - Full evaluation framework to additionalContext (Claude sees)
+        # - Concise mode indicator to systemMessage (user sees)
+        if directive_key in ('d', 'discuss'):
+            concise_message = '[DISCUSS] Evaluate critically, do not execute.'
+            output = {
+                'hookSpecificOutput': {
+                    'hookEventName': 'UserPromptSubmit',
+                    'additionalContext': expansion
+                },
+                'systemMessage': concise_message
+            }
+        else:
+            # Other directives: same message to both
             output = {
                 'hookSpecificOutput': {
                     'hookEventName': 'UserPromptSubmit',
@@ -662,8 +808,8 @@ def main() -> None:
                 },
                 'systemMessage': expansion
             }
-            print(json.dumps(output))
-            return
+        print(json.dumps(output))
+        return
 
     # Tier 3: Continuation parsing
     try:

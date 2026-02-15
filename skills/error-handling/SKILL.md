@@ -7,6 +7,8 @@ user-invocable: false
 
 # Error Handling
 
+Error handling rules for agents executing bash commands. Prevents silent failures and inappropriate error suppression.
+
 **Errors should never pass silently.**
 
 - Do not swallow errors or suppress error output

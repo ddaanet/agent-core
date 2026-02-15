@@ -184,13 +184,30 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 **Density checkpoint:**
 
 Before generating design, validate outline item granularity:
-- **Too granular:** Single-line changes inflated to full outline items → collapse into parent item
-- **Too coarse:** Multiple independent modules bundled into one item → split by module boundary
+- **Too granular:** >8 items per phase, or adjacent items with <20 LOC delta each → collapse into parent item or merge adjacents
+- **Too coarse:** Single item handling >3 unrelated concerns or spanning multiple module boundaries → split by concern
+- **Heuristic:** items-per-phase x avg-LOC-per-item should fall in the 100-300 range. Below 100 suggests items are trivially small; above 300 suggests items are overloaded.
 - Flag and fix before proceeding to design generation.
 
 **Repetition helper prescription:**
 
-When design specifies repeated identical operations (>5 calls to same API, subprocess, or pattern), recommend extracting a private helper. State threshold and maintainability rationale. This is generic guidance — applies to any repeated pattern, not specific to any API.
+When design specifies 5+ operations following the same pattern (e.g., "update field X in files A, B, C, D, E, F"), recommend extracting a helper function or script. Rationale: repeated manual operations multiply both token cost (each repetition consumes expansion + execution budget) and error rate (drift between repetitions increases with count). The 5-repetition threshold balances extraction overhead against repetition cost.
+
+**Agent-name validation:**
+
+Before finalizing design, verify all referenced agent names exist on disk:
+- Glob `agent-core/agents/*.md` and `.claude/agents/*.md`
+- Every agent name in the design must resolve to an actual file
+- If an agent name doesn't exist: flag as design error, not an implementation detail to defer
+- Prevention: catches naming mismatches (e.g., `outline-review-agent` vs `runbook-outline-review-agent`) before they propagate to planning and execution
+
+**Late-addition completeness check:**
+
+Requirements added after outline review (Phase B) must be re-validated before design generation:
+- **Traceability:** Does the new requirement map to a specific outline item or design section?
+- **Mechanism:** Does the new requirement specify a concrete implementation approach, not just a goal?
+- If a late-added requirement lacks either: flag for completion before proceeding.
+- Grounding: FR-18 added during a design session bypassed outline-level validation, resulting in a mechanism-free specification that downstream planners could not implement.
 
 **Classification tables are binding:**
 

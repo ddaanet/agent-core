@@ -123,31 +123,44 @@ IF phase changed (or no next step = final phase): delegate to vet-fix-agent for 
 Do NOT proceed to next step until checkpoint completes.
 
 **Checkpoint delegation:**
-1. Gather context: design path, changed files (`git diff --name-only`), phase scope
-2. Delegate to vet-fix-agent with prompt:
-   ```
-   Phase N Checkpoint
+1. Run precommit first: `just precommit` to ground "Changed files" in reality
+2. Gather context: design path, changed files (`git diff --name-only`), phase scope
+3. Delegate to vet-fix-agent with structured template (see below)
+4. Read report: if UNFIXABLE issues, STOP and escalate to user
+5. If all fixed: commit checkpoint, continue to next phase
 
-   **First:** Run `just dev`, fix any failures, commit.
+**Checkpoint delegation template:**
 
-   **Scope:**
-   - IN: [list methods/features implemented in this phase]
-   - OUT: [list methods/features for future phases — do NOT flag these]
+```
+Phase N Checkpoint
 
-   **Review (read changed files):**
-   - Test quality: behavior-focused, meaningful assertions, edge cases
-   - Implementation quality: clarity, patterns, appropriate abstractions
-   - Integration: duplication across phase methods, pattern consistency
-   - Design anchoring: verify implementation matches design decisions
+**First:** Run `just dev`, fix any failures, commit.
 
-   **Design reference:** plans/<name>/design.md
-   **Changed files:** [file list from git diff --name-only]
+**Scope:**
+- IN: [list methods/features implemented in this phase]
+- OUT: [list methods/features for future phases — do NOT flag these]
 
-   Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-vet.md
-   Return filepath or "UNFIXABLE: [description]"
-   ```
-3. Read report: if UNFIXABLE issues, STOP and escalate to user
-4. If all fixed: commit checkpoint, continue to next phase
+**Review (read changed files):**
+- Test quality: behavior-focused, meaningful assertions, edge cases
+- Implementation quality: clarity, patterns, appropriate abstractions
+- Integration: duplication across phase methods, pattern consistency
+- Design anchoring: verify implementation matches design decisions
+
+**Design reference:** plans/<name>/design.md
+**Changed files:** [file list from git diff --name-only]
+
+Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-vet.md
+Return filepath or "UNFIXABLE: [description]"
+```
+
+**Template enforcement:**
+- **MUST provide structured IN/OUT scope** (bulleted lists, NOT prose-only)
+- **MUST run precommit first** to ensure changed files reflect actual state
+- **MUST include changed files list** from `git diff --name-only`
+- **MUST specify requirements** from design or phase objective
+- **Fail loudly if template fields empty** (IN, OUT, Changed files, Requirements)
+
+**Rationale:** Prevents confabulating future-phase issues. Vet validates current filesystem, not execution-time state — without explicit OUT scope, vet may flag unimplemented features from future phases as missing.
 
 **3.4 On success:**
 - Log step completion

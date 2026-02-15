@@ -14,8 +14,7 @@ description: |
 model: sonnet
 color: yellow
 tools: ["Read", "Grep", "Glob", "Write", "Edit", "Skill"]
-skills:
-  - review-plan
+skills: ["project-conventions", "review-plan"]
 ---
 
 # Plan Reviewer

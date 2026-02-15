@@ -4,6 +4,7 @@ description: Vet review agent that applies all fixes directly. Reviews changes, 
 model: sonnet
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "AskUserQuestion"]
+skills: ["project-conventions", "error-handling", "memory-index"]
 ---
 
 # Vet Review + Fix Agent

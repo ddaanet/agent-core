@@ -60,18 +60,12 @@ COMMANDS = {
 _DISCUSS_EXPANSION = (
     '[DISCUSS] Evaluate critically, do not execute.\n'
     '\n'
-    'Evaluate this as if a colleague proposed it, not the person asking you:\n'
-    '- First: articulate the strongest case AGAINST the proposed conclusion\n'
-    '- Then: what assumptions are being made?\n'
-    '- Then: what would make this approach fail?\n'
-    '- Then: what alternatives exist?\n'
+    'Form your assessment first, then stress-test it.\n'
+    'Argue against your OWN position, not the proposal.\n'
     '\n'
-    'State your verdict on the conclusion explicitly:\n'
-    '- "I agree with this conclusion because..." or "I disagree because..."\n'
-    '- Correcting reasoning while agreeing with the conclusion is NOT pushback\n'
-    '\n'
-    'Context: Sycophancy (reflexive agreement) undermines design quality. '
-    'Reasoning corrections that end in agreement are a common evasion pattern.\n'
+    'State verdict explicitly: agree or disagree with reasons.\n'
+    'Agreement with specific reasons is substantive. '
+    'Reflexive disagreement is as harmful as reflexive agreement.\n'
     '\n'
     "The user's topic follows in their message."
 )
@@ -80,7 +74,13 @@ _PENDING_EXPANSION = (
     '[PENDING] Append to session.md '
     'Pending Tasks section using metadata format: '
     '`- [ ] **Name** — `command` | model | restart?`. '
-    'Infer defaults if not specified. Do NOT execute the task.'
+    'Do NOT execute the task.\n'
+    '\n'
+    'Assess model tier from cognitive requirements: '
+    'opus (design/architecture/synthesis), '
+    'sonnet (implementation/planning), '
+    'haiku (mechanical/repetitive). '
+    'State reasoning.'
 )
 
 DIRECTIVES = {

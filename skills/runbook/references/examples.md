@@ -1,6 +1,8 @@
-# TDD Runbook Examples
+# Runbook Examples
 
-Complete examples demonstrating proper TDD runbook structure.
+Complete examples demonstrating proper runbook structure for both TDD and general steps.
+
+## TDD Examples
 
 ---
 
@@ -232,5 +234,111 @@ ModuleNotFoundError: No module named 'auth.providers'
 - prepare-runbook.py splits into individual cycle files
 - Orchestrator executes sequentially
 - Each cycle isolated, stop on any condition trigger
+
+---
+
+## General Step Examples
+
+### Example: Creation Step (with investigation prerequisite)
+
+```markdown
+## Step 3.1: Create vet-taxonomy.md reference file
+
+**Objective**: Extract status taxonomy from vet-fix-agent into standalone reference file to keep agent under 400-line threshold.
+
+**Prerequisites**:
+- Read `agent-core/agents/vet-fix-agent.md` (understand current status handling and report format)
+- Read `agents/decisions/pipeline-contracts.md` (ODC classification context for taxonomy grounding)
+
+**Implementation**:
+
+Create `agent-core/agents/vet-taxonomy.md`:
+
+1. **Four-status definitions** with criteria and examples:
+   - FIXED: Applied, no action needed
+   - DEFERRED: Real issue, explicitly out of scope (maps to scope OUT)
+   - OUT-OF-SCOPE: Not relevant to current review
+   - UNFIXABLE: Technical blocker requiring user decision (with subcategory code)
+
+2. **UNFIXABLE subcategory codes**:
+   - U-REQ: Requirements ambiguity or conflict
+   - U-ARCH: Architectural constraint or design conflict
+   - U-DESIGN: Design decision needed, multiple valid approaches
+
+3. **Deferred Items report section template**
+
+**Expected Outcome**:
+- vet-taxonomy.md exists with all four statuses defined
+- Each status has criteria text and at least one concrete example
+- UNFIXABLE subcategories have codes and descriptions
+- Deferred Items template is copy-pasteable into reports
+
+**Error Conditions**:
+- If status definitions overlap -> sharpen distinguishing criteria (DEFERRED = in scope OUT list; OUT-OF-SCOPE = unrelated to review)
+- If subcategory codes ambiguous -> add decision tree for classification
+
+**Validation**:
+1. Commit changes
+2. Delegate to agent-creator: "Review vet-taxonomy.md for completeness and clarity of status definitions"
+3. Read review report
+4. If UNFIXABLE: STOP, escalate
+5. If all fixed: proceed
+
+**Report location**: plans/workflow-rca-fixes/reports/step-3.1-agent-review.md
+```
+
+---
+
+### Example: Transformation Step (self-contained)
+
+```markdown
+## Step 6.1: Delete Phase 1.4 from runbook skill
+
+**Objective**: Remove obsolete Phase 1.4 (file size awareness) section, now redundant with outline-level enforcement.
+
+**Prerequisites**:
+- Read `agent-core/skills/runbook/SKILL.md` (locate Phase 1.4 section boundaries)
+
+**Implementation**:
+
+1. **Locate Phase 1.4**: heading "Phase 1.4: File Size Awareness"
+2. **Delete entire section**: heading through next phase heading
+3. **Verify no orphaned references**: Grep SKILL.md for "1.4" and "file size awareness"
+4. **Remove cross-references**: update any remaining mentions
+
+**Expected Outcome**:
+- Phase 1.4 section no longer exists in SKILL.md
+- No references to "Phase 1.4" or "file size awareness" remain in the file
+- Surrounding sections maintain correct structure
+
+**Error Conditions**:
+- If section heading not found -> Grep for variants ("File Size", "file growth", "1.4")
+- If orphaned references found -> update or remove each reference
+
+**Validation**:
+1. Commit changes
+2. Delegate to skill-reviewer: "Review runbook skill Phase 1.4 deletion for clean removal"
+3. Read review report
+4. If UNFIXABLE: STOP, escalate
+5. If all fixed: proceed
+
+**Report location**: plans/workflow-rca-fixes/reports/step-6.1-skill-review.md
+```
+
+---
+
+### Key Observations
+
+**General step structure:**
+- No RED/GREEN phases — steps describe direct implementation
+- Prerequisites scale with step type: creation needs investigation, transformation needs target read
+- Expected Outcome must be concrete and verifiable, not vague
+- Error Conditions map specific failures to recovery actions
+- Validation delegates to appropriate domain reviewer
+
+**Creation vs transformation:**
+- Creation steps: 2+ prerequisite reads (pattern + context), investigation gate if cross-file
+- Transformation steps: single prerequisite read (target file), recipe in Implementation section
+- Both: concrete Expected Outcome, specific Error Conditions, reviewer-based Validation
 
 ---

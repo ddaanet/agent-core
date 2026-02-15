@@ -26,6 +26,8 @@
 4. If UNFIXABLE found: STOP, escalate to user
 5. If all fixed: proceed
 
+**Issue status taxonomy:** Four statuses (FIXED, DEFERRED, OUT-OF-SCOPE, UNFIXABLE) defined in detection protocol below. Only UNFIXABLE blocks — others are informational or non-blocking.
+
 **No importance filtering.** The vet-fix-agent applies all fixes (critical, major, minor). The caller does not triage or defer fixes.
 
 **Why:** Early review catches issues before they propagate. Applying all fixes eliminates drift from deferred minor issues accumulating across sessions.
@@ -82,6 +84,9 @@ Review [scope description].
 - [FR-N: specific requirement text or acceptance criterion]
 - [FR-M: specific requirement text or acceptance criterion]
 
+**Constraints:**
+- Do NOT flag items outside provided scope (scope OUT list)
+
 Fix all issues. Write report to: [report-path]
 Return filepath or error.
 
@@ -103,7 +108,7 @@ Return filepath or error.
 1. Read the report file returned by vet-fix-agent
 2. Use Grep to search for `UNFIXABLE` in the report content
 3. If found: validate each UNFIXABLE issue (see validation below)
-4. If validation fails: resume vet-fix-agent for reclassification with guidance
+4. If validation fails: resume vet-fix-agent for reclassification with guidance (delegate again with specific reclassification instructions in prompt — no continuation mechanism available)
 5. If validated UNFIXABLE remains: **STOP**, report to user with report path, wait for guidance
 6. If no UNFIXABLE found: proceed (DEFERRED and OUT-OF-SCOPE are non-blocking)
 

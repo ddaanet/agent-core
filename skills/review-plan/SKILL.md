@@ -260,19 +260,20 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 Criteria from `agents/decisions/runbook-review.md` (four axes). Apply regardless of phase type.
 
 **11.1 Vacuity**
-- TDD: Cycles where RED can pass with `assert callable(X)` or `import X`
-- General: Steps that only create scaffolding without functional outcome
-- Integration wiring steps where called function already tested
+- **TDD:** Cycles where RED can pass with `assert callable(X)` or `import X`
+- **TDD:** Integration wiring items where called function already tested
+- **General:** Steps that only create scaffolding without functional outcome; consecutive steps modifying same artifact where step N+1 is achievable by extending step N alone
 - Fix: Merge into nearest behavioral cycle/step
 
 **11.2 Dependency Ordering**
-- Foundation-first within phases: existence → structure → behavior → refinement
-- Item N tests behavior depending on structure from item N+k (k>0)
+- Foundation-first within phases (all types): existence → structure → behavior → refinement
+- **TDD:** Item N tests behavior depending on structure from item N+k (k>0)
+- **General:** Step references output not yet produced by prior step; step assumes file state from a future step
 - Fix: Reorder within phase. If cross-phase: UNFIXABLE (outline revision needed)
 
 **11.3 Density**
-- Adjacent items testing same function with <1 branch point difference
-- Single edge cases expressible as parametrized row in prior item
+- **TDD:** Adjacent cycles testing same function with <1 branch point difference; single edge cases expressible as parametrized row in prior cycle
+- **General:** Adjacent steps modifying same file with composable changes; single-line config changes expressible as part of adjacent step
 - Entire phases with ≤3 items, all Low complexity
 - Fix: Merge adjacent, parametrize edge cases, collapse trivial phases
 

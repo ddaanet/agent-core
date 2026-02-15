@@ -135,6 +135,13 @@ Analyze outline against these dimensions:
 - Flag gaps >10 steps/cycles or >2 phases without a checkpoint
 - Recommend checkpoints after phases with complex data manipulation, integration points, or ≥8 steps
 
+**Growth Projection:**
+- For each target file, estimate net new lines added per item from outline descriptions
+- Flag when projected cumulative size exceeds 350 lines (400-line enforcement threshold minus buffer)
+- Flag outlines with >10 items modifying same file but no growth projection in outline
+- Phases producing files >350 projected lines must include split point before that phase
+- Fix: Add split recommendation to Expansion Guidance section
+
 **Step Clarity:**
 - Each step has clear objective
 - Step titles are descriptive

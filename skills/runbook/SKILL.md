@@ -335,6 +335,14 @@ If design document includes "Requirements" section:
 
 **TDD threshold:** Also skip expansion when outline has <3 phases AND <10 cycles total (small TDD work doesn't need full cycle expansion).
 
+**LLM failure mode gate (before promotion):**
+Check for common planning defects (same criteria as runbook-outline-review-agent):
+- Vacuity: any items that only create scaffolding without functional outcome?
+- Ordering: any items referencing structures from later items?
+- Density: adjacent items on same function with <1 branch difference?
+- Checkpoints: gaps >10 items without checkpoint?
+Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
+
 **If sufficient → promote outline to runbook:**
 
 1. **Reformat headings:** Convert item headings to H2 (`## Step N.M:` or `## Cycle X.Y:`)

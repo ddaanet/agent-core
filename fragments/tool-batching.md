@@ -11,4 +11,8 @@
 6. **Same file:** Edit sequentially, bottom-to-top when inserting
 7. **Refresh context:** If you plan to modify a file again in next iteration, Read it in the batch
 
+**Task tool parallelization:**
+8. **Independent agents:** Launch all independent Task calls in a single message — concurrent execution
+9. **Sequential anti-pattern:** Launching Task agents one-at-a-time when all inputs are ready (wastes wall time — batch instead)
+
 ---

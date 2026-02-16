@@ -130,7 +130,11 @@ Choose exit path based on context budget and fix scope:
    - **Slug format:** kebab-case description of deviation type (e.g., `orchestrator-dirty-tree`, `tool-misuse-grep`)
 2. Append learning to `agents/learnings.md`
 3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
-4. Document fix tasks for user (what needs to be done)
+4. Write pending tasks to session.md in task format:
+   - Format: `- [ ] **Task Name** — \`command\` | model | restart?`
+   - Assess model tier per task (opus for design/architecture, sonnet for implementation, haiku for mechanical)
+   - Include restart flag if fix touches agents/skills/hooks/settings (format: `| restart`)
+   - Insert at estimated priority position in Pending Tasks section
 5. Stop and return control to user
 
 **RCA report template:** See `references/rca-template.md` for structure
@@ -146,9 +150,11 @@ Choose exit path based on context budget and fix scope:
 1. Document partial findings (what we know so far)
 2. Append learning to `agents/learnings.md` if pattern identified
 3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
-4. Document pending tasks for user:
-   - Fix upstream doc
-   - Resume RCA after upstream fix
+4. Write pending tasks to session.md in task format:
+   - Upstream doc fix (with path, model tier, restart flag if applicable — format: `| restart`)
+   - RCA resumption (reference partial findings location)
+   - Format: `- [ ] **Task Name** — \`command\` | model | restart?`
+   - Insert at estimated priority position in Pending Tasks section
 5. Stop and return control to user
 
 ### Output Artifacts
@@ -156,7 +162,7 @@ Choose exit path based on context budget and fix scope:
 **Always produced:**
 - Learning in `agents/learnings.md` (anti-pattern / correct pattern / rationale)
 - Line count check after appending (warn if approaching 80 lines)
-- Session.md update via `/handoff` (RCA findings in Completed, fix tasks in Pending)
+- Pending tasks in session.md (structured task format, inserted at estimated priority position)
 
 **Produced when fixing in-session (Exit Path 1):**
 - Edited rule/skill/fragment files

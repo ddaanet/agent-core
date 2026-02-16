@@ -93,45 +93,6 @@ Fix authentication bug in login flow
      Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md
      Comment placement: after heading, before first prose content. -->
 
-**Gate A — Session freshness:**
-
-Read `agents/session.md`.
-
-Compare "Completed This Session" against work done in this conversation:
-- Does it reflect the changes you're about to commit?
-- Are pending tasks and blockers current?
-
-If stale: invoke `/handoff --commit` (haiku: `/handoff-haiku --commit`). The `--commit` flag tail-calls `/commit` after handoff completes, so the commit still happens — no user intervention needed. This ensures the full handoff protocol runs (learnings consolidation, invalidation checks, jobs.md, session size) before committing.
-
-If current: proceed to Gate B.
-
-Staleness indicators:
-- Completed work not in "Completed This Session"
-- New pending tasks not recorded
-- Blockers/gotchas discovered but not documented
-
-**Why:** Every commit is a sync point. Stale session.md creates drift between code state and documented context.
-
-**Gate B — Vet checkpoint:**
-
-List changed files:
-```bash
-git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5)  # Fallback: 5 commits if no upstream
-git status --porcelain
-```
-
-Classify each file: is it a production artifact (code, scripts, plans, skills, agents)?
-
-- **No production artifacts?** Proceed to validation below.
-- **Production artifacts exist?** Check for vet report in `plans/*/reports/` or `tmp/`.
-- **No vet report?** STOP. Delegate to `vet-fix-agent` first. Return after vet completes.
-- **UNFIXABLE issues in vet report?** Escalate to user before commit.
-- **No criteria for alignment?** If no runbook/design/acceptance criteria exists, escalate to user.
-
-Reports are exempt — they ARE the verification artifacts.
-
-**Validation + discovery:**
-
 **Non-context mode** (default):
 ```bash
 # Run validation and discover staged/unstaged changes

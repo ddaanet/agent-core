@@ -7,7 +7,7 @@ description: |
   - "Review runbook-outline.md before expanding to full runbook"
   - "Validate runbook outline covers all FR-* requirements"
   - "Check phase structure and complexity distribution"
-model: sonnet
+model: opus
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 skills: ["project-conventions"]
@@ -228,6 +228,7 @@ Analyze outline against these dimensions:
 - Don't introduce new design decisions without noting them
 - Keep fixes minimal and targeted
 - Maintain phase groupings unless rebalancing needed
+- **Grounding constraint:** When adding specificity to expansion guidance, reference design sections — do not reproduce operation sequences, flow diagrams, or implementation detail that exists in the design document. The outline is a structural document; the design is the detail document. Expanding agents read both.
 
 ### 5.5. Append Expansion Guidance to Outline
 

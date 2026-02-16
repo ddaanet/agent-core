@@ -155,6 +155,10 @@ If the session has learnings, append them to `agents/learnings.md` (not session.
 
 **Note:** No blank line after `## Title` header.
 
+**Learning title naming:** Titles become `/when` triggers after `/remember` consolidation. Name after the **activity at the decision point** — what the agent is doing when it needs this knowledge. Broadest verb that still triggers correctly. No self-assessment terms (agent can't evaluate what it doesn't know).
+- ✅ "When writing methodology" — activity at decision point
+- ❌ "When synthesizing ungrounded methodology" — self-assessment, outcome-based
+
 **Design decisions are learnings.** When the session produced significant design decisions (architectural choices, trade-offs, anti-patterns discovered), write them to `agents/learnings.md` using the standard learning format. learnings.md is a staging area — `/remember` consolidates to permanent locations (fragments/, decisions/, skill references/).
 
 **Learnings file is append-only:**

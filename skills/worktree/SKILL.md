@@ -89,7 +89,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
 
-3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm <slug>` (requires `dangerouslyDisableSandbox: true`) to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` if the task was removed from Pending Tasks in the worktree branch's session.md. Then **amend the merge commit** with the session.md change: `git add agents/session.md && git commit --amend --no-edit`. Output: "Merged and cleaned up <slug>. Task complete."
+3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm <slug>` (requires `dangerouslyDisableSandbox: true`) to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` and amends the merge commit with the session.md change (detected via parent count). Output: "Merged and cleaned up <slug>. Task complete."
 
    **Handle `rm` exit 1:** After successful merge (exit 0), `rm` may refuse removal if the branch has unmerged commits. Check `rm` exit code:
 

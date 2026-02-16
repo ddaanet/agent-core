@@ -1,5 +1,11 @@
 ---
-description: Entry point for implementation tasks. Triages complexity (simple/moderate/complex), then produces design documents for complex jobs or routes to planning for moderate ones.
+name: design
+description: >-
+  This skill should be used when the user asks to "design", "architect",
+  "plan implementation", "/design", or presents an implementation task
+  that needs complexity triage. Entry point for implementation tasks —
+  triages complexity (simple/moderate/complex), then produces design
+  documents for complex jobs or routes to planning for moderate ones.
 allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 user-invocable: true
 ---
@@ -12,7 +18,7 @@ Produce dense design documents that guide implementation by downstream agents (S
 
 All planning routes to `/runbook` (unified — handles both TDD and general phases).
 
-Design should note which phases are behavioral (TDD) vs infrastructure (general) to guide per-phase type tagging during planning.
+Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-phase type tagging during planning.
 
 ## Process
 
@@ -166,6 +172,25 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 **Termination:** If user feedback fundamentally changes the approach (not refining it), restart Phase A with updated understanding. Phase B is for convergence, not exploration of new directions.
 
 **Convergence guidance:** If after 3 rounds the outline is not converging, ask user whether to proceed with current state or restart with different constraints.
+
+### Outline Sufficiency Gate
+
+After user validates the outline, assess whether it already contains enough specificity to skip design generation.
+
+**Sufficiency criteria (all must hold):**
+- Approach is concrete (specific algorithm/pattern chosen, not "explore options")
+- Key decisions are resolved (no open questions remaining)
+- Scope boundaries are explicit (IN/OUT enumerated)
+- Affected files are identified
+- No architectural uncertainty remains
+
+**If sufficient** — present sufficiency assessment to user. The outline IS the design; confirm user agrees to skip design generation. On confirmation:
+1. Commit `outline.md` as the design artifact (no rename — `/runbook` accepts either `design.md` or `outline.md`)
+2. Invoke `/handoff [CONTINUATION: /commit]` — records design completion, then commits
+
+**If insufficient** — proceed to Phase C (full design generation).
+
+**When to apply:** Small-to-moderate jobs where research (Phase A) fully resolved the approach and user discussion (Phase B) confirmed without introducing new complexity.
 
 ---
 

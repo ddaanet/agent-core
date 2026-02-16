@@ -4,9 +4,10 @@ description: >-
   This skill should be used when the user asks to "review deliverables",
   "deliverable review", "review implementation quality", "review plan output",
   "check design conformance", "artifact review", "quality review", or after
-  completing a plan execution that produced production artifacts. Delegates to
-  parallel opus agents partitioned by artifact type, consolidates findings into
-  a severity-classified report grounded in ISO 25010 / IEEE 1012.
+  completing a plan execution that produced production artifacts. Two-layer
+  review: optional delegated per-file depth for large deliverable sets,
+  mandatory interactive review with full cross-project context. Severity-classified
+  report grounded in ISO 25010 / IEEE 1012.
 allowed-tools:
   - Task
   - Read
@@ -14,6 +15,7 @@ allowed-tools:
   - Glob
   - Bash
   - Write
+user-invocable: true
 ---
 
 # Deliverable Review
@@ -26,7 +28,7 @@ Review production artifacts against a design specification to identify conforman
 - When session.md lists a deliverable review as pending task
 - On explicit user request to review implementation quality
 
-**Not for:** In-progress work (use vet-fix-agent), design documents (use design-vet-agent), or planning artifacts (use plan-reviewer).
+**Not for:** In-progress work (use vet-fix-agent during phase execution), design documents (use design-vet-agent), or planning artifacts (use plan-reviewer). Deliverable review runs after all phases are committed.
 
 ## Prerequisites
 
@@ -64,56 +66,56 @@ Compare inventory against design In-scope items:
 
 ### Phase 3: Per-Deliverable Review
 
-Partition deliverables by type and launch parallel opus review agents:
+Two-layer review. Layer 1 is optional (scales to large deliverable sets). Layer 2 is mandatory (catches what delegation cannot).
 
-**Agent partitioning strategy:**
-- **Code agent** — all source modules against design spec
-- **Test agent** — all test files against design test requirements + gap analysis table
-- **Prose/config agent** — agentic prose, human docs, configuration against design
+#### Layer 1: Delegated Per-File Review (optional)
 
-Each agent receives:
+Gate on total deliverable lines from Phase 1 inventory:
+
+| Total lines | Strategy |
+|-------------|----------|
+| < 500 | **Skip Layer 1** — Layer 2 handles full review |
+| 500–2000 | Two opus agents: code+test, prose+config |
+| > 2000 | Three opus agents: code, test, prose+config |
+
+When Layer 1 applies, partition deliverables by type and launch parallel review agents. Each agent receives:
 - Files to review (with line counts)
 - Design reference path
 - Applicable review axes for its artifact types
-- Specific design requirements to check conformance against
-- Output report path (by partition):
+- Output report path: `plans/<plan>/reports/deliverable-review-<type>.md`
 
-| Agent | Report filename |
-|-------|----------------|
-| Code | `deliverable-review-code.md` |
-| Test | `deliverable-review-tests.md` |
-| Prose/config | `deliverable-review-prose.md` |
+Use `run_in_background=true` for parallel agents.
 
-**Agent prompt template:**
+#### Layer 2: Interactive Full-Artifact Review (mandatory)
 
-```
-Review [artifact type] for the [plan-name] implementation. RESEARCH/REVIEW task — do NOT modify files except the report.
+Always runs in main session with full cross-project context.
 
-## Methodology
-[List applicable axes with questions from deliverable-review.md]
+**Scope depends on whether Layer 1 ran:**
 
-## Files to Review
-[File list with line counts]
+| Layer 1 | Layer 2 scope |
+|---------|---------------|
+| Skipped (< 500 lines) | Full review: per-file axes AND cross-cutting checks |
+| Ran | Cross-cutting focus: issues delegation cannot catch |
 
-## Design Reference
-Read: plans/<plan>/design.md
-[Extract specific design requirements relevant to this artifact type]
+**Cross-cutting checks (always):**
+- Path consistency across documents
+- API contract alignment between modules
+- Naming convention uniformity
+- Fragment convention compliance
+- Memory index pattern verification
+- Other skills' allowed-tools and frontmatter cross-reference validation
 
-## Report Format
-Per finding: file:line, axis violated, severity (Critical/Major/Minor), description.
-Write to: plans/<plan>/reports/deliverable-review-<type>.md
-Return filepath.
-```
+**Per-file review (when Layer 1 skipped):**
+- Read each deliverable and evaluate against type-specific axes
+- Record findings with: file:line, axis violated, severity, description
 
-Use `run_in_background=true` for all parallel agents.
+**Why interactive is mandatory:** Delegated agents lack cross-project context — fragment conventions, memory index patterns, other skills' configurations, inter-file consistency. Layer 2 reads deliverables directly against the design spec, not delegation reports. The two layers are independent.
 
-### Phase 4: Synthesis
+### Phase 4: Report
 
-After all agents complete:
-1. Read all sub-reports
-2. Write consolidated report to `plans/<plan>/reports/deliverable-review.md`
+Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
 
-**Consolidated report structure:**
+**Report structure:**
 
 ```markdown
 # Deliverable Review: <plan-name>
@@ -126,7 +128,7 @@ After all agents complete:
 [Design conformance summary]
 
 ## Critical Findings
-[Numbered, with source report reference, file:line, design requirement, impact]
+[Numbered, with file:line, design requirement, impact]
 
 ## Major Findings
 [Same format]
@@ -138,7 +140,7 @@ After all agents complete:
 [Table: design requirement, status (covered/missing), reference]
 
 ## Summary
-[Severity counts, assessment, sub-report paths]
+[Severity counts, assessment]
 ```
 
 **Severity classification:**
@@ -147,18 +149,6 @@ After all agents complete:
 - **Minor** — style, clarity, naming, robustness edge case
 
 **Next steps:** The consolidated report becomes input for recovery work. Critical + Major findings → design session for fix planning. Minor findings → address inline or defer.
-
-## Partitioning Heuristics
-
-Scale review agents to deliverable volume:
-
-| Total lines | Strategy |
-|-------------|----------|
-| < 500 | Single sonnet agent, all types |
-| 500–2000 | Two opus agents: code+test, prose+config |
-| > 2000 | Three opus agents: code, test, prose+config |
-
-Opus is used because review requires architectural judgment against design specifications. For small deliverable sets (< 500 lines), sonnet provides sufficient judgment at lower cost.
 
 ## References
 

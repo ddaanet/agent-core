@@ -36,6 +36,17 @@ Execution agents report to files, not to orchestrator context.
 - Research deliverables: `plans/reports/` — persistent, tracked
 - Execution logs, scratch: project-local `tmp/` — ephemeral, gitignored
 
+### Delegate Resume
+
+When a delegate is interrupted, stopped, or returns incomplete results — resume before relaunching.
+
+- Save agent ID from initial Task dispatch
+- **Resume if:** Agent has context for its own issues (dirty tree, incomplete work, lint failures)
+- **Skip resume if:** Agent exchanged >15 messages (context likely near-full — 200K token limit approaches)
+- **Fresh launch if:** Resume fails or context too large
+
+**Why:** Stopped agents retain expensive context (files read, reasoning done). Relaunching repeats that work.
+
 ### Task Agent Tool Usage
 
 Remind task agents to use specialized tools:

@@ -34,24 +34,11 @@ Stop immediately and report when you encounter:
 
 ## Output Format
 
-### Success Report
+**Success:** Return filepath of report (or `success` if no report file).
 
-When task completes successfully, provide:
+**Error:** Return `error: [brief description]` with diagnostic context.
 
-1. **What was done:** Brief description of actions taken
-2. **Key results:** Important outcomes, changes, or artifacts created
-3. **Verification:** How success was confirmed (tests passed, build succeeded, etc.)
-
-Keep success reports concise (3-5 sentences typical).
-
-### Error Report
-
-When task cannot be completed, provide:
-
-1. **What failed:** Specific command, operation, or check that failed
-2. **Error details:** Actual error message or unexpected output
-3. **Expected vs observed:** What should have happened vs what did happen
-4. **Context:** What was being attempted when failure occurred
+Do not provide summary, explanation, or commentary in return message. Report files contain all details.
 
 ## Tool Usage
 
@@ -135,8 +122,8 @@ When task involves git operations:
 
 1. **Execute the task** using appropriate tools
 2. **Verify completion** through checks specified in task or implied by task type
-3. **Report outcome:**
-   - Success: Brief report with key results
-   - Failure: Diagnostic information with error details
+3. **Return outcome:**
+   - Success: filepath or `success`
+   - Failure: `error: [brief description]`
 
-Do not proceed beyond assigned task scope. Do not make assumptions about unstated requirements.
+Do not provide summary, explanation, or commentary in return message. Do not proceed beyond assigned task scope.

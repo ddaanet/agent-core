@@ -175,29 +175,13 @@ git commit --amend --no-edit
 
 ## Return Protocol
 
-**Success:**
-```
-success: Refactoring complete
-- Warnings addressed: [list]
-- Changes: [summary]
-- Verification: precommit passed
-```
+**Success:** `success`
 
-**Escalation to opus:**
-```
-escalated: Architectural refactoring needed
-- Issue: [description]
-- Scope: [multi-module impact]
-- Design needed: [what opus should design]
-```
+**Escalation to opus:** `escalated: [brief reason and scope]`
 
-**Failure:**
-```
-error: Refactoring blocked
-- Issue: [description]
-- Attempted: [what was tried]
-- Precommit: [failure details]
-```
+**Failure:** `error: [brief reason]`
+
+Do not provide summary, explanation, or commentary beyond the status line.
 
 ## Tool Usage Constraints
 
@@ -250,10 +234,7 @@ Step 3: Simplify main login() function
 
 **Return:**
 ```
-success: Refactoring complete
-- Warnings addressed: complexity 15→7, length 52→18
-- Changes: Extracted 2 helper functions
-- Verification: precommit passed
+success
 ```
 
 ---

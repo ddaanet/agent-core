@@ -80,6 +80,7 @@ Load and follow the review-plan skill (preloaded via skills field above). Key fo
 - Dependency ordering: Foundation-first within phases (reorder or UNFIXABLE if cross-phase)
 - Density: Adjacent items with <1 branch point difference (collapse)
 - Checkpoint spacing: Gaps >10 items or >2 phases without checkpoint
+- Model assignment: Artifact-type override violations, complexity-model mismatches (advisory — see review-plan skill)
 
 **Prose quality rule:** If an executor could write different tests that all satisfy the prose, the prose is too vague.
 

@@ -1,6 +1,26 @@
 ## Vet Requirement
 
-**Rule:** After creating any production artifact, delegate to `vet-fix-agent` for review and fix.
+**Rule:** After creating any production artifact, delegate to `vet-fix-agent` for review and fix — unless the change qualifies as trivial (see Proportionality below).
+
+### Proportionality
+
+Not all changes warrant full vet delegation. Match review cost to change risk.
+
+**Self-review sufficient** when ALL conditions hold:
+- ≤5 net lines changed (additions + deletions) across ≤2 files
+- Change is additive or corrective (new bullet, typo fix, wording tweak)
+- No control flow, data model, or contract changes
+- No behavioral change to existing functionality
+
+**Self-review process:** Run `git diff HEAD` to view changes. Verify correctness, consistency with surrounding content, and no unintended side effects. Proceed.
+
+**Full vet delegation required** when ANY condition holds:
+- >5 net lines or >2 files changed
+- Structural modification (rewriting logic, changing interfaces, altering behavior)
+- New production artifact (not editing existing)
+- Change affects contracts, data models, or control flow
+
+**Why:** A 1-line bullet addition should not trigger a multi-turn agent delegation with execution context templates, report reading, and UNFIXABLE detection. Proportional review preserves quality without disproportionate overhead.
 
 **Production artifacts requiring vet:**
 - Plans (runbooks)

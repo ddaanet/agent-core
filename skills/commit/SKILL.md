@@ -123,7 +123,8 @@ git status --porcelain
 Classify each file: is it a production artifact (code, scripts, plans, skills, agents)?
 
 - **No production artifacts?** Proceed to validation below.
-- **Production artifacts exist?** Check for vet report in `plans/*/reports/` or `tmp/`.
+- **Production artifacts, but trivial?** (≤5 net lines, ≤2 files, additive/corrective, no behavioral change) — Run `git diff HEAD` to review changes. Verify: correctness, consistency, no side effects. Then proceed. See vet-requirement.md Proportionality.
+- **Production artifacts, non-trivial?** Check for vet report in `plans/*/reports/` or `tmp/`.
 - **No vet report?** STOP. Delegate to `vet-fix-agent` first. Return after vet completes.
 - **UNFIXABLE issues in vet report?** Escalate to user before commit.
 - **No criteria for alignment?** If no runbook/design/acceptance criteria exists, escalate to user.

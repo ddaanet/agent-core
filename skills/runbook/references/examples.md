@@ -334,7 +334,7 @@ Create `agent-core/agents/vet-taxonomy.md`:
 - Prerequisites scale with step type: creation needs investigation, transformation needs target read
 - Expected Outcome must be concrete and verifiable, not vague
 - Error Conditions map specific failures to recovery actions
-- Validation delegates to appropriate domain reviewer
+- Validation delegates to domain-appropriate reviewer (see artifact review routing in `pipeline-contracts.md`)
 
 **Creation vs transformation:**
 - Creation steps: 2+ prerequisite reads (pattern + context), investigation gate if cross-file

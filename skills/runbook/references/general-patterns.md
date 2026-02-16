@@ -115,12 +115,14 @@ Some steps require codebase exploration before implementation can begin.
 
 **Validation**:
 1. Commit changes
-2. Delegate to [appropriate reviewer]
+2. Delegate to [appropriate reviewer] (see artifact review routing in `pipeline-contracts.md`)
 3. Read review report
 4. If UNFIXABLE: STOP, escalate
 5. If all fixed: proceed
 
 **Report location**: plans/[plan-name]/reports/step-X.Y-review.md
+
+> **Orchestrator responsibility:** Review delegation in validation sections is executed by the orchestrator, not the execution agent. Sub-agents lack Task and Skill tools — they cannot delegate to any reviewer. All reviews must be delegated to prevent implementer bias. The execution agent commits; the orchestrator reads the validation section and delegates the review. See artifact review routing in `pipeline-contracts.md`.
 ```
 
 ---

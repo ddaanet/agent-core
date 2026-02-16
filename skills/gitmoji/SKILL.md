@@ -1,5 +1,5 @@
 ---
-name: Gitmoji
+name: gitmoji
 description: This skill should be used when the user asks to "use gitmoji", "add gitmoji to commit", "select gitmoji", "find appropriate emoji for commit", or when creating commit messages that should include gitmojis. Provides semantic matching of commit messages to appropriate gitmoji emojis from the official gitmoji database.
 version: 0.1.0
 ---

@@ -38,7 +38,7 @@ Combines two observable phenomena:
 | 2 | Self-contained with minimal external references | Precommit improvements (validators are stable) |
 | 1 | No external references that can drift; fully reversible | Upstream skills field (external PR); infrastructure scripts |
 
-**Evidence source:** `git log --oneline -10 -- <target-files>` for churn; count blocked tasks in session.md for lock-in.
+**Evidence source:** `git log --oneline -10 -- <target-files>` (from project root) for churn; count blocked tasks in session.md for lock-in.
 
 ### Compound Risk Reduction (replaces Risk Reduction / Opportunity Enablement)
 

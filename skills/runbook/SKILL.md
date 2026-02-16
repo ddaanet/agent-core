@@ -46,6 +46,23 @@ Each phase in a runbook declares its type: `type: tdd` or `type: general` (defau
 
 prepare-runbook.py already detects per-file via headers (`## Cycle X.Y:` vs `## Step N.M:`). The type tag is consumed by planner and reviewer.
 
+## Model Assignment
+
+**Default heuristic:** Match model to task complexity.
+- **Haiku:** File operations, scripted tasks, mechanical edits
+- **Sonnet:** Semantic analysis, judgment, standard implementation
+- **Opus:** Architecture, complex design decisions
+
+**Artifact-type override:** Steps editing architectural artifacts require opus regardless of task complexity:
+- Skills (`agent-core/skills/`)
+- Fragments (`agent-core/fragments/`)
+- Agent definitions (`agent-core/agents/`)
+- Workflow decisions (`agents/decisions/workflow-*.md`)
+
+These are prose instructions consumed by LLMs — wording directly determines downstream agent behavior. "Simple" edits to these files require nuanced understanding that haiku/sonnet cannot reliably provide.
+
+This override applies to Tier 2 delegation (model parameter), Tier 3 step assignment (Execution Model field), and the Execution Model in Weak Orchestrator Metadata.
+
 ---
 
 ## When to Use
@@ -131,6 +148,8 @@ When design specifies explicit classifications (tables, rules, decision lists):
 1. Include them LITERALLY in the delegation prompt
 2. Delegated agents must NOT invent alternative heuristics
 3. Agent "judgment" means applying design rules to specific cases, not creating new rules
+
+**Artifact-type model override:** When delegated work edits architectural artifacts (skills, fragments, agents, workflow decisions), use `model="opus"` in the Task call. See Model Assignment section.
 
 **Key distinction from Tier 3:** No prepare-runbook.py, no orchestrator plan, no plan-specific agent. The planner acts as ad-hoc orchestrator.
 
@@ -548,9 +567,10 @@ Every assembled runbook MUST include this metadata section:
 
 **Total Steps**: [N]
 
-**Execution Model**:
+**Execution Model** (general phases only — TDD cycles use phase-level model):
 - Steps X-Y: Haiku (simple file operations, scripted tasks)
 - Steps A-B: Sonnet (semantic analysis, judgment required)
+- Steps C-D: Opus (architectural artifacts — see Model Assignment)
 
 **Step Dependencies**: [sequential | parallel | specific graph]
 
@@ -791,7 +811,7 @@ model: haiku
 
 **Objective**: [Clear objective]
 **Script Evaluation**: [Direct / Small / Prose / Separate]
-**Execution Model**: [Haiku / Sonnet]
+**Execution Model**: [Haiku / Sonnet / Opus — see Model Assignment for artifact-type override]
 
 **Implementation**: [Content]
 

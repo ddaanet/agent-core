@@ -93,26 +93,7 @@ Fix authentication bug in login flow
      Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md
      Comment placement: after heading, before first prose content. -->
 
-**Gate A — Session freshness:**
-
-Read `agents/session.md`.
-
-Compare "Completed This Session" against work done in this conversation:
-- Does it reflect the changes you're about to commit?
-- Are pending tasks and blockers current?
-
-If stale: invoke `/handoff --commit` (haiku: `/handoff-haiku --commit`). The `--commit` flag tail-calls `/commit` after handoff completes, so the commit still happens — no user intervention needed. This ensures the full handoff protocol runs (learnings consolidation, invalidation checks, jobs.md, session size) before committing.
-
-If current: proceed to Gate B.
-
-Staleness indicators:
-- Completed work not in "Completed This Session"
-- New pending tasks not recorded
-- Blockers/gotchas discovered but not documented
-
-**Why:** Every commit is a sync point. Stale session.md creates drift between code state and documented context.
-
-**Gate B — Vet checkpoint:**
+**Gate — Vet checkpoint:**
 
 List changed files:
 ```bash

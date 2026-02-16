@@ -139,7 +139,7 @@ Run as **separate Bash calls** (allowlist requires individual commands):
 1. `just precommit` (or `just test` / `just lint` per flag)
 2. `git status -vv`
 
-- Precommit first: if it fails, no verbose output bloat
+- **Gate: if precommit fails, STOP.** Fix lint/test failures before committing. No exceptions — do not rationalize failures as "pre-existing" or "from other code."
 - Shows: file status + staged diffs + unstaged diffs
 - Note what's already staged vs unstaged (preserve staging state)
 - ERROR if nothing to commit (no staged or unstaged changes; untracked files don't count)

@@ -45,7 +45,7 @@ External grounding is required when output makes:
 | Parameter | Options | Selection criteria |
 |-----------|---------|-------------------|
 | Internal branch | brainstorm / explore | Prescriptive ("how should we X") → brainstorm. Descriptive ("what do we currently do about X") → explore |
-| Model tier | opus / sonnet | Novel methodology or synthesis requiring nuanced judgment → opus. Adapting a known framework → sonnet |
+| Model tier | opus / sonnet | Brainstorm → always opus (generative divergence). Explore → sonnet (codebase pattern extraction) |
 | Research breadth | narrow (1-2) / broad (3-5) | High-stakes, novel domain, or unfamiliar territory → broad. Familiar domain with known prior art → narrow |
 | Output format | reference doc / skill body / decision entry | Reusable methodology → reference doc. Encoding into procedure → skill body. One-time decision → decision entry |
 

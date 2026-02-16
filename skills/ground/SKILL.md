@@ -8,7 +8,7 @@ description: >-
   scoring system", "design a methodology", "build a framework", "define a
   taxonomy", or "synthesize best practices". Encodes a diverge-converge
   research procedure with mandatory grounding quality labels.
-allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task
+allowed-tools: Read, Write, Grep, Glob, Bash, WebSearch, WebFetch, Task
 user-invocable: true
 ---
 
@@ -29,7 +29,7 @@ Frame the research question before searching.
 - Set exclusion criteria: wrong domain, no procedure, outdated
 - Select parameters (consult `references/grounding-criteria.md` for guidance):
   - Internal branch type: **brainstorm** (prescriptive — "how should we X") or **explore** (descriptive — "what do we currently do about X")
-  - Model tier for internal branch: opus (novel methodology) or sonnet (adapting known framework)
+  - Model tier for internal branch: brainstorm → always opus; explore → sonnet
   - Research breadth: narrow (1-2 searches) or broad (3-5 searches)
   - Output format: reference document, skill body, or decision entry
 
@@ -38,8 +38,8 @@ Frame the research question before searching.
 Execute two branches in parallel. Neither is optional — both are required.
 
 **Branch A — Internal:**
-- **Brainstorm mode:** Delegate to Task agent (opus/sonnet per parameter). Generate project-specific dimensions, constraints, desiderata, evaluation axes. Focus on what no external source would surface.
-- **Explore mode:** Delegate to quiet-explore agent. Surface existing codebase patterns, prior decisions, current conventions relevant to the topic.
+- **Brainstorm mode:** Delegate to Task agent (subagent_type: general-purpose, model: opus). Generate project-specific dimensions, constraints, desiderata, evaluation axes. Output: list of dimensions with rationale, written to tmp file. Focus on what no external source would surface.
+- **Explore mode:** Delegate to quiet-explore agent. Surface existing codebase patterns, prior decisions, current conventions. Output: inventory of existing patterns with file references, written to tmp file.
 
 Write internal branch output to `tmp/ground-internal-<topic>.md`.
 

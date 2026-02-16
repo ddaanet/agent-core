@@ -200,6 +200,11 @@ Same as Extract mode steps 3-6.
 
 ### Open Questions
 - Q-1: <unresolved item — what needs investigation>
+
+### References
+- `plans/<job-name>/reports/explore-<topic>.md` — codebase exploration findings
+- `plans/reports/<topic>.md` — grounding research synthesis
+- [External Paper Title](url) — informed FR-2 scope decision
 ```
 
 **Section rules:**
@@ -207,6 +212,7 @@ Same as Extract mode steps 3-6.
 - Number identifiers sequentially within each section (FR-1, FR-2, ... not FR-1, FR-3)
 - Open Questions captures items conversation didn't resolve → become Design Phase A research targets
 - Dependencies flags blocking work, prerequisite plans, or external dependencies
+- References track provenance — what research, external sources, or project artifacts informed the requirements. Include exploration reports, grounding research, external papers, prior plan reports. Omit if requirements came entirely from conversation.
 
 ## Skill Dependency Scanning
 

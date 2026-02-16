@@ -103,6 +103,8 @@ Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/
 
 **Web research:** WebSearch/WebFetch for external patterns, prior art, or specifications.
 
+**Grounding:** When the design will produce a methodology, framework, scoring system, or taxonomy, invoke `/ground` to prevent confabulated structures. The ground skill runs parallel internal+external research branches and produces a grounded reference document in `plans/reports/`.
+
 #### A.5. Produce Plan Outline
 
 **Output:** Write outline to `plans/<job>/outline.md` (create directory if needed).
@@ -224,6 +226,7 @@ Format classification tables with explicit scope:
 - Architecture/approach
 - Key design decisions with rationale
 - Implementation notes (affected files, testing strategy)
+- References (see below)
 - Documentation Perimeter (see below)
 - Next steps
 
@@ -250,6 +253,21 @@ When requirements.md exists in job directory, include traceability mapping:
 Each requirement should map to a design element for downstream validation.
 
 **TDD mode additions:** For designs with behavioral phases, include spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
+
+**References section:**
+
+Track research artifacts and external references that informed the design. Backward-looking provenance (what shaped this design), distinct from Documentation Perimeter (forward-looking — what the planner should read).
+
+```markdown
+## References
+
+- `plans/<job-name>/reports/explore-<topic>.md` — codebase exploration findings
+- `plans/reports/<topic>.md` — grounding research (if `/ground` invoked)
+- [External Paper Title](url) — informed decision D-3
+- Context7: `/org/project` — queried for hook configuration patterns
+```
+
+**Include when:** Any Phase A research produced reports, external sources were consulted, or `/ground` was invoked. Omit if design was based entirely on loaded internal documentation.
 
 **Documentation Perimeter section:**
 

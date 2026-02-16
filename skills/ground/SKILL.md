@@ -69,7 +69,7 @@ Required sections:
 - Grounding quality label with evidence basis
 - Sources section with retrieval context
 
-Clean up temporary branch files from `tmp/`.
+**Branch file retention:** Move internal branch to `plans/reports/` if substantial (>100 lines or >10 file reads). Delete if short brainstorm. Substantial inventories are evidence artifacts supporting the synthesis — needed for audit through the design lifecycle. Delete external branch files (web search results are reproducible).
 
 ## Integration Points
 

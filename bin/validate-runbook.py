@@ -170,10 +170,11 @@ def check_test_counts(content: str, path: str) -> list[str]:
     test_name_pattern = re.compile(r'\*\*Test:\*\*\s*`?([^`\n]+)`?')
     checkpoint_pattern = re.compile(r'All\s+(\d+)\s+tests?\s+pass', re.IGNORECASE)
 
-    # Collect unique test names from all RED phases
+    # Collect unique test names from all RED phases; strip parametrize brackets
     test_names: set[str] = set()
     for match in test_name_pattern.finditer(content):
-        test_names.add(match.group(1).strip())
+        name = re.sub(r'\[.*?\]$', '', match.group(1).strip())
+        test_names.add(name)
 
     # Find all checkpoint claims and compare to accumulated count
     for match in checkpoint_pattern.finditer(content):

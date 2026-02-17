@@ -290,8 +290,8 @@ Skip STATUS display. The `/commit` skill will show it after committing.
 - Learnings accumulate across sessions as institutional knowledge
 - These learnings inform future work across projects
 
-**Git history is the archive**
-- No separate archive files needed
+**Git history is the primary archive**
+- Plan summaries go to `plan-archive.md` for on-demand design research (loaded at A.1, not always-on)
 - Handoff preserves actionable context, not full history
 - File references point to detailed content when needed
 

@@ -27,7 +27,7 @@ Read `agents/session.md` Pending Tasks section. Extract each task with:
 - Plan directory (if any)
 - Notes and context
 
-Read `agents/jobs.md` for plan status of each task (requirements/designed/planned/complete).
+Call `list_plans(Path('plans'))` for plan status of each task (requirements/designed/planned/ready).
 
 ### 2. Score Each Task
 

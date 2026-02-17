@@ -56,6 +56,8 @@ def write_report(
         "## Summary\n\n",
         f"Failed: {len(violations)}\n\n",
     ]
+    if ambiguous is not None:
+        lines.insert(-1, f"Ambiguous: {len(ambiguous)}\n\n")
     if violations:
         lines.append("## Violations\n\n")
         lines.extend(f"- {v}\n" for v in violations)
@@ -202,8 +204,79 @@ def cmd_test_counts(args: argparse.Namespace) -> None:
     sys.exit(1 if violations else 0)
 
 
-def cmd_red_plausibility(_args: argparse.Namespace) -> None:
-    sys.exit(0)
+def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str]]:
+    """Check that RED expected failures are plausible given prior GREEN state.
+
+    Returns (violations, ambiguous) where violations are clear already-passing
+    RED states and ambiguous are cases requiring semantic judgment.
+    """
+    violations: list[str] = []
+    ambiguous: list[str] = []
+    cycles = extract_cycles(content)
+
+    # Names created by prior GREENs (accumulated cycle-by-cycle before checking current RED)
+    created_names: set[str] = set()
+
+    # Pattern to extract module/function name from ImportError/ModuleNotFoundError lines
+    import_err_pattern = re.compile(
+        r'(?:ImportError|ModuleNotFoundError).*?[`\'"]([\w.]+)[`\'"]',
+        re.IGNORECASE,
+    )
+    # Pattern to extract stem from "Action: Create" file entries
+    create_file_pattern = re.compile(
+        r'- File: `?([^`\n]+)`?\s*\n\s+Action:\s*Create',
+        re.IGNORECASE,
+    )
+
+    for cycle in cycles:
+        cycle_content = cycle["content"]
+        cycle_id = cycle["number"]
+
+        # Extract RED expected failure text
+        red_match = re.search(
+            r'\*\*Expected failure:\*\*\s*`?([^\n`]+)`?', cycle_content
+        )
+        if red_match:
+            failure_text = red_match.group(1).strip()
+            for m in import_err_pattern.finditer(failure_text):
+                name = m.group(1)
+                # Check both the full dotted name and the last segment (module stem)
+                stem = name.split(".")[-1]
+                if name in created_names or stem in created_names:
+                    violations.append(
+                        f"Cycle {cycle_id}: RED expects `{failure_text}` but "
+                        f"`{name}` already created by prior GREEN"
+                    )
+
+        # After checking RED, accumulate this cycle's GREEN creations for future cycles
+        for m in create_file_pattern.finditer(cycle_content):
+            file_path = m.group(1).strip()
+            p = Path(file_path)
+            # Add both the full path stem and the module-style name (src.module)
+            created_names.add(p.stem)
+            # Also add dotted module path (src/module.py → src.module)
+            parts = p.with_suffix("").parts
+            created_names.add(".".join(parts))
+
+    return violations, ambiguous
+
+
+def cmd_red_plausibility(args: argparse.Namespace) -> None:
+    """Check that RED expected failures are plausible given prior GREEN state."""
+    path = args.path
+    p = Path(path)
+    if p.is_dir():
+        content = assemble_phase_files(path)
+    else:
+        content = p.read_text()
+    violations, ambiguous = check_red_plausibility(content, path)
+    write_report("red-plausibility", path, violations, ambiguous)
+    if violations:
+        sys.exit(1)
+    elif ambiguous:
+        sys.exit(2)
+    else:
+        sys.exit(0)
 
 
 def main() -> None:

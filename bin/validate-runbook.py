@@ -164,8 +164,40 @@ def cmd_lifecycle(args: argparse.Namespace) -> None:
     sys.exit(1 if violations else 0)
 
 
-def cmd_test_counts(_args: argparse.Namespace) -> None:
-    sys.exit(0)
+def check_test_counts(content: str, path: str) -> list[str]:
+    """Check that checkpoint test-count claims match accumulated test function count."""
+    violations = []
+    test_name_pattern = re.compile(r'\*\*Test:\*\*\s*`?([^`\n]+)`?')
+    checkpoint_pattern = re.compile(r'All\s+(\d+)\s+tests?\s+pass', re.IGNORECASE)
+
+    # Collect unique test names from all RED phases
+    test_names: set[str] = set()
+    for match in test_name_pattern.finditer(content):
+        test_names.add(match.group(1).strip())
+
+    # Find all checkpoint claims and compare to accumulated count
+    for match in checkpoint_pattern.finditer(content):
+        claimed = int(match.group(1))
+        actual = len(test_names)
+        if claimed != actual:
+            violations.append(
+                f"Checkpoint claims {claimed} tests but found {actual} test function(s)"
+            )
+
+    return violations
+
+
+def cmd_test_counts(args: argparse.Namespace) -> None:
+    """Check checkpoint test-count claims match actual test function count."""
+    path = args.path
+    p = Path(path)
+    if p.is_dir():
+        content = assemble_phase_files(path)
+    else:
+        content = p.read_text()
+    violations = check_test_counts(content, path)
+    write_report("test-counts", path, violations)
+    sys.exit(1 if violations else 0)
 
 
 def cmd_red_plausibility(_args: argparse.Namespace) -> None:

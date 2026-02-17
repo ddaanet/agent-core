@@ -48,7 +48,7 @@ The `new --task` command automatically moves the task from Pending Tasks to Work
 
 Used when the user invokes `wt` with no arguments. This mode detects a group of independent parallel tasks and creates multiple worktrees simultaneously, enabling concurrent work on independent tasks.
 
-1. **Read `agents/session.md` and `agents/jobs.md`** to identify all pending tasks and their properties. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
+1. **Read `agents/session.md`** and call `list_plans(Path('plans'))` to identify all pending tasks and plan statuses. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
 
 2. **Check for shared plan directories and dependencies.** For each pending task, extract the plan directory (if specified). Build a dependency map:
 
@@ -93,7 +93,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
 
-   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`, `agents/jobs.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
+   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
      1. **Edit** each conflicted file to fix conflicts manually
      2. **Use Bash:** `git add <conflicted-file>`
      3. **Re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` (idempotent, resumes after resolution)

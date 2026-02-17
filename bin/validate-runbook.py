@@ -214,8 +214,8 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
     ambiguous: list[str] = []
     cycles = extract_cycles(content)
 
-    # Names created by prior GREENs (accumulated cycle-by-cycle before checking current RED)
-    created_names: set[str] = set()
+    # Names created by prior GREENs: name → creating cycle_id
+    created_names: dict[str, str] = {}
 
     # Pattern to extract module/function name from ImportError/ModuleNotFoundError lines
     import_err_pattern = re.compile(
@@ -242,10 +242,11 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
                 name = m.group(1)
                 # Check both the full dotted name and the last segment (module stem)
                 stem = name.split(".")[-1]
-                if name in created_names or stem in created_names:
+                creating_cycle = created_names.get(name) or created_names.get(stem)
+                if creating_cycle:
                     violations.append(
                         f"Cycle {cycle_id}: RED expects `{failure_text}` but "
-                        f"`{name}` already created by prior GREEN"
+                        f"`{name}` already created in Cycle {creating_cycle} GREEN"
                     )
 
         # After checking RED, accumulate this cycle's GREEN creations for future cycles
@@ -253,10 +254,10 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
             file_path = m.group(1).strip()
             p = Path(file_path)
             # Add both the full path stem and the module-style name (src.module)
-            created_names.add(p.stem)
+            created_names.setdefault(p.stem, cycle_id)
             # Also add dotted module path (src/module.py → src.module)
             parts = p.with_suffix("").parts
-            created_names.add(".".join(parts))
+            created_names.setdefault(".".join(parts), cycle_id)
 
     return violations, ambiguous
 

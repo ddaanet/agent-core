@@ -119,6 +119,10 @@ def check_lifecycle(content: str, path: str) -> list[str]:
             )
             if file_path not in first_seen:
                 first_seen[file_path] = (action, cycle_id)
+                if is_modify:
+                    violations.append(
+                        f"Cycle {cycle_id}: `{file_path}` — no prior creation found"
+                    )
             elif is_create:
                 orig_action, orig_cycle = first_seen[file_path]
                 violations.append(

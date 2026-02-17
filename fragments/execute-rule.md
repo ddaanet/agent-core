@@ -160,6 +160,8 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 |----------|-----------|
 | `d: <text>` | Discussion mode — analyze, don't execute |
 | `p: <text>` | Pending task — assess model, defer write to handoff |
+| `learn: <text>` | Add to session learnings (agents/learnings.md) |
+| `q: <text>` | Quick question — terse response, no ceremony |
 
 ---
 

@@ -2,6 +2,7 @@
 """Validate runbook files for structural and semantic correctness."""
 import argparse
 import importlib.util
+import re
 import sys
 from pathlib import Path
 
@@ -17,6 +18,19 @@ assemble_phase_files = _mod.assemble_phase_files
 extract_file_references = _mod.extract_file_references
 extract_step_metadata = _mod.extract_step_metadata
 
+ARTIFACT_PREFIXES = (
+    "agent-core/skills/",
+    "agent-core/fragments/",
+    "agent-core/agents/",
+)
+
+
+def _is_artifact_path(file_path: str) -> bool:
+    if any(file_path.startswith(p) for p in ARTIFACT_PREFIXES):
+        return True
+    # agents/decisions/workflow-*.md
+    return bool(re.match(r"agents/decisions/workflow-[^/]+\.md$", file_path))
+
 
 def write_report(
     subcommand: str,
@@ -30,12 +44,17 @@ def write_report(
     report_dir = Path("plans") / job / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"validation-{subcommand}.md"
-    lines = [f"# Validation: {subcommand}\n\n"]
+    passed = not violations
+    result = "PASS" if passed else "FAIL"
+    lines = [
+        f"# Validation: {subcommand}\n\n",
+        f"**Result:** {result}\n\n",
+        "## Summary\n\n",
+        f"Failed: {len(violations)}\n\n",
+    ]
     if violations:
         lines.append("## Violations\n\n")
         lines.extend(f"- {v}\n" for v in violations)
-    else:
-        lines.append("All checks passed.\n")
     if ambiguous:
         lines.append("\n## Ambiguous\n\n")
         lines.extend(f"- {a}\n" for a in ambiguous)
@@ -43,23 +62,47 @@ def write_report(
     return report_path
 
 
-def cmd_model_tags(_args: argparse.Namespace) -> None:
-    """Stub: check artifact-type files use opus Execution Model."""
-    sys.exit(0)
+def check_model_tags(content: str, path: str) -> list[str]:
+    """Check that artifact-type file references use opus Execution Model."""
+    violations = []
+    cycles = extract_cycles(content)
+    for cycle in cycles:
+        cycle_content = cycle["content"]
+        metadata = extract_step_metadata(cycle_content)
+        model = metadata.get("model", "haiku")
+        file_refs = re.findall(r"- File: `?([^`\n]+)`?", cycle_content)
+        for file_path in file_refs:
+            file_path = file_path.strip()
+            if _is_artifact_path(file_path) and model != "opus":
+                violations.append(
+                    f"Cycle {cycle['number']}: artifact file `{file_path}` "
+                    f"requires opus model (got {model})"
+                )
+    return violations
+
+
+def cmd_model_tags(args: argparse.Namespace) -> None:
+    """Check artifact-type files use opus Execution Model."""
+    path = args.path
+    p = Path(path)
+    if p.is_dir():
+        content = assemble_phase_files(path)
+    else:
+        content = p.read_text()
+    violations = check_model_tags(content, path)
+    write_report("model-tags", path, violations)
+    sys.exit(1 if violations else 0)
 
 
 def cmd_lifecycle(_args: argparse.Namespace) -> None:
-    """Stub: check create→modify file dependency ordering."""
     sys.exit(0)
 
 
 def cmd_test_counts(_args: argparse.Namespace) -> None:
-    """Stub: check checkpoint claims vs actual test function count."""
     sys.exit(0)
 
 
 def cmd_red_plausibility(_args: argparse.Namespace) -> None:
-    """Stub: check RED expectations vs prior GREEN state."""
     sys.exit(0)
 
 

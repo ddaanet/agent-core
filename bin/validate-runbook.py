@@ -36,16 +36,26 @@ def write_report(
     path: str,
     violations: list[str],
     ambiguous: list[str] | None = None,
+    skipped: bool = False,
 ) -> Path:
-    """Write validation report to plans/<job>/reports/validation-<subcommand>.md."""
-    p = Path(path)
-    job = p.parent.name if p.is_dir() else p.stem
-    report_dir = Path("plans") / job / "reports"
-    report_dir.mkdir(parents=True, exist_ok=True)
-    report_path = report_dir / f"validation-{subcommand}.md"
+    """Write validation report.
+
+    For directory input: report goes to <path>/reports/validation-<subcommand>.md.
+    For file input: report goes to plans/<job>/reports/validation-<subcommand>.md.
+    """
     from datetime import datetime, timezone
 
-    if violations:
+    p = Path(path)
+    if p.is_dir():
+        report_dir = p / "reports"
+    else:
+        report_dir = Path("plans") / p.stem / "reports"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    report_path = report_dir / f"validation-{subcommand}.md"
+
+    if skipped:
+        result = "SKIPPED"
+    elif violations:
         result = "FAIL"
     elif ambiguous:
         result = "AMBIGUOUS"
@@ -94,9 +104,12 @@ def check_model_tags(content: str, path: str) -> list[str]:
 def cmd_model_tags(args: argparse.Namespace) -> None:
     """Check artifact-type files use opus Execution Model."""
     path = args.path
+    if args.skip_model_tags:
+        write_report("model-tags", path, [], skipped=True)
+        sys.exit(0)
     p = Path(path)
     if p.is_dir():
-        content = assemble_phase_files(path)
+        content, _ = assemble_phase_files(path)
     else:
         content = p.read_text()
     violations = check_model_tags(content, path)
@@ -160,9 +173,12 @@ def check_lifecycle(content: str, path: str) -> list[str]:
 def cmd_lifecycle(args: argparse.Namespace) -> None:
     """Check file lifecycle ordering (create before modify)."""
     path = args.path
+    if args.skip_lifecycle:
+        write_report("lifecycle", path, [], skipped=True)
+        sys.exit(0)
     p = Path(path)
     if p.is_dir():
-        content = assemble_phase_files(path)
+        content, _ = assemble_phase_files(path)
     else:
         content = p.read_text()
     violations = check_lifecycle(content, path)
@@ -198,9 +214,12 @@ def check_test_counts(content: str, path: str) -> list[str]:
 def cmd_test_counts(args: argparse.Namespace) -> None:
     """Check checkpoint test-count claims match actual test function count."""
     path = args.path
+    if args.skip_test_counts:
+        write_report("test-counts", path, [], skipped=True)
+        sys.exit(0)
     p = Path(path)
     if p.is_dir():
-        content = assemble_phase_files(path)
+        content, _ = assemble_phase_files(path)
     else:
         content = p.read_text()
     violations = check_test_counts(content, path)
@@ -288,9 +307,12 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
 def cmd_red_plausibility(args: argparse.Namespace) -> None:
     """Check that RED expected failures are plausible given prior GREEN state."""
     path = args.path
+    if args.skip_red_plausibility:
+        write_report("red-plausibility", path, [], skipped=True)
+        sys.exit(0)
     p = Path(path)
     if p.is_dir():
-        content = assemble_phase_files(path)
+        content, _ = assemble_phase_files(path)
     else:
         content = p.read_text()
     violations, ambiguous = check_red_plausibility(content, path)
@@ -307,14 +329,15 @@ def main() -> None:
     """Entry point for validate-runbook CLI."""
     parser = argparse.ArgumentParser(prog="validate-runbook")
     sub = parser.add_subparsers(dest="subcommand")
-    for name, fn in [
-        ("model-tags", cmd_model_tags),
-        ("lifecycle", cmd_lifecycle),
-        ("test-counts", cmd_test_counts),
-        ("red-plausibility", cmd_red_plausibility),
+    for name, fn, skip_dest in [
+        ("model-tags", cmd_model_tags, "skip_model_tags"),
+        ("lifecycle", cmd_lifecycle, "skip_lifecycle"),
+        ("test-counts", cmd_test_counts, "skip_test_counts"),
+        ("red-plausibility", cmd_red_plausibility, "skip_red_plausibility"),
     ]:
         p = sub.add_parser(name)
         p.add_argument("path")
+        p.add_argument(f"--skip-{name}", dest=skip_dest, action="store_true", default=False)
         p.set_defaults(func=fn)
 
     args = parser.parse_args()

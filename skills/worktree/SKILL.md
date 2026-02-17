@@ -89,13 +89,13 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
 
-3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm <slug>` (requires `dangerouslyDisableSandbox: true`) to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` and amends the merge commit with the session.md change (detected via parent count). Output: "Merged and cleaned up <slug>. Task complete."
+3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm --confirm <slug>` (requires `dangerouslyDisableSandbox: true`) to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` and amends the merge commit with the session.md change (detected via parent count). Output: "Merged and cleaned up <slug>. Task complete."
 
    **Handle `rm` exit codes:** After successful merge (exit 0), `rm` may fail. Check exit code:
 
    - **Exit code 0:** Cleanup succeeded. Continue to "Task complete" output.
-   - **Exit code 1:** Guard refused removal due to unmerged commits. This indicates the merge may be incomplete despite reporting success (exit 0). **Escalate to user:** "Merge may be incomplete — branch {slug} has unmerged commits after merge reported success. Verify merge correctness before forcing removal."
-   - **Exit code 2:** Unexpected error during cleanup (e.g., branch deletion failed). Report the error from stderr and **escalate to user.** The worktree and directory may already be removed; the branch requires manual investigation.
+   - **Exit code 2:** Safety gate refused (guard refused due to unmerged commits, dirty parent/submodule, or missing --confirm). This shouldn't normally happen after successful merge because `--confirm` is passed and merge ensures merged state. But if it does: **escalate to user** with stderr message.
+   - **Exit code 1:** Operational error (branch deletion failed). Report the error from stderr and **escalate to user.**
 
    Do NOT retry `rm` with force flags or work around the refusal. Exit 1 and exit 2 both require investigation before proceeding.
 
@@ -134,3 +134,5 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 - **Cleanup is user-initiated:** Mode A and Mode B require separate cleanup after merge. Mode C includes cleanup automatically after successful merge (branch deletion, worktree removal, session.md cleanup via `claudeutils _worktree rm <slug>`).
 
 - **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
+
+- **Emergency `--force` flag:** `claudeutils _worktree rm --force <slug>` bypasses all safety checks (confirm, dirty tree, guard). Use only as emergency escape hatch when normal workflow is blocked.

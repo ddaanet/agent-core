@@ -91,12 +91,13 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm <slug>` (requires `dangerouslyDisableSandbox: true`) to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` and amends the merge commit with the session.md change (detected via parent count). Output: "Merged and cleaned up <slug>. Task complete."
 
-   **Handle `rm` exit 1:** After successful merge (exit 0), `rm` may refuse removal if the branch has unmerged commits. Check `rm` exit code:
+   **Handle `rm` exit codes:** After successful merge (exit 0), `rm` may fail. Check exit code:
 
    - **Exit code 0:** Cleanup succeeded. Continue to "Task complete" output.
    - **Exit code 1:** Guard refused removal due to unmerged commits. This indicates the merge may be incomplete despite reporting success (exit 0). **Escalate to user:** "Merge may be incomplete — branch {slug} has unmerged commits after merge reported success. Verify merge correctness before forcing removal."
+   - **Exit code 2:** Unexpected error during cleanup (e.g., branch deletion failed). Report the error from stderr and **escalate to user.** The worktree and directory may already be removed; the branch requires manual investigation.
 
-   Do NOT retry `rm` with force flags or work around the refusal. The guard detects a merge correctness issue that requires investigation.
+   Do NOT retry `rm` with force flags or work around the refusal. Exit 1 and exit 2 both require investigation before proceeding.
 
 4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
 

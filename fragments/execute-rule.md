@@ -52,7 +52,7 @@ Unscheduled Plans:
 - **Status values:** `requirements`, `designed`, `planned`, `ready`
 - **Sorting:** Alphabetical by plan name
 
-**Status source:** Call `list_plans()` as authoritative source for plan status; `session.md` for task notes.
+**Status source:** `claudeutils _worktree ls` for plan states and tree status; `session.md` for task notes. The CLI wraps `list_plans()` + `format_rich_ls()` — do not call these via ad-hoc Python.
 
 **Parallel task detection:**
 

@@ -45,8 +45,12 @@ def write_report(
     report_path = report_dir / f"validation-{subcommand}.md"
     from datetime import datetime, timezone
 
-    passed = not violations
-    result = "PASS" if passed else "FAIL"
+    if violations:
+        result = "FAIL"
+    elif ambiguous:
+        result = "AMBIGUOUS"
+    else:
+        result = "PASS"
     date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
         f"# Validation Report: {subcommand}\n\n",
@@ -222,6 +226,12 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
         r'(?:ImportError|ModuleNotFoundError).*?[`\'"]([\w.]+)[`\'"]',
         re.IGNORECASE,
     )
+    # Pattern to detect non-import error types in failure text
+    non_import_err_pattern = re.compile(
+        r'\b(ValueError|AttributeError|TypeError|RuntimeError|KeyError|IndexError'
+        r'|NameError|OSError|FileNotFoundError|NotImplementedError)\b',
+        re.IGNORECASE,
+    )
     # Pattern to extract stem from "Action: Create" file entries
     create_file_pattern = re.compile(
         r'- File: `?([^`\n]+)`?\s*\n\s+Action:\s*Create',
@@ -238,16 +248,29 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
         )
         if red_match:
             failure_text = red_match.group(1).strip()
-            for m in import_err_pattern.finditer(failure_text):
-                name = m.group(1)
-                # Check both the full dotted name and the last segment (module stem)
-                stem = name.split(".")[-1]
-                creating_cycle = created_names.get(name) or created_names.get(stem)
-                if creating_cycle:
-                    violations.append(
-                        f"Cycle {cycle_id}: RED expects `{failure_text}` but "
-                        f"`{name}` already created in Cycle {creating_cycle} GREEN"
-                    )
+            import_matches = list(import_err_pattern.finditer(failure_text))
+            if import_matches:
+                for m in import_matches:
+                    name = m.group(1)
+                    # Check both the full dotted name and the last segment (module stem)
+                    stem = name.split(".")[-1]
+                    creating_cycle = created_names.get(name) or created_names.get(stem)
+                    if creating_cycle:
+                        violations.append(
+                            f"Cycle {cycle_id}: RED expects `{failure_text}` but "
+                            f"`{name}` already created in Cycle {creating_cycle} GREEN"
+                        )
+            elif non_import_err_pattern.search(failure_text):
+                # Non-import error: ambiguous if any created name is referenced
+                error_type = non_import_err_pattern.search(failure_text).group(1)
+                for name, creating_cycle in created_names.items():
+                    if name in failure_text or "." not in name:
+                        ambiguous.append(
+                            f"Cycle {cycle_id}: `{name}` exists (created Cycle "
+                            f"{creating_cycle}) but RED tests different behavior "
+                            f"({error_type}) — `{failure_text}`"
+                        )
+                        break
 
         # After checking RED, accumulate this cycle's GREEN creations for future cycles
         for m in create_file_pattern.finditer(cycle_content):

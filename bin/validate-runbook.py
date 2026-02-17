@@ -75,8 +75,8 @@ def check_model_tags(content: str, path: str) -> list[str]:
             file_path = file_path.strip()
             if _is_artifact_path(file_path) and model != "opus":
                 violations.append(
-                    f"Cycle {cycle['number']}: artifact file `{file_path}` "
-                    f"requires opus model (got {model})"
+                    f"Cycle {cycle['number']}: `{file_path}` — "
+                    f"**Expected:** opus, got: {model}"
                 )
     return violations
 

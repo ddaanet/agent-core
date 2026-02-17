@@ -180,8 +180,9 @@ def check_test_counts(content: str, path: str) -> list[str]:
         claimed = int(match.group(1))
         actual = len(test_names)
         if claimed != actual:
+            names_list = ", ".join(sorted(test_names))
             violations.append(
-                f"Checkpoint claims {claimed} tests but found {actual} test function(s)"
+                f"Checkpoint claims {claimed} tests but found {actual} test function(s): {names_list}"
             )
 
     return violations

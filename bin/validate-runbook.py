@@ -43,10 +43,15 @@ def write_report(
     report_dir = Path("plans") / job / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"validation-{subcommand}.md"
+    from datetime import datetime, timezone
+
     passed = not violations
     result = "PASS" if passed else "FAIL"
+    date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
-        f"# Validation: {subcommand}\n\n",
+        f"# Validation Report: {subcommand}\n\n",
+        f"**Runbook:** {path}\n\n",
+        f"**Date:** {date}\n\n",
         f"**Result:** {result}\n\n",
         "## Summary\n\n",
         f"Failed: {len(violations)}\n\n",
@@ -131,9 +136,14 @@ def check_lifecycle(content: str, path: str) -> list[str]:
                 )
             elif is_modify:
                 orig_action, orig_cycle = first_seen[file_path]
+                orig_lower = orig_action.lower()
+                already_flagged = any(
+                    orig_lower.startswith(kw)
+                    for kw in ("modify", "add", "update", "edit", "extend")
+                )
                 if not any(
-                    orig_action.lower().startswith(kw) for kw in ("create", "write new")
-                ):
+                    orig_lower.startswith(kw) for kw in ("create", "write new")
+                ) and not already_flagged:
                     violations.append(
                         f"Cycle {cycle_id}: `{file_path}` modified before creation "
                         f"(first seen in Cycle {orig_cycle} as '{orig_action}')"

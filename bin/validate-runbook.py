@@ -28,7 +28,6 @@ ARTIFACT_PREFIXES = (
 def _is_artifact_path(file_path: str) -> bool:
     if any(file_path.startswith(p) for p in ARTIFACT_PREFIXES):
         return True
-    # agents/decisions/workflow-*.md
     return bool(re.match(r"agents/decisions/workflow-[^/]+\.md$", file_path))
 
 
@@ -94,8 +93,61 @@ def cmd_model_tags(args: argparse.Namespace) -> None:
     sys.exit(1 if violations else 0)
 
 
-def cmd_lifecycle(_args: argparse.Namespace) -> None:
-    sys.exit(0)
+def check_lifecycle(content: str, path: str) -> list[str]:
+    """Check that files are created before being modified."""
+    violations = []
+    cycles = extract_cycles(content)
+    # Map file_path -> (action_type, cycle_number) for first occurrence
+    first_seen: dict[str, tuple[str, str]] = {}
+    for cycle in cycles:
+        cycle_content = cycle["content"]
+        cycle_id = cycle["number"]
+        # Extract File: / Action: pairs from Changes section
+        file_action_pairs = re.findall(
+            r"- File: `?([^`\n]+)`?\s*\n\s+Action: ([^\n]+)", cycle_content
+        )
+        for file_path, action_raw in file_action_pairs:
+            file_path = file_path.strip()
+            action = action_raw.strip()
+            action_lower = action.lower()
+            is_create = any(
+                action_lower.startswith(kw) for kw in ("create", "write new")
+            )
+            is_modify = any(
+                action_lower.startswith(kw)
+                for kw in ("modify", "add", "update", "edit", "extend")
+            )
+            if file_path not in first_seen:
+                first_seen[file_path] = (action, cycle_id)
+            elif is_create:
+                orig_action, orig_cycle = first_seen[file_path]
+                violations.append(
+                    f"Cycle {cycle_id}: `{file_path}` created again "
+                    f"(first seen in Cycle {orig_cycle} as '{orig_action}')"
+                )
+            elif is_modify:
+                orig_action, orig_cycle = first_seen[file_path]
+                if not any(
+                    orig_action.lower().startswith(kw) for kw in ("create", "write new")
+                ):
+                    violations.append(
+                        f"Cycle {cycle_id}: `{file_path}` modified before creation "
+                        f"(first seen in Cycle {orig_cycle} as '{orig_action}')"
+                    )
+    return violations
+
+
+def cmd_lifecycle(args: argparse.Namespace) -> None:
+    """Check file lifecycle ordering (create before modify)."""
+    path = args.path
+    p = Path(path)
+    if p.is_dir():
+        content = assemble_phase_files(path)
+    else:
+        content = p.read_text()
+    violations = check_lifecycle(content, path)
+    write_report("lifecycle", path, violations)
+    sys.exit(1 if violations else 0)
 
 
 def cmd_test_counts(_args: argparse.Namespace) -> None:

@@ -48,7 +48,7 @@ The `new --task` command automatically moves the task from Pending Tasks to Work
 
 Used when the user invokes `wt` with no arguments. This mode detects a group of independent parallel tasks and creates multiple worktrees simultaneously, enabling concurrent work on independent tasks.
 
-1. **Read `agents/session.md` and `agents/jobs.md`** to identify all pending tasks and their properties. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
+1. **Read `agents/session.md`** and call `list_plans(Path('plans'))` to identify all pending tasks and plan statuses. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
 
 2. **Check for shared plan directories and dependencies.** For each pending task, extract the plan directory (if specified). Build a dependency map:
 
@@ -83,25 +83,17 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
 ## Mode C: Merge Ceremony
 
-Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge ceremony that returns worktree commits to the main branch, handling the handoff, commit, merge, and cleanup sequence.
+Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge ceremony that returns worktree commits to the main branch, handling the handoff, commit, and merge sequence.
 
 1. **Invoke `/handoff --commit`** to ensure clean tree and session context committed. If handoff or commit fails, STOP — merge requires clean tree.
 
 2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
 
-3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm --confirm <slug>` (requires `dangerouslyDisableSandbox: true`) to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` and amends the merge commit with the session.md change (detected via parent count). Output: "Merged and cleaned up <slug>. Task complete."
-
-   **Handle `rm` exit codes:** After successful merge (exit 0), `rm` may fail. Check exit code:
-
-   - **Exit code 0:** Cleanup succeeded. Continue to "Task complete" output.
-   - **Exit code 2:** Safety gate refused (guard refused due to unmerged commits, dirty parent/submodule, or missing --confirm). This shouldn't normally happen after successful merge because `--confirm` is passed and merge ensures merged state. But if it does: **escalate to user** with stderr message.
-   - **Exit code 1:** Operational error (branch deletion failed). Report the error from stderr and **escalate to user.**
-
-   Do NOT retry `rm` with force flags or work around the refusal. Exit 1 and exit 2 both require investigation before proceeding.
+3. **Exit code 0 (success):** The merge completed successfully. Worktree preserved for bidirectional workflow — the user decides when to remove it. Output: "Merged <slug> successfully. Worktree preserved. To remove when ready: `wt-rm <slug>`"
 
 4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
 
-   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`, `agents/jobs.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
+   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
      1. **Edit** each conflicted file to fix conflicts manually
      2. **Use Bash:** `git add <conflicted-file>`
      3. **Re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` (idempotent, resumes after resolution)
@@ -131,7 +123,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 - **Session.md task movement is automated:** `new --task` moves the task from Pending Tasks to Worktree Tasks (with `→ \`slug\`` marker). `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`). No manual session.md editing required for task movement.
 
-- **Cleanup is user-initiated:** Mode A and Mode B require separate cleanup after merge. Mode C includes cleanup automatically after successful merge (branch deletion, worktree removal, session.md cleanup via `claudeutils _worktree rm <slug>`).
+- **Cleanup is user-initiated:** After merge, worktree is preserved. Remove when ready via `wt-rm <slug>`.
 
 - **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
 

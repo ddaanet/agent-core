@@ -226,19 +226,13 @@ wc -l agents/session.md agents/learnings.md
 
 Session.md contains volatile state; learnings.md contains institutional knowledge.
 
-### 6. Update jobs.md
+### 6. Update plan-archive.md
 
-When plan status changes during this session, update `agents/jobs.md`:
+When a plan completes during this session, write a summary to `agents/plan-archive.md`:
 
-**Status transitions:**
-- Plan completed → Move from current section to "Complete (Archived)"
-- Design created → Move from Requirements to Designed
-- Runbook created → Move from Designed to In Progress (planned)
+**Entry format:** H2 heading (plan name) + paragraph (2-4 sentences: what was delivered, affected modules, key decisions).
 
-**Format for Complete section:**
-Add one-line entry: `- plan-name — brief description of what was delivered`
-
-**Note:** jobs.md tracks plan lifecycle, session.md tracks task execution. They're complementary.
+**Note:** Plan status is inferred from filesystem artifacts by `list_plans()`. Only completed plans need explicit archive entries.
 
 ### 7. Trim Completed Tasks
 
@@ -296,8 +290,8 @@ Skip STATUS display. The `/commit` skill will show it after committing.
 - Learnings accumulate across sessions as institutional knowledge
 - These learnings inform future work across projects
 
-**Git history is the archive**
-- No separate archive files needed
+**Git history is the primary archive**
+- Plan summaries go to `plan-archive.md` for on-demand design research (loaded at A.1, not always-on)
 - Handoff preserves actionable context, not full history
 - File references point to detailed content when needed
 

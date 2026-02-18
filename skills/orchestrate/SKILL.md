@@ -398,6 +398,14 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 - If hanging: Kill task and escalate to user
 - If still running: Wait and check periodically
 
+**Scenario: Resuming after context ceiling or kill**
+- Previous session hit token limit mid-execution. Fresh agent picks up.
+- Action: Find last completed phase boundary (last checkpoint commit in git log)
+- Run that checkpoint's verification commands from the runbook phase file
+- Build complete inventory of remaining work from verification output
+- Then resume from next step after the checkpoint
+- Do NOT use `just precommit` as a state assessment tool — it's a pass/fail gate, not a diagnostic. Use the runbook's checkpoint verification commands, which are designed to produce a complete inventory of what's done and what's missing.
+
 ## Integration with Workflows
 
 **Implementation workflow:**

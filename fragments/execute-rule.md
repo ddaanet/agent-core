@@ -37,7 +37,7 @@ Unscheduled Plans:
 
 **Pending list format:**
 - First line: task name with model if non-default
-- Nested line: plan directory, status from jobs.md, notes if present
+- Nested line: plan directory, status from planstate, notes if present
 - Omit nested line if task has no associated plan
 
 **Worktree section:**
@@ -45,14 +45,14 @@ Unscheduled Plans:
 - Tasks in Worktree section are NOT shown in Pending
 - Format shows task name and worktree slug for `wt-rm` reference
 
-**Unscheduled Plans:** Plans in jobs.md that have no associated pending task.
-- Read `agents/jobs.md` for all plans
+**Unscheduled Plans:** Plans with no associated pending task.
+- Call `list_plans(Path('plans'))` for all plans
 - Exclude plans that appear in any pending task's plan directory
 - **Format:** `<plan-name> — <status>`
-- **Status values:** `complete`, `planned`, `designed`, `requirements`
+- **Status values:** `requirements`, `designed`, `planned`, `ready`
 - **Sorting:** Alphabetical by plan name
 
-**Status source:** Read `agents/jobs.md` as authoritative source for plan status and notes.
+**Status source:** `claudeutils _worktree ls` for plan states and tree status; `session.md` for task notes. The CLI wraps `list_plans()` + `format_rich_ls()` — do not call these via ad-hoc Python.
 
 **Parallel task detection:**
 

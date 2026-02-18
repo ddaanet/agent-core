@@ -99,9 +99,9 @@ If no requirements.md exists:
 
 #### A.2. Explore Codebase
 
-**CRITICAL: Delegate exploration. Opus must not grep/glob/browse directly.**
+**Delegate exploration when scope is open-ended or spans multiple unknown files.** Read directly when files are known and few (≤3 files). The goal is cost control — opus tokens on open-ended browsing are expensive, but launching an agent to read a known file costs more than reading it directly.
 
-Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/<job-name>/reports/explore-<topic>.md`. Agent writes findings to file and returns filepath.
+For delegated exploration: Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/<job-name>/reports/explore-<topic>.md`. Agent writes findings to file and returns filepath.
 
 #### A.3-4. External Research (if needed)
 

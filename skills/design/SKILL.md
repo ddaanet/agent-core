@@ -204,9 +204,22 @@ After user validates the outline, assess whether it already contains enough spec
 - Affected files are identified
 - No architectural uncertainty remains
 
-**If sufficient** — present sufficiency assessment to user. The outline IS the design; confirm user agrees to skip design generation. On confirmation:
-1. Commit `outline.md` as the design artifact (no rename — `/runbook` accepts either `design.md` or `outline.md`)
-2. Invoke `/handoff [CONTINUATION: /commit]` — records design completion, then commits
+**If sufficient** — present sufficiency assessment to user. The outline IS the design; confirm user agrees to skip design generation. On confirmation, assess execution readiness:
+
+**Direct execution criteria (all must hold):**
+- ≤3 files affected
+- All changes are prose edits or additive (no behavioral code changes)
+- Insertion points or edit targets are identified (line-level or section-level)
+- No cross-file coordination (edits are independent per file)
+
+**If execution-ready** — offer direct execution. On confirmation:
+1. Execute edits in current session
+2. Delegate to `vet-fix-agent` (vet requirement applies regardless of execution path)
+3. Invoke `/handoff [CONTINUATION: /commit]`
+
+**If not execution-ready** — route to `/runbook`:
+1. Commit design artifact (`outline.md` or `design.md`)
+2. Invoke `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 **If insufficient** — proceed to Phase C (full design generation).
 
@@ -390,18 +403,12 @@ The design-vet-agent applies all fixes (critical, major, minor) directly. This s
 
 **Re-vet if needed:** If user manually addresses UNFIXABLE issues, re-delegate to design-vet-agent for verification.
 
-#### C.5. Handoff and Commit
+#### C.5. Execution Readiness and Handoff
 
-**CRITICAL: As the final action, invoke `/handoff --commit`.**
+Apply execution readiness criteria from Outline Sufficiency Gate. Design can resolve complexity — a job correctly classified as Complex may produce Simple execution.
 
-This tail-call chains:
-1. `/handoff` updates session.md with completed design work
-2. Tail-calls `/commit` which commits the design document
-3. `/commit` displays STATUS showing next pending task
-
-The next pending task will typically be the planning phase (`/runbook`).
-
-**Why:** Universal tail behavior ensures consistent workflow termination. User always sees what's next.
+- **If execution-ready:** Execute edits, vet, then `/handoff [CONTINUATION: /commit]`
+- **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 ## Output Expectations
 

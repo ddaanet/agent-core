@@ -11,11 +11,8 @@ _spec = importlib.util.spec_from_file_location(
 )
 _mod = importlib.util.module_from_spec(_spec)  # type: ignore[arg-type]
 _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
-parse_frontmatter = _mod.parse_frontmatter
 extract_cycles = _mod.extract_cycles
-extract_sections = _mod.extract_sections
 assemble_phase_files = _mod.assemble_phase_files
-extract_file_references = _mod.extract_file_references
 extract_step_metadata = _mod.extract_step_metadata
 
 ARTIFACT_PREFIXES = (
@@ -190,26 +187,29 @@ def cmd_lifecycle(args: argparse.Namespace) -> None:
 
 
 def check_test_counts(content: str, path: str) -> list[str]:
-    """Check that checkpoint test-count claims match accumulated test function count."""
+    """Check that checkpoint test-count claims match cumulative test count at each position."""
     violations = []
     test_name_pattern = re.compile(r'\*\*Test:\*\*\s*`?([^`\n]+)`?')
     checkpoint_pattern = re.compile(r'All\s+(\d+)\s+tests?\s+pass', re.IGNORECASE)
 
-    # Collect unique test names from all RED phases; strip parametrize brackets
+    # Process line-by-line: accumulate tests, check at each checkpoint
     test_names: set[str] = set()
-    for match in test_name_pattern.finditer(content):
-        name = re.sub(r'\[.*?\]$', '', match.group(1).strip())
-        test_names.add(name)
+    for line in content.split('\n'):
+        test_match = test_name_pattern.search(line)
+        if test_match:
+            name = re.sub(r'\[.*?\]$', '', test_match.group(1).strip())
+            test_names.add(name)
 
-    # Find all checkpoint claims and compare to accumulated count
-    for match in checkpoint_pattern.finditer(content):
-        claimed = int(match.group(1))
-        actual = len(test_names)
-        if claimed != actual:
-            names_list = ", ".join(sorted(test_names))
-            violations.append(
-                f"Checkpoint claims {claimed} tests but found {actual} test function(s): {names_list}"
-            )
+        cp_match = checkpoint_pattern.search(line)
+        if cp_match:
+            claimed = int(cp_match.group(1))
+            actual = len(test_names)
+            if claimed != actual:
+                names_list = ", ".join(sorted(test_names))
+                violations.append(
+                    f"Checkpoint claims {claimed} tests but found {actual} "
+                    f"test function(s): {names_list}"
+                )
 
     return violations
 

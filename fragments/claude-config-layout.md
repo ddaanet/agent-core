@@ -103,3 +103,5 @@
 
 **Hook enforcement:**
 - `submodule-safety` hook blocks commands when cwd != project root
+- Exception: `cd <project_root> && <command>` is allowed (restores cwd before executing)
+- Only `&&` separator permitted (not `;` or `||`) — guarantees cd-first invariant

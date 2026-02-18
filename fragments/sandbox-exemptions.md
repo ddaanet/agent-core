@@ -37,13 +37,13 @@ When a command is in `permissions.allow`, invoke it with the **exact prefix** th
 
 ### Worktree Operations
 
-**Location advantage:** Git worktrees are created inside the project root (`wt/<slug>/`), eliminating sandbox bypass needs for most operations. Files within the project root are writable in sandbox mode.
+**All mutation commands require bypass:** `claudeutils _worktree new`, `merge`, and `rm` write `.claude/settings.local.json` (sandbox allowlist management) and perform operations outside the project root. Always invoke with `dangerouslyDisableSandbox: true`.
 
-**Remaining exceptions:** Some environment initialization steps require bypass:
+**Additional bypass needs within worktree setup:**
 - `uv sync` — Network access for package downloads + writes to `.venv/` inside worktree
 - `direnv allow` — Writes to `.direnv/` outside the worktree directory structure
 
-**Skill implementation:** The worktree skill (`agent-core/skills/worktree/`) invokes these operations with `dangerouslyDisableSandbox: true`. Agents invoking worktree creation via the skill inherit this behavior automatically.
+**Skill instrumentation:** The worktree skill (`agent-core/skills/worktree/SKILL.md`) annotates each mutation command with the bypass requirement. Read-only git commands do not need bypass.
 
 ### Commands Requiring `dangerouslyDisableSandbox: true`
 

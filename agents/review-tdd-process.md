@@ -349,17 +349,13 @@ Prioritized, actionable recommendations:
 
 ## Output Format
 
-After writing the report, return to caller:
+After writing the report, return filepath only:
 
 ```
-TDD process review complete.
-
-**Compliance:** X% of cycles followed full RED/GREEN/REFACTOR discipline
-**Issues Found:** N planning gaps, N execution violations, N code quality issues
-**Report:** plans/<feature-name>/reports/tdd-process-review.md
-
-**Top Recommendation:** [Most critical recommendation]
+plans/<feature-name>/reports/tdd-process-review.md
 ```
+
+Do not provide summary, explanation, or commentary in return message. The review file contains all details.
 
 ## Quality Standards
 

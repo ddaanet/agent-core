@@ -93,26 +93,7 @@ Fix authentication bug in login flow
      Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md
      Comment placement: after heading, before first prose content. -->
 
-**Gate A — Session freshness:**
-
-Read `agents/session.md`.
-
-Compare "Completed This Session" against work done in this conversation:
-- Does it reflect the changes you're about to commit?
-- Are pending tasks and blockers current?
-
-If stale: invoke `/handoff --commit` (haiku: `/handoff-haiku --commit`). The `--commit` flag tail-calls `/commit` after handoff completes, so the commit still happens — no user intervention needed. This ensures the full handoff protocol runs (learnings consolidation, invalidation checks, jobs.md, session size) before committing.
-
-If current: proceed to Gate B.
-
-Staleness indicators:
-- Completed work not in "Completed This Session"
-- New pending tasks not recorded
-- Blockers/gotchas discovered but not documented
-
-**Why:** Every commit is a sync point. Stale session.md creates drift between code state and documented context.
-
-**Gate B — Vet checkpoint:**
+**Gate — Vet checkpoint:**
 
 List changed files:
 ```bash
@@ -123,7 +104,8 @@ git status --porcelain
 Classify each file: is it a production artifact (code, scripts, plans, skills, agents)?
 
 - **No production artifacts?** Proceed to validation below.
-- **Production artifacts exist?** Check for vet report in `plans/*/reports/` or `tmp/`.
+- **Production artifacts, but trivial?** (≤5 net lines, ≤2 files, additive/corrective, no behavioral change) — Run `git diff HEAD` to review changes. Verify: correctness, consistency, no side effects. Then proceed. See vet-requirement.md Proportionality.
+- **Production artifacts, non-trivial?** Check for vet report in `plans/*/reports/` or `tmp/`.
 - **No vet report?** STOP. Delegate to `vet-fix-agent` first. Return after vet completes.
 - **UNFIXABLE issues in vet report?** Escalate to user before commit.
 - **No criteria for alignment?** If no runbook/design/acceptance criteria exists, escalate to user.
@@ -133,15 +115,12 @@ Reports are exempt — they ARE the verification artifacts.
 **Validation + discovery:**
 
 **Non-context mode** (default):
-```bash
-# Run validation and discover staged/unstaged changes
-exec 2>&1
-set -xeuo pipefail
-just precommit  # or: just test (--test) / just lint (--lint)
-git status -vv
-```
-- Intent comment required as first line (before exec)
-- Precommit first: if it fails, no verbose output bloat
+
+Run as **separate Bash calls** (allowlist requires individual commands):
+1. `just precommit` (or `just test` / `just lint` per flag)
+2. `git status -vv`
+
+- **Gate: if precommit fails, STOP.** Fix lint/test failures before committing. No exceptions — do not rationalize failures as "pre-existing" or "from other code."
 - Shows: file status + staged diffs + unstaged diffs
 - Note what's already staged vs unstaged (preserve staging state)
 - ERROR if nothing to commit (no staged or unstaged changes; untracked files don't count)
@@ -150,30 +129,29 @@ git status -vv
 
 If `git status` shows modified submodules (e.g., `M agent-core`):
 
-1. Check submodule status: `(cd agent-core && git status)`
-2. If submodule has uncommitted changes: commit them using subshell pattern:
-   ```bash
-   (cd agent-core && git add <files> && git commit -m "$(cat <<'EOF'
+Run as **separate Bash calls** (allowlist requires individual commands):
+1. `(cd agent-core && git status)` — check submodule status
+2. `(cd agent-core && git add <files>)` — stage submodule files
+3. Commit submodule (separate call, heredoc for message):
+   ```
+   (cd agent-core && git commit -m "$(cat <<'EOF'
    Commit message here
    EOF
    )")
    ```
-3. Stage the submodule pointer in parent: `git add agent-core`
-4. Continue with parent commit
+4. `git add agent-core` — stage submodule pointer in parent
+5. Continue with parent commit
 
-**Subshell pattern:** Use `(cd submodule && ...)` instead of `cd submodule` to avoid changing working directory in main session.
+**Subshell pattern:** Use `(cd submodule && ...)` instead of `cd submodule` to avoid changing working directory. Keep `cd` + one git command per call — do NOT chain `git add && git commit` (breaks allowlist matching).
 
 **Scope:** Single-level submodules only. Nested submodules not used in this repo.
 
 **Why:** Submodule pointer updates are invisible unless the submodule is committed first. A parent commit with a dirty submodule creates sync issues.
 
 **Context mode** (`--context` flag):
-```bash
-# Run validation only (skip discovery)
-exec 2>&1
-set -xeuo pipefail
-just precommit  # or: just test (--test) / just lint (--lint)
-```
+
+Run `just precommit` (or `just test` / `just lint` per flag) as a single Bash call.
+
 - Skip `git status -vv` - you already know what changed from conversation
 - ERROR if you don't have clear context about what changed
 - Use when you just wrote/edited files and know the changes
@@ -197,25 +175,21 @@ Prefix commit title with selected emoji.
 
 ### 4. Stage, commit, verify
 
-Use heredoc syntax for multiline commit messages:
+Run as **separate Bash calls** (allowlist requires individual commands):
+1. `git add file1.txt file2.txt` — stage specific files
+2. Commit with heredoc for multiline message:
+   ```
+   git commit -m "$(cat <<'EOF'
+   🐛 Fix authentication bug
 
-```bash
-# Stage specific files, commit with message, verify result
-exec 2>&1
-set -xeuo pipefail
-git add file1.txt file2.txt
-git commit -m "$(cat <<'EOF'
-🐛 Fix authentication bug
-
-- Detail 1
-- Detail 2
-EOF
-)"
-git status
-```
+   - Detail 1
+   - Detail 2
+   EOF
+   )"
+   ```
+3. `git status` — verify result
 
 **Guidelines:**
-- Intent comment required as first line (before exec)
 - Stage specific files only (not `git add -A`)
 - Preserve already-staged files
 - **Include `agents/session.md`, `plans/` files, and submodule pointer updates if they have uncommitted changes**
@@ -225,11 +199,11 @@ git status
 ## Critical Constraints
 
 - **Multi-line commit messages**: Use heredoc syntax with `git commit -m "$(cat <<'EOF' ... EOF)"` for clean formatting
-- **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes (exception: token-efficient bash pattern - see `/token-efficient-bash` skill)
+- **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes
 - **Explicit errors**: If anything fails, report it clearly and stop
 - **No secrets**: Do not commit .env, credentials, keys, tokens, etc.
 - **Clean tree check**: Must error explicitly if nothing to commit
-- **Token-efficient bash**: When running 3+ sequential git commands, use `/token-efficient-bash` skill pattern for 40-60% token savings
+- **One command per Bash call**: Permission allowlist matches individual commands. Do NOT batch `git add && git commit` or use `exec 2>&1; set -xeuo pipefail` wrapper — these fail allowlist matching.
 - **Context mode requirement**: When using `--context`, error if you don't have clear context about what changed
 
 ## Post-Commit: Display STATUS

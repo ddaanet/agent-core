@@ -46,6 +46,23 @@ Each phase in a runbook declares its type: `type: tdd` or `type: general` (defau
 
 prepare-runbook.py already detects per-file via headers (`## Cycle X.Y:` vs `## Step N.M:`). The type tag is consumed by planner and reviewer.
 
+## Model Assignment
+
+**Default heuristic:** Match model to task complexity.
+- **Haiku:** File operations, scripted tasks, mechanical edits
+- **Sonnet:** Semantic analysis, judgment, standard implementation
+- **Opus:** Architecture, complex design decisions
+
+**Artifact-type override:** Steps editing architectural artifacts require opus regardless of task complexity:
+- Skills (`agent-core/skills/`)
+- Fragments (`agent-core/fragments/`)
+- Agent definitions (`agent-core/agents/`)
+- Workflow decisions (`agents/decisions/workflow-*.md`)
+
+These are prose instructions consumed by LLMs — wording directly determines downstream agent behavior. "Simple" edits to these files require nuanced understanding that haiku/sonnet cannot reliably provide.
+
+This override applies to Tier 2 delegation (model parameter), Tier 3 step assignment (Execution Model field), and the Execution Model in Weak Orchestrator Metadata.
+
 ---
 
 ## When to Use
@@ -132,6 +149,8 @@ When design specifies explicit classifications (tables, rules, decision lists):
 2. Delegated agents must NOT invent alternative heuristics
 3. Agent "judgment" means applying design rules to specific cases, not creating new rules
 
+**Artifact-type model override:** When delegated work edits architectural artifacts (skills, fragments, agents, workflow decisions), use `model="opus"` in the Task call. See Model Assignment section.
+
 **Key distinction from Tier 3:** No prepare-runbook.py, no orchestrator plan, no plan-specific agent. The planner acts as ad-hoc orchestrator.
 
 **Handling agent escalations:**
@@ -162,12 +181,14 @@ When delegated agent escalates "ambiguity" or "design gap":
 - Phase 0.5: Discover codebase structure
 - Phase 0.75: Generate runbook outline
 - Phase 0.85: Consolidation gate (outline)
+- Phase 0.86: Simplification pass (pattern consolidation)
 - Phase 0.9: Complexity check before expansion
 - Phase 0.95: Outline sufficiency check
 - Phase 1: Phase-by-phase expansion with reviews
 - Phase 2: Assembly and metadata
 - Phase 2.5: Consolidation gate (runbook)
 - Phase 3: Final holistic review
+- Phase 3.5: Pre-execution validation
 - Phase 4: Prepare artifacts and handoff
 
 ---
@@ -287,6 +308,35 @@ If design document includes "Requirements" section:
    - Note consolidation decisions in Expansion Guidance
 
 **When to skip:** No trivial phases, all have cross-cutting dependencies, or outline already compact (≤3 phases).
+
+---
+
+### Phase 0.86: Simplification Pass
+
+**Objective:** Detect and consolidate redundant patterns before expensive expansion.
+
+**Mandatory** for all Tier 3 runbooks.
+
+**Actions:**
+
+1. **Delegate to simplification agent:**
+   - Agent: `runbook-simplification-agent`
+   - Input: `plans/<job>/runbook-outline.md` (post-0.85 state)
+   - Output: Consolidated outline + report at `plans/<job>/reports/simplification-report.md`
+
+2. **Review simplification report:**
+   - Read report filepath returned by agent
+   - Check before/after item counts
+   - Verify requirements mapping preserved
+
+3. **Proceed to Phase 0.9** with simplified outline.
+
+**Pattern categories detected:**
+- Identical-pattern items (same function, varying data) → parametrized single item
+- Independent same-module functions → batched single item
+- Sequential additions to same structure → merged single item
+
+**Small outlines (≤10 items):** Agent still runs but reports "no consolidation candidates" rather than skipping — maintains mandatory gate while avoiding wasted effort.
 
 ---
 
@@ -548,9 +598,10 @@ Every assembled runbook MUST include this metadata section:
 
 **Total Steps**: [N]
 
-**Execution Model**:
+**Execution Model** (general phases only — TDD cycles use phase-level model):
 - Steps X-Y: Haiku (simple file operations, scripted tasks)
 - Steps A-B: Sonnet (semantic analysis, judgment required)
+- Steps C-D: Opus (architectural artifacts — see Model Assignment)
 
 **Step Dependencies**: [sequential | parallel | specific graph]
 
@@ -620,9 +671,44 @@ Delegate to `plan-reviewer` (fix-all mode) for cross-phase consistency:
 **Handle outcome:**
 - Read review report
 - If ESCALATION: STOP, address unfixable issues
-- If all fixed: proceed to Phase 4
+- If all fixed: proceed to Phase 3.5
 
 **Note:** Individual phase reviews already happened in Phase 1. This review checks holistic consistency only.
+
+---
+
+### Phase 3.5: Pre-Execution Validation
+
+**Objective:** Validate assembled runbook structurally before artifact generation.
+
+**Mandatory** for all Tier 3 runbooks.
+
+**Actions:**
+
+1. **Run validation checks:**
+   ```bash
+   agent-core/bin/validate-runbook.py model-tags plans/<job>/
+   agent-core/bin/validate-runbook.py lifecycle plans/<job>/
+   agent-core/bin/validate-runbook.py test-counts plans/<job>/
+   agent-core/bin/validate-runbook.py red-plausibility plans/<job>/
+   ```
+
+   Each subcommand writes a report to `plans/<job>/reports/validation-{subcommand}.md`.
+
+   **Exit codes:** 0 = pass, 1 = violations (blocking), 2 = ambiguous (optional semantic analysis).
+
+2. **Handle results:**
+   - All exit 0: proceed to Phase 4
+   - Any exit 1: STOP, report violations to user
+   - Any exit 2 (red-plausibility only): optionally delegate semantic analysis to plan-reviewer, then proceed
+
+**Graceful degradation:** If `validate-runbook.py` doesn't exist, skip Phase 3.5 and proceed to Phase 4 with warning. Supports incremental adoption — Phase A lands skill references before Phase B implements the script.
+
+**Validation checks:**
+- `model-tags`: File path → model mapping. Artifact-type files (skills/, fragments/, agents/, workflow-*.md) must have opus tag.
+- `lifecycle`: Create→modify dependency graph. Flags modify-before-create, duplicate creation, future-phase reads.
+- `test-counts`: Checkpoint "All N tests pass" claims vs actual test function count.
+- `red-plausibility`: Prior GREENs vs RED expectations. Flags already-passing states.
 
 ---
 
@@ -791,7 +877,7 @@ model: haiku
 
 **Objective**: [Clear objective]
 **Script Evaluation**: [Direct / Small / Prose / Separate]
-**Execution Model**: [Haiku / Sonnet]
+**Execution Model**: [Haiku / Sonnet / Opus — see Model Assignment for artifact-type override]
 
 **Implementation**: [Content]
 

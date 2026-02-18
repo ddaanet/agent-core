@@ -305,6 +305,23 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
 - Flag when projected size exceeds 350 lines (400-line enforcement threshold minus buffer)
 - Fix: Insert proactive file split at phase boundary before projected threshold breach
 
+### 12. Model Assignment Review (ADVISORY) — all phases
+
+**Check:** Model tag matches task complexity and artifact type.
+
+**Artifact-type override violations (advisory):**
+- Steps editing skills (`agent-core/skills/`), fragments (`agent-core/fragments/`),
+  agents (`agent-core/agents/`), or workflow decisions (`agents/decisions/workflow-*.md`)
+  assigned below opus → flag
+- Pattern: Check `File:` references in `Changes` section against override paths
+
+**Complexity-model mismatch (advisory):**
+- Synthesis tasks (combining multiple source files into new artifact) assigned below sonnet → flag
+- Mechanical grep-and-delete or single-line changes assigned above haiku → flag
+
+**Advisory only.** Model assignment involves judgment — findings inform but don't block.
+Do NOT mark as UNFIXABLE or CRITICAL. Report as Minor with suggested correction.
+
 ---
 
 ## Review Process

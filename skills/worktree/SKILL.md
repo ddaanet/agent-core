@@ -36,7 +36,7 @@ Used when user specifies `wt <task-name>`.
 
 1. **Read `agents/session.md`** to locate task in Pending Tasks. Extract full task block including name, command, model, and metadata.
 
-2. **Invoke: `claudeutils _worktree new --task "<task name>"`** to create the worktree with focused session. The command derives the slug, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`.
+2. **Invoke: `claudeutils _worktree new --task "<task name>"`** (requires `dangerouslyDisableSandbox: true`) to create the worktree with focused session. The command derives the slug, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`.
 
 3. **Parse output** to extract slug and worktree path from the tab-separated line.
 
@@ -48,7 +48,7 @@ The `new --task` command automatically moves the task from Pending Tasks to Work
 
 Used when the user invokes `wt` with no arguments. This mode detects a group of independent parallel tasks and creates multiple worktrees simultaneously, enabling concurrent work on independent tasks.
 
-1. **Read `agents/session.md` and `agents/jobs.md`** to identify all pending tasks and their properties. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
+1. **Read `agents/session.md`** and call `list_plans(Path('plans'))` to identify all pending tasks and plan statuses. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
 
 2. **Check for shared plan directories and dependencies.** For each pending task, extract the plan directory (if specified). Build a dependency map:
 
@@ -65,7 +65,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 3. **Check for parallel group existence.** If analysis found no independent group (all tasks have dependencies, different tiers, or restart requirements), **output message**: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees. Return to the user prompt.
 
 4. **If group found, for each task in the parallel group:**
-   - Invoke `claudeutils _worktree new --task "<task name>"` (captures `<slug>\t<path>` output)
+   - Invoke `claudeutils _worktree new --task "<task name>"` with `dangerouslyDisableSandbox: true` (captures `<slug>\t<path>` output)
    - Parse slug and path from output
    - Collect launch commands
 
@@ -83,20 +83,20 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
 ## Mode C: Merge Ceremony
 
-Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge ceremony that returns worktree commits to the main branch, handling the handoff, commit, merge, and cleanup sequence.
+Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge ceremony that returns worktree commits to the main branch, handling the handoff, commit, and merge sequence.
 
 1. **Invoke `/handoff --commit`** to ensure clean tree and session context committed. If handoff or commit fails, STOP — merge requires clean tree.
 
-2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
+2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
 
-3. **Exit code 0 (success):** The merge completed successfully. Use Bash to invoke: `claudeutils _worktree rm <slug>` to clean up the worktree branch and directory. The `rm` command automatically removes the task from the Worktree Tasks section in `agents/session.md` if the task was removed from Pending Tasks in the worktree branch's session.md. Output: "Merged and cleaned up <slug>. Task complete."
+3. **Exit code 0 (success):** The merge completed successfully. Worktree preserved for bidirectional workflow — the user decides when to remove it. Output: "Merged <slug> successfully. Worktree preserved. To remove when ready: `wt-rm <slug>`"
 
 4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
 
-   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`, `agents/jobs.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
+   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
      1. **Edit** each conflicted file to fix conflicts manually
      2. **Use Bash:** `git add <conflicted-file>`
-     3. **Re-run:** `claudeutils _worktree merge <slug>` (idempotent, resumes after resolution)
+     3. **Re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` (idempotent, resumes after resolution)
 
    - **If precommit failure detected:** The merge commit already exists in git (do NOT re-merge).
      1. **Review** the failed precommit checks in stderr
@@ -115,12 +115,16 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 ## Usage Notes
 
+- **Sandbox bypass required for mutations:** All `claudeutils _worktree` mutation commands (`new`, `merge`, `rm`) must use `dangerouslyDisableSandbox: true`. These commands write `.claude/settings.local.json` (sandbox allowlist), create/remove worktree directories outside project root, and run environment setup (`uv sync`, `direnv allow`). Read-only git commands (`git status`, `git log`, `git worktree list`) do NOT need bypass.
+
 - **Slug derivation is deterministic:** The transformation of task names to slugs is repeatable. The same task name will always produce the same slug. This ensures consistency across sessions and enables command reuse (e.g., `wt merge <slug>` always operates on the correct worktree).
 
 - **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. Fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
 
 - **Session.md task movement is automated:** `new --task` moves the task from Pending Tasks to Worktree Tasks (with `→ \`slug\`` marker). `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`). No manual session.md editing required for task movement.
 
-- **Cleanup is user-initiated:** Mode A and Mode B require separate cleanup after merge. Mode C includes cleanup automatically after successful merge (branch deletion, worktree removal, session.md cleanup via `claudeutils _worktree rm <slug>`).
+- **Cleanup is user-initiated:** After merge, worktree is preserved. Remove when ready via `wt-rm <slug>`.
 
 - **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
+
+- **Emergency `--force` flag:** `claudeutils _worktree rm --force <slug>` bypasses all safety checks (confirm, dirty tree, guard). Use only as emergency escape hatch when normal workflow is blocked.

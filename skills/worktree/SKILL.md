@@ -87,7 +87,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 1. **Invoke `/handoff --commit`** to ensure clean tree and session context committed. If handoff or commit fails, STOP — merge requires clean tree.
 
-2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stdout/stderr automatically.
+2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. All output goes to stdout; exit code carries the semantic signal.
 
 3. **Exit code 0 (success):** The merge completed successfully. Worktree preserved for bidirectional workflow — the user decides when to remove it. Output: "Merged <slug> successfully. Worktree preserved. To remove when ready: `wt-rm <slug>`"
 
@@ -104,7 +104,7 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
      5. **Use Bash:** `just precommit` to verify
      6. **Re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` to resume cleanup phase
 
-6. **Parse merge exit code 2** (fatal error). Output: "Merge error: " followed by stderr. Generic error handling: review error output for root cause. Common issues:
+6. **Parse merge exit code 2** (fatal error). Read stdout for error message. Generic error handling: review error output for root cause. Common issues:
    - Submodule initialization failures: Check `git submodule status`, ensure parent repo internet connectivity
    - Git state corruption: Run `git status` to inspect tree. If lock file errors occur, stop and report to user.
    - Branch mismatch: Verify `git branch` shows correct upstream, check `git log` for expected commits

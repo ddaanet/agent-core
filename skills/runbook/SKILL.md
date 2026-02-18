@@ -251,6 +251,8 @@ If design document includes "Requirements" section:
    - **No vacuous items** — Every item must produce a functional outcome. TDD: test a branch point. General: produce a behavioral change. Scaffolding-only items merge into nearest behavioral item.
    - **Foundation-first ordering** — Order: existence → structure → behavior → refinement. No forward dependencies.
    - **Collapsible item detection** — Adjacent items modifying same file or testing edge cases of same function should collapse. Note candidates for Phase 0.85.
+   - **Prose atomicity** — All edits to a single prose artifact (skill, fragment, agent definition) land in one item. No splitting the same file across items or phases. Exception: expand/contract migration (FR-2a pattern).
+   - **Self-modification ordering** — When the runbook modifies pipeline tools it will later use (skills, review agents, executor), tool-improvement items precede tool-usage items. References `agents/decisions/workflow-advanced.md` "When Bootstrapping Self-Referential Improvements."
 
 3. **Commit outline before review:**
    - Commit `runbook-outline.md` to create clean checkpoint
@@ -533,6 +535,10 @@ RED phase uses **prose descriptions**, not full code blocks. Saves planning toke
 
 **CRITICAL — No prescriptive code:** GREEN phases describe BEHAVIOR and provide HINTS. Do NOT include complete function implementations or code blocks that can be copied verbatim.
 
+**Integration-first cycle ordering:** Default to integration test cycles that exercise production call paths. Add unit test cycles only when integration coverage is insufficient (combinatorial, fault injection, internal contracts — see Testing Strategy). Within a phase, plan integration cycles before or alongside unit cycles, not as follow-up.
+
+**Wire-then-isolate:** When a phase builds a component, the first testable cycle should verify the component works through its production entry point. Subsequent cycles can isolate specific behaviors if edge-case coverage requires it.
+
 **4. Classify and add investigation prerequisites:**
 - **Transformation cycles** (delete, move, rename): Self-contained recipe sufficient
 - **Creation cycles** (new test, new integration, touching existing paths): MUST include `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
@@ -788,6 +794,47 @@ TDD tests **behavior**, not **presentation**:
 | Documentation | Generated content | Generation process works |
 
 **Exceptions:** Regulatory requirements, complex generated content, machine-parsed output.
+
+---
+
+## Testing Strategy
+
+**Applied during TDD cycle planning and general step design. Shapes test layer selection across all phases.**
+
+### Integration-First (Diamond Shape)
+
+Integration tests are the default test layer. Every key behavior is tested through its production call path — the same entry point, wiring, and data flow production code uses.
+
+**Why:** The recurring failure mode is missing wiring — components built and unit-tested in isolation, production call path never connected. Integration-first makes wiring the default thing verified. A component cannot be "done" while its wiring is absent because the integration test stays RED.
+
+**Cycle planning impact:**
+- Integration cycles planned first, not as unit-test follow-up
+- Each phase should include at least one cycle exercising the production call path
+- The phase-boundary xfail integration test pattern (Checkpoints section) continues unchanged
+
+### Unit Tests as Surgical Supplement
+
+Unit tests are not the primary layer. Add unit cycles only when:
+- **Combinatorial explosion** — too many input combinations to cover at integration level
+- **Hard-to-isolate edge cases** — error paths requiring fault injection
+- **Internal contract verification** — key invariants not observable through the integration surface
+
+If a behavior is reachable through the production call path and the path is fast, test it there.
+
+### Real Subprocesses for Subprocess Domains
+
+When production code's primary operation is subprocess calls (git, CLI tools, compilers), tests use real subprocesses in `tmp_path` fixtures. Mocks only for:
+- Error injection (lock files, permission errors, network timeouts)
+- Cases where the real subprocess is destructive or non-deterministic
+
+Generalizes the project convention in `agents/decisions/testing.md` ("When Preferring E2E Over Mocked Subprocess") from git to all subprocess domains.
+
+### Local Substitutes for External Dependencies
+
+For external services (databases, APIs, cloud services):
+- Use local substitutes preserving the production call path (SQLite for database tests, local HTTP server for API tests)
+- Accept fidelity trade-offs (SQL dialect differences, simplified auth) with a few targeted e2e tests verifying the real service path
+- Do not retreat to mocks simply because the real service is "slow" — manage latency at infrastructure level (parallelism, selective running)
 
 ---
 

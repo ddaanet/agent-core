@@ -30,7 +30,16 @@ Not all changes warrant full vet delegation. Match review cost to change risk.
 - Skill definitions
 - Documentation that defines behavior or contracts
 
-**Design documents:** Reviewed by opus (`design-vet-agent`).
+**Reviewer routing by artifact type:**
+
+| Artifact | Reviewer | Why |
+|----------|----------|-----|
+| Code, tests, plans | `vet-fix-agent` | Default — general quality review |
+| Skill definitions | `skill-reviewer` | Cross-skill consistency (allowed-tools, conventions) |
+| Agent definitions | `agent-creator` | Agent structure, triggering, tool access |
+| Design documents | `design-vet-agent` (opus) | Architectural completeness and feasibility |
+
+Orchestration-specific extensions (planning artifacts, human docs): `agents/decisions/pipeline-contracts.md` "When routing artifact review."
 
 **Artifacts NOT requiring vet:**
 - Execution reports
@@ -41,10 +50,11 @@ Not all changes warrant full vet delegation. Match review cost to change risk.
 
 **Vet process:**
 1. Create artifact
-2. Delegate to `vet-fix-agent` with execution context (see below)
-3. Read report, grep for UNFIXABLE (see detection protocol below)
-4. If UNFIXABLE found: STOP, escalate to user
-5. If all fixed: proceed
+2. Select reviewer from routing table above (default: `vet-fix-agent`)
+3. Delegate to selected reviewer with execution context (see below)
+4. Read report, grep for UNFIXABLE (see detection protocol below)
+5. If UNFIXABLE found: STOP, escalate to user
+6. If all fixed: proceed
 
 **Issue status taxonomy:** Four statuses (FIXED, DEFERRED, OUT-OF-SCOPE, UNFIXABLE) defined in detection protocol below. Only UNFIXABLE blocks — others are informational or non-blocking.
 

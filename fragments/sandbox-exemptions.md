@@ -39,6 +39,12 @@ When a command is in `permissions.allow`, invoke it with the **exact prefix** th
 
 **All mutation commands require bypass:** `claudeutils _worktree new`, `merge`, and `rm` write `.claude/settings.local.json` (sandbox allowlist management) and perform operations outside the project root. Always invoke with `dangerouslyDisableSandbox: true`.
 
+**Never run `git merge` directly.** Git's ort strategy partially checks out files from the incoming branch BEFORE completing the merge. If it hits a sandbox restriction mid-checkout, the merge fails but partially-checked-out files remain as untracked debris. Subsequent merge attempts fail: "untracked working tree files would be overwritten."
+
+**Correct pattern:** Use `claudeutils _worktree merge` which handles sandbox bypass. If the tool can't handle the merge, STOP and report. Do not fall back to raw git operations.
+
+**Anti-pattern ("Tool fails → I become the tool"):** Seamlessly replacing tool operations with manual commands, losing the tool's invariants (atomicity, sandbox handling, session.md updates, precommit validation). Each manual step is locally correct but collectively bypasses the pipeline's safety guarantees.
+
 **Additional bypass needs within worktree setup:**
 - `uv sync` — Network access for package downloads + writes to `.venv/` inside worktree
 - `direnv allow` — Writes to `.direnv/` outside the worktree directory structure

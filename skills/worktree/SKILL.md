@@ -87,26 +87,24 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 1. **Invoke `/handoff --commit`** to ensure clean tree and session context committed. If handoff or commit fails, STOP — merge requires clean tree.
 
-2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stderr automatically.
+2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. The tool call captures exit code and stdout/stderr automatically.
 
 3. **Exit code 0 (success):** The merge completed successfully. Worktree preserved for bidirectional workflow — the user decides when to remove it. Output: "Merged <slug> successfully. Worktree preserved. To remove when ready: `wt-rm <slug>`"
 
-4. **Parse merge exit code 1** (conflicts or precommit failure). Read stderr from merge command for conflict indicators or precommit failure messages.
+4. **Parse merge exit code 3** (conflicts, merge paused). Read stdout for conflict report. The report contains: conflicted file list with conflict type, per-file diff stats, branch divergence summary, and a hint command. Session files (`agents/session.md`, `agents/learnings.md`) auto-resolve using deterministic strategies — report as bug if they appear in the conflict list. For each conflicted source file:
+     1. **Edit** the file to resolve conflict markers
+     2. **Use Bash:** `git add <file>`
+     3. When all conflicts resolved, **re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` (idempotent — resumes from current state, skips already-completed phases)
 
-   - **If conflicts detected:** List the conflicted files. Session files (`agents/session.md`, `agents/learnings.md`) should auto-resolve using deterministic strategies — report as bug if present. For source files:
-     1. **Edit** each conflicted file to fix conflicts manually
-     2. **Use Bash:** `git add <conflicted-file>`
-     3. **Re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` (idempotent, resumes after resolution)
-
-   - **If precommit failure detected:** The merge commit already exists in git (do NOT re-merge).
-     1. **Review** the failed precommit checks in stderr
+5. **Parse merge exit code 1** (error: precommit failure or git error). Read stdout for error message. The merge commit already exists in git (do NOT re-merge).
+     1. **Review** the failed precommit checks in stdout
      2. **Fix** the reported issues in the working tree (edit files as needed)
      3. **Use Bash:** `git add <fixed-file>`
      4. **Use Bash:** `git commit --amend --no-edit`
      5. **Use Bash:** `just precommit` to verify
-     6. **Re-run:** `claudeutils _worktree merge <slug>` to resume cleanup phase
+     6. **Re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` to resume cleanup phase
 
-5. **Parse merge exit code 2** (fatal error). Output: "Merge error: " followed by stderr. Generic error handling: review error output for root cause. Common issues:
+6. **Parse merge exit code 2** (fatal error). Output: "Merge error: " followed by stderr. Generic error handling: review error output for root cause. Common issues:
    - Submodule initialization failures: Check `git submodule status`, ensure parent repo internet connectivity
    - Git state corruption: Run `git status` to inspect tree. If lock file errors occur, stop and report to user.
    - Branch mismatch: Verify `git branch` shows correct upstream, check `git log` for expected commits

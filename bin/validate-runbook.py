@@ -102,7 +102,6 @@ def check_model_tags(content: str, path: str) -> list[str]:
 
 
 def cmd_model_tags(args: argparse.Namespace) -> None:
-    """Check artifact-type files use opus Execution Model."""
     path = args.path
     if args.skip_model_tags:
         write_report("model-tags", path, [], skipped=True)
@@ -149,10 +148,15 @@ def check_lifecycle(content: str, path: str) -> list[str]:
                     )
             elif is_create:
                 orig_action, orig_cycle = first_seen[file_path]
-                violations.append(
-                    f"Cycle {cycle_id}: `{file_path}` created again "
-                    f"(first seen in Cycle {orig_cycle} as '{orig_action}')"
+                orig_lower = orig_action.lower()
+                orig_was_create = any(
+                    orig_lower.startswith(kw) for kw in ("create", "write new")
                 )
+                if orig_was_create:
+                    violations.append(
+                        f"Cycle {cycle_id}: `{file_path}` created again "
+                        f"(first seen in Cycle {orig_cycle} as '{orig_action}')"
+                    )
             elif is_modify:
                 orig_action, orig_cycle = first_seen[file_path]
                 orig_lower = orig_action.lower()
@@ -171,7 +175,6 @@ def check_lifecycle(content: str, path: str) -> list[str]:
 
 
 def cmd_lifecycle(args: argparse.Namespace) -> None:
-    """Check file lifecycle ordering (create before modify)."""
     path = args.path
     if args.skip_lifecycle:
         write_report("lifecycle", path, [], skipped=True)
@@ -212,7 +215,6 @@ def check_test_counts(content: str, path: str) -> list[str]:
 
 
 def cmd_test_counts(args: argparse.Namespace) -> None:
-    """Check checkpoint test-count claims match actual test function count."""
     path = args.path
     if args.skip_test_counts:
         write_report("test-counts", path, [], skipped=True)
@@ -280,10 +282,10 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
                             f"`{name}` already created in Cycle {creating_cycle} GREEN"
                         )
             elif non_import_err_pattern.search(failure_text):
-                # Non-import error: ambiguous if any created name is referenced
+                # Non-import error: ambiguous when a created name appears in the failure text
                 error_type = non_import_err_pattern.search(failure_text).group(1)
                 for name, creating_cycle in created_names.items():
-                    if name in failure_text or "." not in name:
+                    if name in failure_text:
                         ambiguous.append(
                             f"Cycle {cycle_id}: `{name}` exists (created Cycle "
                             f"{creating_cycle}) but RED tests different behavior "
@@ -305,7 +307,6 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
 
 
 def cmd_red_plausibility(args: argparse.Namespace) -> None:
-    """Check that RED expected failures are plausible given prior GREEN state."""
     path = args.path
     if args.skip_red_plausibility:
         write_report("red-plausibility", path, [], skipped=True)

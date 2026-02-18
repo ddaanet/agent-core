@@ -115,6 +115,8 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 ## Usage Notes
 
+- **Always use `--task` form for tracked tasks:** `claudeutils _worktree new --task "<task name>"` is the correct invocation for any task in session.md. A bare slug form exists (`_worktree new <slug>`) but skips session integration — see `references/branch-mode.md` for when that applies.
+
 - **Sandbox bypass required for mutations:** All `claudeutils _worktree` mutation commands (`new`, `merge`, `rm`) must use `dangerouslyDisableSandbox: true`. These commands write `.claude/settings.local.json` (sandbox allowlist), create/remove worktree directories outside project root, and run environment setup (`uv sync`, `direnv allow`). Read-only git commands (`git status`, `git log`, `git worktree list`) do NOT need bypass.
 
 - **Slug derivation is deterministic:** The transformation of task names to slugs is repeatable. The same task name will always produce the same slug. This ensures consistency across sessions and enables command reuse (e.g., `wt merge <slug>` always operates on the correct worktree).

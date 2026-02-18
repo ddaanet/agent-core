@@ -24,7 +24,13 @@ Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-
 
 ### 0. Complexity Triage
 
-Before doing design work, assess whether design is actually needed:
+Before doing design work, assess whether design is actually needed.
+
+**Artifact check:** Read plan directory (`plans/<job-name>/`) for existing artifacts:
+- `design.md` exists → route to `/runbook`
+- `outline.md` sufficient (concrete approach, no open questions, explicit scope, ≤3 files) → skip to Phase B
+- `outline.md` insufficient → resume from A.5 (revise) or A.6 (review)
+- Otherwise → triage below
 
 **Simple (no design needed):**
 - Single file, obvious implementation, no architectural decisions
@@ -131,6 +137,20 @@ Scope: API gateway only. Dashboard/monitoring out of scope.
 
 **Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
 
+#### Post-Outline Complexity Re-check
+
+The outline resolves the architectural uncertainty that justified "complex" classification. Re-assess before continuing ceremony.
+
+**Downgrade criteria (all must hold):**
+- ≤3 files affected, changes additive
+- No open questions remain
+- Scope boundaries explicit (IN/OUT enumerated)
+- No cross-module coordination
+
+**If met:** Skip A.6. Proceed to Phase B with sufficiency assessment.
+
+**If not met:** Continue to A.6.
+
 #### A.6. FP-1 Checkpoint: Review Outline
 
 **Objective:** Validate outline before presenting to user.
@@ -184,9 +204,22 @@ After user validates the outline, assess whether it already contains enough spec
 - Affected files are identified
 - No architectural uncertainty remains
 
-**If sufficient** — present sufficiency assessment to user. The outline IS the design; confirm user agrees to skip design generation. On confirmation:
-1. Commit `outline.md` as the design artifact (no rename — `/runbook` accepts either `design.md` or `outline.md`)
-2. Invoke `/handoff [CONTINUATION: /commit]` — records design completion, then commits
+**If sufficient** — present sufficiency assessment to user. The outline IS the design; confirm user agrees to skip design generation. On confirmation, assess execution readiness:
+
+**Direct execution criteria (all must hold):**
+- ≤3 files affected
+- All changes are prose edits or additive (no behavioral code changes)
+- Insertion points or edit targets are identified (line-level or section-level)
+- No cross-file coordination (edits are independent per file)
+
+**If execution-ready** — offer direct execution. On confirmation:
+1. Execute edits in current session
+2. Delegate to `vet-fix-agent` (vet requirement applies regardless of execution path)
+3. Invoke `/handoff [CONTINUATION: /commit]`
+
+**If not execution-ready** — route to `/runbook`:
+1. Commit design artifact (`outline.md` or `design.md`)
+2. Invoke `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 **If insufficient** — proceed to Phase C (full design generation).
 
@@ -370,18 +403,12 @@ The design-vet-agent applies all fixes (critical, major, minor) directly. This s
 
 **Re-vet if needed:** If user manually addresses UNFIXABLE issues, re-delegate to design-vet-agent for verification.
 
-#### C.5. Handoff and Commit
+#### C.5. Execution Readiness and Handoff
 
-**CRITICAL: As the final action, invoke `/handoff --commit`.**
+Apply execution readiness criteria from Outline Sufficiency Gate. Design can resolve complexity — a job correctly classified as Complex may produce Simple execution.
 
-This tail-call chains:
-1. `/handoff` updates session.md with completed design work
-2. Tail-calls `/commit` which commits the design document
-3. `/commit` displays STATUS showing next pending task
-
-The next pending task will typically be the planning phase (`/runbook`).
-
-**Why:** Universal tail behavior ensures consistent workflow termination. User always sees what's next.
+- **If execution-ready:** Execute edits, vet, then `/handoff [CONTINUATION: /commit]`
+- **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 ## Output Expectations
 

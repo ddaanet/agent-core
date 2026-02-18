@@ -24,7 +24,13 @@ Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-
 
 ### 0. Complexity Triage
 
-Before doing design work, assess whether design is actually needed:
+Before doing design work, assess whether design is actually needed.
+
+**Artifact check:** Read plan directory (`plans/<job-name>/`) for existing artifacts:
+- `design.md` exists → route to `/runbook`
+- `outline.md` sufficient (concrete approach, no open questions, explicit scope, ≤3 files) → skip to Phase B
+- `outline.md` insufficient → resume from A.5 (revise) or A.6 (review)
+- Otherwise → triage below
 
 **Simple (no design needed):**
 - Single file, obvious implementation, no architectural decisions
@@ -130,6 +136,20 @@ Scope: API gateway only. Dashboard/monitoring out of scope.
 ```
 
 **Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
+
+#### Post-Outline Complexity Re-check
+
+The outline resolves the architectural uncertainty that justified "complex" classification. Re-assess before continuing ceremony.
+
+**Downgrade criteria (all must hold):**
+- ≤3 files affected, changes additive
+- No open questions remain
+- Scope boundaries explicit (IN/OUT enumerated)
+- No cross-module coordination
+
+**If met:** Skip A.6. Proceed to Phase B with sufficiency assessment.
+
+**If not met:** Continue to A.6.
 
 #### A.6. FP-1 Checkpoint: Review Outline
 

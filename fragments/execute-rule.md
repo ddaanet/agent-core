@@ -84,7 +84,7 @@ Show largest independent group only. Omit section if no parallelism detected.
 - `#execute` or `x`
 
 **Behavior:**
-Smart execute: resume in-progress task if exists, otherwise start first pending task. Drive to completion, then stop.
+Smart execute: resume in-progress task if exists, otherwise start first pending task. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Drive to completion, then stop.
 
 ### MODE 3: EXECUTE+COMMIT
 
@@ -171,6 +171,9 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 - `- [ ]` = Pending task
 - `- [x]` = Completed task
 - `- [>]` = In-progress task (optional, or use bold/italics)
+- `- [!]` = Blocked (waiting on signal — see `task-failure-lifecycle.md`)
+- `- [✗]` = Failed (terminal, system-detected — requires user decision)
+- `- [–]` = Canceled (terminal, user-initiated)
 
 **Task metadata format:**
 

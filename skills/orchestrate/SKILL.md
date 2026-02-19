@@ -33,20 +33,24 @@ Execute prepared runbooks using the weak orchestrator pattern. This skill coordi
 **Check for required artifacts:**
 
 ```bash
-# Verify artifacts exist
-ls -1 plans/<runbook-name>/steps/step-*.md
-ls -1 .claude/agents/<runbook-name>-task.md
+# Verify required artifacts
 ls -1 plans/<runbook-name>/orchestrator-plan.md
+ls -1 .claude/agents/<runbook-name>-task.md
+
+# Step files may be absent for all-inline runbooks
+ls -1 plans/<runbook-name>/steps/step-*.md 2>/dev/null || true
 ```
 
 **Required artifacts:**
-- Plan-specific agent: `.claude/agents/<runbook-name>-task.md`
-- Step files: `plans/<runbook-name>/steps/step-*.md`
 - Orchestrator plan: `plans/<runbook-name>/orchestrator-plan.md`
+- Plan-specific agent: `.claude/agents/<runbook-name>-task.md` (unused for all-inline runbooks, but created by prepare-runbook.py)
+- Step files: `plans/<runbook-name>/steps/step-*.md` (may be absent for all-inline runbooks)
 
-**If artifacts missing:**
-- ERROR: "Runbook not prepared. Run `/runbook` first to create execution artifacts."
-- Stop execution
+**If orchestrator plan missing:** ERROR, stop execution.
+
+**If step files missing but orchestrator plan has only `Execution: inline` entries:** Valid — all-inline runbook, proceed.
+
+**If step files missing and orchestrator plan references step files:** ERROR, stop execution.
 
 ### 2. Read Orchestrator Plan
 
@@ -62,9 +66,28 @@ Read plans/<runbook-name>/orchestrator-plan.md
 - Progress tracking requirements
 - Report location patterns
 
-### 3. Execute Steps Sequentially
+### 3. Execute Steps (Sequential, With Inline Handling)
 
-**For each step in order:**
+**For each item in the orchestrator plan:**
+
+**Check execution mode:** Read the orchestrator plan entry for the current item.
+- If `Execution: inline` → follow Section 3.0 (inline execution) below
+- If `Execution: steps/step-N-M.md` → follow Section 3.1 (agent delegation) below
+
+**3.0 Inline execution (orchestrator-direct):**
+
+The orchestrator reads the phase content from the runbook and executes edits directly — no Task agent dispatch.
+
+1. Read the runbook phase content. The orchestrator plan entry names the phase; locate the corresponding phase heading in the original runbook file (`plans/<runbook-name>/runbook.md`) or the phase file in a phase-grouped directory.
+2. Execute each instruction: Read target file → Edit/Write as specified
+3. After all instructions in the inline phase complete, run `just precommit` to validate
+   - If precommit fails: fix issues, re-run precommit, then proceed
+   - If unfixable: STOP and escalate to user
+4. **Phase boundary vet:** Apply vet-requirement proportionality (from `agent-core/fragments/vet-requirement.md`):
+   - ≤5 net lines across ≤2 files, additive → self-review (`git diff`, verify correctness before commit)
+   - Larger → commit first, then delegate to vet-fix-agent with standard checkpoint template
+5. Commit the inline phase changes (if not already committed in step 4)
+6. Proceed to next item
 
 **3.1 Invoke plan-specific agent with step file:**
 
@@ -172,6 +195,12 @@ Return filepath or "UNFIXABLE: [description]"
 - Escalate according to orchestrator plan
 
 ### 4. Error Escalation
+
+**Acceptance criteria:** Every escalation resolution must satisfy all three criteria defined in `agent-core/fragments/escalation-acceptance.md`: precommit passes, tree clean, output validates against step criteria.
+
+**Rollback:** When escalation fails (fix attempt causes new issues or acceptance criteria unmet), revert to last clean commit before the failed step. See `escalation-acceptance.md` for protocol.
+
+**Timeout:** Set `max_turns: 150` on all Task tool invocations for step agents. This catches spinning agents (high activity, no convergence) without false positives against calibration data (p99=73, max=129 from 938 clean observations). Duration timeout (~600s for hanging agents) requires Claude Code support and is deferred.
 
 **Escalation levels (from orchestrator metadata):**
 
@@ -286,11 +315,13 @@ Current status: Blocked on Step 3
 - If agent reports error, escalate according to plan
 - Don't second-guess or validate agent output
 
-**No inline logic:**
-- Don't parse files to verify completion
-- Don't make recovery decisions
+**No ad-hoc logic (for delegated steps):**
+- Don't parse files to verify delegated agent completion
+- Don't make recovery decisions for delegated steps
 - Don't modify steps during execution
 - If something unexpected happens: escalate
+
+Note: Inline phases (Section 3.0) are explicitly orchestrator-executed by design. This principle applies to agent-delegated steps (Section 3.1).
 
 **Error escalation only:**
 - Simple errors → delegate to sonnet for fix
@@ -300,8 +331,9 @@ Current status: Blocked on Step 3
 ## Critical Constraints
 
 **Tool Usage:**
-- Use **Task** to invoke plan-specific agents
+- Use **Task** to invoke plan-specific agents (delegated steps)
 - Use **Read** to check artifacts and reports
+- Use **Edit** for inline phase modifications (Section 3.0)
 - Use **Write** for progress tracking (optional)
 - Use **Bash** only for git operations if specified in orchestrator plan
 

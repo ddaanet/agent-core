@@ -92,7 +92,7 @@ def parse_frontmatter(content):
         metadata['type'] = 'general'
     else:
         # Validate type field
-        valid_types = ['tdd', 'general', 'mixed']
+        valid_types = ['tdd', 'general', 'mixed', 'inline']
         if metadata['type'] not in valid_types:
             print(f"WARNING: Unknown runbook type '{metadata['type']}', defaulting to 'general'", file=sys.stderr)
             metadata['type'] = 'general'
@@ -296,12 +296,13 @@ def validate_phase_numbering(step_phases):
 
 
 def extract_sections(content):
-    """Extract Common Context, Steps, and Orchestrator sections.
+    """Extract Common Context, Steps, Inline Phases, and Orchestrator sections.
 
     Returns: {
         'common_context': (section_content or None),
         'steps': {step_num: step_content, ...},
         'step_phases': {step_num: phase_number, ...},
+        'inline_phases': {phase_number: phase_content, ...},
         'orchestrator': section_content or None
     }
     """
@@ -309,23 +310,56 @@ def extract_sections(content):
         'common_context': None,
         'steps': {},
         'step_phases': {},
+        'inline_phases': {},
         'orchestrator': None
     }
 
     lines = content.split('\n')
 
-    # First pass: Build a map of line numbers to phases
-    # This allows us to determine which phase a step belongs to
-    # based on the most recent phase header before the step
+    # First pass: Build a map of line numbers to phases and detect inline phases
     line_to_phase = {}
     current_phase = 1  # Default phase for flat runbooks
     phase_pattern = r'^###? Phase\s+(\d+)'
+    inline_phase_pattern = r'^###? Phase\s+(\d+):.*\(type:\s*inline\)'
+    inline_phase_nums = set()
 
     for i, line in enumerate(lines):
         phase_match = re.match(phase_pattern, line)
         if phase_match:
             current_phase = int(phase_match.group(1))
+            if re.match(inline_phase_pattern, line):
+                inline_phase_nums.add(current_phase)
         line_to_phase[i] = current_phase
+
+    # Extract inline phase content (text between phase header and next phase/H2)
+    if inline_phase_nums:
+        in_inline = False
+        inline_num = None
+        inline_content = []
+        for i, line in enumerate(lines):
+            phase_match = re.match(phase_pattern, line)
+            if phase_match:
+                # Save previous inline phase
+                if in_inline and inline_content:
+                    sections['inline_phases'][inline_num] = '\n'.join(inline_content).strip()
+                phase_num = int(phase_match.group(1))
+                if phase_num in inline_phase_nums:
+                    in_inline = True
+                    inline_num = phase_num
+                    inline_content = [line]
+                else:
+                    in_inline = False
+                    inline_content = []
+            elif line.startswith('## ') and in_inline:
+                # H2 terminates inline phase collection
+                sections['inline_phases'][inline_num] = '\n'.join(inline_content).strip()
+                in_inline = False
+                inline_content = []
+            elif in_inline:
+                inline_content.append(line)
+        # Save final inline phase
+        if in_inline and inline_content:
+            sections['inline_phases'][inline_num] = '\n'.join(inline_content).strip()
 
     # Second pass: Extract sections with phase information
     current_section = None
@@ -706,7 +740,7 @@ def generate_cycle_file(cycle, runbook_path, default_model='haiku'):
     return '\n'.join(header_lines)
 
 
-def generate_default_orchestrator(runbook_name, cycles=None, steps=None, step_phases=None):
+def generate_default_orchestrator(runbook_name, cycles=None, steps=None, step_phases=None, inline_phases=None):
     """Generate default orchestrator instructions.
 
     Args:
@@ -714,6 +748,7 @@ def generate_default_orchestrator(runbook_name, cycles=None, steps=None, step_ph
         cycles: Optional list of cycles (TDD items)
         steps: Optional dict of step_num -> content (general items)
         step_phases: Optional dict of step_num -> phase_number
+        inline_phases: Optional dict of phase_number -> phase_content
 
     Returns:
         Orchestrator plan content with phase boundary markers
@@ -725,12 +760,13 @@ Execute steps sequentially using {runbook_name}-task agent.
 Stop on error and escalate to sonnet for diagnostic/fix.
 """
 
-    # Build unified item list: (phase, minor, file_stem, display)
+    # Build unified item list: (phase, minor, file_stem, display, execution_mode)
+    # execution_mode: 'steps' for agent-delegated, 'inline' for orchestrator-direct
     items = []
     if cycles:
         for cycle in cycles:
             file_stem = f"step-{cycle['major']}-{cycle['minor']}"
-            items.append((cycle['major'], cycle['minor'], file_stem, f"Cycle {cycle['number']}"))
+            items.append((cycle['major'], cycle['minor'], file_stem, f"Cycle {cycle['number']}", 'steps'))
     if steps:
         step_phases = step_phases or {}
         for step_num in steps:
@@ -738,7 +774,10 @@ Stop on error and escalate to sonnet for diagnostic/fix.
             phase = step_phases.get(step_num, int(parts[0]) if parts else 1)
             minor = int(parts[1]) if len(parts) > 1 else 0
             file_stem = f"step-{step_num.replace('.', '-')}"
-            items.append((phase, minor, file_stem, f"Step {step_num}"))
+            items.append((phase, minor, file_stem, f"Step {step_num}", 'steps'))
+    if inline_phases:
+        for phase_num in sorted(inline_phases):
+            items.append((phase_num, 0, f"phase-{phase_num}", f"Phase {phase_num} (inline)", 'inline'))
 
     if not items:
         return content
@@ -746,13 +785,22 @@ Stop on error and escalate to sonnet for diagnostic/fix.
     items.sort(key=lambda x: (x[0], x[1]))
     content += "\n## Step Execution Order\n\n"
 
-    for i, (phase, minor, file_stem, display) in enumerate(items):
+    for i, (phase, minor, file_stem, display, exec_mode) in enumerate(items):
         is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
-        if is_phase_boundary:
+        if exec_mode == 'inline':
+            content += f"## {file_stem} ({display})\n"
+            content += f"Execution: inline\n"
+            if is_phase_boundary:
+                content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
+            else:
+                content += "\n"
+        elif is_phase_boundary:
             content += f"## {file_stem} ({display}) — PHASE_BOUNDARY\n"
+            content += f"Execution: steps/{file_stem}.md\n"
             content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
         else:
-            content += f"## {file_stem} ({display})\n\n"
+            content += f"## {file_stem} ({display})\n"
+            content += f"Execution: steps/{file_stem}.md\n\n"
 
     return content
 
@@ -760,6 +808,7 @@ Stop on error and escalate to sonnet for diagnostic/fix.
 def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_dir, orchestrator_path, metadata, cycles=None):
     """Validate and create all output files."""
     runbook_type = metadata.get('type', 'general')
+    has_inline = bool(sections.get('inline_phases'))
 
     # Validation
     if runbook_type == 'tdd':
@@ -770,12 +819,16 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
         if not cycles:
             print("ERROR: No cycles found in mixed runbook", file=sys.stderr)
             return False
-        if not sections['steps']:
-            print("ERROR: No steps found in mixed runbook", file=sys.stderr)
+        if not sections['steps'] and not has_inline:
+            print("ERROR: No steps or inline phases found in mixed runbook", file=sys.stderr)
+            return False
+    elif runbook_type == 'inline':
+        if not has_inline:
+            print("ERROR: No inline phases found in inline runbook", file=sys.stderr)
             return False
     else:
-        if not sections['steps']:
-            print("ERROR: No steps found in general runbook", file=sys.stderr)
+        if not sections['steps'] and not has_inline:
+            print("ERROR: No steps or inline phases found in general runbook", file=sys.stderr)
             return False
 
     # Validate phase numbering (include cycle phases for mixed runbooks)
@@ -850,7 +903,8 @@ def validate_and_create(runbook_path, sections, runbook_name, agent_path, steps_
     else:
         orchestrator_content = generate_default_orchestrator(
             runbook_name, cycles, sections['steps'] if sections else None,
-            sections.get('step_phases') if sections else None
+            sections.get('step_phases') if sections else None,
+            sections.get('inline_phases') if sections else None
         )
 
     orchestrator_path.write_text(orchestrator_content)
@@ -928,11 +982,14 @@ def main():
     # Auto-detect effective type from content
     has_cycles = bool(cycles)
     has_steps = bool(sections['steps'])
-    if has_cycles and has_steps:
+    has_inline = bool(sections.get('inline_phases'))
+    if has_cycles and (has_steps or has_inline):
         metadata['type'] = 'mixed'
     elif has_cycles:
         metadata['type'] = 'tdd'
-    elif not has_steps:
+    elif has_inline and not has_steps:
+        metadata['type'] = 'inline'
+    elif not has_steps and not has_inline:
         metadata['type'] = metadata.get('type', 'general')
 
     # Validate cycles if present

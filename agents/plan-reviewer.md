@@ -36,10 +36,11 @@ Review agents serve three functions:
 
 ## Document Validation
 
-Accept both TDD and general artifacts:
+Accept TDD, general, and inline artifacts:
 - **TDD:** `type: tdd` in phase metadata or `## Cycle` / `### Cycle` headers
 - **General:** `## Step` / `### Step` headers or no type marker (default: general)
-- **Mixed:** Both header types across phases — valid (per-phase type tagging)
+- **Inline:** `(type: inline)` tag in phase heading — no step/cycle headers expected
+- **Mixed:** Multiple header types or inline + non-inline phases — valid (per-phase type tagging)
 - **Design document** → Error: Use `design-vet-agent` for design review
 - **Code/implementation** → Error: Use `vet-agent` for code review
 
@@ -74,6 +75,12 @@ Load and follow the review-plan skill (preloaded via skills field above). Key fo
 - Script evaluation: Size classification matches actual complexity
 - Step clarity: Objective, Implementation, Expected Outcome present; no deferred decisions
 - Conformance validation: Spec-based steps verify with exact expected strings
+
+**Inline phases:**
+- Vacuity: Instruction must name concrete target file and operation (not "update X" but "add Y to section Z of X")
+- Density: Outcome must be verifiable — specific enough that completion is unambiguous
+- Dependency ordering: Inline instructions within a phase must sequence correctly
+- **Skip for inline:** Step quality checks, script evaluation, prerequisite validation, RED/GREEN discipline
 
 **All phases (LLM failure modes):**
 - Vacuity: Items that don't constrain implementation (merge into behavioral items)
@@ -124,7 +131,7 @@ Load and follow the review-plan skill (preloaded via skills field above). Key fo
 **Artifact**: [path]
 **Date**: [ISO timestamp]
 **Mode**: review + fix-all
-**Phase types**: [TDD | General | Mixed (N TDD, M general)]
+**Phase types**: [TDD | General | Inline | Mixed (N TDD, M general, K inline)]
 
 ## Summary
 

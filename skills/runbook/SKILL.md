@@ -1,9 +1,10 @@
 ---
 name: runbook
 description: |
-  Create execution runbooks with per-phase typing (TDD cycles or general steps).
-  Supports mixed runbooks: behavioral phases use TDD discipline, infrastructure
-  phases use general steps. Routes based on design context and phase requirements.
+  Create execution runbooks with per-phase typing (TDD cycles, general steps,
+  or inline pass-through). Supports mixed runbooks: behavioral phases use TDD
+  discipline, infrastructure phases use general steps, prose/config phases use
+  inline execution. Routes based on design context and phase requirements.
 model: sonnet
 allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
 requires:
@@ -19,19 +20,20 @@ user-invocable: true
 
 **Usage:** `/runbook plans/<job-name>/design.md`
 
-Create detailed execution runbooks suitable for weak orchestrator agents. Transforms designs into structured runbooks with per-phase type tagging — behavioral phases get TDD cycles (RED/GREEN), infrastructure phases get general steps.
+Create detailed execution runbooks suitable for weak orchestrator agents. Transforms designs into structured runbooks with per-phase type tagging — behavioral phases get TDD cycles (RED/GREEN), infrastructure phases get general steps, prose/config phases pass through as inline.
 
 **Workflow context:** Part of implementation workflow (see `agents/decisions/pipeline-contracts.md` for full pipeline): `/design` → `/runbook` → [plan-reviewer] → prepare-runbook.py → `/orchestrate`
 
 ## Per-Phase Type Model
 
-Each phase in a runbook declares its type: `type: tdd` or `type: general` (default: general).
+Each phase in a runbook declares its type: `type: tdd`, `type: general` (default), or `type: inline`.
 
 **Type determines:**
-- **Expansion format:** TDD phases → RED/GREEN cycles. General phases → task steps with script evaluation.
-- **Review criteria:** TDD discipline for TDD phases, step quality for general phases. LLM failure modes for ALL phases.
+- **Expansion format:** TDD → RED/GREEN cycles. General → task steps with script evaluation. Inline → pass-through (no decomposition, no step files).
+- **Review criteria:** TDD → TDD discipline. General → step quality. Inline → vacuity, density, dependency ordering (no step/script/TDD checks). LLM failure modes for ALL phases.
+- **Orchestration:** TDD/general → per-step agent delegation. Inline → orchestrator-direct (no Task dispatch).
 
-**Type does NOT affect:** Tier assessment, outline generation, consolidation gates, assembly (prepare-runbook.py auto-detects), orchestration, checkpoints.
+**Type does NOT affect:** Tier assessment, outline generation, consolidation gates, assembly (prepare-runbook.py auto-detects), checkpoints.
 
 **Phase type tagging format in outlines:**
 ```markdown
@@ -42,9 +44,13 @@ Each phase in a runbook declares its type: `type: tdd` or `type: general` (defau
 ### Phase 2: Skill definition updates (type: general)
 - Step 2.1: Update SKILL.md frontmatter
 - Step 2.2: Add new section
+
+### Phase 3: Contract updates (type: inline)
+- Add inline type row to pipeline-contracts.md type table
+- Update eligibility criteria in workflow-optimization.md
 ```
 
-prepare-runbook.py already detects per-file via headers (`## Cycle X.Y:` vs `## Step N.M:`). The type tag is consumed by planner and reviewer.
+prepare-runbook.py auto-detects per-file via headers (`## Cycle X.Y:` vs `## Step N.M:`). Inline phases have no step/cycle headers — detected by `(type: inline)` tag in phase heading. prepare-runbook.py skips step-file generation for inline phases and marks them `Execution: inline` in orchestrator-plan.md.
 
 ## Model Assignment
 
@@ -74,7 +80,7 @@ This override applies to Tier 2 delegation (model parameter), Tier 3 step assign
 - Tasks require clear error escalation and validation criteria
 - Feature development requiring TDD approach (behavioral phases)
 - Infrastructure, refactoring, migrations (general phases)
-- Mixed work requiring both TDD and general phases
+- Mixed work requiring TDD, general, and/or inline phases
 
 **Do NOT use when:**
 - Task requires user input or interactive decisions
@@ -237,9 +243,10 @@ If design document includes "Requirements" section:
      - **Phase structure:** Break work into logical phases with item titles and type tags
      - **Key decisions reference:** Link to design sections with architectural decisions
      - **Complexity per phase:** Estimated scope and model requirements per phase
-   - **Per-phase type tagging:** Each phase in the outline declares `type: tdd` or `type: general` (defaults to general if omitted)
+   - **Per-phase type tagging:** Each phase in the outline declares `type: tdd`, `type: general` (default), or `type: inline`
      - TDD phases use cycle titles (X.Y numbering), RED/GREEN markers
      - General phases use step titles, action descriptions
+     - Inline phases use bullet items (no numbered steps/cycles)
 
 2. **Verify outline quality:**
    - **All implementation choices resolved** — No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each item commits to one approach. If uncertain, use `/opus-design-question`.
@@ -391,6 +398,8 @@ If design document includes "Requirements" section:
 
 **TDD threshold:** Also skip expansion when outline has <3 phases AND <10 cycles total (small TDD work doesn't need full cycle expansion).
 
+**Inline phases:** Inline phases always satisfy sufficiency — they have no expansion. In mixed runbooks (inline + general/TDD), inline phases pass through while non-inline phases are evaluated against the criteria above.
+
 **LLM failure mode gate (before promotion):**
 Check for common planning defects (criteria from runbook-review.md updated in Step 2.1):
 - Vacuity: any items that only create scaffolding without functional outcome?
@@ -443,13 +452,20 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
    - For creation steps: `**Prerequisite:** Read [file:lines] — understand [behavior/flow]`
    - Each step: Objective, Implementation, Expected Outcome, Error Conditions, Validation
 
+   **[Inline phases] — Pass-through:**
+
+   - No decomposition or step-file generation
+   - Phase content from outline IS the execution instruction
+   - No phase file generated (`runbook-phase-N.md` not written for inline phases)
+   - Inline phases skip per-phase review (reviewed at outline level via Phase 0.75)
+
 3. **Commit phase file before review:**
    - Commit `runbook-phase-N.md` to create clean checkpoint
    - Review agents operate on filesystem state — committed state prevents dirty-tree issues
 
 4. **Review phase content:**
    - Delegate to `plan-reviewer` (fix-all mode)
-   - Agent applies type-aware criteria: TDD discipline for TDD phases, step quality for general phases, LLM failure modes for ALL phases
+   - Agent applies type-aware criteria: TDD discipline for TDD phases, step quality for general phases, vacuity/density/ordering for inline phases, LLM failure modes for ALL phases
    - Agent returns review report path
 
    **Background review pattern:** After writing and committing each phase file, launch review with `run_in_background=true` and proceed to generating next phase. Reviews run concurrently. Per-phase reviews are independent; cross-phase consistency checked in Phase 3.
@@ -604,7 +620,7 @@ Every assembled runbook MUST include this metadata section:
 
 **Total Steps**: [N]
 
-**Execution Model** (general phases only — TDD cycles use phase-level model):
+**Execution Model** (general phases only — TDD cycles use phase-level model, inline phases use orchestrator-direct):
 - Steps X-Y: Haiku (simple file operations, scripted tasks)
 - Steps A-B: Sonnet (semantic analysis, judgment required)
 - Steps C-D: Opus (architectural artifacts — see Model Assignment)
@@ -672,6 +688,7 @@ Delegate to `plan-reviewer` (fix-all mode) for cross-phase consistency:
 - **Type-specific criteria:**
   - TDD phases: Cross-phase RED/GREEN sequencing, no prescriptive code
   - General phases: Step clarity, script evaluation completeness
+  - Inline phases: Vacuity, density, dependency ordering
 - **LLM failure modes (all phases):** Vacuity, ordering, density, checkpoints
 
 **Handle outcome:**

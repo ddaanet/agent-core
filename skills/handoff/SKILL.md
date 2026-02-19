@@ -72,7 +72,7 @@ Write session.md following this structure:
 
 **Allowed sections only.** NEVER create "Learnings", "Key Decisions", or other sections. Learnings go to learnings.md.
 
-**Carry-forward rule:** Pending Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items.
+**Carry-forward rule:** Pending Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, mark blocked `[!]` with reason (see `task-failure-lifecycle.md`), mark failed `[✗]` with error summary, mark canceled `[–]` with reason, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items. Blocked/failed/canceled tasks persist across handoffs — do NOT trim them.
 
 **Multiple handoffs before commit:** Merge incrementally via Edit (append to Completed, mutate Pending, append Blockers, replace Next Steps). Do NOT Write a fresh file discarding prior content.
 

@@ -40,8 +40,13 @@ Write a handoff note following the template structure. See **`references/templat
 
 **Pending Tasks are carry-forward data, not prose to regenerate.** Read the current Pending Tasks and Worktree Tasks sections from session.md. Carry them forward verbatim — preserving every sub-item, metadata line, blocker note, and nested bullet. Then apply only these mutations:
 - Mark completed tasks `[x]` (or remove per Step 7 rules)
+- Mark blocked tasks `[!]` with reason and unblocking condition (see `task-failure-lifecycle.md`)
+- Mark failed tasks `[✗]` with error summary, category, and retryable classification
+- Mark canceled tasks `[–]` with reason
 - Append new tasks discovered this session
 - Update a specific task's metadata only if this session changed it (e.g., new blocker, status change)
+
+**Error state carry-forward:** Blocked, failed, and canceled tasks persist across handoffs. Do NOT trim them — they signal work that needs user attention. Preserve error context (reason, category, report path) verbatim.
 
 Do NOT rewrite, compress, summarize, or de-duplicate existing task sub-items. Sub-items are accumulated context from prior sessions — they cannot be reconstructed from conversation history.
 
@@ -250,6 +255,7 @@ When a plan completes during this session, write a summary to `agents/plan-archi
 
 **Always keep:**
 - Pending Tasks, Blockers, Next Steps
+- Blocked (`[!]`), Failed (`[✗]`), and Canceled (`[–]`) tasks — these require user resolution
 
 **Extract learnings first:** Before deleting, check if completed tasks contain patterns worth preserving. Append learnings to `agents/learnings.md`, never to session.md.
 

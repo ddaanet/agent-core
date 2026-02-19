@@ -1,6 +1,14 @@
-## Prerequisite Validation for Plans
+## Prerequisite Validation (Error Handling Layer 0)
 
-Prerequisite validation catches ~80% of escalation-triggering errors before execution starts. Validation happens in two phases: during planning (recommended) and during execution (defensive).
+Prerequisite validation is the foundation of the error handling framework — prevention is the most cost-effective strategy (Avižienis: prevention is cheapest of the four means to attain dependability). Catches ~80% of escalation-triggering errors before execution starts.
+
+**Cross-system prevention points:**
+- **Runbook orchestration:** Plan-reviewer validates prerequisites during review; orchestrator verifies clean git tree before each step
+- **Task lifecycle:** Commit skill checks session freshness (Gate A) before committing
+- **CPS skill chains:** Hook validates skill availability before chain injection
+- **General execution:** File/directory existence, external dependencies, environment state
+
+Validation happens in two phases: during planning (recommended) and during execution (defensive).
 
 ### When to Validate
 

@@ -196,6 +196,12 @@ Return filepath or "UNFIXABLE: [description]"
 
 ### 4. Error Escalation
 
+**Acceptance criteria:** Every escalation resolution must satisfy all three criteria defined in `agent-core/fragments/escalation-acceptance.md`: precommit passes, tree clean, output validates against step criteria.
+
+**Rollback:** When escalation fails (fix attempt causes new issues or acceptance criteria unmet), revert to last clean commit before the failed step. See `escalation-acceptance.md` for protocol.
+
+**Timeout:** Set `max_turns: 150` on all Task tool invocations for step agents. This catches spinning agents (high activity, no convergence) without false positives against calibration data (p99=73, max=129 from 938 clean observations). Duration timeout (~600s for hanging agents) requires Claude Code support and is deferred.
+
 **Escalation levels (from orchestrator metadata):**
 
 **Level 1: Haiku → Sonnet (Refactor Agent)**

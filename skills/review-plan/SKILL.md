@@ -38,10 +38,11 @@ Review runbook phase files, fix all issues, and report findings (audit trail + e
 
 ## Document Validation
 
-Accept both TDD and general artifacts:
+Accept TDD, general, and inline artifacts:
 - **TDD:** `type: tdd` in phase metadata or `## Cycle` / `### Cycle` headers
 - **General:** `## Step` / `### Step` headers or no type marker (default: general)
-- **Mixed:** Both header types across phases — valid (per-phase type tagging)
+- **Inline:** `(type: inline)` tag in phase heading — no step/cycle headers expected
+- **Mixed:** Multiple header types or inline + non-inline phases — valid (per-phase type tagging)
 
 ---
 
@@ -263,6 +264,31 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 - When design references external spec: validation steps verify conformance
 - Exact expected strings from reference, not abstracted descriptions
 
+### 10.5. Inline Phase Review — inline phases only
+
+**Detection:** Scan phase headings for `(type: inline)` tag.
+
+**Apply these criteria:**
+
+**10.5.1 Vacuity (instruction specificity)**
+- Each instruction must name a concrete target (file path) and operation (add/update/remove specific content)
+- ❌ "Update pipeline-contracts.md"
+- ✅ "Add inline type row to the type table in pipeline-contracts.md"
+
+**10.5.2 Density (verifiable outcome)**
+- Outcome must be unambiguous — completion is binary, not a judgment call
+- ❌ "Improve the error handling section"
+- ✅ "Add 'inline' to the valid_types list in parse_frontmatter()"
+
+**10.5.3 Dependency ordering**
+- Instructions within an inline phase must sequence correctly
+- Later instructions may reference content added by earlier ones
+- Fix: Reorder within phase. Cross-phase ordering issues: UNFIXABLE.
+
+**Skip for inline phases:** GREEN/RED validation, prescriptive code detection, prerequisite validation, script evaluation, step clarity checks. These criteria apply only to TDD/general phases.
+
+**Relationship to Section 11 (LLM Failure Modes):** For inline phases, Section 10.5 criteria supersede the type-specific (TDD/General) sub-bullets in Section 11. The type-neutral rules in Section 11 (foundation-first ordering, checkpoint spacing, file growth) still apply.
+
 ### 11. LLM Failure Modes (CRITICAL) — all phases
 
 Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless of phase type.
@@ -274,7 +300,7 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
   - Scaffolding-only steps (file creation, directory setup) without functional outcome
   - Step N+1 produces outcome achievable by extending step N alone — merge
   - Consecutive steps modifying same artifact with composable changes
-- **Heuristic (both):** items > LOC/20 signals consolidation needed
+- **Heuristic (tdd + general):** items > LOC/20 signals consolidation needed
 - Fix: Merge into nearest behavioral cycle/step
 
 **11.2 Dependency Ordering**
@@ -331,6 +357,7 @@ Do NOT mark as UNFIXABLE or CRITICAL. Report as Minor with suggested correction.
 **1a. Determine phase type(s):**
 - Scan for `## Cycle` / `### Cycle` headers → TDD
 - Scan for `## Step` / `### Step` headers → general
+- Scan for `(type: inline)` in phase headings → inline
 - Mixed is valid — apply type-appropriate criteria per phase
 
 **1b. Check GREEN phases for implementation code (TDD):**
@@ -427,7 +454,7 @@ Extract all file paths referenced in the runbook. For each path:
 **Artifact**: [path]
 **Date**: [ISO timestamp]
 **Mode**: review + fix-all
-**Phase types**: [TDD | General | Mixed (N TDD, M general)]
+**Phase types**: [TDD | General | Inline | Mixed (N TDD, M general, K inline)]
 
 ## Summary
 - Total items: N (cycles: X, steps: Y)

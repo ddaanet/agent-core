@@ -24,3 +24,4 @@ ENV/
 Thumbs.db
 
 # Incoming, unsorted
+__pycache__/

@@ -1,6 +1,6 @@
 ---
 description: Create git commits for completed work with short, dense, structured messages. Use --context flag when you already know what changed from conversation.
-allowed-tools: Read, Skill, Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
+allowed-tools: Read, Skill, Bash(git add:*), Bash(git diff:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
 continuation:
   cooperative: true
@@ -9,41 +9,28 @@ continuation:
 
 # Commit Skill
 
-Create a git commit for the current changes using a consistent, high-quality commit message format.
+Create a git commit with consistent, high-quality messages.
 
 **Note:** This skill does not update session.md. Run `/handoff` separately before committing if session context needs updating.
 
-## When to Use
-
-**Only commit when explicitly requested.** The user invokes `/commit`, `ci`, or uses `xc` (execute+commit) / `hc` (handoff+commit). Never auto-commit.
-
-**No exceptions:** Completing a task, reaching a breakpoint, or finishing a cohesive change are NOT commit triggers. The user decides when to commit.
+**Only commit when explicitly requested.** `/commit`, `ci`, `xc`, `hc`. Never auto-commit — completing a task is NOT a commit trigger.
 
 ## Flags
 
 **Context mode:**
-- `--context` - Skip git discovery (status/diff) when you already know what changed from conversation
+- `--context` - Skip git discovery when you already know what changed
 
-**Validation level:**
-
-**Scope:** WIP commits only. All feature/fix commits must use full `just precommit`.
-
-- (none) - `just precommit` (default, full validation)
-- `--test` - `just test` only (TDD GREEN phase WIP commits only)
-- `--lint` - `just lint` only (Post-lint WIP commits only)
+**Validation level** (WIP commits only — feature/fix commits require full `just precommit`):
+- (none) - `just precommit` (default)
+- `--test` - `just test` only (TDD GREEN WIP)
+- `--lint` - `just lint` only (post-lint WIP)
 
 **Gitmoji:**
 - `--no-gitmoji` - Skip gitmoji selection
 
-**Usage examples:**
-- `/commit` - full discovery + validation + gitmoji
-- `/commit --context` - skip discovery, use conversation context
-- `/commit --test` - TDD GREEN phase commit (test-only validation)
-- `/commit --context --no-gitmoji` - skip discovery and gitmoji
-
 **TDD workflow pattern:**
-- After GREEN phase: `/commit --test` for WIP commit (bypasses lint/complexity, test-only validation)
-- After REFACTOR complete: `/commit` for final amend (full precommit required, no flags)
+- GREEN phase: `/commit --test` (WIP, test-only validation)
+- After REFACTOR: `/commit` (full precommit, final commit)
 
 ## Commit Message Style
 
@@ -57,17 +44,9 @@ Create a git commit for the current changes using a consistent, high-quality com
 - <detail 3>
 ```
 
-**Rules:**
-- **Title line**: 50-72 characters, imperative mood (Add, Fix, Update, Refactor), no period
-- **Blank line** before details
-- **Details**: Bullet points with dense facts
-  - Focus on WHAT changed and WHY
-  - Include quantifiable information (file counts, line counts)
-  - Mention exclusions or constraints if relevant
-  - NOT implementation details (that's in the diff)
-- **User-facing perspective**: What does this commit accomplish?
+Title: 50-72 chars, imperative mood, no period. Details: quantifiable facts, WHAT+WHY, exclusions/constraints. User-facing perspective — not implementation details.
 
-**Examples:**
+**Example:**
 
 ```
 Add #load rule and replace AGENTS.md references with CLAUDE.md
@@ -77,161 +56,78 @@ Add #load rule and replace AGENTS.md references with CLAUDE.md
 - Exclude scratch/ directory with nested git repos
 ```
 
-```
-Fix authentication bug in login flow
-
-- Prevent session token expiration on page refresh
-- Add token refresh logic to AuthProvider
-- Update tests for new refresh behavior
-```
-
 ## Execution Steps
+
+**Allowlist constraint:** Run each git/just command as a separate Bash call. Do NOT chain commands (`git add && git commit`) or wrap in `exec 2>&1` — these fail allowlist matching.
 
 ### 1. Pre-commit validation + discovery
 
-<!-- DESIGN RULE: Every step must open with a tool call (Read/Bash/Glob).
-     Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md
-     Comment placement: after heading, before first prose content. -->
-
 **Gate — Vet checkpoint:**
 
-List changed files:
+Run as separate Bash calls:
 ```bash
-git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5)  # Fallback: 5 commits if no upstream
+git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5)
+```
+```bash
 git status --porcelain
 ```
 
-Classify each file: is it a production artifact (code, scripts, plans, skills, agents)?
+Classify changed files — production artifacts (code, scripts, plans, skills, agents)?
 
-- **No production artifacts?** Proceed to validation below.
-- **Production artifacts, but trivial?** (≤5 net lines, ≤2 files, additive/corrective, no behavioral change) — Run `git diff HEAD` to review changes. Verify: correctness, consistency, no side effects. Then proceed. See vet-requirement.md Proportionality.
-- **Production artifacts, non-trivial?** Check for vet report in `plans/*/reports/` or `tmp/`.
-- **No vet report?** STOP. Delegate to `vet-fix-agent` first. Return after vet completes.
-- **UNFIXABLE issues in vet report?** Escalate to user before commit.
-- **No criteria for alignment?** If no runbook/design/acceptance criteria exists, escalate to user.
+- **No production artifacts?** Proceed to validation.
+- **Trivial?** (≤5 net lines, ≤2 files, additive, no behavioral change) Self-review via `git diff HEAD`.
+- **Non-trivial?** Check for vet report in `plans/*/reports/` or `tmp/`. No report → STOP, delegate vet first. UNFIXABLE → escalate. No alignment criteria → escalate.
 
 Reports are exempt — they ARE the verification artifacts.
 
-**Validation + discovery:**
+**Validation + discovery (separate Bash calls):**
 
-**Non-context mode** (default):
-
-Run as **separate Bash calls** (allowlist requires individual commands):
-1. `just precommit` (or `just test` / `just lint` per flag)
+Non-context mode:
+1. `just precommit` (or per flag)
 2. `git status -vv`
 
-- **Gate: if precommit fails, STOP.** Fix lint/test failures before committing. No exceptions — do not rationalize failures as "pre-existing" or "from other code."
-- Shows: file status + staged diffs + unstaged diffs
-- Note what's already staged vs unstaged (preserve staging state)
-- ERROR if nothing to commit (no staged or unstaged changes; untracked files don't count)
+Context mode:
+1. `just precommit` (or per flag) only
 
-### 1b. Check submodules
+**Gate: precommit fails → STOP.** Fix before committing. Do not rationalize failures.
 
-If `git status` shows modified submodules (e.g., `M agent-core`):
+ERROR if nothing to commit (no staged or unstaged changes). Note what's already staged vs unstaged.
 
-Run as **separate Bash calls** (allowlist requires individual commands):
-1. `(cd agent-core && git status)` — check submodule status
-2. `(cd agent-core && git add <files>)` — stage submodule files
-3. Commit submodule (separate call, heredoc for message):
-   ```
-   (cd agent-core && git commit -m "$(cat <<'EOF'
-   Commit message here
-   EOF
-   )")
-   ```
-4. `git add agent-core` — stage submodule pointer in parent
+### 1b. Submodule handling
+
+If `git status` shows modified submodules (e.g., `M agent-core`), commit submodule first:
+
+1. `(cd agent-core && git status)`
+2. `(cd agent-core && git add <files>)`
+3. `(cd agent-core && git commit -m "$(cat <<'EOF'` ... `EOF` `)")`
+4. `git add agent-core` — stage pointer in parent
 5. Continue with parent commit
 
-**Subshell pattern:** Use `(cd submodule && ...)` instead of `cd submodule` to avoid changing working directory. Keep `cd` + one git command per call — do NOT chain `git add && git commit` (breaks allowlist matching).
-
-**Scope:** Single-level submodules only. Nested submodules not used in this repo.
-
-**Why:** Submodule pointer updates are invisible unless the submodule is committed first. A parent commit with a dirty submodule creates sync issues.
-
-**Context mode** (`--context` flag):
-
-Run `just precommit` (or `just test` / `just lint` per flag) as a single Bash call.
-
-- Skip `git status -vv` - you already know what changed from conversation
-- ERROR if you don't have clear context about what changed
-- Use when you just wrote/edited files and know the changes
+Use `(cd submodule && ...)` subshell to preserve working directory. One command per Bash call.
 
 ### 2. Draft commit message
 
-- Based on discovery output (non-context) or conversation context (context mode)
-- Follow "short, dense, structured" format
-- Ensure title is imperative mood, 50-72 chars
-- Add bullet details with quantifiable facts
+Based on discovery output or conversation context. Follow format above. Do NOT run `git log` — style is defined in this skill.
 
 ### 3. Select gitmoji
 
-**Read references/gitmoji-index.txt** (~78 entries, format: `emoji - name - description`).
-
-Analyze commit message semantics (type, scope, impact). Select the most specific emoji matching primary intent from the index.
-
-Prefix commit title with selected emoji.
-
-**Skip if `--no-gitmoji` flag provided.**
+Read `references/gitmoji-index.txt` (~78 entries). Analyze commit semantics, select most specific match. Prefix title with emoji. Skip if `--no-gitmoji`.
 
 ### 4. Stage, commit, verify
 
-Run as **separate Bash calls** (allowlist requires individual commands):
-1. `git add file1.txt file2.txt` — stage specific files
-2. Commit with heredoc for multiline message:
-   ```
-   git commit -m "$(cat <<'EOF'
-   🐛 Fix authentication bug
+Separate Bash calls:
+1. `git add <specific files>` — not `git add -A`. Include session.md, plans/, submodule pointers if changed. Preserve already-staged files.
+2. `git commit -m "$(cat <<'EOF'` ... `EOF` `)"` — heredoc for multiline
+3. `git status` — verify clean
 
-   - Detail 1
-   - Detail 2
-   EOF
-   )"
-   ```
-3. `git status` — verify result
-
-**Guidelines:**
-- Stage specific files only (not `git add -A`)
-- Preserve already-staged files
-- **Include `agents/session.md`, `plans/` files, and submodule pointer updates if they have uncommitted changes**
-- **Use subshell pattern for submodules:** `(cd submodule && git ...)` to avoid changing working directory
-- Do NOT commit secrets (.env, credentials.json, etc.)
-
-## Critical Constraints
-
-- **Multi-line commit messages**: Use heredoc syntax with `git commit -m "$(cat <<'EOF' ... EOF)"` for clean formatting
-- **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes
-- **Explicit errors**: If anything fails, report it clearly and stop
-- **No secrets**: Do not commit .env, credentials, keys, tokens, etc.
-- **Clean tree check**: Must error explicitly if nothing to commit
-- **One command per Bash call**: Permission allowlist matches individual commands. Do NOT batch `git add && git commit` or use `exec 2>&1; set -xeuo pipefail` wrapper — these fail allowlist matching.
-- **Context mode requirement**: When using `--context`, error if you don't have clear context about what changed
+Do NOT commit secrets (.env, credentials, keys).
 
 ## Post-Commit: Display STATUS
 
-**This applies to ALL commits**, whether invoked directly or via tail-call from `/handoff --commit`.
-
-After a successful commit, display STATUS with commit confirmation:
+After successful commit:
 
 ```
 Committed: <commit subject line>
 ```
 
-Then display STATUS following the format in `agent-core/fragments/execute-rule.md` (MODE 1: STATUS section).
-
-**Key points:**
-- Prefix with "Committed: <subject>" line
-- Follow with standard STATUS display (Next task, Pending list, Jobs)
-- Copy first pending task's command to clipboard (requires `dangerouslyDisableSandbox: true`)
-- If no pending tasks, display "No pending tasks." and suggest `/next`
-
-**Why:** STATUS display is defined once in execute-rule.md. Reference that instead of duplicating.
-
-## Context Gathering (Non-Context Mode)
-
-**Run these commands:**
-- `git status` - See what files changed
-- `git diff HEAD` - See the actual changes (note: `git diff HEAD` separately - staged/unstaged diffs shown in `git status -vv` output)
-- `git branch --show-current` - Current branch name
-
-**Do NOT run:**
-- `git log` - Style is hard-coded, log not needed
+Then display STATUS per execute-rule.md MODE 1. Copy first pending task command to clipboard (`dangerouslyDisableSandbox: true`). No pending tasks → "No pending tasks." and suggest `/next`.

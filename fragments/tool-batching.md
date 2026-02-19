@@ -1,5 +1,7 @@
 ## Tool Batching
 
+**Precondition:** Edit requires a prior Read call for the target file. @-references don't satisfy this gate. Read files in an earlier message, then batch edits. A failed precondition cascades to all sibling tool calls, wasting their inputs.
+
 **Planning phase (before tool calls):**
 1. Identify ALL changes needed for current task
 2. Group by file: same-file edits sequential, different-file edits parallel

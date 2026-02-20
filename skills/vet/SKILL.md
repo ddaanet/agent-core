@@ -1,4 +1,5 @@
 ---
+name: vet
 description: Review in-progress changes for quality and correctness
 allowed-tools: Read, Bash(git:*, diff:*)
 user-invocable: true

@@ -1,4 +1,5 @@
 ---
+name: orchestrate
 description: Execute prepared runbooks with weak orchestrator pattern
 allowed-tools: Task, Read, Write, Bash(git:*), Skill
 user-invocable: true

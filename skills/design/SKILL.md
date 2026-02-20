@@ -192,7 +192,7 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 1. Open outline for user review: `open plans/<job>/outline.md`
 2. User reads outline in editor, provides feedback in chat
 3. Designer applies deltas to outline.md file (not inline conversation)
-4. Re-review via outline-review-agent if significant changes made
+4. Re-review via outline-review-agent after applying changes
 5. Loop until user validates approach
 
 **Plugin-topic detection (reminder):** If design involves Claude Code plugin components (hooks, agents, skills), note which skill to load before planning: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."

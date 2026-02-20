@@ -1,4 +1,5 @@
 ---
+name: shelve
 description: Archive session context to todo list and reset for new work
 allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*)
 user-invocable: true

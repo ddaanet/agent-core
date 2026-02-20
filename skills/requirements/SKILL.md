@@ -1,4 +1,5 @@
 ---
+name: requirements
 description: Capture requirements from conversation or guide structured elicitation. Produces requirements.md artifact for design/planning phases. Use when the user asks to "capture requirements", "document requirements", "what do I want to build", or starts discussing a feature without clear documentation.
 allowed-tools: Read, Write, Glob, Grep, AskUserQuestion
 user-invocable: true

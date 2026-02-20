@@ -22,6 +22,8 @@ Not all changes warrant full vet delegation. Match review cost to change risk.
 
 **Why:** A 1-line bullet addition should not trigger a multi-turn agent delegation with execution context templates, report reading, and UNFIXABLE detection. Proportional review preserves quality without disproportionate overhead.
 
+**Batch decomposition:** When multiple files change in one task, apply proportionality per-file, then route remaining files by artifact type. Do not collapse a batch into a single reviewer — the routing table is per-artifact-type, not per-batch.
+
 **Production artifacts requiring vet:**
 - Plans (runbooks)
 - Code (implementations, scripts)

@@ -1,4 +1,5 @@
 ---
+name: release-prep
 description: Validates git state, runs quality checks, updates documentation, and assesses release readiness before the human executes the release command. Invoked when the user asks to "prepare release", "release prep", "ready to release", "pre-release check", "check release readiness", or mentions releasing a package.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(just:*)
 user-invocable: true

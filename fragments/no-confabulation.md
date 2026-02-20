@@ -5,3 +5,5 @@
 Distinct from no-estimates (which covers predictions). This covers fabricated methodology claims, ungrounded rules, and invented parameters asserted with false confidence.
 
 **When uncertain:** State what you don't know. Propose with "ungrounded — needs validation" framing, not as established practice.
+
+**Applies to operational thresholds:** Deriving thresholds from reasoning (">2 inline phases → batch") or replacing one confabulated metric with a "cleaner" confabulated metric is still confabulation. Ground thresholds in empirical data. If data doesn't exist, state the decision as ungrounded and defer until measurement. The No Estimates rule applies to operational thresholds, not just time/cost predictions.

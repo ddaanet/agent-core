@@ -8,17 +8,7 @@
 
 The `/design` skill includes complexity triage: simple tasks execute directly, moderate tasks skip design and route to planning, complex tasks get full design treatment.
 
-**Implementation workflow** — unified planning for all implementation work:
-- **Route:** `/design` → `/runbook` → [plan-reviewer] → prepare-runbook.py (auto) → tail: `/handoff --commit` → tail: `/commit` → restart → `/orchestrate` → [vet agent] → [deliverable review] → `/handoff --commit` → `/commit`
-- **Entry:** `/requirements` (optional) → `/design` → `/runbook` for requirements-led workflow
-- **Per-phase typing:** Each phase tagged TDD or general. TDD phases get RED/GREEN cycles, general phases get task steps. Mixed runbooks supported.
-- **Review:** plan-reviewer agent checks TDD discipline, step quality, and LLM failure modes (type-aware per phase)
-- **Post-planning:** Automated via tail-call chain: prepare-runbook.py runs, orchestrate command copied to clipboard, then `/handoff --commit` → `/commit` → displays next pending task
-- **Tier assessment:** `/runbook` includes tier assessment — small tasks (Tier 1/2) bypass runbook creation
-- **TDD process review:** After orchestration of TDD runbooks, review-tdd-process analyzes execution quality
-- **Deliverable review:** Optional post-orchestration review of final artifacts (agents, skills, decision documents). Opus-tier agents (plan-reviewer, skill-reviewer, agent-creator) invoked in parallel. Applied when artifacts define contracts, behavior, or workflow. Execution reports and diagnostic outputs exempt.
-
-**Progressive discovery:** Don't preload all workflow documentation. Read detailed guides only when executing that specific workflow type. Use references as needed during execution.
+**Progressive discovery:** Don't preload all workflow documentation. Details in design, runbook, and orchestrate skills.
 
 ---
 

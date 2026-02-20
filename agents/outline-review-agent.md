@@ -7,7 +7,7 @@ description: |
   - "Review outline.md against requirements before presenting to user"
   - "Validate design outline for completeness and traceability"
   - "Check outline.md covers all FR-* requirements"
-model: sonnet
+model: opus
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 skills: ["project-conventions"]

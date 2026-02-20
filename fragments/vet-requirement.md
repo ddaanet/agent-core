@@ -93,6 +93,7 @@ Orchestration-specific extensions (planning artifacts, human docs): `agents/deci
 **Optional context fields (for phased work):**
 - **Prior state:** What earlier phases established (dependencies, data models, interfaces)
 - **Design reference:** Path to design document for alignment checking
+- **Verification scope:** Files participating in cross-cutting invariants beyond the changed-files list. Include when design decisions specify cross-cutting constraints (D-N "all X must Y", NFR spanning multiple modules). Identify via grep for the invariant pattern across the full call graph. Omit for local, single-file requirements.
 
 **Delegation template:**
 
@@ -113,6 +114,10 @@ Review [scope description].
 **Requirements:**
 - [FR-N: specific requirement text or acceptance criterion]
 - [FR-M: specific requirement text or acceptance criterion]
+
+**Verification scope** (when cross-cutting invariants exist):
+- [invariant: e.g., "all stderr output reaches user" — grep pattern: `err=True`]
+- [files in invariant domain not in changed-files list]
 
 **Constraints:**
 - Do NOT flag items outside provided scope (scope OUT list)

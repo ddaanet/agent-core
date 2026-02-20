@@ -185,6 +185,13 @@ Return filepath or "UNFIXABLE: [description]"
 
 **Rationale:** Prevents confabulating future-phase issues. Vet validates current filesystem, not execution-time state — without explicit OUT scope, vet may flag unimplemented features from future phases as missing.
 
+**Final checkpoint lifecycle audit (D-7):**
+When the phase boundary is the final one (no next step), add to checkpoint delegation:
+- Audit stateful objects created during implementation (MERGE_HEAD, staged content, lock files, temporary files)
+- Verify every code path that exits success has cleared active state
+- Same methodology as cross-cutting exit code audit: trace all code paths, flag any that exit success with state still active
+- Add to review scope: `"Lifecycle audit: verify all stateful objects cleared on success paths"`
+
 **3.4 On success:**
 - Log step completion
 - Continue to next step
@@ -293,7 +300,12 @@ Current status: Blocked on Step 3
    - Delegate to review-tdd-process for process analysis
    - Write report to `plans/<name>/reports/tdd-process-review.md`
 3. Report overall success with report links
-4. Default-exit: `/handoff --commit` → `/commit`
+4. **Deliverable review assessment:**
+   - If orchestration produced production artifacts (skills, agents, fragments, code): create pending task for deliverable review
+   - Task format: `- [ ] **Deliverable review: <plan-name>** — \`/deliverable-review plans/<plan>\` | opus | restart`
+   - Restart required: orchestration may produce new agents requiring session restart
+   - Do NOT run deliverable review inline — needs opus + cross-project context + restart
+5. Default-exit: `/handoff --commit` → `/commit`
 
 **When blocked:**
 - Report which step failed

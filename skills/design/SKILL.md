@@ -24,11 +24,19 @@ Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-
 
 ### 0. Complexity Triage
 
+**Requirements-clarity gate:** Before any artifact reading or triage, validate requirements are actionable.
+
+- If `requirements.md` exists: verify each FR/NFR has a concrete mechanism (not just a goal)
+- If user request only: verify intent is clear enough to triage (ask if not)
+- If requirements are vague or mechanism-free: route to `/requirements` before proceeding
+
+**Rationale:** Triage reads artifacts that depend on requirements being clear. Vague requirements propagate through design into planning, producing mechanism-free specifications downstream agents cannot implement.
+
 Before doing design work, assess whether design is actually needed.
 
 **Artifact check:** Read plan directory (`plans/<job-name>/`) for existing artifacts:
 - `design.md` exists → route to `/runbook`
-- `outline.md` sufficient (concrete approach, no open questions, explicit scope, ≤3 files) → skip to Phase B
+- `outline.md` sufficient (concrete approach, no open questions, explicit scope, low coordination complexity) → skip to Phase B
 - `outline.md` insufficient → resume from A.5 (revise) or A.6 (review)
 - Otherwise → triage below
 
@@ -142,10 +150,10 @@ Scope: API gateway only. Dashboard/monitoring out of scope.
 The outline resolves the architectural uncertainty that justified "complex" classification. Re-assess before continuing ceremony.
 
 **Downgrade criteria (all must hold):**
-- ≤3 files affected, changes additive
+- Changes additive, no implementation loops
 - No open questions remain
 - Scope boundaries explicit (IN/OUT enumerated)
-- No cross-module coordination
+- No cross-file coordination requiring sequencing
 
 **If met:** Skip A.6. Proceed to Phase B with sufficiency assessment.
 
@@ -207,10 +215,11 @@ After user validates the outline, assess whether it already contains enough spec
 **If sufficient** — present sufficiency assessment to user. The outline IS the design; confirm user agrees to skip design generation. On confirmation, assess execution readiness:
 
 **Direct execution criteria (all must hold):**
-- ≤3 files affected
+- All decisions pre-resolved (no open questions requiring feedback)
 - All changes are prose edits or additive (no behavioral code changes)
 - Insertion points or edit targets are identified (line-level or section-level)
 - No cross-file coordination (edits are independent per file)
+- No implementation loops (no test/build feedback required)
 
 **If execution-ready** — offer direct execution. On confirmation:
 1. Execute edits in current session
@@ -310,7 +319,7 @@ When requirements.md exists in job directory, include traceability mapping:
 
 Each requirement should map to a design element for downstream validation.
 
-**TDD mode additions:** For designs with behavioral phases, include spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis.
+**TDD mode additions:** For designs with behavioral phases, include spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis. Reference the Diamond Shape integration-first strategy (defined in `/runbook` skill) — note when integration-first ordering applies (external boundaries → internal logic, not bottom-up by module).
 
 **References section:**
 
@@ -408,10 +417,11 @@ The design-vet-agent applies all fixes (critical, major, minor) directly. This s
 Design can resolve complexity — a job correctly classified as Complex may produce Simple execution. Assess whether the completed design can be executed directly or needs runbook planning.
 
 **Direct execution criteria (all must hold):**
-- ≤3 files affected
+- All decisions pre-resolved (no open questions requiring feedback)
 - All changes are prose edits or additive (no behavioral code changes)
 - Insertion points or edit targets are identified (line-level or section-level)
 - No cross-file coordination (edits are independent per file)
+- No implementation loops (no test/build feedback required)
 
 - **If execution-ready:** Execute edits, vet, then `/handoff [CONTINUATION: /commit]`
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`

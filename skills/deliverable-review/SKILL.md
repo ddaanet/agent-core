@@ -43,6 +43,7 @@ Before starting, gather:
 1. Read the design's Scope section (IN/OUT) to establish expected deliverables
 2. Glob for all files matching the scope patterns
 3. Measure line counts per file (`wc -l`)
+   - **Exclude plan artifacts** from line counts: runbook files, step files, phase files, orchestrator plans, review reports (`plans/<plan>/` contents). These are planning/execution artifacts, not production deliverables. Including them inflates the count and triggers unnecessary Layer 1 delegation.
 4. Classify each deliverable by artifact type:
 
 | Type | Pattern | Review axes |
@@ -148,7 +149,12 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
 - **Major** — missing functionality, broken references, vacuous artifact, test gap for specified scenario
 - **Minor** — style, clarity, naming, robustness edge case
 
-**Next steps:** The consolidated report becomes input for recovery work. Critical + Major findings → design session for fix planning. Minor findings → address inline or defer.
+**Next steps:**
+1. For Critical + Major findings: create one pending task → `/design` with report reference
+   - Task format: `- [ ] **Fix <plan-name> findings** — \`/design plans/<plan>/reports/deliverable-review.md\` | opus`
+   - Unconditional `/design` routing — `/design` triage handles proportionality
+2. Minor findings: note in report for inline fix or deferral
+3. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
 
 ## References
 

@@ -100,6 +100,12 @@ Analyze outline against these dimensions:
 - Explicit references (FR-1 → Section X.Y)
 - No requirements gaps
 
+**Resume Completeness (for agent/state machine designs):**
+- All non-terminal states have a defined resume path
+- Interrupted or restarted agents can recover from intermediate states
+- No state transitions leave the system unrecoverable
+- Applicable when outline defines agents, state machines, or multi-step workflows
+
 ### 4. Traceability Matrix
 
 **Build mapping:** Create table mapping requirements to outline sections.

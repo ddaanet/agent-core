@@ -120,6 +120,8 @@ Set up worktrees for parallel or single-task execution. See `agent-core/skills/w
 
 The task name serves as the lookup key. The script uses `git log -S` to find the commit where the task was first introduced and outputs the full session.md from that commit.
 
+**Brief check:** If the task has an associated plan directory, check for `plans/<plan>/brief.md`. If it exists, read it — contains cross-tree context (scope changes, decisions) from other sessions. In worktrees where the plan directory only exists on main: `git show main:plans/<plan>/brief.md 2>/dev/null`.
+
 ---
 
 ## `x` vs `r` Behavior Matrix

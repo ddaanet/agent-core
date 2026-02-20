@@ -4,7 +4,7 @@ allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*)
 user-invocable: true
 ---
 
-# Shelve Skill
+# Archive Session Context
 
 Archive current session context to todo list and reset session file for new work.
 

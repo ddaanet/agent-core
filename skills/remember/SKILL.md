@@ -5,7 +5,7 @@ allowed-tools: Read, Write, Edit, Bash(git:*), Glob
 user-invocable: true
 ---
 
-# Remember Skill
+# Consolidate Session Learnings
 
 Transform session learnings into persistent, actionable documentation. Updates CLAUDE.md, context files, and related docs to capture rules and patterns.
 

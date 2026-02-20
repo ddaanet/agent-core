@@ -5,7 +5,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Task
 user-invocable: true
 ---
 
-# Documentation Writing Skill
+# Write Project Documentation
 
 Write project documentation through a structured cycle: explore the subject, draft with audience awareness, reader-test with a fresh agent, fix gaps, vet.
 

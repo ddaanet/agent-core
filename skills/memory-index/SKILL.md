@@ -5,7 +5,7 @@ description: |
 user-invocable: false
 ---
 
-# Memory Index
+# Sub-Agent Memory Recall
 
 Active knowledge retrieval for sub-agents. Sub-agents lack the Skill tool and cannot invoke `/when` or `/how` skills directly. Instead, use Bash transport to access indexed decision documents.
 

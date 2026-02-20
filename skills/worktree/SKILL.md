@@ -26,7 +26,7 @@ continuation:
   default-exit: []
 ---
 
-# Worktree Skill
+# Manage Git Worktrees
 
 Manage git worktree lifecycle for parallel task execution and focused work.
 

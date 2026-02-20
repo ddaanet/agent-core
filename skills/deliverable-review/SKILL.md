@@ -18,7 +18,7 @@ allowed-tools:
 user-invocable: true
 ---
 
-# Deliverable Review
+# Review Production Artifacts
 
 Review production artifacts against a design specification to identify conformance gaps, correctness issues, coverage holes, and excess artifacts.
 

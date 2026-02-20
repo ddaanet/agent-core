@@ -16,7 +16,7 @@ outputs:
 user-invocable: true
 ---
 
-# /runbook Skill
+# Create Execution Runbooks
 
 **Usage:** `/runbook plans/<job-name>/design.md`
 

@@ -12,7 +12,7 @@ user-invocable: false
 model: sonnet
 ---
 
-# /review-plan Skill
+# Review Runbook Quality
 
 Review runbook phase files, fix all issues, and report findings (audit trail + escalation).
 

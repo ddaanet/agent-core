@@ -4,7 +4,7 @@ description: This skill should be used when the user asks to "use gitmoji", "add
 version: 0.1.0
 ---
 
-# Gitmoji Skill
+# Semantic Gitmoji Matcher
 
 Semantic gitmoji selection for commit messages. Reads gitmoji index, analyzes commit message, selects appropriate emoji prefix. Augments `/commit` workflow.
 

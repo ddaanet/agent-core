@@ -8,7 +8,7 @@ continuation:
   default-exit: ["/commit"]
 ---
 
-# Skill: handoff
+# Update Session Context
 
 Update session.md for agent handoff, preserving critical context for the next agent.
 

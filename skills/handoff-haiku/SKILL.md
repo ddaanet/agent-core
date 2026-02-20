@@ -4,7 +4,7 @@ description: Internal skill for Haiku model orchestrators only. Not for Sonnet o
 user-invocable: false
 ---
 
-# Skill: handoff-haiku
+# Haiku Orchestrator Handoff
 
 Mechanical session handoff for Haiku models. Preserves context without judgment calls. For full handoff protocol with learnings processing, use `/handoff` skill (Sonnet/Opus).
 

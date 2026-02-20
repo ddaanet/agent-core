@@ -4,7 +4,7 @@ description: This skill should be used ONLY when the user asks "what's next?", "
 version: 0.1.0
 ---
 
-# Next Work Finder
+# Find Pending Work
 
 This skill systematically checks for pending work across multiple project locations, stopping as soon as work is found.
 

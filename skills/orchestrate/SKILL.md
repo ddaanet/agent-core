@@ -7,7 +7,7 @@ continuation:
   default-exit: ["/handoff --commit", "/commit"]
 ---
 
-# Orchestrate Skill
+# Execute Runbooks
 
 Execute prepared runbooks using the weak orchestrator pattern. This skill coordinates step-by-step execution through plan-specific agents, handling progress tracking, error escalation, and report management.
 

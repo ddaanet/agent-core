@@ -5,7 +5,7 @@ allowed-tools: Read, Grep, Glob, Bash
 user-invocable: true
 ---
 
-# Prioritize Skill
+# Score and Rank Pending Tasks
 
 Score pending tasks using WSJF-adapted methodology. Produce a priority-ordered table with scheduling modifiers and parallel batch identification.
 

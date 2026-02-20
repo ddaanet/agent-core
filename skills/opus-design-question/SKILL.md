@@ -9,7 +9,7 @@ description: >
 user-invocable: false
 ---
 
-# Opus Design Question Skill
+# Consult Opus for Design Decisions
 
 Consult an Opus subagent for design decisions and architectural guidance instead of blocking the user with questions.
 

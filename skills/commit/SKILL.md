@@ -7,7 +7,7 @@ continuation:
   default-exit: []
 ---
 
-# Commit Skill
+# Create Git Commits
 
 Create a git commit with consistent, high-quality messages.
 

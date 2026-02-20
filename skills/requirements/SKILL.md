@@ -4,7 +4,7 @@ allowed-tools: Read, Write, Glob, Grep, AskUserQuestion
 user-invocable: true
 ---
 
-# Requirements Skill
+# Capture Requirements
 
 Dual-mode requirements capture: extract from conversation or elicit through semi-structured questions. Produces `plans/<job>/requirements.md` artifact consumed by `/design` and `/runbook`.
 

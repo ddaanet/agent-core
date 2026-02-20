@@ -12,7 +12,7 @@ allowed-tools: Read, Write, Grep, Glob, Bash, WebSearch, WebFetch, Task
 user-invocable: true
 ---
 
-# Ground
+# Ground Claims with Research
 
 Prevent ungrounded confabulation when producing methodologies, frameworks, scoring systems, taxonomies, or best-practice documents. Encode the diverge-converge research pattern proven during prioritization skill creation.
 

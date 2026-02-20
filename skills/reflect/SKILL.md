@@ -5,7 +5,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob
 user-invocable: true
 ---
 
-# Reflect Skill
+# Diagnose Agent Rule Violations
 
 Perform structured root cause analysis of agent behavior deviations within the current session context. Diagnoses why an agent violated rules, bypassed constraints, or rationalized exceptions.
 

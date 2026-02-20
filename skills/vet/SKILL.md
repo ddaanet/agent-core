@@ -4,7 +4,7 @@ allowed-tools: Read, Bash(git:*, diff:*)
 user-invocable: true
 ---
 
-# Vet Skill
+# Review Changes for Quality
 
 Review in-progress work for quality, correctness, and adherence to project standards. This skill examines uncommitted changes, recent commits, or partial branch work to identify issues and suggest improvements.
 

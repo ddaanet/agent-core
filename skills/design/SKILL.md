@@ -10,7 +10,7 @@ allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 user-invocable: true
 ---
 
-# Design Skill
+# Triage Implementation Complexity
 
 Produce dense design documents that guide implementation by downstream agents (Sonnet/Haiku).
 

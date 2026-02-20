@@ -4,7 +4,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(just:*)
 user-invocable: true
 ---
 
-# Release Prep Skill
+# Prepare for Release
 
 Validate preconditions, update documentation, and produce a readiness assessment. The actual release command is human-executed (protected by `_fail_if_claudecode`).
 

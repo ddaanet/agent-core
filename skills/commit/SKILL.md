@@ -95,15 +95,32 @@ ERROR if nothing to commit (no staged or unstaged changes). Note what's already 
 
 ### 1b. Submodule handling
 
-If `git status` shows modified submodules (e.g., `M agent-core`), commit submodule first:
+If `git status` shows modified submodules (e.g., `M agent-core`), commit submodule first.
 
-1. `(cd agent-core && git status)`
-2. `(cd agent-core && git add <files>)`
-3. `(cd agent-core && git commit -m "$(cat <<'EOF'` ... `EOF` `)")`
+**CWD rule:** The `submodule-safety` hook blocks commands when cwd ≠ project root. Never run `cd agent-core` as a standalone Bash call — it persists the cwd change and blocks all subsequent calls.
+
+**Two safe patterns for agent-core operations:**
+
+Git commands — use `-C` flag (no cwd change):
+```
+git -C agent-core status
+git -C agent-core add <files>
+git -C agent-core commit -m "..."
+```
+
+Non-git commands needing agent-core cwd — subshell (cwd not persisted):
+```
+( cd agent-core && <cmd> )
+```
+
+Steps:
+1. `git -C agent-core status`
+2. `git -C agent-core add <files>`
+3. `git -C agent-core commit -m "$(cat <<'EOF'` ... `EOF` `)")`
 4. `git add agent-core` — stage pointer in parent
 5. Continue with parent commit
 
-Use `(cd submodule && ...)` subshell to preserve working directory. One command per Bash call.
+One command per Bash call.
 
 ### 2. Draft commit message
 

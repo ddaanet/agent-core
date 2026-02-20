@@ -5,7 +5,6 @@ description: |
   or inline pass-through). Supports mixed runbooks: behavioral phases use TDD
   discipline, infrastructure phases use general steps, prose/config phases use
   inline execution. Routes based on design context and phase requirements.
-model: sonnet
 allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
 requires:
   - Design document from /design
@@ -247,6 +246,12 @@ If design document includes "Requirements" section:
      - TDD phases use cycle titles (X.Y numbering), RED/GREEN markers
      - General phases use step titles, action descriptions
      - Inline phases use bullet items (no numbered steps/cycles)
+   - **Inline type selection criteria** — tag a phase or item `inline` when ALL hold:
+     - All decisions pre-resolved (no open questions requiring feedback)
+     - All changes are prose edits or additive (no behavioral code changes)
+     - Insertion points or edit targets are identified
+     - No implementation loops (no test/build feedback required)
+   - **Pattern batching** — when N items share identical operation structure with different data (e.g., N fragment demotions each following "remove @-ref, verify skill coverage, shrink stub"), collapse into a single inline item with a variation table. Do not create N separate items.
 
 2. **Verify outline quality:**
    - **All implementation choices resolved** — No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each item commits to one approach. If uncertain, use `/opus-design-question`.

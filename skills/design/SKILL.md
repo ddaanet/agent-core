@@ -405,7 +405,13 @@ The design-vet-agent applies all fixes (critical, major, minor) directly. This s
 
 #### C.5. Execution Readiness and Handoff
 
-Apply execution readiness criteria from Outline Sufficiency Gate. Design can resolve complexity — a job correctly classified as Complex may produce Simple execution.
+Design can resolve complexity — a job correctly classified as Complex may produce Simple execution. Assess whether the completed design can be executed directly or needs runbook planning.
+
+**Direct execution criteria (all must hold):**
+- ≤3 files affected
+- All changes are prose edits or additive (no behavioral code changes)
+- Insertion points or edit targets are identified (line-level or section-level)
+- No cross-file coordination (edits are independent per file)
 
 - **If execution-ready:** Execute edits, vet, then `/handoff [CONTINUATION: /commit]`
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`

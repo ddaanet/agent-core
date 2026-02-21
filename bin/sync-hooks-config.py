@@ -3,6 +3,7 @@
 
 Idempotent: deduplicates by command string. Preserves existing hooks.
 """
+
 import json
 import os
 import sys
@@ -10,18 +11,19 @@ from pathlib import Path
 
 
 def find_settings_path():
-    """Find .claude/settings.json — use CLAUDE_PROJECT_DIR or parent of agent-core."""
-    env_dir = os.environ.get('CLAUDE_PROJECT_DIR')
+    """Find .claude/settings.json — use CLAUDE_PROJECT_DIR or parent of agent-
+    core."""
+    env_dir = os.environ.get("CLAUDE_PROJECT_DIR")
     if env_dir:
-        return Path(env_dir) / '.claude' / 'settings.json'
+        return Path(env_dir) / ".claude" / "settings.json"
     script_dir = Path(__file__).parent
-    return script_dir.parent.parent / '.claude' / 'settings.json'
+    return script_dir.parent.parent / ".claude" / "settings.json"
 
 
 def find_hooks_path():
     """Find agent-core/hooks/hooks.json."""
     script_dir = Path(__file__).parent
-    return script_dir.parent / 'hooks' / 'hooks.json'
+    return script_dir.parent / "hooks" / "hooks.json"
 
 
 def load_json(path):
@@ -65,7 +67,6 @@ def merge_hooks(settings, hooks_config):
 
         for new_entry in hooks_list:
             matcher = new_entry.get("matcher")
-            new_hook_commands = {get_command_string(h) for h in new_entry.get("hooks", [])}
 
             if matcher is None:
                 matching_entry_idx = None
@@ -79,8 +80,7 @@ def merge_hooks(settings, hooks_config):
                 else:
                     existing_entry = existing_hooks[matching_entry_idx]
                     existing_commands = {
-                        get_command_string(h)
-                        for h in existing_entry.get("hooks", [])
+                        get_command_string(h) for h in existing_entry.get("hooks", [])
                     }
 
                     for new_hook in new_entry.get("hooks", []):
@@ -100,8 +100,7 @@ def merge_hooks(settings, hooks_config):
                 else:
                     existing_entry = existing_hooks[matching_entry_idx]
                     existing_commands = {
-                        get_command_string(h)
-                        for h in existing_entry.get("hooks", [])
+                        get_command_string(h) for h in existing_entry.get("hooks", [])
                     }
 
                     for new_hook in new_entry.get("hooks", []):
@@ -112,18 +111,18 @@ def merge_hooks(settings, hooks_config):
     return settings
 
 
-def write_json(path, data):
+def write_json(path, data) -> None:
     """Write JSON file with indent=2, exit 1 on error."""
     try:
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             json.dump(data, f, indent=2)
-            f.write('\n')
+            f.write("\n")
     except Exception as e:
         print(f"Error writing {path}: {e}", file=sys.stderr)
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     settings_path = find_settings_path()
     hooks_path = find_hooks_path()
 
@@ -134,5 +133,5 @@ def main():
     write_json(settings_path, merged)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

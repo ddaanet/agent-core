@@ -89,11 +89,43 @@ _PENDING_EXPANSION = (
     'Task written to session.md during next handoff.'
 )
 
+_BRAINSTORM_EXPANSION = (
+    '[BRAINSTORM] Generate options, do not narrow down.\n'
+    '\n'
+    'diverge: produce multiple alternatives, ideas, or approaches.\n'
+    'Do not evaluate, rank, or eliminate options (no ranking, no selection).\n'
+    'Defer judgment — the user will evaluate separately.'
+)
+
+_QUICK_EXPANSION = (
+    '[QUICK] Terse response, no ceremony.\n'
+    '\n'
+    'Answer directly — no preamble, no framing, no hedging.\n'
+    'No follow-up suggestions.\n'
+    'Stop when the answer is complete.'
+)
+
+_LEARN_EXPANSION = (
+    '[LEARN] Append to agents/learnings.md.\n'
+    '\n'
+    'Format: H2 heading (When <situation>), then:\n'
+    '- Anti-pattern: what was done wrong\n'
+    '- Correct pattern: what to do instead\n'
+    '- Rationale or evidence\n'
+    '\n'
+    'Check line count after appending (soft limit: 80 lines).'
+)
+
 DIRECTIVES = {
     'd': _DISCUSS_EXPANSION,
     'discuss': _DISCUSS_EXPANSION,
     'p': _PENDING_EXPANSION,
     'pending': _PENDING_EXPANSION,
+    'b': _BRAINSTORM_EXPANSION,
+    'brainstorm': _BRAINSTORM_EXPANSION,
+    'q': _QUICK_EXPANSION,
+    'question': _QUICK_EXPANSION,
+    'learn': _LEARN_EXPANSION,
 }
 
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
@@ -862,6 +894,14 @@ def main() -> None:
             context_parts.append(expansion)
             if directive_key in ('d', 'discuss'):
                 system_parts.append('[DISCUSS] Evaluate critically, do not execute.')
+            elif directive_key in ('p', 'pending'):
+                system_parts.append('[PENDING] Capture task, do not execute.')
+            elif directive_key in ('b', 'brainstorm'):
+                system_parts.append('[BRAINSTORM] Generate options, do not converge.')
+            elif directive_key in ('q', 'question'):
+                system_parts.append('[QUICK] Terse response, no ceremony.')
+            elif directive_key == 'learn':
+                system_parts.append('[LEARN] Append to learnings.')
             else:
                 system_parts.append(expansion)
         combined_context = '\n\n'.join(context_parts)

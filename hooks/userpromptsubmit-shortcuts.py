@@ -131,6 +131,24 @@ DIRECTIVES = {
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
 BUILTIN_SKILLS: Dict[str, Any] = {}
 
+# Tier 2.5: Pattern guard regex constants
+_EDIT_VERBS = r'(?:fix|edit|update|improve|change|modify|rewrite|refactor)'
+_SKILL_NOUNS = r'(?:skill|agent|plugin|hook)'
+EDIT_SKILL_PATTERN = re.compile(
+    rf'(?:{_EDIT_VERBS}\b.*\b{_SKILL_NOUNS}|\b{_SKILL_NOUNS}\b.*\b{_EDIT_VERBS})',
+    re.IGNORECASE,
+)
+EDIT_SLASH_PATTERN = re.compile(
+    rf'\b{_EDIT_VERBS}\b.*\s/\w+',
+    re.IGNORECASE,
+)
+CCG_PATTERN = re.compile(
+    r'\b(?:hooks?|PreToolUse|PostToolUse|SessionStart|UserPromptSubmit'
+    r'|mcp\s+server|slash\s+command|settings\.json|\.claude/|plugin\.json'
+    r'|keybinding|IDE\s+integration|agent\s+sdk)\b',
+    re.IGNORECASE,
+)
+
 
 def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
     """Check if a line is inside a fenced code block.
@@ -886,9 +904,9 @@ def main() -> None:
 
     # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
     directive_matches = scan_for_directives(prompt)
+    context_parts: list[str] = []
+    system_parts: list[str] = []
     if directive_matches:
-        context_parts: list[str] = []
-        system_parts: list[str] = []
         for directive_key, _section in directive_matches:
             expansion = DIRECTIVES[directive_key]
             context_parts.append(expansion)
@@ -904,15 +922,30 @@ def main() -> None:
                 system_parts.append('[LEARN] Append to learnings.')
             else:
                 system_parts.append(expansion)
+
+    # Tier 2.5: Pattern guards — additionalContext only, additive with Tier 2
+    if EDIT_SKILL_PATTERN.search(prompt) or EDIT_SLASH_PATTERN.search(prompt):
+        context_parts.append(
+            'Load /plugin-dev:skill-development before editing skill files. '
+            'Load /plugin-dev:agent-development before editing agent files. '
+            "Skill descriptions require 'This skill should be used when...' format."
+        )
+    if CCG_PATTERN.search(prompt):
+        context_parts.append(
+            'Platform question detected. Use claude-code-guide agent '
+            "(subagent_type='claude-code-guide') for authoritative Claude Code documentation."
+        )
+
+    if context_parts:
         combined_context = '\n\n'.join(context_parts)
-        combined_system = ' | '.join(system_parts)
-        output = {
+        output: dict[str, Any] = {
             'hookSpecificOutput': {
                 'hookEventName': 'UserPromptSubmit',
                 'additionalContext': combined_context
-            },
-            'systemMessage': combined_system
+            }
         }
+        if system_parts:
+            output['systemMessage'] = ' | '.join(system_parts)
         print(json.dumps(output))
         return
 

@@ -768,18 +768,24 @@ def main() -> None:
     hook_input = json.load(sys.stdin)
     prompt = hook_input.get('prompt', '').strip()
 
-    # Tier 1: Exact match for commands
-    if prompt in COMMANDS:
-        expansion = COMMANDS[prompt]
-        output = {
-            'hookSpecificOutput': {
-                'hookEventName': 'UserPromptSubmit',
-                'additionalContext': expansion
-            },
-            'systemMessage': expansion
-        }
-        print(json.dumps(output))
-        return
+    # Tier 1: Command on its own line (first matching line wins)
+    lines = prompt.split('\n')
+    is_single_line = len(lines) == 1
+    for line in lines:
+        stripped = line.strip()
+        if stripped in COMMANDS:
+            expansion = COMMANDS[stripped]
+            output: dict[str, Any] = {
+                'hookSpecificOutput': {
+                    'hookEventName': 'UserPromptSubmit',
+                    'additionalContext': expansion
+                }
+            }
+            # Single-line exact match gets systemMessage; multi-line avoids noisy status bar
+            if is_single_line:
+                output['systemMessage'] = expansion
+            print(json.dumps(output))
+            return
 
     # Tier 2: Directive pattern (shortcut: <rest>)
     directive_match = scan_for_directive(prompt)

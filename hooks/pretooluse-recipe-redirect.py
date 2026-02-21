@@ -22,7 +22,7 @@ def main() -> None:
 
 
 def _find_redirect(command: str) -> str | None:
-    if command.startswith("ln "):
+    if command == "ln" or command.startswith("ln "):
         return "Use `just sync-to-parent` instead of `ln` for managing symlinks in .claude/."
     if command.startswith("git worktree "):
         return "Use `claudeutils _worktree` instead of `git worktree` directly."

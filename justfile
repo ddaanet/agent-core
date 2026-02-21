@@ -91,7 +91,7 @@ sync-to-parent:
     fi
 
     echo "Syncing hook configuration..."
-    python3 agent-core/bin/sync-hooks-config.py
+    python3 bin/sync-hooks-config.py
 
     echo "Sync complete!"
 

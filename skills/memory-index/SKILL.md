@@ -192,14 +192,6 @@ agent-core/bin/when-resolve.py when "..file.md"
 /when applying prompt research
 /how order fragments by position bias
 
-## agents/decisions/runbook-review.md
-
-/when detecting vacuous items
-/when ordering runbook dependencies
-/when evaluating item density
-/when spacing runbook checkpoints
-/when planning for file growth
-
 ## agents/decisions/testing.md
 
 /how split test modules

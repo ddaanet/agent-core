@@ -46,6 +46,18 @@ Accept TDD, general, and inline artifacts:
 
 ---
 
+## Layered Context Model
+
+Runbook execution uses three context layers. Review criteria apply to step/cycle content — do NOT flag content present in a higher layer as missing.
+
+- **Baseline agent** (`agent-core/agents/quiet-task.md` or `tdd-task.md`) — tool usage, execution protocol, error handling. Combined with all steps via prepare-runbook.py.
+- **Common Context** (`## Common Context` in runbook) — project paths, constraints, cross-step dependencies. Available to all steps.
+- **Step/cycle content** — step-specific instructions, validation, outcomes.
+
+**False positive prevention:** Before flagging "missing tool reminders", "missing project paths", or "missing error escalation" in steps, verify the content isn't in baseline or Common Context. These are the three most common false positives.
+
+---
+
 ## Review Criteria
 
 ### 1. GREEN Phase Anti-Pattern (CRITICAL) — TDD phases only
@@ -291,7 +303,7 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 ### 11. LLM Failure Modes (CRITICAL) — all phases
 
-Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless of phase type.
+Five structural axes that cause execution failures. Apply regardless of phase type.
 
 **11.1 Vacuity**
 - **TDD:** Cycles where RED can pass with `assert callable(X)` or `import X`
@@ -301,7 +313,10 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
   - Step N+1 produces outcome achievable by extending step N alone — merge
   - Consecutive steps modifying same artifact with composable changes
 - **Heuristic (tdd + general):** items > LOC/20 signals consolidation needed
+- **Behavioral vacuity detection (TDD):** For each cycle pair (N, N+1) on the same function, verify N+1's RED assertion would fail given N's GREEN implementation. If not, N+1 adds no constraint beyond N.
+- **Behavioral vacuity detection (General):** For consecutive steps modifying the same artifact, verify N+1 produces an outcome not achievable by extending step N alone. If achievable, merge.
 - Fix: Merge into nearest behavioral cycle/step
+- *Grounding: LLMs produce "syntactically correct but irrelevant" code at 13.6–31.7% rate, scaling inversely with model size (Jiang et al., 2024).*
 
 **11.2 Dependency Ordering**
 - Foundation-first within phases (all types): existence → structure → behavior → refinement
@@ -311,6 +326,7 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
   - Prerequisites not validated before use (step assumes prior state without check)
   - Foundation-after-behavior inversions (behavioral step before the foundational step it depends on)
 - Fix: Reorder within phase. If cross-phase: UNFIXABLE (outline revision needed)
+- *Grounding: WebApp1K identifies "API Call Mismatch" and "Scope Violation" as consequences of executing against wrong state (Fan et al., 2025).*
 
 **11.3 Density**
 - **TDD:** Adjacent cycles testing same function with <1 branch point difference; single edge cases expressible as parametrized row in prior cycle
@@ -320,16 +336,19 @@ Criteria from `agents/decisions/runbook-review.md` (five axes). Apply regardless
   - Over-granular decomposition without clear boundary (steps split by file section rather than behavioral concern)
 - Entire phases with ≤3 items, all Low complexity
 - Fix: Merge adjacent, parametrize edge cases, collapse trivial phases
+- *Grounding: Instruction loss in long prompts — fidelity degrades as prompt grows. Trivial tests don't contribute signal (Mathews & Nagappan, 2024; Fan et al., 2025).*
 
 **11.4 Checkpoint Spacing**
 - Gaps >10 items or >2 phases without checkpoint
 - Complex data manipulation phases without checkpoint
 - Fix: Insert checkpoint recommendation
+- *Grounding: Non-reasoning models write functional code that violates spec without remediation loops (Fan et al., 2025).*
 
 **11.5 File Growth**
 - Project lines added per item from descriptions
 - Flag when projected size exceeds 350 lines (400-line enforcement threshold minus buffer)
 - Fix: Insert proactive file split at phase boundary before projected threshold breach
+- *Evidence: 7+ refactor escalations, >1hr wall-clock on line-limit fixes across worktree-update runbook.*
 
 ### 12. Model Assignment Review (ADVISORY) — all phases
 
@@ -545,3 +564,12 @@ Recommendation: [What to do]
 8. **Foundation-first ordering** — Existence → structure → behavior (all)
 9. **Fix everything** — Review agents fix, not just report (all)
 10. **Escalate unfixable** — Clear communication of blockers (all)
+
+---
+
+## Sources
+
+- [Jiang et al., 2024](https://arxiv.org/html/2406.08731v1) — LLM code generation error taxonomy, meaningless code failure, model-size scaling
+- [Fan et al., 2025](https://arxiv.org/html/2505.09027v1) — WebApp1K: instruction loss, pretraining bias, dependency ordering errors
+- [Mathews & Nagappan, ASE 2024](https://arxiv.org/abs/2402.13521) — TDD for code generation, remediation loop value
+- [Microsoft, 2025](https://www.microsoft.com/en-us/security/blog/2025/04/24/new-whitepaper-outlines-the-taxonomy-of-failure-modes-in-ai-agents/) — Taxonomy of failure modes in agentic AI

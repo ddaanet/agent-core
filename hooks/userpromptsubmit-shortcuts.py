@@ -914,7 +914,8 @@ def main() -> None:
             "(subagent_type='claude-code-guide') for authoritative Claude Code documentation."
         )
 
-    if context_parts:
+    # Directives change interaction mode — output Tier 2 + 2.5, skip Tier 3
+    if directive_matches and context_parts:
         combined_context = "\n\n".join(context_parts)
         output: dict[str, Any] = {
             "hookSpecificOutput": {
@@ -927,25 +928,25 @@ def main() -> None:
         print(json.dumps(output))
         return
 
-    # Tier 3: Continuation parsing
+    # Tier 3: Continuation parsing — combines with Tier 2.5 guards
     try:
         registry = build_registry()
         parsed = parse_continuation(prompt, registry)
-
         if parsed:
-            # Format and inject continuation
-            context = format_continuation_context(parsed)
-            output = {
-                "hookSpecificOutput": {
-                    "hookEventName": "UserPromptSubmit",
-                    "additionalContext": context,
-                }
-            }
-            print(json.dumps(output))
-            return
+            context_parts.append(format_continuation_context(parsed))
     except Exception:
-        # If continuation parsing fails, pass through silently
         pass
+
+    if context_parts:
+        combined_context = "\n\n".join(context_parts)
+        output: dict[str, Any] = {
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": combined_context,
+            }
+        }
+        print(json.dumps(output))
+        return
 
     # No match: silent pass-through
     sys.exit(0)

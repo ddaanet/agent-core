@@ -212,6 +212,65 @@ def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
     return None
 
 
+def scan_for_directives(prompt: str) -> list[tuple[str, str]]:
+    """Scan prompt for all directive matches, returning each with its section content.
+
+    Section content spans from the directive line to the next directive line (exclusive)
+    or end of prompt. Directive lines inside fenced blocks are skipped.
+
+    Returns list of (directive_key, section_content) tuples in order of appearance.
+    """
+    lines = prompt.split('\n')
+    fence_char = None
+    fence_count = 0
+    in_fence = False
+
+    # First pass: find all non-fenced directive line indices and their keys
+    directive_lines: list[tuple[int, str, str]] = []  # (line_idx, key, first_value)
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith('```') or stripped.startswith('~~~'):
+            char = stripped[0]
+            count = 0
+            for c in stripped:
+                if c == char:
+                    count += 1
+                else:
+                    break
+            if count >= 3:
+                if not in_fence:
+                    fence_char = char
+                    fence_count = count
+                    in_fence = True
+                    continue
+                elif char == fence_char and count >= fence_count:
+                    fence_char = None
+                    fence_count = 0
+                    in_fence = False
+                    continue
+        if in_fence:
+            continue
+        match = re.match(r'^(\w+):\s+(.+)', line)
+        if match:
+            key = match.group(1)
+            if key in DIRECTIVES:
+                directive_lines.append((i, key, match.group(2)))
+
+    if not directive_lines:
+        return []
+
+    # Second pass: build section content for each directive
+    # Section spans from directive line through lines before next directive (or end)
+    results: list[tuple[str, str]] = []
+    for idx, (line_i, key, first_value) in enumerate(directive_lines):
+        next_directive_line = directive_lines[idx + 1][0] if idx + 1 < len(directive_lines) else len(lines)
+        section_lines = [first_value] + lines[line_i + 1:next_directive_line]
+        section_content = '\n'.join(section_lines).strip()
+        results.append((key, section_content))
+
+    return results
+
+
 # Context filtering constants
 
 
@@ -793,33 +852,27 @@ def main() -> None:
             print(json.dumps(output))
             return
 
-    # Tier 2: Directive pattern (shortcut: <rest>)
-    directive_match = scan_for_directive(prompt)
-    if directive_match:
-        directive_key, directive_value = directive_match
-        expansion = DIRECTIVES[directive_key]
-
-        # For discussion directives (d:, discuss:), use dual output:
-        # - Full evaluation framework to additionalContext (Claude sees)
-        # - Concise mode indicator to systemMessage (user sees)
-        if directive_key in ('d', 'discuss'):
-            concise_message = '[DISCUSS] Evaluate critically, do not execute.'
-            output = {
-                'hookSpecificOutput': {
-                    'hookEventName': 'UserPromptSubmit',
-                    'additionalContext': expansion
-                },
-                'systemMessage': concise_message
-            }
-        else:
-            # Other directives: same message to both
-            output = {
-                'hookSpecificOutput': {
-                    'hookEventName': 'UserPromptSubmit',
-                    'additionalContext': expansion
-                },
-                'systemMessage': expansion
-            }
+    # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
+    directive_matches = scan_for_directives(prompt)
+    if directive_matches:
+        context_parts: list[str] = []
+        system_parts: list[str] = []
+        for directive_key, _section in directive_matches:
+            expansion = DIRECTIVES[directive_key]
+            context_parts.append(expansion)
+            if directive_key in ('d', 'discuss'):
+                system_parts.append('[DISCUSS] Evaluate critically, do not execute.')
+            else:
+                system_parts.append(expansion)
+        combined_context = '\n\n'.join(context_parts)
+        combined_system = ' | '.join(system_parts)
+        output = {
+            'hookSpecificOutput': {
+                'hookEventName': 'UserPromptSubmit',
+                'additionalContext': combined_context
+            },
+            'systemMessage': combined_system
+        }
         print(json.dumps(output))
         return
 

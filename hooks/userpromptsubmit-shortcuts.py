@@ -37,16 +37,22 @@ COMMANDS = {
         'Complete the task, then stop. Do NOT commit or handoff.'
     ),
     'xc': (
-        '[#execute --commit] Complete task, '
-        'then handoff → commit → status display.'
+        '[execute, commit] Shorthand for execute then /handoff and /commit continuation chain. '
+        'Complete task, then chain: handoff → commit → status display.'
     ),
     'r': (
-        '[#resume] Continue in-progress task only. '
-        'Error if no in-progress task exists.'
+        '[#resume] Resume in-progress task using graduated lookup:\n'
+        '1. Check conversation context — if in-progress task visible, resume directly.\n'
+        '2. Read session.md — look for [>] or in-progress task.\n'
+        '3. Check git status/diff — look for uncommitted work indicating active task.\n'
+        'Report only if genuinely nothing to resume.'
     ),
     'h': '[/handoff] Update session.md with current context, '
          'then display status.',
-    'hc': '[/handoff --commit] Handoff → commit → status display.',
+    'hc': (
+        '[handoff, commit] Shorthand for /handoff then /commit continuation chain. '
+        'Update session.md, then commit → status display.'
+    ),
     'ci': '[/commit] Commit changes → status display.',
     '?': (
         '[#help] List shortcuts (both tiers), '
@@ -83,15 +89,65 @@ _PENDING_EXPANSION = (
     'Task written to session.md during next handoff.'
 )
 
+_BRAINSTORM_EXPANSION = (
+    '[BRAINSTORM] Generate options, do not narrow down.\n'
+    '\n'
+    'diverge: produce multiple alternatives, ideas, or approaches.\n'
+    'Do not evaluate, rank, or eliminate options (no ranking, no selection).\n'
+    'Defer judgment — the user will evaluate separately.'
+)
+
+_QUICK_EXPANSION = (
+    '[QUICK] Terse response, no ceremony.\n'
+    '\n'
+    'Answer directly — no preamble, no framing, no hedging.\n'
+    'No follow-up suggestions.\n'
+    'Stop when the answer is complete.'
+)
+
+_LEARN_EXPANSION = (
+    '[LEARN] Append to agents/learnings.md.\n'
+    '\n'
+    'Format: H2 heading (When <situation>), then:\n'
+    '- Anti-pattern: what was done wrong\n'
+    '- Correct pattern: what to do instead\n'
+    '- Rationale or evidence\n'
+    '\n'
+    'Check line count after appending (soft limit: 80 lines).'
+)
+
 DIRECTIVES = {
     'd': _DISCUSS_EXPANSION,
     'discuss': _DISCUSS_EXPANSION,
     'p': _PENDING_EXPANSION,
     'pending': _PENDING_EXPANSION,
+    'b': _BRAINSTORM_EXPANSION,
+    'brainstorm': _BRAINSTORM_EXPANSION,
+    'q': _QUICK_EXPANSION,
+    'question': _QUICK_EXPANSION,
+    'learn': _LEARN_EXPANSION,
 }
 
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
 BUILTIN_SKILLS: Dict[str, Any] = {}
+
+# Tier 2.5: Pattern guard regex constants
+_EDIT_VERBS = r'(?:fix|edit|update|improve|change|modify|rewrite|refactor)'
+_SKILL_NOUNS = r'(?:skill|agent|plugin|hook)'
+EDIT_SKILL_PATTERN = re.compile(
+    rf'(?:{_EDIT_VERBS}\b.*\b{_SKILL_NOUNS}|\b{_SKILL_NOUNS}\b.*\b{_EDIT_VERBS})',
+    re.IGNORECASE,
+)
+EDIT_SLASH_PATTERN = re.compile(
+    rf'\b{_EDIT_VERBS}\b.*\s/\w+',
+    re.IGNORECASE,
+)
+CCG_PATTERN = re.compile(
+    r'\b(?:hooks?|PreToolUse|PostToolUse|SessionStart|UserPromptSubmit'
+    r'|mcp\s+server|slash\s+command|settings\.json|\.claude/|plugin\.json'
+    r'|keybinding|IDE\s+integration|agent\s+sdk)\b',
+    re.IGNORECASE,
+)
 
 
 def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
@@ -153,26 +209,24 @@ def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
     return in_fence
 
 
-def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
-    """Scan prompt lines for directive pattern, excluding fenced blocks.
 
-    Single-pass: tracks fence state while scanning instead of re-scanning
-    from line 0 per line.
+def scan_for_directives(prompt: str) -> list[tuple[str, str]]:
+    """Scan prompt for all directive matches, returning each with its section content.
 
-    Args:
-        prompt: Full prompt text
+    Section content spans from the directive line to the next directive line (exclusive)
+    or end of prompt. Directive lines inside fenced blocks are skipped.
 
-    Returns:
-        (key, value) tuple for first non-fenced directive match, or None
+    Returns list of (directive_key, section_content) tuples in order of appearance.
     """
+    lines = prompt.split('\n')
     fence_char = None
     fence_count = 0
     in_fence = False
 
-    for line in prompt.split('\n'):
+    # First pass: find all non-fenced directive line indices and their keys
+    directive_lines: list[tuple[int, str, str]] = []  # (line_idx, key, first_value)
+    for i, line in enumerate(lines):
         stripped = line.strip()
-
-        # Track fence state
         if stripped.startswith('```') or stripped.startswith('~~~'):
             char = stripped[0]
             count = 0
@@ -192,18 +246,27 @@ def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
                     fence_count = 0
                     in_fence = False
                     continue
-
         if in_fence:
             continue
-
-        # Match directive pattern: <word>: <text>
         match = re.match(r'^(\w+):\s+(.+)', line)
         if match:
-            directive_key = match.group(1)
-            if directive_key in DIRECTIVES:
-                return (directive_key, match.group(2))
+            key = match.group(1)
+            if key in DIRECTIVES:
+                directive_lines.append((i, key, match.group(2)))
 
-    return None
+    if not directive_lines:
+        return []
+
+    # Second pass: build section content for each directive
+    # Section spans from directive line through lines before next directive (or end)
+    results: list[tuple[str, str]] = []
+    for idx, (line_i, key, first_value) in enumerate(directive_lines):
+        next_directive_line = directive_lines[idx + 1][0] if idx + 1 < len(directive_lines) else len(lines)
+        section_lines = [first_value] + lines[line_i + 1:next_directive_line]
+        section_content = '\n'.join(section_lines).strip()
+        results.append((key, section_content))
+
+    return results
 
 
 # Context filtering constants
@@ -768,46 +831,69 @@ def main() -> None:
     hook_input = json.load(sys.stdin)
     prompt = hook_input.get('prompt', '').strip()
 
-    # Tier 1: Exact match for commands
-    if prompt in COMMANDS:
-        expansion = COMMANDS[prompt]
-        output = {
+    # Tier 1: Command on its own line (first matching line wins)
+    lines = prompt.split('\n')
+    is_single_line = len(lines) == 1
+    for line in lines:
+        stripped = line.strip()
+        if stripped in COMMANDS:
+            expansion = COMMANDS[stripped]
+            output: dict[str, Any] = {
+                'hookSpecificOutput': {
+                    'hookEventName': 'UserPromptSubmit',
+                    'additionalContext': expansion
+                }
+            }
+            # Single-line exact match gets systemMessage; multi-line avoids noisy status bar
+            if is_single_line:
+                output['systemMessage'] = expansion
+            print(json.dumps(output))
+            return
+
+    # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
+    directive_matches = scan_for_directives(prompt)
+    context_parts: list[str] = []
+    system_parts: list[str] = []
+    if directive_matches:
+        for directive_key, _section in directive_matches:
+            expansion = DIRECTIVES[directive_key]
+            context_parts.append(expansion)
+            if directive_key in ('d', 'discuss'):
+                system_parts.append('[DISCUSS] Evaluate critically, do not execute.')
+            elif directive_key in ('p', 'pending'):
+                system_parts.append('[PENDING] Capture task, do not execute.')
+            elif directive_key in ('b', 'brainstorm'):
+                system_parts.append('[BRAINSTORM] Generate options, do not converge.')
+            elif directive_key in ('q', 'question'):
+                system_parts.append('[QUICK] Terse response, no ceremony.')
+            elif directive_key == 'learn':
+                system_parts.append('[LEARN] Append to learnings.')
+            else:
+                system_parts.append(expansion)
+
+    # Tier 2.5: Pattern guards — additionalContext only, additive with Tier 2
+    if EDIT_SKILL_PATTERN.search(prompt) or EDIT_SLASH_PATTERN.search(prompt):
+        context_parts.append(
+            'Load /plugin-dev:skill-development before editing skill files. '
+            'Load /plugin-dev:agent-development before editing agent files. '
+            "Skill descriptions require 'This skill should be used when...' format."
+        )
+    if CCG_PATTERN.search(prompt):
+        context_parts.append(
+            'Platform question detected. Use claude-code-guide agent '
+            "(subagent_type='claude-code-guide') for authoritative Claude Code documentation."
+        )
+
+    if context_parts:
+        combined_context = '\n\n'.join(context_parts)
+        output: dict[str, Any] = {
             'hookSpecificOutput': {
                 'hookEventName': 'UserPromptSubmit',
-                'additionalContext': expansion
-            },
-            'systemMessage': expansion
+                'additionalContext': combined_context
+            }
         }
-        print(json.dumps(output))
-        return
-
-    # Tier 2: Directive pattern (shortcut: <rest>)
-    directive_match = scan_for_directive(prompt)
-    if directive_match:
-        directive_key, directive_value = directive_match
-        expansion = DIRECTIVES[directive_key]
-
-        # For discussion directives (d:, discuss:), use dual output:
-        # - Full evaluation framework to additionalContext (Claude sees)
-        # - Concise mode indicator to systemMessage (user sees)
-        if directive_key in ('d', 'discuss'):
-            concise_message = '[DISCUSS] Evaluate critically, do not execute.'
-            output = {
-                'hookSpecificOutput': {
-                    'hookEventName': 'UserPromptSubmit',
-                    'additionalContext': expansion
-                },
-                'systemMessage': concise_message
-            }
-        else:
-            # Other directives: same message to both
-            output = {
-                'hookSpecificOutput': {
-                    'hookEventName': 'UserPromptSubmit',
-                    'additionalContext': expansion
-                },
-                'systemMessage': expansion
-            }
+        if system_parts:
+            output['systemMessage'] = ' | '.join(system_parts)
         print(json.dumps(output))
         return
 

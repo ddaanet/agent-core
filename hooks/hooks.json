@@ -1,0 +1,57 @@
+{
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/userpromptsubmit-shortcuts.py",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/pretooluse-recipe-redirect.py"
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash $CLAUDE_PROJECT_DIR/agent-core/hooks/posttooluse-autoformat.sh"
+        }
+      ]
+    }
+  ],
+  "SessionStart": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash $CLAUDE_PROJECT_DIR/agent-core/hooks/sessionstart-health.sh"
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash $CLAUDE_PROJECT_DIR/agent-core/hooks/stop-health-fallback.sh"
+        }
+      ]
+    }
+  ]
+}

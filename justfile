@@ -90,6 +90,9 @@ sync-to-parent:
         done
     fi
 
+    echo "Syncing hook configuration..."
+    python3 agent-core/bin/sync-hooks-config.py
+
     echo "Sync complete!"
 
 # Set up development environment (agent-core is documentation/skills only)

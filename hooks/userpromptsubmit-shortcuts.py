@@ -37,16 +37,22 @@ COMMANDS = {
         'Complete the task, then stop. Do NOT commit or handoff.'
     ),
     'xc': (
-        '[#execute --commit] Complete task, '
-        'then handoff → commit → status display.'
+        '[execute, commit] Shorthand for execute then /handoff and /commit continuation chain. '
+        'Complete task, then chain: handoff → commit → status display.'
     ),
     'r': (
-        '[#resume] Continue in-progress task only. '
-        'Error if no in-progress task exists.'
+        '[#resume] Resume in-progress task using graduated lookup:\n'
+        '1. Check conversation context — if in-progress task visible, resume directly.\n'
+        '2. Read session.md — look for [>] or in-progress task.\n'
+        '3. Check git status/diff — look for uncommitted work indicating active task.\n'
+        'Report only if genuinely nothing to resume.'
     ),
     'h': '[/handoff] Update session.md with current context, '
          'then display status.',
-    'hc': '[/handoff --commit] Handoff → commit → status display.',
+    'hc': (
+        '[handoff, commit] Shorthand for /handoff then /commit continuation chain. '
+        'Update session.md, then commit → status display.'
+    ),
     'ci': '[/commit] Commit changes → status display.',
     '?': (
         '[#help] List shortcuts (both tiers), '

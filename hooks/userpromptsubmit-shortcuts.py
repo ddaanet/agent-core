@@ -209,58 +209,6 @@ def is_line_in_fence(lines: List[str], line_idx: int) -> bool:
     return in_fence
 
 
-def scan_for_directive(prompt: str) -> Optional[Tuple[str, str]]:
-    """Scan prompt lines for directive pattern, excluding fenced blocks.
-
-    Single-pass: tracks fence state while scanning instead of re-scanning
-    from line 0 per line.
-
-    Args:
-        prompt: Full prompt text
-
-    Returns:
-        (key, value) tuple for first non-fenced directive match, or None
-    """
-    fence_char = None
-    fence_count = 0
-    in_fence = False
-
-    for line in prompt.split('\n'):
-        stripped = line.strip()
-
-        # Track fence state
-        if stripped.startswith('```') or stripped.startswith('~~~'):
-            char = stripped[0]
-            count = 0
-            for c in stripped:
-                if c == char:
-                    count += 1
-                else:
-                    break
-            if count >= 3:
-                if not in_fence:
-                    fence_char = char
-                    fence_count = count
-                    in_fence = True
-                    continue
-                elif char == fence_char and count >= fence_count:
-                    fence_char = None
-                    fence_count = 0
-                    in_fence = False
-                    continue
-
-        if in_fence:
-            continue
-
-        # Match directive pattern: <word>: <text>
-        match = re.match(r'^(\w+):\s+(.+)', line)
-        if match:
-            directive_key = match.group(1)
-            if directive_key in DIRECTIVES:
-                return (directive_key, match.group(2))
-
-    return None
-
 
 def scan_for_directives(prompt: str) -> list[tuple[str, str]]:
     """Scan prompt for all directive matches, returning each with its section content.

@@ -95,6 +95,8 @@ Required sections when synthesizing Branch A (internal) and Branch B (external) 
 - Project-specific additions not present in any source
 - What was deliberately excluded from the external framework and why
 
+**Framing direction:** Each adapted principle states the general insight first, then the project implementation as instance. The external branch supplies the principle; the internal branch validates its applicability. Inverted framing (project-specific problem → external validation) produces entries that read as local fixes rather than transferable knowledge.
+
 **Grounding Assessment:**
 - Quality label (Strong/Moderate/Thin/None)
 - Evidence basis for the label

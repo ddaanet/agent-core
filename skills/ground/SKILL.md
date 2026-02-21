@@ -6,8 +6,7 @@ description: >-
   are"), taxonomic claims ("there are N types of X"), or best-practice claims
   ("established practice is to X"). Also when the user asks to "create a
   scoring system", "design a methodology", "build a framework", "define a
-  taxonomy", or "synthesize best practices". Encodes a diverge-converge
-  research procedure with mandatory grounding quality labels.
+  taxonomy", "synthesize best practices", or "ground this claim".
 allowed-tools: Read, Write, Grep, Glob, Bash, WebSearch, WebFetch, Task
 user-invocable: true
 ---
@@ -59,13 +58,18 @@ Synthesize both branches into grounded output.
 - Apply convergence template from `references/grounding-criteria.md` (Framework Mapping, Adaptations, Grounding Assessment, Sources)
 - Attach grounding quality label (mandatory): Strong / Moderate / Thin / None. See `references/grounding-criteria.md` for label definitions and evidence requirements.
 
+**Framing rule — general first:** State each principle as the general insight derived from external research. Project-specific implementation is an instance that validates the principle, not the principle itself. The internal branch confirms the principle applies locally; it does not define the principle.
+
+- ❌ "Git state queries return booleans — `_git_ok(*args) -> bool`"
+- ✅ "Expected states should return booleans, not raise exceptions — implemented as `_git_ok()` in this project"
+
 ### Phase 4: Output
 
 Write the grounded reference document to `plans/reports/<topic>.md` (persistent, tracked).
 
 Required sections:
 - Research foundation (named sources with links)
-- Adapted methodology (the synthesized framework)
+- Adapted methodology — general principle per item, then project implementation as instance
 - Grounding quality label with evidence basis
 - Sources section with retrieval context
 

@@ -16,7 +16,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-
 TITLE_PATTERN = re.compile(r"^## (.+)$")
 REMOVED_HEADER_PATTERN = re.compile(r"^-## ")
 
@@ -54,11 +53,20 @@ def get_commit_date_for_line(filepath, line_number):
         # -C -C: detect renames and copies across files
         # --first-parent: handle merge commits via first-parent chain
         result = subprocess.run(
-            ["git", "blame", "-C", "-C", "--first-parent",
-             "--line-porcelain", f"-L{line_number},{line_number}", "--", filepath],
+            [
+                "git",
+                "blame",
+                "-C",
+                "-C",
+                "--first-parent",
+                "--line-porcelain",
+                f"-L{line_number},{line_number}",
+                "--",
+                filepath,
+            ],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         # Parse porcelain output for commit date
@@ -87,11 +95,10 @@ def get_active_days_since(start_date):
     try:
         # Get all commit dates since start_date
         result = subprocess.run(
-            ["git", "log", "--format=%ad", "--date=short",
-             f"--since={start_date}"],
+            ["git", "log", "--format=%ad", "--date=short", f"--since={start_date}"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         # Build set of unique dates
@@ -123,7 +130,7 @@ def get_last_consolidation_date(filepath):
             ["git", "log", "-p", "--first-parent", "--", filepath],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         current_commit_date = None
@@ -140,11 +147,10 @@ def get_last_consolidation_date(filepath):
                     continue
 
             # Look for removed H2 headers (lines starting with "-## ")
-            if REMOVED_HEADER_PATTERN.match(line):
-                if current_commit_date:
-                    # Found most recent consolidation
-                    active_days = get_active_days_since(current_commit_date)
-                    return (current_commit_date, active_days)
+            if REMOVED_HEADER_PATTERN.match(line) and current_commit_date:
+                # Found most recent consolidation
+                active_days = get_active_days_since(current_commit_date)
+                return (current_commit_date, active_days)
 
         # No removed headers found
         return (None, None)
@@ -153,7 +159,7 @@ def get_last_consolidation_date(filepath):
         return (None, None)
 
 
-def main():
+def main() -> None:
     # Parse arguments
     filepath = sys.argv[1] if len(sys.argv) > 1 else "agents/learnings.md"
 
@@ -192,6 +198,18 @@ def main():
     total_entries = len(entries_with_ages)
     entries_7plus = len([e for e in entries_with_ages if e[1] >= 7])
     total_lines = len(lines)
+
+    # --summary: one-liner for hook injection
+    if "--summary" in sys.argv:
+        if last_consolidation_date:
+            print(
+                f"{total_entries} entries ({entries_7plus} ≥7 days, consolidation {staleness_days}d ago)"
+            )
+        else:
+            print(
+                f"{total_entries} entries ({entries_7plus} ≥7 days, no prior consolidation)"
+            )
+        sys.exit(0)
 
     # Generate markdown report
     print("# Learning Ages Report")

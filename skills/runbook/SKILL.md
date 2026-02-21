@@ -125,6 +125,8 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 3. Apply all fixes from vet review
 4. Tail-call `/handoff --commit`
 
+**Behavioral code changes:** Write one RED test, make it GREEN, verify, then write the next RED test. Per-cycle sequencing applies even without runbook ceremony — batching all REDs then all GREENs skips the incremental verification that catches wiring mistakes between layers.
+
 ### Tier 2: Lightweight Delegation
 
 **Criteria:**
@@ -136,6 +138,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **For TDD work (~4-10 cycles):**
 - Plan cycle descriptions (lightweight — no full runbook format)
 - For each cycle: delegate via `Task(subagent_type="tdd-task", model="haiku", prompt="...")` with context included in prompt (requires tdd-task agent definition)
+- Per-cycle sequencing: one RED → one GREEN → verify, then next cycle. Do not batch multiple REDs before GREENs.
 - Intermediate checkpoints: every 3-5 delegated cycles, run tests and review accumulated changes
 
 **For general work (6-15 files):**

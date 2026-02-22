@@ -41,7 +41,7 @@ Before starting, gather:
 ### Phase 1: Inventory
 
 1. Read the design's Scope section (IN/OUT) to establish expected deliverables
-2. Run `agent-core/bin/deliverable-inventory.py` — diffs merge-base→HEAD, excludes plan/session artifacts, classifies files by type, reports per-file and per-type line counts with markdown table output
+2. Run exact command: `agent-core/bin/deliverable-inventory.py` (no arguments, no pipes, no redirect). Outputs markdown tables: per-file diff stats and summary by type
 3. Classify each deliverable by artifact type (script auto-classifies, verify):
 
 | Type | Pattern | Review axes |

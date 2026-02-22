@@ -858,6 +858,8 @@ def generate_default_orchestrator(
     step_phases=None,
     inline_phases=None,
     phase_dir=None,
+    phase_models=None,
+    default_model=None,
 ):
     """Generate default orchestrator instructions.
 
@@ -868,6 +870,8 @@ def generate_default_orchestrator(
         step_phases: Optional dict of step_num -> phase_number
         inline_phases: Optional dict of phase_number -> phase_content
         phase_dir: Optional path to directory containing source phase files
+        phase_models: Optional dict of phase_num -> model (phase-level overrides)
+        default_model: Optional fallback model from frontmatter
 
     Returns:
         Orchestrator plan content with phase boundary markers
@@ -938,6 +942,14 @@ Stop on error and escalate to sonnet for diagnostic/fix.
         else:
             content += f"## {file_stem} ({display})\n"
             content += f"Execution: steps/{file_stem}.md\n\n"
+
+    if phase_models is not None or default_model is not None:
+        all_phases = sorted({phase for phase, _, _, _, _ in items})
+        resolved = phase_models or {}
+        content += "\n## Phase Models\n\n"
+        for p in all_phases:
+            model = resolved.get(p, default_model)
+            content += f"- Phase {p}: {model}\n"
 
     return content
 
@@ -1110,6 +1122,8 @@ def validate_and_create(
             sections.get("step_phases") if sections else None,
             sections.get("inline_phases") if sections else None,
             phase_dir=phase_dir,
+            phase_models=phase_models or {},
+            default_model=frontmatter_model,
         )
 
     orchestrator_path.write_text(orchestrator_content)

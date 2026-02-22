@@ -1,7 +1,7 @@
 ---
 name: handoff
 description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation. NOT for Haiku model orchestrators - use /handoff-haiku instead.
-allowed-tools: Read, Write, Edit, Bash(wc:*, agent-core/bin/learning-ages.py:*), Task, Skill
+allowed-tools: Read, Write, Edit, Bash(wc:*), Task, Skill
 user-invocable: true
 continuation:
   cooperative: true
@@ -111,18 +111,6 @@ Titles become `/when` triggers — name after the activity at the decision point
 **Trigger:** Session modified enforcement (validators, scripts) or behavioral rules (fragments, skills).
 
 Review loaded learnings.md (already in memory — no Read needed). Remove any learning claiming something now false. Changes and cleanup must be atomic.
-
-### 4c. Consolidation Trigger Check
-
-Run in parallel (two Bash calls, one message):
-- `wc -l agents/session.md agents/learnings.md`
-- `agent-core/bin/learning-ages.py agents/learnings.md`
-
-**Trigger (any one):** File exceeds 150 lines OR 14+ active days since last consolidation.
-
-**If triggered:** Follow `references/consolidation-flow.md` for delegation protocol. On error, log and continue (consolidation must not block handoff).
-
-**If not triggered:** Skip, continue to Step 5.
 
 ### 5. Update plan-archive.md
 

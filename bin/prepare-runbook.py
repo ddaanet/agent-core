@@ -852,7 +852,12 @@ def generate_cycle_file(cycle, runbook_path, default_model=None, phase_context="
 
 
 def generate_default_orchestrator(
-    runbook_name, cycles=None, steps=None, step_phases=None, inline_phases=None
+    runbook_name,
+    cycles=None,
+    steps=None,
+    step_phases=None,
+    inline_phases=None,
+    phase_dir=None,
 ):
     """Generate default orchestrator instructions.
 
@@ -862,6 +867,7 @@ def generate_default_orchestrator(
         steps: Optional dict of step_num -> content (general items)
         step_phases: Optional dict of step_num -> phase_number
         inline_phases: Optional dict of phase_number -> phase_content
+        phase_dir: Optional path to directory containing source phase files
 
     Returns:
         Orchestrator plan content with phase boundary markers
@@ -926,6 +932,8 @@ Stop on error and escalate to sonnet for diagnostic/fix.
         elif is_phase_boundary:
             content += f"## {file_stem} ({display}) — PHASE_BOUNDARY\n"
             content += f"Execution: steps/{file_stem}.md\n"
+            if phase_dir is not None:
+                content += f"Phase file: {phase_dir}/runbook-phase-{phase}.md\n"
             content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
         else:
             content += f"## {file_stem} ({display})\n"
@@ -945,6 +953,7 @@ def validate_and_create(
     cycles=None,
     phase_models=None,
     phase_preambles=None,
+    phase_dir=None,
 ) -> bool:
     """Validate and create all output files."""
     runbook_type = metadata.get("type", "general")
@@ -1100,6 +1109,7 @@ def validate_and_create(
             sections["steps"] if sections else None,
             sections.get("step_phases") if sections else None,
             sections.get("inline_phases") if sections else None,
+            phase_dir=phase_dir,
         )
 
     orchestrator_path.write_text(orchestrator_content)
@@ -1259,6 +1269,7 @@ def main() -> None:
     phase_preambles = extract_phase_preambles(body)
 
     # Validate and create
+    phase_dir = str(input_path) if input_path.is_dir() else None
     if not validate_and_create(
         runbook_path,
         sections,
@@ -1270,6 +1281,7 @@ def main() -> None:
         cycles,
         phase_models,
         phase_preambles,
+        phase_dir=phase_dir,
     ):
         sys.exit(1)
 

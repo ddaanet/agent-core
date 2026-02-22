@@ -893,6 +893,7 @@ def validate_and_create(
     orchestrator_path,
     metadata,
     cycles=None,
+    phase_models=None,
 ) -> bool:
     """Validate and create all output files."""
     runbook_type = metadata.get("type", "general")
@@ -958,6 +959,7 @@ def validate_and_create(
         "general" if runbook_type == "mixed" else runbook_type
     )
     model = metadata.get("model", "haiku")
+    phase_models = phase_models or {}
     frontmatter = generate_agent_frontmatter(runbook_name, model)
 
     agent_content = frontmatter + baseline_body
@@ -977,7 +979,10 @@ def validate_and_create(
         for cycle in sorted(cycles, key=lambda c: (c["major"], c["minor"])):
             step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
             step_path = steps_dir / step_file_name
-            step_file_content = generate_cycle_file(cycle, str(runbook_path), model)
+            cycle_model = phase_models.get(cycle["major"], model)
+            step_file_content = generate_cycle_file(
+                cycle, str(runbook_path), cycle_model
+            )
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
 
@@ -991,8 +996,9 @@ def validate_and_create(
             step_file_name = f"step-{step_num.replace('.', '-')}.md"
             step_path = steps_dir / step_file_name
             phase = step_phases.get(step_num, 1)
+            step_model = phase_models.get(phase, model)
             step_file_content = generate_step_file(
-                step_num, step_content, str(runbook_path), model, phase
+                step_num, step_content, str(runbook_path), step_model, phase
             )
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
@@ -1161,6 +1167,9 @@ def main() -> None:
     # Derive paths
     runbook_name, agent_path, steps_dir, orchestrator_path = derive_paths(runbook_path)
 
+    # Extract per-phase model overrides
+    phase_models = extract_phase_models(body)
+
     # Validate and create
     if not validate_and_create(
         runbook_path,
@@ -1171,6 +1180,7 @@ def main() -> None:
         orchestrator_path,
         metadata,
         cycles,
+        phase_models,
     ):
         sys.exit(1)
 

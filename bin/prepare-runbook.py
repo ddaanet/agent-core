@@ -473,6 +473,44 @@ def extract_phase_models(content):
     return {int(m.group(1)): m.group(2).lower() for m in pattern.finditer(content)}
 
 
+def extract_phase_preambles(content):
+    """Return {phase_num: preamble_text} for all phases in content.
+
+    Preamble is text between a phase header and the first step/cycle header (or
+    next phase header). Phases with no content between header and first
+    step/cycle get an empty string.
+    """
+    phase_header = re.compile(r"^###?\s+Phase\s+(\d+):", re.IGNORECASE | re.MULTILINE)
+    step_or_cycle = re.compile(r"^##\s+(Step|Cycle)\s+", re.IGNORECASE | re.MULTILINE)
+
+    preambles = {}
+    current_phase = None
+    preamble_lines = []
+    collecting = False
+
+    for line in content.splitlines():
+        ph_match = phase_header.match(line)
+        sc_match = step_or_cycle.match(line)
+
+        if ph_match:
+            if current_phase is not None and current_phase not in preambles:
+                preambles[current_phase] = "\n".join(preamble_lines).strip()
+            current_phase = int(ph_match.group(1))
+            preamble_lines = []
+            collecting = True
+        elif sc_match and collecting:
+            collecting = False
+            preambles[current_phase] = "\n".join(preamble_lines).strip()
+            preamble_lines = []
+        elif collecting:
+            preamble_lines.append(line)
+
+    if current_phase is not None and current_phase not in preambles:
+        preambles[current_phase] = "\n".join(preamble_lines).strip()
+
+    return preambles
+
+
 def assemble_phase_files(directory):
     """Assemble runbook from phase files in a directory.
 
@@ -742,7 +780,7 @@ def validate_file_references(sections, cycles=None, runbook_path=""):
 
 
 def generate_step_file(
-    step_num, step_content, runbook_path, default_model="haiku", phase=1
+    step_num, step_content, runbook_path, default_model=None, phase=1
 ):
     """Generate step file with references and execution metadata header.
 
@@ -772,7 +810,7 @@ def generate_step_file(
     return "\n".join(header_lines)
 
 
-def generate_cycle_file(cycle, runbook_path, default_model="haiku"):
+def generate_cycle_file(cycle, runbook_path, default_model=None):
     """Generate cycle file with references and execution metadata header.
 
     Args:
@@ -982,7 +1020,9 @@ def validate_and_create(
         "general" if runbook_type == "mixed" else runbook_type
     )
     model = metadata.get("model")
-    frontmatter = generate_agent_frontmatter(runbook_name, model)
+    # Resolve agent model: frontmatter model, or first phase model if absent
+    agent_model = model or (phase_models[min(phase_models)] if phase_models else None)
+    frontmatter = generate_agent_frontmatter(runbook_name, agent_model)
 
     agent_content = frontmatter + baseline_body
     if sections["common_context"]:

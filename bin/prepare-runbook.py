@@ -554,13 +554,9 @@ def assemble_phase_files(directory):
     # Prepend appropriate frontmatter (phase files have no frontmatter)
     if is_tdd:
         phase_models = extract_phase_models(assembled_body)
-        detected_model = phase_models[min(phase_models)] if phase_models else "haiku"
-        frontmatter = f"""---
-type: tdd
-model: {detected_model}
-name: {runbook_name}
----
-"""
+        detected_model = phase_models[min(phase_models)] if phase_models else None
+        model_line = f"model: {detected_model}\n" if detected_model else ""
+        frontmatter = f"---\ntype: tdd\n{model_line}name: {runbook_name}\n---\n"
     else:
         frontmatter = ""  # General runbooks derive frontmatter from assembled content
 
@@ -618,7 +614,7 @@ def read_baseline_agent(runbook_type="general"):
     return body
 
 
-def generate_agent_frontmatter(runbook_name, model="haiku") -> str:
+def generate_agent_frontmatter(runbook_name, model=None) -> str:
     """Generate frontmatter for plan-specific agent."""
     return f"""---
 name: {runbook_name}-task
@@ -630,7 +626,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 """
 
 
-def extract_step_metadata(content, default_model="haiku"):
+def extract_step_metadata(content, default_model=None):
     """Extract execution metadata from step/cycle content.
 
     Looks for bold-label fields like **Execution Model**: Sonnet
@@ -940,6 +936,31 @@ def validate_and_create(
                 print(error, file=sys.stderr)
             return False
 
+    # Validate every step/cycle resolves to a model
+    frontmatter_model = metadata.get("model")
+    phase_models = phase_models or {}
+    unresolved = []
+    if cycles:
+        for cycle in cycles:
+            step_model = extract_step_metadata(cycle["content"]).get("model")
+            resolved = (
+                step_model or phase_models.get(cycle["major"]) or frontmatter_model
+            )
+            if not resolved:
+                unresolved.append(f"cycle {cycle['number']}")
+    if sections.get("steps"):
+        step_phases_map = sections.get("step_phases", {})
+        for step_num in sections["steps"]:
+            step_model = extract_step_metadata(sections["steps"][step_num]).get("model")
+            phase = step_phases_map.get(step_num, 1)
+            resolved = step_model or phase_models.get(phase) or frontmatter_model
+            if not resolved:
+                unresolved.append(f"step {step_num}")
+    if unresolved:
+        for item in unresolved:
+            print(f"ERROR: No model specified for {item}", file=sys.stderr)
+        return False
+
     # Create directories
     agent_path.parent.mkdir(parents=True, exist_ok=True)
     steps_dir.mkdir(parents=True, exist_ok=True)
@@ -960,8 +981,7 @@ def validate_and_create(
     baseline_body = read_baseline_agent(
         "general" if runbook_type == "mixed" else runbook_type
     )
-    model = metadata.get("model", "haiku")
-    phase_models = phase_models or {}
+    model = metadata.get("model")
     frontmatter = generate_agent_frontmatter(runbook_name, model)
 
     agent_content = frontmatter + baseline_body

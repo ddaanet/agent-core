@@ -409,7 +409,7 @@ If design document includes "Requirements" section:
 **Inline phases:** Inline phases always satisfy sufficiency — they have no expansion. In mixed runbooks (inline + general/TDD), inline phases pass through while non-inline phases are evaluated against the criteria above.
 
 **LLM failure mode gate (before promotion):**
-Check for common planning defects (criteria from runbook-review.md updated in Step 2.1):
+Check for common planning defects (criteria from review-plan skill Section 11):
 - Vacuity: any items that only create scaffolding without functional outcome?
 - Ordering: any items referencing structures from later items?
 - Density: adjacent items on same target with minimal delta? (TDD: <1 branch difference; General: <20 LOC delta)

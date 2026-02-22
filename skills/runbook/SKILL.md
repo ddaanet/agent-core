@@ -436,6 +436,7 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
 1. **Generate phase content:**
    - **Read Expansion Guidance:** Check `plans/<job>/runbook-outline.md` for `## Expansion Guidance` section.
    - File: `plans/<job>/runbook-phase-N.md`
+   - Every phase file MUST start with `### Phase N: title (type: TYPE, model: MODEL)` header. prepare-runbook.py uses this for model propagation and context extraction.
    - Check phase type tag from outline phase heading (e.g., `### Phase 1: Core behavior (type: tdd)`)
 
 2. **Expand based on phase type:**
@@ -617,6 +618,8 @@ Only add custom domain-specific stop conditions per-cycle when needed.
    - No new content generation, only validation
 
 **IMPORTANT — Do NOT manually assemble:** Phase files remain separate until prepare-runbook.py processes them. Manual concatenation bypasses validation logic.
+
+**Fallback header injection:** prepare-runbook.py injects missing `### Phase N:` headers from filenames during assembly. This is a safety net — phase files should include headers explicitly for model propagation.
 
 Every assembled runbook MUST include this metadata section:
 
@@ -886,6 +889,7 @@ For external services (databases, APIs, cloud services):
 - Leaving design decisions for "during execution"
 - Vague success criteria ("analysis complete" vs "analysis has 6 sections with line numbers")
 - Success criteria that only check structure ("file exists") when step should verify content/behavior
+- Missing phase headers in phase files (causes model defaults and context loss)
 - Forgetting to run prepare-runbook.py after review
 - Prescriptive code in TDD GREEN phases (describe behavior, provide hints)
 - Missing investigation prerequisites for creation steps

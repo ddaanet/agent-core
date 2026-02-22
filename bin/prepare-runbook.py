@@ -532,7 +532,10 @@ def assemble_phase_files(directory):
                 return None, None
 
         phase_num = phase_nums[i]
-        assembled_parts.append(f"\n### Phase {phase_num}:\n\n{content}")
+        if re.search(rf"^###? Phase\s+{phase_num}:", content, re.MULTILINE):
+            assembled_parts.append(f"\n{content}")
+        else:
+            assembled_parts.append(f"\n### Phase {phase_num}:\n\n{content}")
 
     # Derive runbook name from directory (plans/foo -> foo)
     runbook_name = dir_path.name

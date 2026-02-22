@@ -654,14 +654,8 @@ def read_baseline_agent(runbook_type="general"):
 
 def generate_agent_frontmatter(runbook_name, model=None) -> str:
     """Generate frontmatter for plan-specific agent."""
-    return f"""---
-name: {runbook_name}-task
-description: Execute {runbook_name} steps from the plan with plan-specific context.
-model: {model}
-color: cyan
-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
----
-"""
+    model_line = f"model: {model}\n" if model is not None else ""
+    return f'---\nname: {runbook_name}-task\ndescription: Execute {runbook_name} steps from the plan with plan-specific context.\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
 
 
 def extract_step_metadata(content, default_model=None):

@@ -36,13 +36,13 @@ Used when user specifies `wt <task-name>`.
 
 1. **Read `agents/session.md`** to locate task in Pending Tasks. Extract full task block including name, command, model, and metadata.
 
-2. **Invoke: `claudeutils _worktree new --task "<task name>"`** (requires `dangerouslyDisableSandbox: true`) to create the worktree with focused session. The command derives the slug, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`.
+2. **Invoke: `claudeutils _worktree new "<task name>"`** (requires `dangerouslyDisableSandbox: true`) to create the worktree with focused session. The command derives the slug from the task name, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`. Use `--branch <slug>` to override the derived slug (e.g., when the derived slug exceeds 29 chars).
 
 3. **Parse output** to extract slug and worktree path from the tab-separated line.
 
 4. **Output launch command** using the path from step 3: `cd <path> && claude    # <task name>`.
 
-The `new --task` command automatically moves the task from Pending Tasks to Worktree Tasks in `agents/session.md`, appending the `→ \`slug\`` marker. No manual session.md editing needed.
+The `new` command with a task name automatically moves the task from Pending Tasks to Worktree Tasks in `agents/session.md`, appending the `→ \`slug\`` marker. No manual session.md editing needed.
 
 ## Mode B: Parallel Group
 
@@ -65,11 +65,11 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 3. **Check for parallel group existence.** If analysis found no independent group (all tasks have dependencies, different tiers, or restart requirements), **output message**: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees. Return to the user prompt.
 
 4. **If group found, for each task in the parallel group:**
-   - Invoke `claudeutils _worktree new --task "<task name>"` with `dangerouslyDisableSandbox: true` (captures `<slug>\t<path>` output)
+   - Invoke `claudeutils _worktree new "<task name>"` with `dangerouslyDisableSandbox: true` (captures `<slug>\t<path>` output)
    - Parse slug and path from output
    - Collect launch commands
 
-   Process tasks sequentially (one at a time, in order). The `new --task` command automatically moves each task to the Worktree Tasks section.
+   Process tasks sequentially (one at a time, in order). The `new` command automatically moves each task to the Worktree Tasks section.
 
 5. **Output consolidated launch commands** after all worktrees are created:
 
@@ -113,15 +113,15 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 ## Usage Notes
 
-- **Always use `--task` form for tracked tasks:** `claudeutils _worktree new --task "<task name>"` is the correct invocation for any task in session.md. A bare slug form exists (`_worktree new <slug>`) but skips session integration — see `references/branch-mode.md` for when that applies.
+- **Positional arg = task name for tracked tasks:** `claudeutils _worktree new "<task name>"` is the correct invocation for any task in session.md. Use `--branch <slug>` for bare slug without session integration — see `references/branch-mode.md` for when that applies.
 
-- **Sandbox bypass required for mutations:** All `claudeutils _worktree` mutation commands (`new`, `merge`, `rm`) must use `dangerouslyDisableSandbox: true`. These commands write `.claude/settings.local.json` (sandbox allowlist), create/remove worktree directories outside project root, and run environment setup (`uv sync`, `direnv allow`). Read-only git commands (`git status`, `git log`, `git worktree list`) do NOT need bypass.
+- **Sandbox bypass required for mutations:** All `claudeutils _worktree` mutation commands (`new`, `merge`, `rm`) must use `dangerouslyDisableSandbox: true`. These commands create/remove worktree directories outside project root and run environment setup (`uv sync`, `direnv allow`). Read-only git commands (`git status`, `git log`, `git worktree list`) do NOT need bypass.
 
 - **Slug derivation is deterministic:** The transformation of task names to slugs is repeatable. The same task name will always produce the same slug. This ensures consistency across sessions and enables command reuse (e.g., `wt merge <slug>` always operates on the correct worktree).
 
 - **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. Fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
 
-- **Session.md task movement is automated:** `new --task` moves the task from Pending Tasks to Worktree Tasks (with `→ \`slug\`` marker). `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`). No manual session.md editing required for task movement.
+- **Session.md task movement is automated:** `new "<task name>"` moves the task from Pending Tasks to Worktree Tasks (with `→ \`slug\`` marker). `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`). No manual session.md editing required for task movement.
 
 - **Cleanup is user-initiated:** After merge, worktree is preserved. Remove when ready via `wt-rm <slug>`.
 

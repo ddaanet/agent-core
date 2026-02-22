@@ -464,6 +464,15 @@ def extract_sections(content):
     return sections
 
 
+def extract_phase_models(content):
+    """Return {phase_num: model} for phases that have a model: annotation."""
+    pattern = re.compile(
+        r"^###?\s+Phase\s+(\d+):.*model:\s*(\w+)",
+        re.IGNORECASE | re.MULTILINE,
+    )
+    return {int(m.group(1)): m.group(2).lower() for m in pattern.finditer(content)}
+
+
 def assemble_phase_files(directory):
     """Assemble runbook from phase files in a directory.
 

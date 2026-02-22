@@ -780,7 +780,7 @@ def validate_file_references(sections, cycles=None, runbook_path=""):
 
 
 def generate_step_file(
-    step_num, step_content, runbook_path, default_model=None, phase=1
+    step_num, step_content, runbook_path, default_model=None, phase=1, phase_context=""
 ):
     """Generate step file with references and execution metadata header.
 
@@ -790,6 +790,7 @@ def generate_step_file(
         runbook_path: Path to runbook file
         default_model: Default model if not specified in content
         phase: Phase number for this step
+        phase_context: Optional preamble text for the phase (injected as ## Phase Context)
 
     Returns:
         Formatted step file content with phase in frontmatter
@@ -806,17 +807,24 @@ def generate_step_file(
     if "report_path" in meta:
         header_lines.append(f"**Report Path**: `{meta['report_path']}`")
 
-    header_lines.extend(["", "---", "", step_content, ""])
+    header_lines.append("")
+    header_lines.append("---")
+    if phase_context and phase_context.strip():
+        header_lines.extend(
+            ["", "## Phase Context", "", phase_context.strip(), "", "---"]
+        )
+    header_lines.extend(["", step_content, ""])
     return "\n".join(header_lines)
 
 
-def generate_cycle_file(cycle, runbook_path, default_model=None):
+def generate_cycle_file(cycle, runbook_path, default_model=None, phase_context=""):
     """Generate cycle file with references and execution metadata header.
 
     Args:
         cycle: Dictionary with keys: major, minor, number, title, content
         runbook_path: Path to runbook file
         default_model: Default model if not specified in cycle content
+        phase_context: Optional preamble text for the phase (injected as ## Phase Context)
 
     Returns:
         Formatted cycle file content with phase (major cycle number)
@@ -833,7 +841,13 @@ def generate_cycle_file(cycle, runbook_path, default_model=None):
     if "report_path" in meta:
         header_lines.append(f"**Report Path**: `{meta['report_path']}`")
 
-    header_lines.extend(["", "---", "", cycle["content"], ""])
+    header_lines.append("")
+    header_lines.append("---")
+    if phase_context and phase_context.strip():
+        header_lines.extend(
+            ["", "## Phase Context", "", phase_context.strip(), "", "---"]
+        )
+    header_lines.extend(["", cycle["content"], ""])
     return "\n".join(header_lines)
 
 
@@ -930,6 +944,7 @@ def validate_and_create(
     metadata,
     cycles=None,
     phase_models=None,
+    phase_preambles=None,
 ) -> bool:
     """Validate and create all output files."""
     runbook_type = metadata.get("type", "general")
@@ -1036,6 +1051,8 @@ def validate_and_create(
     agent_path.write_text(agent_content)
     print(f"✓ Created agent: {agent_path}")
 
+    preambles = phase_preambles or {}
+
     # Generate step files for TDD cycles
     if cycles:
         for cycle in sorted(cycles, key=lambda c: (c["major"], c["minor"])):
@@ -1043,7 +1060,10 @@ def validate_and_create(
             step_path = steps_dir / step_file_name
             cycle_model = phase_models.get(cycle["major"], model)
             step_file_content = generate_cycle_file(
-                cycle, str(runbook_path), cycle_model
+                cycle,
+                str(runbook_path),
+                cycle_model,
+                phase_context=preambles.get(cycle["major"], ""),
             )
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
@@ -1060,7 +1080,12 @@ def validate_and_create(
             phase = step_phases.get(step_num, 1)
             step_model = phase_models.get(phase, model)
             step_file_content = generate_step_file(
-                step_num, step_content, str(runbook_path), step_model, phase
+                step_num,
+                step_content,
+                str(runbook_path),
+                step_model,
+                phase,
+                phase_context=preambles.get(phase, ""),
             )
             step_path.write_text(step_file_content)
             print(f"✓ Created step: {step_path}")
@@ -1229,8 +1254,9 @@ def main() -> None:
     # Derive paths
     runbook_name, agent_path, steps_dir, orchestrator_path = derive_paths(runbook_path)
 
-    # Extract per-phase model overrides
+    # Extract per-phase model overrides and phase preambles
     phase_models = extract_phase_models(body)
+    phase_preambles = extract_phase_preambles(body)
 
     # Validate and create
     if not validate_and_create(
@@ -1243,6 +1269,7 @@ def main() -> None:
         metadata,
         cycles,
         phase_models,
+        phase_preambles,
     ):
         sys.exit(1)
 

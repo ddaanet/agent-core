@@ -549,18 +549,20 @@ def assemble_phase_files(directory):
     # Derive runbook name from directory (plans/foo -> foo)
     runbook_name = dir_path.name
 
+    assembled_body = "\n".join(assembled_parts)
+
     # Prepend appropriate frontmatter (phase files have no frontmatter)
     if is_tdd:
+        phase_models = extract_phase_models(assembled_body)
+        detected_model = phase_models[min(phase_models)] if phase_models else "haiku"
         frontmatter = f"""---
 type: tdd
-model: haiku
+model: {detected_model}
 name: {runbook_name}
 ---
 """
     else:
         frontmatter = ""  # General runbooks derive frontmatter from assembled content
-
-    assembled_body = "\n".join(assembled_parts)
 
     # Inject default Common Context for TDD runbooks assembled from phase files
     # when phases don't include one. Provides standard stop/error conditions

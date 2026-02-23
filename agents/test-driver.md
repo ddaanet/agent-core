@@ -5,6 +5,7 @@ description: Execute TDD cycles with RED/GREEN/REFACTOR phases. Use for runbook 
 model: haiku
 color: green
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+skills: ["project-conventions"]
 ---
 
 # TDD Task Agent - Baseline Template

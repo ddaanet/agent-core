@@ -4,6 +4,7 @@ description: Execute plan steps with quiet execution pattern (reports to files, 
 model: haiku
 color: blue
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Skill"]
+skills: ["project-conventions"]
 ---
 
 # Task Agent - Baseline Template
@@ -88,17 +89,6 @@ Do not provide summary, explanation, or commentary in return message. Report fil
 - Include relevant file names and code snippets in reports
 - Do not use colons before tool calls (use periods)
 - **Report measured data only** - Do not make estimates, predictions, or extrapolations unless explicitly requested
-
-### Code Quality
-
-- Write docstrings only when they explain non-obvious behavior, not restating the signature
-- Write comments only to explain *why*, never *what* the code does
-- No section banner comments (`# --- Helpers ---`)
-- Introduce abstractions only when a second use exists — no single-use interfaces or factories
-- Guard only against states that can actually occur at trust boundaries
-- Expose fields directly until access control logic is needed
-- Build for current requirements; extend when complexity arrives
-- **Deletion test** — Remove the construct. Keep it only if behavior or safety is lost.
 
 ### Git Operations
 

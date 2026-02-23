@@ -280,8 +280,8 @@ Review all changes for:
 ### 4. Write Review Report
 
 **Create review file** at:
-- `tmp/vet-review-[timestamp].md` (for ad-hoc work), OR
-- `plans/[plan-name]/reports/vet-review.md` (if task specifies plan context)
+- `tmp/review-[timestamp].md` (for ad-hoc work), OR
+- `plans/[plan-name]/reports/review.md` (if task specifies plan context)
 
 Use timestamp format: `YYYY-MM-DD-HHMMSS`
 
@@ -423,7 +423,7 @@ This prevents structural duplication from parallel sections covering the same to
 **On success:**
 Return ONLY the filepath (relative or absolute):
 ```
-tmp/vet-review-2026-01-30-152030.md
+tmp/review-2026-01-30-152030.md
 ```
 
 **On failure:**

@@ -8,23 +8,16 @@ user-invocable: false
 
 # Project Conventions
 
-## Deslop
+## Code Quality
 
-Strip output to its informational payload. Apply the deletion test: remove the sentence — keep only if information is lost.
+Prose quality rules have moved to ambient context (communication.md). For code:
 
-**Prose:**
-- State information directly — no hedging, framing, preamble
-- Answer immediately — skip acknowledgments and transitions
-- Reference, never recap — assume the reader has context
-- Let results speak — no framing around visible output
-- Commit to answers — no hedging qualifiers
-
-**Code:**
 - Docstrings only for non-obvious behavior
 - Comments explain *why*, never *what*
 - No section banners — let structure communicate grouping
 - Abstractions only when a second use exists
 - Guard only at trust boundaries
+- Expose fields directly until access control needed
 - Build for current requirements, extend when needed
 
 ## Token Economy

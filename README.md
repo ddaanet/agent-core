@@ -178,7 +178,7 @@ patterns, and project conventions.
 Fragments are ambient context — agents don't need to explicitly load them.
 
 **Behavioral:**
-`communication.md`, `deslop.md`, `execute-rule.md`, `error-handling.md`,
+`communication.md`, `execute-rule.md`, `error-handling.md`,
 `no-estimates.md`, `code-removal.md`, `token-economy.md`,
 `design-decisions.md`, `commit-skill-usage.md`
 

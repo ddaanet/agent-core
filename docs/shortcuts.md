@@ -47,7 +47,7 @@ Natural language — no hook expansion needed, Claude understands directly.
 | `/runbook` | Create execution runbook (unified — TDD + general phases) |
 | `/remember` | Consolidate learnings into permanent docs |
 | `/shelve` | Archive session context, reset for new work |
-| `/vet` | Review artifacts for quality |
+| `/review` | Review artifacts for quality |
 
 ## How It Works
 

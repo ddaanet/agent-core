@@ -139,7 +139,7 @@ Return filepath or error.
 - **OUT-OF-SCOPE** — Not relevant to current review. Item falls outside the review's subject matter entirely — not a known deferral, just irrelevant. Does NOT block.
 - **UNFIXABLE** — Technical blocker requiring user decision. All investigation gates passed, no fix path exists. Must include subcategory code (U-REQ, U-ARCH, U-DESIGN) and investigation summary.
 
-**Full taxonomy reference:** `agent-core/agents/vet-taxonomy.md` (subcategory codes, investigation format, examples).
+**Full taxonomy reference:** `agent-core/agents/corrector.md` (Status Taxonomy section with subcategory codes and investigation format).
 
 **Detection steps:**
 1. Read the report file returned by corrector

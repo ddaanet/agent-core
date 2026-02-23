@@ -6,9 +6,9 @@ Accumulated patterns and best practices for session handoff workflow.
 
 **Anti-pattern:** Abbreviating design decisions during handoff, losing rationale.
 
-**Correct pattern:** Write design decisions with rationale to learnings.md (staging for /remember).
+**Correct pattern:** Write design decisions with rationale to learnings.md (staging for /codify).
 
-**Rationale:** session.md allowed sections are limited (Completed, Pending, Blockers, References only). Design decisions don't fit these categories. learnings.md is staging area → /remember consolidates to permanent locations (fragments/, decisions/, skill references/).
+**Rationale:** session.md allowed sections are limited (Completed, Pending, Blockers, References only). Design decisions don't fit these categories. learnings.md is staging area → /codify consolidates to permanent locations (fragments/, decisions/, skill references/).
 
 **Impact:** Prevents loss of architectural context across sessions.
 

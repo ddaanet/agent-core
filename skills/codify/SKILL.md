@@ -1,6 +1,6 @@
 ---
-name: remember
-description: This skill should be used when the user asks to "remember this", "update rules", "add to documentation", "consolidate learnings", "#remember", or when workflow improvements are discovered. Processes pending learnings from session handoffs and updates CLAUDE.md, skill references, and documentation with rules and patterns.
+name: codify
+description: This skill should be used when the user asks to "remember this", "codify this", "update rules", "add to documentation", "consolidate learnings", "#codify", "#remember", or when workflow improvements are discovered. Processes pending learnings from session handoffs and updates CLAUDE.md, skill references, and documentation with rules and patterns.
 allowed-tools: Read, Write, Edit, Bash(git:*), Glob
 user-invocable: true
 ---
@@ -11,9 +11,11 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 ## When to Use
 
-**Use when:** Workflow improvement discovered • Missing constraint identified • Compliance failure resolved • User requests update (#remember) • Completed work reveals patterns
+**Use when:** Workflow improvement discovered • Missing constraint identified • Compliance failure resolved • User requests update (#codify) • Completed work reveals patterns
 
 **Skip when:** Trivial update (fix directly) • No learnings • Temporary/experimental change
+
+**Prerequisite:** Execute in a clean session (fresh start). This skill runs inline in the calling session — no delegation to sub-agents.
 
 ## Execution Protocol
 
@@ -29,7 +31,8 @@ Transform session learnings into persistent, actionable documentation. Updates C
 **Implementation patterns** → `agents/decisions/implementation-notes.md`: Mock patterns • Python quirks • API details
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
 **Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
-**Other**: `.claude/agents/*.md` • Plan files (historical only)
+**Agent templates** → `agent-core/agents/*.md`: Execution patterns • Tool usage • Error handling • Domain-specific guidance. Route when learning is actionable for a specific agent role (execution pattern, stop condition, tool preference, error handling heuristic). Eligible agents: artisan, brainstorm-name, corrector, design-corrector, hooks-tester, outline-corrector, refactor, runbook-corrector, runbook-outline-corrector, runbook-simplifier, scout, tdd-auditor, test-driver. Exclude plan-specific agents (generated per-runbook by prepare-runbook.py)
+**Other**: Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
 
 **For detailed routing guidance**, see `references/consolidation-patterns.md`
@@ -55,17 +58,18 @@ Transform session learnings into persistent, actionable documentation. Updates C
 - **Edit** for modifications • **Write** for new files only (Read first if exists)
 - Read updated section → Check formatting → Verify placement
 - **After consolidation**: Remove consolidated learnings from `agents/learnings.md`, but keep the 3-5 most recent learnings (at bottom of file) for continuity
+- **File splitting (if needed):** After Write/Edit to a decision file, check `wc -l`. If >400 lines, split by H2/H3 boundaries into 100-300 line sections. Run `agent-core/bin/validate-memory-index.py --fix` after split
 
 **Step 4a: Update discovery mechanisms**
 
 After consolidating a learning:
 
 1. **Append to memory index**: Generate `/when` or `/how` entry in `agents/memory-index.md`:
-   - **Trigger naming**:
-     - Plain prose, no hyphens or special characters
-     - 2-5 words typical
-     - Optimize for discovery: what would agent type when facing this problem?
-     - Use key compression tool (`agent-core/bin/compress-key.py`) to verify uniqueness
+   - **Trigger derivation** (mechanical — no rephrasing):
+     - `## When X Y Z` → `/when x y z`
+     - `## How to X Y` → `/how x y`
+     - Title IS the trigger. Lowercase, preserve all words after operator prefix
+   - Use key compression tool (`agent-core/bin/compress-key.py`) to verify uniqueness
    - **Operator selection**:
      - `/when` for behavioral knowledge (when to do X, when X applies)
      - `/how` for procedural knowledge (how to do X, technique for X)
@@ -88,6 +92,25 @@ After consolidating a learning:
 **Meta-learnings (use sparingly):**
 - Rules about rules — only when behavioral constraint required
 - Example: "Soft limits normalize deviance" → consolidate if recurrent
+
+### Title Format Requirements
+
+Titles must follow the validation rules enforced by precommit:
+
+- **Prefix required:** Start with `When ` or `How to `
+- **Min 2 content words after prefix:** `## When choosing review gate` (2 content words — pass). `## When testing` (1 content word — fail)
+
+**Anti-pattern examples:**
+- `## transformation table` → missing prefix, jargon title
+- `## When testing` → prefix OK, but only 1 content word
+- `## How encode` → must be `How to`, not bare `How`
+
+**Correct pattern examples:**
+- `## When choosing review gate` — situation at decision point
+- `## How to encode file paths` — procedural knowledge
+- `## When haiku rationalizes test failures` — specific behavioral pattern
+
+Titles become `/when` and `/how` triggers mechanically — name after the activity at the decision point, not the outcome or jargon.
 
 ### Staging Retention Guidance
 
@@ -120,11 +143,11 @@ For guidance on tiering, budgeting, and maintaining rules in CLAUDE.md, see **`r
 
 ## Common Patterns
 
-For detailed usage patterns (error handling, workflow improvement, design decisions, pending learnings), see **`examples/remember-patterns.md`**.
+For detailed usage patterns (error handling, workflow improvement, design decisions, pending learnings), see **`examples/codify-patterns.md`**.
 
 ## Integration
-**Invocations**: During work (#remember [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
-**Related**: `/review` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows remember)
+**Invocations**: During work (#codify [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
+**Related**: `/review` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows /codify)
 
 ## Additional Resources
 
@@ -137,7 +160,7 @@ For detailed guidance:
 ### Example Files
 
 Working patterns for common scenarios:
-- **`examples/remember-patterns.md`** - Error handling, workflow improvements, design decisions, pending learnings consolidation
+- **`examples/codify-patterns.md`** - Error handling, workflow improvements, design decisions, pending learnings consolidation
 
 ### Target Files
 

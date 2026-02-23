@@ -31,6 +31,24 @@ Route learnings to appropriate documentation based on domain.
 
 **Format:** Append to skill's `references/learnings.md` (create if needed)
 
+### Agent-Specific → agent-core/agents/*.md
+
+**Route when:** Learning is actionable for a specific agent role — execution pattern, stop condition, tool preference, error handling heuristic.
+
+**Pattern:** Append to matching agent definition's system prompt (after existing instructions, before `---` separator if present).
+
+**Example routing:**
+- "When haiku rationalizes test failures" → `agent-core/agents/test-driver.md`
+- "When step agents leave uncommitted files" → `agent-core/agents/artisan.md`
+- "When holistic review applies fixes" → `agent-core/agents/corrector.md`
+- "When outline review produces ungrounded corrections" → `agent-core/agents/outline-corrector.md`
+
+**Eligible agents (13):** artisan, brainstorm-name, corrector, design-corrector, hooks-tester, outline-corrector, refactor, runbook-corrector, runbook-outline-corrector, runbook-simplifier, scout, tdd-auditor, test-driver
+
+**Exclusion:** Plan-specific agents (generated per-runbook by `prepare-runbook.py`) are ephemeral — do not consolidate learnings into them.
+
+**Format:** Behavioral rule under relevant section heading, matching agent's existing instruction style.
+
 ## Progressive Disclosure Principle
 
 **Rule:** Learnings should live where they're most likely to be needed.
@@ -67,17 +85,16 @@ Route learnings to appropriate documentation based on domain.
 
 ### 1. Append to Memory Index
 
-Add one-line entry to `agents/memory-index.md` in the appropriate domain section:
+Add `/when` or `/how` entry to `agents/memory-index.md` in the appropriate domain section.
 
-```markdown
-- [Summary of learning] → `agent-core/fragments/file.md` or `agents/decisions/file.md`
-```
+**Trigger derivation** (mechanical — no rephrasing):
+- `## When X Y Z` → `/when x y z`
+- `## How to X Y` → `/how x y`
+- Title IS the trigger. Lowercase, preserve all words after operator prefix
 
-**Examples:**
-```markdown
-- Sandbox bypass requires dangerouslyDisableSandbox + permissions.allow → `agent-core/fragments/sandbox-exemptions.md`
-- Tier assessment determines runbook vs direct implementation → `agents/decisions/workflows.md`
-```
+**Operator selection:**
+- `/when` for behavioral knowledge (when to do X, when X applies)
+- `/how` for procedural knowledge (how to do X, technique for X)
 
 **Append-only.** Never remove or consolidate entries. Each entry provides keyword discovery surface for on-demand knowledge — removal loses ambient awareness.
 

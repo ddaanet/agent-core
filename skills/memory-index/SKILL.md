@@ -11,23 +11,26 @@ Active knowledge retrieval for sub-agents. Sub-agents lack the Skill tool and ca
 
 **Sub-agent invocation (via Bash):**
 ```bash
-agent-core/bin/when-resolve.py when "<trigger>"
-agent-core/bin/when-resolve.py how "<trigger>"
+agent-core/bin/when-resolve.py "when <trigger>"
+agent-core/bin/when-resolve.py "how <trigger>"
 ```
 
 **Examples:**
 ```bash
 # Behavioral knowledge
-agent-core/bin/when-resolve.py when "using oneshot workflow"
+agent-core/bin/when-resolve.py "when using oneshot workflow"
 
 # Procedural knowledge
-agent-core/bin/when-resolve.py how "format token count output"
+agent-core/bin/when-resolve.py "how format token count output"
 
 # Section navigation
-agent-core/bin/when-resolve.py when ".Section Title"
+agent-core/bin/when-resolve.py "when .Section Title"
 
 # Full file access
-agent-core/bin/when-resolve.py when "..file.md"
+agent-core/bin/when-resolve.py "when ..file.md"
+
+# Batched recall (multiple queries in one call)
+agent-core/bin/when-resolve.py "when writing mock tests" "how encode paths"
 ```
 
 **Index syntax:** Triggers below are the same keys used by the `/when` skill. Invoke via Bash as shown above.

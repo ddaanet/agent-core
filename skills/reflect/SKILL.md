@@ -113,7 +113,7 @@ Choose exit path based on context budget and fix scope:
 **Actions:**
 1. Apply fixes using Edit tool
 2. Append learning to `agents/learnings.md` (anti-pattern / correct pattern / rationale format)
-3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
+3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /codify to consolidate"
 4. Update memory index if systemic fix
 5. Stop and return control to user
 
@@ -129,7 +129,7 @@ Choose exit path based on context budget and fix scope:
 1. Write RCA report to `plans/reflect-rca-<slug>/rca.md` where slug describes deviation
    - **Slug format:** kebab-case description of deviation type (e.g., `orchestrator-dirty-tree`, `tool-misuse-grep`)
 2. Append learning to `agents/learnings.md`
-3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
+3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /codify to consolidate"
 4. Write pending tasks to session.md in task format:
    - Format: `- [ ] **Task Name** — \`command\` | model | restart?`
    - Assess model tier per task (opus for design/architecture, sonnet for implementation, haiku for mechanical)
@@ -149,7 +149,7 @@ Choose exit path based on context budget and fix scope:
 **Actions:**
 1. Document partial findings (what we know so far)
 2. Append learning to `agents/learnings.md` if pattern identified
-3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /remember to consolidate"
+3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /codify to consolidate"
 4. Write pending tasks to session.md in task format:
    - Upstream doc fix (with path, model tier, restart flag if applicable — format: `| restart`)
    - RCA resumption (reference partial findings location)
@@ -202,7 +202,7 @@ Choose exit path based on context budget and fix scope:
 **Exit:** Stop and return control to user after completing RCA work
 
 **Related skills:**
-- `/remember` — Consolidates learnings from RCA
+- `/codify` — Consolidates learnings from RCA
 - `/hookify` — Creates enforcement hooks if RCA identifies need
 
 ## Key Design Decisions

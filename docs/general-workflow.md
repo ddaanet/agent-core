@@ -304,7 +304,7 @@ Run `prepare-runbook.py` to create:
 
 ---
 
-### `/remember`
+### `/codify`
 **Stage:** Any
 **Model:** Sonnet
 **Use when:** Documenting workflow learnings or updating rules
@@ -441,7 +441,7 @@ Agent: Calls /handoff: "All workflow tasks complete. Start fresh session for new
 5. **Planning** (Stage 3): Plan Phase 2 after Phase 1 validation
 6. **Execution** (Stage 4): Run Phase 2 steps
 7. **Review** (Stage 5): Delegate to corrector
-8. **Completion** (Stage 6): Update architecture docs with `/remember`, finalize
+8. **Completion** (Stage 6): Update architecture docs with `/codify`, finalize
 
 ---
 

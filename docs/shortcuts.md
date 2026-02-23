@@ -45,7 +45,7 @@ Natural language — no hook expansion needed, Claude understands directly.
 | `/handoff` | Update session.md for agent continuation |
 | `/orchestrate` | Execute prepared runbooks |
 | `/runbook` | Create execution runbook (unified — TDD + general phases) |
-| `/remember` | Consolidate learnings into permanent docs |
+| `/codify` | Consolidate learnings into permanent docs |
 | `/shelve` | Archive session context, reset for new work |
 | `/review` | Review artifacts for quality |
 

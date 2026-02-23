@@ -102,7 +102,13 @@ Without criteria, haiku cannot verify alignment and quality surfaces only at com
 
 Append to `agents/learnings.md` (not session.md). Format: H2 title → Anti-pattern → Correct pattern → Rationale. No blank line after title.
 
-Titles become `/when` triggers — name after the activity at the decision point. Design decisions are learnings; learnings.md is a staging area for `/remember` consolidation.
+**Title format (enforced by precommit):**
+- Must start with `When ` or `How to `
+- Min 2 content words after prefix
+- Name after the activity at the decision point — not jargon or root-cause nouns
+- Examples: ❌ "transformation table" → ✅ "When choosing review gate"; ❌ "prose gates" → ✅ "How to prevent skill steps from being skipped"
+
+Titles become `/when` and `/how` triggers mechanically. Design decisions are learnings; learnings.md is a staging area for `/codify` consolidation.
 
 **Append-only.** Never overwrite or trim.
 
@@ -131,7 +137,7 @@ Do NOT delete tasks completed in the current conversation, even if just committe
 ## Principles
 
 - **session.md = working memory.** Next agent context without bloat. Specifics > logs.
-- **learnings.md = semantic memory.** Anti-patterns, correct patterns. Append-only, consolidated via `/remember`.
+- **learnings.md = semantic memory.** Anti-patterns, correct patterns. Append-only, consolidated via `/codify`.
 - **git = archive.** Plan summaries → plan-archive.md. Commit history injected at session start.
 - **Efficient-model review:** Process haiku Session Notes for learnings; apply judgment the efficient model skipped.
 

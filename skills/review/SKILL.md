@@ -381,4 +381,4 @@ See `agent-core/fragments/review-requirement.md` for full template and rationale
 **Related skills:**
 - Built-in `/review` - For PR reviews
 - `/commit` - After review passes
-- `/remember` - To document discovered patterns
+- `/codify` - To document discovered patterns

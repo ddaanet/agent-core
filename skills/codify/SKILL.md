@@ -5,7 +5,7 @@ allowed-tools: Read, Write, Edit, Bash(git:*), Glob
 user-invocable: true
 ---
 
-# Consolidate Session Learnings
+# Codify Learnings into Permanent Docs
 
 Transform session learnings into persistent, actionable documentation. Updates CLAUDE.md, context files, and related docs to capture rules and patterns.
 
@@ -19,9 +19,11 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 ## Execution Protocol
 
-### 1. Understand Learning
-- Problem/gap? Solution/rule? Why important? Category?
-- Read: `agents/learnings.md` for recent learnings to consolidate
+### 1. Assess Learnings
+- Run `agent-core/bin/learning-ages.py` to get the ages report
+- Entries ≥7 active days → eligible for consolidation
+- Entries <7 active days → keep in staging (do not consolidate)
+- Read the eligible entries in `agents/learnings.md` for context
 - Read: `agents/decisions/*.md` (relevant domain doc, if exists)
 
 ### 2. File Selection

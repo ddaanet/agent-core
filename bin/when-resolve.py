@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Thin wrapper for the when/how CLI commands.
+"""Thin wrapper for the when CLI command.
 
 Usage: when-resolve.py "when <query>" ["how <query>" ...]
 """

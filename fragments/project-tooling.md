@@ -19,6 +19,8 @@
 
 **Partial failure recovery:** If a recipe fails partway through, fix the obstruction and **retry the recipe** — do not complete remaining steps manually. Recipes are atomic units; manually finishing steps bypasses error handling, ordering, and side effects encoded in the recipe.
 
+**Deny-list as routing signal:** When a CLI command fails and raw commands are denied, the deny list is a routing signal — it means "use the wrapper." After CLI failure, retry with escalated flags (`--force`) before decomposing into raw commands.
+
 **Relationship to Execution Routing:** Execution Routing (`execution-routing.md`) governs the _delegate vs do directly_ decision. This rule governs _how_ to execute: prefer existing project recipes over equivalent ad-hoc commands.
 
 ### Check Platform Capabilities Before Building

@@ -422,6 +422,40 @@ def _fence_tracker():
     return tracker
 
 
+def strip_fenced_blocks(content):
+    """Replace fenced block content with empty lines, preserving line count.
+
+    Args:
+        content: String content with potential fenced code blocks
+
+    Returns:
+        String with fenced block content replaced by empty lines.
+        Fence delimiter lines themselves are preserved.
+        Line count is unchanged.
+
+    Rationale: Position-dependent logic elsewhere depends on stable line numbers.
+    """
+    content.splitlines(keepends=True)
+    tracker = _fence_tracker()
+    result = []
+
+    for line in content.splitlines():
+        in_fence = tracker(line)
+        if in_fence and not (
+            line.lstrip().startswith("```") or line.lstrip().startswith("~~~")
+        ):
+            result.append("\n")
+        else:
+            result.append(line + "\n" if not line.endswith("\n") else line)
+
+    # Remove trailing newline if original didn't have one
+    result_str = "".join(result)
+    if not content.endswith("\n"):
+        result_str = result_str.rstrip("\n")
+
+    return result_str
+
+
 def extract_sections(content):
     """Extract Common Context, Steps, Inline Phases, and Orchestrator sections.
 
@@ -563,11 +597,14 @@ def extract_sections(content):
 
 def extract_phase_models(content):
     """Return {phase_num: model} for phases that have a model: annotation."""
+    stripped_content = strip_fenced_blocks(content)
     pattern = re.compile(
         r"^###?\s+Phase\s+(\d+):.*model:\s*(\w+)",
         re.IGNORECASE | re.MULTILINE,
     )
-    return {int(m.group(1)): m.group(2).lower() for m in pattern.finditer(content)}
+    return {
+        int(m.group(1)): m.group(2).lower() for m in pattern.finditer(stripped_content)
+    }
 
 
 def extract_phase_preambles(content):
@@ -584,8 +621,10 @@ def extract_phase_preambles(content):
     current_phase = None
     preamble_lines = []
     collecting = False
+    tracker = _fence_tracker()
 
     for line in content.splitlines():
+        in_fence = tracker(line)
         ph_match = phase_header.match(line)
         sc_match = step_or_cycle.match(line)
 
@@ -595,7 +634,7 @@ def extract_phase_preambles(content):
             current_phase = int(ph_match.group(1))
             preamble_lines = []
             collecting = True
-        elif sc_match and collecting:
+        elif sc_match and collecting and not in_fence:
             collecting = False
             preambles[current_phase] = "\n".join(preamble_lines).strip()
             preamble_lines = []

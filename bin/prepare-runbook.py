@@ -331,10 +331,12 @@ def validate_phase_numbering(step_phases):
 
 
 def _fence_tracker():
-    """Returns a callable that tracks fence state line-by-line.
+    """Track fence state line-by-line with CommonMark semantics.
 
-    Supports CommonMark fence semantics: opening fence requires ≥3 backticks,
-    closing fence requires ≥ opening count (no info string on closing fence).
+    Supports both backtick and tilde fences:
+    - Opening fence requires ≥3 of same character (backtick or tilde)
+    - Closing fence requires ≥ opening count of SAME character type
+    - No info string allowed on closing fence
 
     Returns a callable that:
     - Takes a line (str) as argument
@@ -342,19 +344,21 @@ def _fence_tracker():
     - Uses closure with nonlocal state
 
     Fence tracking rules:
-    - Opening fence: ≥3 backticks, optional info string
-    - Closing fence: ≥ opening count, no info string (only spaces/tabs allowed after)
+    - Opening fence: ≥3 backticks OR ≥3 tildes, optional info string
+    - Closing fence: ≥ opening count of SAME character, no info string
+    - Backtick and tilde fences do NOT cross-close
     """
     in_fence = False
     open_count = 0
+    fence_char = None  # Track 'backtick' or 'tilde'
 
     def tracker(line):
-        nonlocal in_fence, open_count
+        nonlocal in_fence, open_count, fence_char
         stripped = line.lstrip()
 
         if in_fence:
-            # Check for closing fence: must start with backticks
-            if stripped.startswith("`"):
+            # Check for closing fence: must match the opening fence character
+            if fence_char == "backtick" and stripped.startswith("`"):
                 # Count backticks at start of line
                 backtick_count = 0
                 for char in stripped:
@@ -369,6 +373,23 @@ def _fence_tracker():
                 if backtick_count >= open_count and all(c in " \t" for c in remainder):
                     in_fence = False
                     open_count = 0
+                    fence_char = None
+            elif fence_char == "tilde" and stripped.startswith("~"):
+                # Count tildes at start of line
+                tilde_count = 0
+                for char in stripped:
+                    if char == "~":
+                        tilde_count += 1
+                    else:
+                        break
+
+                # Check if this is a valid closing fence
+                # Must have >= opening count and only spaces/tabs after tildes
+                remainder = stripped[tilde_count:]
+                if tilde_count >= open_count and all(c in " \t" for c in remainder):
+                    in_fence = False
+                    open_count = 0
+                    fence_char = None
         # Check for opening fence: must start with >=3 backticks
         elif stripped.startswith("```"):
             backtick_count = 0
@@ -381,6 +402,20 @@ def _fence_tracker():
             if backtick_count >= 3:
                 in_fence = True
                 open_count = backtick_count
+                fence_char = "backtick"
+        # Check for opening fence: must start with >=3 tildes
+        elif stripped.startswith("~~~"):
+            tilde_count = 0
+            for char in stripped:
+                if char == "~":
+                    tilde_count += 1
+                else:
+                    break
+
+            if tilde_count >= 3:
+                in_fence = True
+                open_count = tilde_count
+                fence_char = "tilde"
 
         return in_fence
 

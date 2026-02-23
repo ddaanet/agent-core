@@ -14,19 +14,19 @@ Resolve procedural triggers against the memory index. Returns decision file cont
 **Trigger mode** — fuzzy-match an index entry to a decision heading:
 
 ```bash
-agent-core/bin/when-resolve.py how encode paths
+agent-core/bin/when-resolve.py "how encode paths"
 ```
 
 **Section mode** — look up a heading directly by name (dot prefix):
 
 ```bash
-agent-core/bin/when-resolve.py how .Path Encoding Algorithm
+agent-core/bin/when-resolve.py "how .Path Encoding Algorithm"
 ```
 
 **File mode** — load an entire decision file (double-dot prefix, relative to `agents/decisions/`):
 
 ```bash
-agent-core/bin/when-resolve.py how ..data-processing.md
+agent-core/bin/when-resolve.py "how ..data-processing.md"
 ```
 
 ## When to Use

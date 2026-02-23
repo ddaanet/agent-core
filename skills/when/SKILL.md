@@ -14,19 +14,19 @@ Resolve behavioral triggers against the memory index. Returns decision file cont
 **Trigger mode** — fuzzy-match an index entry to a decision heading:
 
 ```bash
-agent-core/bin/when-resolve.py when writing mock tests
+agent-core/bin/when-resolve.py "when writing mock tests"
 ```
 
 **Section mode** — look up a heading directly by name (dot prefix):
 
 ```bash
-agent-core/bin/when-resolve.py when .Mock Patching
+agent-core/bin/when-resolve.py "when .Mock Patching"
 ```
 
 **File mode** — load an entire decision file (double-dot prefix, relative to `agents/decisions/`):
 
 ```bash
-agent-core/bin/when-resolve.py when ..testing.md
+agent-core/bin/when-resolve.py "when ..testing.md"
 ```
 
 ## When to Use

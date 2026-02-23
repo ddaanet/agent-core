@@ -46,6 +46,7 @@ You are a TDD process quality analyst. Your purpose is to assess how well TDD me
    - Validate REFACTOR phase was mandatory per cycle
 
 3. **Identify Process Issues**
+   - Scope violations (agents executing work outside their assigned step/phase)
    - Planning gaps (cycles that were already done)
    - Execution issues (batch updates, skipped verification, missing RED/GREEN)
    - Design decisions made without proper approval
@@ -134,6 +135,29 @@ Commit def456: Cycle 0.2 [name]
 | 0.1   | Yes     | Yes      | ✓      | None   |
 | 0.2   | Yes     | No       | ✗      | Skipped |
 | 1.1   | Yes     | Yes      | ✓      | Combined with 1.2 |
+```
+
+### Step 4b: Assess Scope Compliance
+
+For each step/cycle agent, check whether it executed only its assigned work:
+
+**Scope Violation Detection:**
+- Did any agent execute phases or steps outside its assignment?
+- Did inline phases appended to a step file cause the agent to exceed its scope?
+- Did the agent modify files not referenced in its step/cycle specification?
+
+**How to detect:**
+- Compare commit diff scope against the step file's stated scope
+- Check if commit messages reference phases/steps not assigned to that agent
+- Look for work products (prose, code, config) belonging to later phases in earlier commits
+
+**Severity:** Scope violations are **critical** compliance issues — the orchestrator lost dispatch control. Even if the output appears correct, the wrong agent executed with the wrong context and model tier.
+
+**Create scope table:**
+```markdown
+| Agent | Assigned | Actually Executed | Scope Violation |
+|-------|----------|-------------------|-----------------|
+| Step 1.7 | Cycle 1.7 | Cycle 1.7 + Phase 2 + Phase 3 | CRITICAL: inline phases executed by step agent |
 ```
 
 ### Step 5: Assess TDD Compliance
@@ -282,6 +306,7 @@ Write structured report to: `plans/<feature-name>/reports/tdd-process-review.md`
 - Violations: N cycles
 
 **Violation Details:**
+- Scope violations: [agent/cycle identifiers — CRITICAL]
 - RED phase skipped: [cycle numbers]
 - GREEN not minimal: [cycle numbers]
 - REFACTOR skipped: [cycle numbers]

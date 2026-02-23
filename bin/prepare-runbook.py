@@ -402,24 +402,27 @@ def extract_sections(content):
     current_step_line = None
     step_pattern = r"^## Step\s+([\d.]+):\s*(.*)"
 
+    def save_current() -> None:
+        if current_section and current_content:
+            content_str = "\n".join(current_content).strip()
+            if current_section == "common_context":
+                sections["common_context"] = content_str
+            elif current_section == "orchestrator":
+                sections["orchestrator"] = content_str
+            elif current_section == "step":
+                sections["steps"][current_step] = content_str
+                sections["step_phases"][current_step] = line_to_phase[current_step_line]
+
     for i, line in enumerate(lines):
-        # Skip phase headers (not content)
+        # Phase headers are section boundaries
         if re.match(phase_pattern, line):
+            save_current()
+            current_section = None
+            current_content = []
             continue
 
         if line.startswith("## "):
-            # Save previous section
-            if current_section and current_content:
-                content_str = "\n".join(current_content).strip()
-                if current_section == "common_context":
-                    sections["common_context"] = content_str
-                elif current_section == "orchestrator":
-                    sections["orchestrator"] = content_str
-                elif current_section == "step":
-                    sections["steps"][current_step] = content_str
-                    sections["step_phases"][current_step] = line_to_phase[
-                        current_step_line
-                    ]
+            save_current()
 
             # Detect new section
             if line == "## Common Context":
@@ -450,17 +453,7 @@ def extract_sections(content):
         elif current_section:
             current_content.append(line)
 
-    # Save final section
-    if current_section and current_content:
-        content_str = "\n".join(current_content).strip()
-        if current_section == "common_context":
-            sections["common_context"] = content_str
-        elif current_section == "orchestrator":
-            sections["orchestrator"] = content_str
-        elif current_section == "step":
-            sections["steps"][current_step] = content_str
-            sections["step_phases"][current_step] = line_to_phase[current_step_line]
-
+    save_current()
     return sections
 
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""
-Thin wrapper for the when/how CLI commands.
+"""Thin wrapper for the when/how CLI commands.
 
-Usage: when-resolve.py {when|how} <query...>
+Usage: when-resolve.py "when <query>" ["how <query>" ...]
 """
 
 from claudeutils.when.cli import when_cmd

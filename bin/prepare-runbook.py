@@ -113,14 +113,18 @@ def extract_cycles(content):
     """
     cycle_pattern = r"^###? Cycle\s+(\d+)\.(\d+):\s*(.*)"
     lines = content.split("\n")
+    tracker = _fence_tracker()
 
     cycles = []
     current_cycle = None
     current_content = []
 
     for _i, line in enumerate(lines):
-        # Check for cycle header
-        match = re.match(cycle_pattern, line)
+        # Update fence state before processing the line
+        in_fence = tracker(line)
+
+        # Check for cycle header (only if not inside a fence)
+        match = re.match(cycle_pattern, line) if not in_fence else None
         if match:
             # Save previous cycle
             if current_cycle is not None:
@@ -142,7 +146,8 @@ def extract_cycles(content):
 
         # Check for next H2 (non-cycle section) - terminates current cycle
         # Only H2 headers terminate cycles (H3 like ### RED Phase are cycle content)
-        elif line.startswith("## ") and current_cycle is not None:
+        # Skip H2 check if inside a fence (so fenced headers don't terminate cycles)
+        elif line.startswith("## ") and current_cycle is not None and not in_fence:
             # End current cycle - H2 header that's not a cycle terminates the current cycle
             current_cycle["content"] = "\n".join(current_content).strip()
             cycles.append(current_cycle)
@@ -376,9 +381,11 @@ def extract_sections(content):
     phase_pattern = r"^###? Phase\s+(\d+)"
     inline_phase_pattern = r"^###? Phase\s+(\d+):.*\(type:\s*inline\)"
     inline_phase_nums = set()
+    tracker = _fence_tracker()
 
     for i, line in enumerate(lines):
-        phase_match = re.match(phase_pattern, line)
+        in_fence = tracker(line)
+        phase_match = re.match(phase_pattern, line) if not in_fence else None
         if phase_match:
             current_phase = int(phase_match.group(1))
             if re.match(inline_phase_pattern, line):
@@ -390,8 +397,10 @@ def extract_sections(content):
         in_inline = False
         inline_num = None
         inline_content = []
+        tracker = _fence_tracker()
         for i, line in enumerate(lines):
-            phase_match = re.match(phase_pattern, line)
+            in_fence = tracker(line)
+            phase_match = re.match(phase_pattern, line) if not in_fence else None
             if phase_match:
                 # Save previous inline phase
                 if in_inline and inline_content:
@@ -406,7 +415,7 @@ def extract_sections(content):
                 else:
                     in_inline = False
                     inline_content = []
-            elif line.startswith("## ") and in_inline:
+            elif line.startswith("## ") and in_inline and not in_fence:
                 # H2 terminates inline phase collection
                 sections["inline_phases"][inline_num] = "\n".join(
                     inline_content

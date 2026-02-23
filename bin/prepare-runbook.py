@@ -791,10 +791,18 @@ def read_baseline_agent(runbook_type="general"):
     return body
 
 
-def generate_agent_frontmatter(runbook_name, model=None) -> str:
+def generate_agent_frontmatter(
+    runbook_name, model=None, phase_num=1, total_phases=1
+) -> str:
     """Generate frontmatter for plan-specific agent."""
     model_line = f"model: {model}\n" if model is not None else ""
-    return f'---\nname: {runbook_name}-task\ndescription: Execute {runbook_name} steps from the plan with plan-specific context.\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+    if total_phases > 1:
+        name = f"crew-{runbook_name}-p{phase_num}"
+        description = f"Execute phase {phase_num} of {runbook_name}"
+    else:
+        name = f"crew-{runbook_name}"
+        description = f"Execute {runbook_name}"
+    return f'---\nname: {name}\ndescription: {description}\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
 
 
 def extract_step_metadata(content, default_model=None):

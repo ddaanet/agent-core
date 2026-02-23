@@ -554,6 +554,7 @@ RED phase uses **prose descriptions**, not full code blocks. Saves planning toke
   Action: [what to add/modify — describe, don't write code]
   Location hint: [where in file]
 
+**Verify lint:** `just lint`
 **Verify GREEN:** [Test command]
 **Verify no regression:** [Full test suite]
 ```

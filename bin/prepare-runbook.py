@@ -647,6 +647,18 @@ def extract_phase_preambles(content):
     return preambles
 
 
+def get_phase_baseline_type(phase_content) -> str:
+    """Determine baseline type for a phase by inspecting its content structure.
+
+    Returns "tdd" if the content contains Cycle headers (indicating TDD
+    workflow), "general" otherwise.
+    """
+    stripped = strip_fenced_blocks(phase_content)
+    if re.search(r"^##\s+Cycle\s+\d+\.\d+:", stripped, re.MULTILINE):
+        return "tdd"
+    return "general"
+
+
 def assemble_phase_files(directory):
     """Assemble runbook from phase files in a directory.
 

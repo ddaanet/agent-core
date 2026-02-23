@@ -325,6 +325,30 @@ def validate_phase_numbering(step_phases):
     return (errors, warnings)
 
 
+def _fence_tracker():
+    """Returns a callable that tracks fence state line-by-line.
+
+    Tracks 3-backtick fences only (Cycle 1). Returns a callable that:
+    - Takes a line (str) as argument
+    - Returns True if inside a fence after processing this line
+    - Uses closure with nonlocal state
+
+    Fence tracking rules:
+    - 3 backticks (```) toggle fence on/off
+    - Returns True when inside, False when outside
+    """
+    in_fence = False
+
+    def tracker(line):
+        nonlocal in_fence
+        # Count leading backticks
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+        return in_fence
+
+    return tracker
+
+
 def extract_sections(content):
     """Extract Common Context, Steps, Inline Phases, and Orchestrator sections.
 
@@ -401,6 +425,7 @@ def extract_sections(content):
     current_step = None
     current_step_line = None
     step_pattern = r"^## Step\s+([\d.]+):\s*(.*)"
+    tracker = _fence_tracker()
 
     def save_current() -> None:
         if current_section and current_content:
@@ -414,6 +439,8 @@ def extract_sections(content):
                 sections["step_phases"][current_step] = line_to_phase[current_step_line]
 
     for i, line in enumerate(lines):
+        in_fence = tracker(line)
+
         # Phase headers are section boundaries
         if re.match(phase_pattern, line):
             save_current()
@@ -421,7 +448,7 @@ def extract_sections(content):
             current_content = []
             continue
 
-        if line.startswith("## "):
+        if line.startswith("## ") and not in_fence:
             save_current()
 
             # Detect new section

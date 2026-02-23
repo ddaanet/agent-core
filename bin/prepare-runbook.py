@@ -701,10 +701,13 @@ def assemble_phase_files(directory):
 
         # Detect runbook type from first file
         if i == 0:
+            stripped_content = strip_fenced_blocks(content)
             has_cycles = bool(
-                re.search(r"^##+ Cycle\s+\d+\.\d+:", content, re.MULTILINE)
+                re.search(r"^##+ Cycle\s+\d+\.\d+:", stripped_content, re.MULTILINE)
             )
-            has_steps = bool(re.search(r"^##+ Step\s+\d+\.\d+:", content, re.MULTILINE))
+            has_steps = bool(
+                re.search(r"^##+ Step\s+\d+\.\d+:", stripped_content, re.MULTILINE)
+            )
             if has_cycles:
                 is_tdd = True
             elif not has_steps:

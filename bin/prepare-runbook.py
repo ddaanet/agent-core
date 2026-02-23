@@ -804,18 +804,18 @@ def derive_paths(runbook_path):
     Input: plans/foo/runbook.md
     Returns:
         runbook_name: 'foo' (parent directory)
-        agent_path: .claude/agents/foo-task.md
+        agents_dir: .claude/agents/ (directory for per-phase agent files)
         steps_dir: plans/foo/steps/
         orchestrator_path: plans/foo/orchestrator-plan.md
     """
     path = Path(runbook_path)
     runbook_name = path.parent.name
 
-    agent_path = Path(".claude/agents") / f"{runbook_name}-task.md"
+    agents_dir = Path(".claude/agents")
     steps_dir = path.parent / "steps"
     orchestrator_path = path.parent / "orchestrator-plan.md"
 
-    return runbook_name, agent_path, steps_dir, orchestrator_path
+    return runbook_name, agents_dir, steps_dir, orchestrator_path
 
 
 def read_baseline_agent(runbook_type="general"):
@@ -1200,7 +1200,7 @@ def validate_and_create(
     runbook_path,
     sections,
     runbook_name,
-    agent_path,
+    agents_dir,
     steps_dir,
     orchestrator_path,
     metadata,
@@ -1278,7 +1278,7 @@ def validate_and_create(
         return False
 
     # Create directories
-    agent_path.parent.mkdir(parents=True, exist_ok=True)
+    agents_dir.mkdir(parents=True, exist_ok=True)
     steps_dir.mkdir(parents=True, exist_ok=True)
 
     # Clean steps directory to prevent orphaned files from previous runs
@@ -1288,33 +1288,91 @@ def validate_and_create(
 
     # Verify writable
     try:
-        agent_path.parent.touch(exist_ok=True)
+        agents_dir.touch(exist_ok=True)
         steps_dir.touch(exist_ok=True)
     except (OSError, IsADirectoryError):
         pass
 
-    # Generate plan-specific agent
-    baseline_body = read_baseline_agent(
-        "general" if runbook_type == "mixed" else runbook_type
-    )
     model = metadata.get("model")
-    # Resolve agent model: frontmatter model, or first phase model if absent
-    agent_model = model or (phase_models[min(phase_models)] if phase_models else None)
-    frontmatter = generate_agent_frontmatter(runbook_name, agent_model)
 
-    agent_content = frontmatter + baseline_body
-    if sections["common_context"]:
-        agent_content += (
-            "\n---\n# Runbook-Specific Context\n\n" + sections["common_context"]
-        )
+    # Detect phase types from assembled content
+    assembled_content = ""
+    if cycles:
+        for cycle in cycles:
+            assembled_content += cycle.get("content", "")
+    if sections.get("steps"):
+        for step_content in sections["steps"].values():
+            assembled_content += step_content
 
-    # Add clean-tree contract for orchestrated execution
-    agent_content += "\n\n---\n\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
+    # Build full content with phase headers for detect_phase_types
+    full_content_parts = []
+    if cycles:
+        # Reconstruct phase headers from cycle major numbers
+        seen_phases: set = set()
+        for cycle in sorted(cycles, key=lambda c: (c["major"], c["minor"])):
+            if cycle["major"] not in seen_phases:
+                full_content_parts.append(f"### Phase {cycle['major']}:\n")
+                seen_phases.add(cycle["major"])
+            full_content_parts.append(cycle.get("content", "") + "\n")
+    if sections.get("steps"):
+        step_phases_map = sections.get("step_phases", {})
+        seen_phases = set()
+        for step_num in sorted(
+            sections["steps"].keys(), key=lambda x: tuple(map(int, x.split(".")))
+        ):
+            phase = step_phases_map.get(step_num, 1)
+            if phase not in seen_phases:
+                full_content_parts.append(f"### Phase {phase}:\n")
+                seen_phases.add(phase)
+            full_content_parts.append(sections["steps"][step_num] + "\n")
+    if sections.get("inline_phases"):
+        for phase_num, phase_content in sorted(sections["inline_phases"].items()):
+            full_content_parts.append(
+                f"### Phase {phase_num}: (type: inline)\n{phase_content}\n"
+            )
 
-    agent_path.write_text(agent_content)
-    print(f"✓ Created agent: {agent_path}")
+    full_content = "".join(full_content_parts)
+    phase_types = detect_phase_types(full_content)
 
+    # Determine total non-inline phases for naming
+    non_inline_phases = sorted(p for p, t in phase_types.items() if t != "inline")
+    total_non_inline = len(non_inline_phases)
+
+    # Generate per-phase agent files
+    plan_context = sections["common_context"] or ""
     preambles = phase_preambles or {}
+    phase_agents: dict = {}
+    created_agents = []
+
+    for phase_num, ptype in sorted(phase_types.items()):
+        if ptype == "inline":
+            phase_agents[phase_num] = "(orchestrator-direct)"
+            continue
+
+        # Resolve model for this phase
+        phase_model = phase_models.get(phase_num) or model
+
+        # For single non-inline phase, use no -pN suffix
+        if total_non_inline == 1:
+            agent_name = f"crew-{runbook_name}"
+        else:
+            agent_name = f"crew-{runbook_name}-p{phase_num}"
+
+        phase_agents[phase_num] = agent_name
+
+        agent_content = generate_phase_agent(
+            runbook_name,
+            phase_num=phase_num,
+            phase_type=ptype,
+            plan_context=plan_context,
+            phase_context=preambles.get(phase_num, ""),
+            model=phase_model,
+            total_phases=total_non_inline,
+        )
+        agent_file = agents_dir / f"{agent_name}.md"
+        agent_file.write_text(agent_content)
+        print(f"✓ Created agent: {agent_file}")
+        created_agents.append(str(agent_file))
 
     # Generate step files for TDD cycles
     if cycles:
@@ -1366,6 +1424,8 @@ def validate_and_create(
             phase_dir=phase_dir,
             phase_models=phase_models or {},
             default_model=frontmatter_model,
+            phase_agents=phase_agents if phase_agents else None,
+            phase_types=phase_types if phase_types else None,
         )
 
     orchestrator_path.write_text(orchestrator_content)
@@ -1380,7 +1440,7 @@ def validate_and_create(
     print(f"  Model: {model}")
 
     # Stage all generated artifacts
-    paths_to_stage = [str(agent_path), str(steps_dir), str(orchestrator_path)]
+    paths_to_stage = [*created_agents, str(steps_dir), str(orchestrator_path)]
     result = subprocess.run(
         ["git", "add", *paths_to_stage], check=False, capture_output=True, text=True
     )
@@ -1518,7 +1578,7 @@ def main() -> None:
         print(warning, file=sys.stderr)
 
     # Derive paths
-    runbook_name, agent_path, steps_dir, orchestrator_path = derive_paths(runbook_path)
+    runbook_name, agents_dir, steps_dir, orchestrator_path = derive_paths(runbook_path)
 
     # Extract per-phase model overrides and phase preambles
     phase_models = extract_phase_models(body)
@@ -1530,7 +1590,7 @@ def main() -> None:
         runbook_path,
         sections,
         runbook_name,
-        agent_path,
+        agents_dir,
         steps_dir,
         orchestrator_path,
         metadata,

@@ -173,7 +173,7 @@ Phase N Checkpoint
 **Design reference:** plans/<name>/design.md
 **Changed files:** [file list from git diff --name-only]
 
-Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-vet.md
+Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-review.md
 Return filepath or "UNFIXABLE: [description]"
 ```
 

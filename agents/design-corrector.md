@@ -8,7 +8,7 @@ tools: ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
 skills: ["project-conventions"]
 ---
 
-# Design Vet Agent
+# Design Corrector
 
 ## Role
 

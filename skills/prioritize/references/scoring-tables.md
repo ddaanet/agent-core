@@ -14,7 +14,7 @@ How frequently the unresolved problem is encountered during normal operation. "U
 
 | Score | Criteria | Examples |
 |-------|----------|----------|
-| 8 | Every task execution (inner loop) | Commit flow, precommit, vet delegation, orchestration step |
+| 8 | Every task execution (inner loop) | Commit flow, precommit, review delegation, orchestration step |
 | 5 | Every session boundary | Handoff, status display, context recovery |
 | 3 | Weekly or per-task-type | Worktree setup, design sessions, memory consolidation |
 | 2 | Monthly or per-plan | Plugin migration, formal analysis |

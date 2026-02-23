@@ -164,7 +164,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ❌ **Bad frontmatter (vague description):**
 ```yaml
 ---
-name: vet
+name: review
 description: Reviews code
 model: sonnet
 tools: []
@@ -512,7 +512,7 @@ If verification reveals the artifact fundamentally doesn't serve its stated purp
 ## Usage Notes
 
 **For planners:**
-- Reference this skill in vet checkpoint steps when planning plugin development work
+- Reference this skill in review checkpoint steps when planning plugin development work
 - Specify artifact type (skills, agents, hooks, commands, plugin-structure) for targeted review
 - This skill is additive — generic quality + alignment checks still apply
 

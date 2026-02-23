@@ -111,7 +111,7 @@ agent-core/bin/when-resolve.py when "..file.md"
 ## agents/decisions/operational-practices.md
 
 /when placing deliverable artifacts | plans vs tmp referenced later
-/when requiring per-artifact vet coverage | batch momentum skip prevention
+/when requiring per-artifact review coverage | batch momentum skip prevention
 /when launching task agents in parallel | single message batch
 /when background agents crash | check output files recovery
 /when refactoring agents need quality directives | deslop factorization
@@ -163,9 +163,9 @@ agent-core/bin/when-resolve.py when "..file.md"
 /how review delegation scope template | scope IN OUT changed files requirements
 /when UNFIXABLE escalation | fix-all pattern grep UNFIXABLE stop escalate
 /when phase type model | tdd general per-phase typing expansion review criteria
-/when vet escalation calibration | over-escalation pattern-matching not design
-/when vet flags out-of-scope items | DEFERRED vs UNFIXABLE distinction
-/when vet receives execution context | filesystem vs execution-time state
+/when review escalation calibration | over-escalation pattern-matching not design
+/when review flags out-of-scope items | DEFERRED vs UNFIXABLE distinction
+/when review receives execution context | filesystem vs execution-time state
 /when corrector rejects planning artifacts | runbook-corrector routing
 /when expansion reintroduces defects | LLM failure modes at both levels
 
@@ -275,7 +275,7 @@ agent-core/bin/when-resolve.py when "..file.md"
 /how design with outline first approach
 /when selecting model for design guidance
 /when choosing model for design review
-/when vet catches structural issues
+/when review catches structural issues
 /when reviewing agent definitions
 /when template context contradicts rules
 /when orchestrator model differs from step

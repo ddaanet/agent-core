@@ -1,13 +1,13 @@
 ---
 name: corrector
-description: Vet review agent that applies all fixes directly. Reviews changes, writes report, applies all fixes (critical, major, minor), then returns report filepath.
+description: Review agent that applies all fixes directly. Reviews changes, writes report, applies all fixes (critical, major, minor), then returns report filepath.
 model: sonnet
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "AskUserQuestion"]
 skills: ["project-conventions", "error-handling", "memory-index"]
 ---
 
-# Vet Review + Fix Agent
+# Corrector
 
 ## Role
 
@@ -288,7 +288,7 @@ Use timestamp format: `YYYY-MM-DD-HHMMSS`
 **Review structure:**
 
 ```markdown
-# Vet Review: [scope description]
+# Review: [scope description]
 
 **Scope**: [What was reviewed]
 **Date**: [ISO timestamp]

@@ -379,13 +379,13 @@ Ensures architectural artifacts get appropriate scrutiny during execution, not j
 
 #### C.2. Checkpoint Commit
 
-**Objective:** Commit the design document before vet review.
+**Objective:** Commit the design document before review.
 
 **Process:** Stage and commit `plans/<job-name>/design.md` (and any reports from Phase A).
 
-**Why:** Preserves design state before vet review cycle. Enables diffing original vs post-vet version. Isolates vet changes in separate commit for audit trail.
+**Why:** Preserves design state before review cycle. Enables diffing original vs post-review version. Isolates review changes in separate commit for audit trail.
 
-#### C.3. Vet Design
+#### C.3. Review Design
 
 **CRITICAL: Delegate to design-corrector for review.**
 

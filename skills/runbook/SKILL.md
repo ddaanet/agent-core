@@ -147,7 +147,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 **Common tail:**
 - After delegation complete: delegate to review agent for review
-- Apply all fixes from vet review
+- Apply all fixes from review
 - Tail-call `/handoff --commit`
 
 **Design constraints are non-negotiable:**
@@ -480,7 +480,7 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
 
    **Domain Validation:**
 
-   When writing vet checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the vet step:
+   When writing review checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the review step:
 
    ```
    - **Domain validation:** Read and apply criteria from
@@ -788,11 +788,11 @@ Checkpoints are verification points between phases. They validate accumulated wo
      - If stubs found: STOP, report which need real behavior
      - If all functional: proceed
 
-**Full checkpoint** (Fix + Vet + Functional):
+**Full checkpoint** (Fix + Review + Functional):
 - **Placement:** Final phase boundary, or phases marked `checkpoint: full`
 - **Process:**
   1. **Fix:** Run `just dev`, sonnet fixes, commit when passing
-  2. **Vet:** Sonnet reviews accumulated changes (presentation, clarity, alignment). Apply all fixes. Commit.
+  2. **Review:** Sonnet reviews accumulated changes (presentation, clarity, alignment). Apply all fixes. Commit.
   3. **Functional:** Same checks as light checkpoint
 
 **Integration tests (TDD composition tasks):**

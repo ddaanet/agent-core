@@ -143,7 +143,7 @@ For guidance on tiering, budgeting, and maintaining rules in CLAUDE.md, see **`r
 
 ## Common Patterns
 
-For detailed usage patterns (error handling, workflow improvement, design decisions, pending learnings), see **`examples/remember-patterns.md`**.
+For detailed usage patterns (error handling, workflow improvement, design decisions, pending learnings), see **`examples/codify-patterns.md`**.
 
 ## Integration
 **Invocations**: During work (#codify [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
@@ -160,7 +160,7 @@ For detailed guidance:
 ### Example Files
 
 Working patterns for common scenarios:
-- **`examples/remember-patterns.md`** - Error handling, workflow improvements, design decisions, pending learnings consolidation
+- **`examples/codify-patterns.md`** - Error handling, workflow improvements, design decisions, pending learnings consolidation
 
 ### Target Files
 

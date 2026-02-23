@@ -1,12 +1,12 @@
 ---
 name: plugin-dev-validation
-description: Domain validation criteria for plugin components. Consumed by vet-fix-agent during artifact review.
+description: Domain validation criteria for plugin components. Consumed by corrector during artifact review.
 user-invocable: false
 ---
 
 # Plugin Development Validation
 
-Review criteria for Claude Code plugin components. This skill is consumed by vet-fix-agent during artifact review, not invoked interactively.
+Review criteria for Claude Code plugin components. This skill is consumed by corrector during artifact review, not invoked interactively.
 
 ## Scope
 
@@ -134,8 +134,8 @@ description: Commit tool
   - Rationale: Prevents scope drift
 
 - **Triggering examples:** Description includes invocation patterns
-  - Example: "delegate to vet-fix-agent"
-  - Example: "use plan-reviewer for runbook review"
+  - Example: "delegate to corrector"
+  - Example: "use runbook-corrector for runbook review"
   - Rationale: Helps orchestrators discover correct agent
 
 **Minor:**
@@ -148,13 +148,13 @@ description: Commit tool
 ✅ **Good frontmatter:**
 ```yaml
 ---
-name: vet-fix-agent
+name: corrector
 description: |
-  Vet review agent that applies all fixes directly.
+  Review agent that applies all fixes directly.
   Reviews changes, writes report, applies all fixes (critical, major, minor),
   then returns report filepath.
 
-  Usage: delegate to vet-fix-agent
+  Usage: delegate to corrector
 model: sonnet
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
@@ -384,7 +384,7 @@ description: Deploys stuff
 
 ### Verification Procedures
 
-**For vet-fix-agent performing alignment verification:**
+**For corrector performing alignment verification:**
 
 **Skills verification:**
 1. Check "When to Use" or "Purpose" section exists and is clear
@@ -434,7 +434,7 @@ If verification reveals the artifact fundamentally doesn't serve its stated purp
 
 ### Fixable Issues
 
-**What vet-fix-agent can fix directly:**
+**What corrector can fix directly:**
 
 - **Missing frontmatter fields:** Add required fields with sensible defaults
   - `user-invocable: true` for skills (can be adjusted)
@@ -493,19 +493,19 @@ If verification reveals the artifact fundamentally doesn't serve its stated purp
 
 ---
 
-## Integration with Vet Workflow
+## Integration with Review Workflow
 
 **How this skill is used:**
 
 1. **Planner detects domain:** Planning-time detection via rules files or design doc mentions
-2. **Planner writes vet step:** Runbook vet checkpoint includes reference to this skill + artifact type
+2. **Planner writes review step:** Runbook review checkpoint includes reference to this skill + artifact type
 3. **Orchestrator delegates:** Task prompt includes: "Read and apply criteria from `agent-core/skills/plugin-dev-validation/SKILL.md` for artifact type: [skills|agents|hooks|commands|plugin-structure]"
-4. **Vet-fix-agent reads skill:** Loads criteria for specified artifact type
-5. **Vet-fix-agent reviews:** Applies generic + alignment + domain criteria
-6. **Vet-fix-agent fixes:** All fixable issues (critical, major, minor)
-7. **Vet-fix-agent reports:** Writes review report with fix status, escalates UNFIXABLE
+4. **Corrector reads skill:** Loads criteria for specified artifact type
+5. **Corrector reviews:** Applies generic + alignment + domain criteria
+6. **Corrector fixes:** All fixable issues (critical, major, minor)
+7. **Corrector reports:** Writes review report with fix status, escalates UNFIXABLE
 
-**No changes to vet-fix-agent protocol:** This skill provides enriched criteria; vet-fix-agent applies them using existing review process.
+**No changes to corrector protocol:** This skill provides enriched criteria; corrector applies them using existing review process.
 
 ---
 
@@ -516,13 +516,13 @@ If verification reveals the artifact fundamentally doesn't serve its stated purp
 - Specify artifact type (skills, agents, hooks, commands, plugin-structure) for targeted review
 - This skill is additive — generic quality + alignment checks still apply
 
-**For vet-fix-agent:**
+**For corrector:**
 - Read this skill when task prompt references it
 - Apply criteria for specified artifact type
 - Use fix procedures to determine fixable vs UNFIXABLE
 - Report all findings, fix all fixable issues, escalate UNFIXABLE
 
 **For users:**
-- This skill is NOT user-invocable (consumed by vet-fix-agent)
+- This skill is NOT user-invocable (consumed by corrector)
 - For interactive plugin review, use dedicated review agents (skill-reviewer, plugin-validator)
-- For validation workflow questions, see `agent-core/fragments/vet-requirement.md`
+- For validation workflow questions, see `agent-core/fragments/review-requirement.md`

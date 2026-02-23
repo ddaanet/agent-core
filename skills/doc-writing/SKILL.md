@@ -118,7 +118,7 @@ Re-run reader test only if fixes were substantial (>30% of document changed). Ot
 
 ### 5. Vet
 
-Delegate to `vet-fix-agent` for quality review. The vet catches mechanical issues (broken paths, inconsistencies, formatting) that reader testing misses.
+Delegate to `corrector` for quality review. The review catches mechanical issues (broken paths, inconsistencies, formatting) that reader testing misses.
 
 **Execution context for vet delegation:**
 - **IN:** The documentation file written/rewritten
@@ -148,6 +148,6 @@ Delegate to `vet-fix-agent` for quality review. The vet catches mechanical issue
 
 4. **Fix gaps:** Add prerequisites section, state memory file paths, add comparison sentence distinguishing skills from agents.
 
-5. **Vet:** Delegate to vet-fix-agent. 2 minor fixes applied (expand inline list to table, fix relative path).
+5. **Review:** Delegate to corrector. 2 minor fixes applied (expand inline list to table, fix relative path).
 
 6. **Commit.**

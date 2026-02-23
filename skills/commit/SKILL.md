@@ -77,7 +77,7 @@ Classify changed files — production artifacts (code, scripts, plans, skills, a
 
 - **No production artifacts?** Proceed to validation.
 - **Trivial?** (≤5 net lines, ≤2 files, additive, no behavioral change) Self-review via `git diff HEAD`.
-- **Non-trivial?** Check for vet report in `plans/*/reports/` or `tmp/`. No report → STOP, delegate vet first. UNFIXABLE → escalate. No alignment criteria → escalate.
+- **Non-trivial?** Check for review report in `plans/*/reports/` or `tmp/`. No report → STOP, delegate review first. UNFIXABLE → escalate. No alignment criteria → escalate.
 
 Reports are exempt — they ARE the verification artifacts.
 

@@ -7,7 +7,7 @@ description: |
 
   Use when reviewing runbooks after generation by /plan. Use when the user asks to "review runbook",
   "check runbook for prescriptive code", "validate RED/GREEN discipline", "check for implementation
-  anti-patterns", "check LLM failure modes", or when /plan Phase 1/3 delegates to plan-reviewer agent.
+  anti-patterns", "check LLM failure modes", or when /plan Phase 1/3 delegates to runbook-corrector agent.
 user-invocable: false
 model: sonnet
 ---
@@ -50,7 +50,7 @@ Accept TDD, general, and inline artifacts:
 
 Runbook execution uses three context layers. Review criteria apply to step/cycle content — do NOT flag content present in a higher layer as missing.
 
-- **Baseline agent** (`agent-core/agents/quiet-task.md` or `tdd-task.md`) — tool usage, execution protocol, error handling. Combined with all steps via prepare-runbook.py.
+- **Baseline agent** (`agent-core/agents/artisan.md` or `test-driver.md`) — tool usage, execution protocol, error handling. Combined with all steps via prepare-runbook.py.
 - **Common Context** (`## Common Context` in runbook) — project paths, constraints, cross-step dependencies. Available to all steps.
 - **Step/cycle content** — step-specific instructions, validation, outcomes.
 
@@ -534,8 +534,8 @@ Recommendation: [What to do]
 
 ## Invocation
 
-**Automatic:** /plan Phase 1 (per-phase) and Phase 3 (final) delegate to plan-reviewer agent
-**Manual:** Delegate to plan-reviewer agent with runbook/phase file path
+**Automatic:** /plan Phase 1 (per-phase) and Phase 3 (final) delegate to runbook-corrector agent
+**Manual:** Delegate to runbook-corrector agent with runbook/phase file path
 
 ---
 
@@ -543,7 +543,7 @@ Recommendation: [What to do]
 
 **Workflow:**
 ```
-/design → /plan → plan-reviewer agent (fix-all) → [escalate if needed] → prepare-runbook.py → /orchestrate
+/design → /plan → runbook-corrector agent (fix-all) → [escalate if needed] → prepare-runbook.py → /orchestrate
 ```
 
 **Automatic review:** /plan Phase 1 triggers per-phase review, Phase 3 triggers final holistic review

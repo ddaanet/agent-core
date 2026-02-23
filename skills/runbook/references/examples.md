@@ -242,17 +242,17 @@ ModuleNotFoundError: No module named 'auth.providers'
 ### Example: Creation Step (with investigation prerequisite)
 
 ```markdown
-## Step 3.1: Create vet-taxonomy.md reference file
+## Step 3.1: Create review-taxonomy.md reference file
 
-**Objective**: Extract status taxonomy from vet-fix-agent into standalone reference file to keep agent under 400-line threshold.
+**Objective**: Extract status taxonomy from corrector into standalone reference file to keep agent under 400-line threshold.
 
 **Prerequisites**:
-- Read `agent-core/agents/vet-fix-agent.md` (understand current status handling and report format)
+- Read `agent-core/agents/corrector.md` (understand current status handling and report format)
 - Read `agents/decisions/pipeline-contracts.md` (ODC classification context for taxonomy grounding)
 
 **Implementation**:
 
-Create `agent-core/agents/vet-taxonomy.md`:
+Create `agent-core/agents/review-taxonomy.md`:
 
 1. **Four-status definitions** with criteria and examples:
    - FIXED: Applied, no action needed
@@ -268,7 +268,7 @@ Create `agent-core/agents/vet-taxonomy.md`:
 3. **Deferred Items report section template**
 
 **Expected Outcome**:
-- vet-taxonomy.md exists with all four statuses defined
+- review-taxonomy.md exists with all four statuses defined
 - Each status has criteria text and at least one concrete example
 - UNFIXABLE subcategories have codes and descriptions
 - Deferred Items template is copy-pasteable into reports
@@ -279,7 +279,7 @@ Create `agent-core/agents/vet-taxonomy.md`:
 
 **Validation**:
 1. Commit changes
-2. Delegate to agent-creator: "Review vet-taxonomy.md for completeness and clarity of status definitions"
+2. Delegate to agent-creator: "Review review-taxonomy.md for completeness and clarity of status definitions"
 3. Read review report
 4. If UNFIXABLE: STOP, escalate
 5. If all fixed: proceed

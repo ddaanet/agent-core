@@ -38,7 +38,7 @@ Execute two branches in parallel. Neither is optional — both are required.
 
 **Branch A — Internal:**
 - **Brainstorm mode:** Delegate to Task agent (subagent_type: general-purpose, model: opus). Generate project-specific dimensions, constraints, desiderata, evaluation axes. Output: list of dimensions with rationale, written to tmp file. Focus on what no external source would surface.
-- **Explore mode:** Delegate to quiet-explore agent. Surface existing codebase patterns, prior decisions, current conventions. Output: inventory of existing patterns with file references, written to tmp file.
+- **Explore mode:** Delegate to scout agent. Surface existing codebase patterns, prior decisions, current conventions. Output: inventory of existing patterns with file references, written to tmp file.
 
 Write internal branch output to `tmp/ground-internal-<topic>.md`.
 

@@ -6,7 +6,7 @@
 
 **TDD workflow enhancement:**
 - Updated agent-core: Added delegated review step to /runbook workflow and skill (9df24a1)
-- Updated workflow docs: TDD planning now includes plan-reviewer agent review before runbook finalization
+- Updated workflow docs: TDD planning now includes runbook-corrector agent review before runbook finalization
 - Committed submodule update (aa054da) and settings.json permissions (6693680)
 - Review criteria: completeness, executability, context sufficiency, test sequencing (ensures RED), implementation hints
 

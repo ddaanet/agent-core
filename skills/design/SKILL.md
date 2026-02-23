@@ -94,16 +94,16 @@ If no requirements.md exists:
 
 | Level | Source | How | When |
 |-------|--------|-----|------|
-| 1. Local knowledge | `memory-index.md` for keyword discovery → read referenced files. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, quiet-explore or Grep on decision/fragment directories is also valid. | Direct Read, quiet-explore, or Grep | Always (core), flexible method |
+| 1. Local knowledge | `memory-index.md` for keyword discovery → read referenced files. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, scout, or Grep | Always (core), flexible method |
 | 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
 | 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
-| 4. Local explore | Codebase exploration | Delegate to quiet-explore agent | Always for complex designs |
+| 4. Local explore | Codebase exploration | Delegate to scout agent | Always for complex designs |
 | 5. Web research | External patterns, prior art, specifications | WebSearch/WebFetch (direct in main session) | When local sources insufficient |
 
 **Not all levels needed for every task.** Level 1 is always loaded. Levels 2-5 are conditional on task domain.
 
 **Level 1 clarification:** Memory-index is an ambient awareness index — keyword-rich entries that surface relevant knowledge. It is NOT the only way to discover local knowledge. For targeted doc collection (e.g., "what do we know about agent patterns?"), the designer can also:
-- Delegate quiet-explore to read and summarize `agents/decisions/` and `agent-core/fragments/`
+- Delegate scout to read and summarize `agents/decisions/` and `agent-core/fragments/`
 - Use Grep to search for specific topics across decision/fragment files
 - These approaches work well when the doc volume is small enough to read completely
 
@@ -115,7 +115,7 @@ If no requirements.md exists:
 
 **Delegate exploration when scope is open-ended or spans multiple unknown files.** Read directly when files are known and few (≤3 files). The goal is cost control — opus tokens on open-ended browsing are expensive, but launching an agent to read a known file costs more than reading it directly.
 
-For delegated exploration: Use Task tool with `subagent_type="quiet-explore"`. Specify report path: `plans/<job-name>/reports/explore-<topic>.md`. Agent writes findings to file and returns filepath.
+For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify report path: `plans/<job-name>/reports/explore-<topic>.md`. Agent writes findings to file and returns filepath.
 
 #### A.3-4. External Research (if needed)
 
@@ -165,7 +165,7 @@ The outline resolves the architectural uncertainty that justified "complex" clas
 
 **Process:**
 
-Delegate to `outline-review-agent` using Task tool with `subagent_type="outline-review-agent"`:
+Delegate to `outline-corrector` using Task tool with `subagent_type="outline-corrector"`:
 
 ```
 Review plans/<job>/outline.md for completeness, clarity, and alignment with requirements.
@@ -192,7 +192,7 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 1. Open outline for user review: `open plans/<job>/outline.md`
 2. User reads outline in editor, provides feedback in chat
 3. Designer applies deltas to outline.md file (not inline conversation)
-4. Re-review via outline-review-agent after applying changes
+4. Re-review via outline-corrector after applying changes
 5. Loop until user validates approach
 
 **Plugin-topic detection (reminder):** If design involves Claude Code plugin components (hooks, agents, skills), note which skill to load before planning: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."
@@ -223,7 +223,7 @@ After user validates the outline, assess whether it already contains enough spec
 
 **If execution-ready** — offer direct execution. On confirmation:
 1. Execute edits in current session
-2. Delegate to `vet-fix-agent` (vet requirement applies regardless of execution path)
+2. Delegate to `corrector` (review requirement applies regardless of execution path)
 3. Invoke `/handoff [CONTINUATION: /commit]`
 
 **If not execution-ready** — route to `/runbook`:
@@ -268,7 +268,7 @@ Before finalizing design, verify all referenced agent names exist on disk:
 - Glob `agent-core/agents/*.md`, `.claude/agents/*.md`, and `.claude/plugins/*/agents/*.md`
 - Every agent name in the design must resolve to an actual file
 - If an agent name doesn't exist: flag as design error, not an implementation detail to defer
-- Prevention: catches naming mismatches (e.g., `outline-review-agent` vs `runbook-outline-review-agent`) before they propagate to planning and execution
+- Prevention: catches naming mismatches (e.g., `outline-corrector` vs `runbook-outline-corrector`) before they propagate to planning and execution
 
 **Late-addition completeness check:**
 
@@ -387,9 +387,9 @@ Ensures architectural artifacts get appropriate scrutiny during execution, not j
 
 #### C.3. Vet Design
 
-**CRITICAL: Delegate to design-vet-agent for review.**
+**CRITICAL: Delegate to design-corrector for review.**
 
-Use Task tool with `subagent_type="design-vet-agent"`:
+Use Task tool with `subagent_type="design-corrector"`:
 
 ```
 Review plans/<job-name>/design.md for completeness, clarity, feasibility, and consistency.
@@ -399,18 +399,18 @@ Write detailed review to: plans/<job-name>/reports/design-review.md
 Return only the filepath on success, or 'Error: [description]' on failure.
 ```
 
-The design-vet-agent (opus model) performs comprehensive architectural review and writes a structured report with critical/major/minor issues categorized.
+The design-corrector (opus model) performs comprehensive architectural review and writes a structured report with critical/major/minor issues categorized.
 
 #### C.4. Check for Unfixable Issues
 
-**Read the review report** from the filepath returned by design-vet-agent.
+**Read the review report** from the filepath returned by design-corrector.
 
-The design-vet-agent applies all fixes (critical, major, minor) directly. This step handles residual issues:
+The design-corrector applies all fixes (critical, major, minor) directly. This step handles residual issues:
 
 - **No UNFIXABLE issues:** Proceed to C.5.
 - **UNFIXABLE issues found:** Address manually or escalate to user.
 
-**Re-vet if needed:** If user manually addresses UNFIXABLE issues, re-delegate to design-vet-agent for verification.
+**Re-review if needed:** If user manually addresses UNFIXABLE issues, re-delegate to design-corrector for verification.
 
 #### C.5. Execution Readiness and Handoff
 
@@ -423,7 +423,7 @@ Design can resolve complexity — a job correctly classified as Complex may prod
 - No cross-file coordination (edits are independent per file)
 - No implementation loops (no test/build feedback required)
 
-- **If execution-ready:** Execute edits, vet, then `/handoff [CONTINUATION: /commit]`
+- **If execution-ready:** Execute edits, review, then `/handoff [CONTINUATION: /commit]`
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 ## Output Expectations

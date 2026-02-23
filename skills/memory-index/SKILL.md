@@ -166,7 +166,7 @@ agent-core/bin/when-resolve.py when "..file.md"
 /when vet escalation calibration | over-escalation pattern-matching not design
 /when vet flags out-of-scope items | DEFERRED vs UNFIXABLE distinction
 /when vet receives execution context | filesystem vs execution-time state
-/when vet-fix-agent rejects planning artifacts | plan-reviewer routing
+/when corrector rejects planning artifacts | runbook-corrector routing
 /when expansion reintroduces defects | LLM failure modes at both levels
 
 ## agents/decisions/project-config.md
@@ -271,7 +271,7 @@ agent-core/bin/when-resolve.py when "..file.md"
 /when handoff includes commit flag
 /when context already loaded for delegation
 /when assessing routing layer efficiency
-/when reusing vet agent context
+/when reusing review agent context
 /how design with outline first approach
 /when selecting model for design guidance
 /when choosing model for design review

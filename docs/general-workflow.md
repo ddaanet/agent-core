@@ -146,7 +146,7 @@ Add weak orchestrator coordination info:
 - Sequencing constraints
 
 ### 3. Review
-Delegate to plan-reviewer agent for validation:
+Delegate to runbook-corrector agent for validation:
 - Completeness check
 - Executability verification
 - Context sufficiency
@@ -197,22 +197,22 @@ Run `prepare-runbook.py` to create:
 ## Stage 5: Review
 
 **Model:** Sonnet
-**Agent:** vet-agent (Tier 1/2) or vet-fix-agent (Tier 3 orchestration)
+**Agent:** corrector (all tiers)
 
 **Purpose:** Review completed work before finalization.
 
 **Scope:** Uncommitted changes, recent commits, or partial branch.
 
 **Agent selection:**
-- **After orchestration (Tier 3):** Use `vet-fix-agent` — orchestrator has no context, agent applies critical/major fixes directly
-- **After direct/lightweight work (Tier 1/2):** Use `vet-agent` — caller has context to evaluate and apply fixes from report
+- **After orchestration (Tier 3):** Use `corrector` — orchestrator has no context, agent applies critical/major fixes directly
+- **After direct/lightweight work (Tier 1/2):** Use `corrector` — caller has context to evaluate and apply fixes from report
 
-**Fix classification (after vet report):**
+**Fix classification (after review report):**
 - **Few/simple fixes** → Apply directly (Tier 1/2) or already applied (Tier 3)
 - **UNFIXABLE issues** → Escalate to user or create fixes runbook
 - **Complex fixes** → Create fixes runbook (back to Planning)
 
-**Note:** vet agents are distinct from built-in `/review` (PR-focused).
+**Note:** review/correction agents are distinct from built-in `/review` (PR-focused).
 
 ---
 
@@ -266,8 +266,8 @@ Run `prepare-runbook.py` to create:
 **What it does:**
 - Starts with tier assessment (evaluates complexity)
 - **Tier 1** (Direct): Implements directly, vets, commits
-- **Tier 2** (Lightweight): Delegates to quiet-task agents, vets, commits
-- **Tier 3** (Full Runbook): Executes 4-point runbook prep process, delegates review to plan-reviewer agent, invokes `prepare-runbook.py` to create execution artifacts, primes session.md for orchestrator handoff
+- **Tier 2** (Lightweight): Delegates to artisan agents, reviews, commits
+- **Tier 3** (Full Runbook): Executes 4-point runbook prep process, delegates review to runbook-corrector agent, invokes `prepare-runbook.py` to create execution artifacts, primes session.md for orchestrator handoff
 
 **Note:** Unified skill supporting both TDD and general workflows via per-phase typing.
 
@@ -288,20 +288,17 @@ Run `prepare-runbook.py` to create:
 
 ---
 
-### vet-agent / vet-fix-agent
+### corrector
 **Stage:** 5 (Review)
 **Model:** Sonnet
 **Use when:** Reviewing in-progress or completed changes
 
-**Two agents, same review protocol, different fix behavior:**
-- `vet-agent` — review only, returns report filepath. Use when caller has context to apply fixes (Tier 1/2)
-- `vet-fix-agent` — review + apply critical/major fixes. Use in orchestration where no other agent has context (Tier 3)
-
-**What they do:**
-- Analyze changes following vet protocol
-- Write detailed review to file with issues by priority
-- Return filepath or error (quiet execution pattern)
-- `vet-fix-agent` additionally applies fixes via Edit tool, marks each issue FIXED or UNFIXABLE
+**What it does:**
+- Analyzes changes following review protocol
+- Writes detailed review to file with issues by priority
+- Applies all fixes (critical, major, minor) directly via Edit tool
+- Marks each issue FIXED or UNFIXABLE
+- Returns filepath or error (quiet execution pattern)
 
 **Distinction:** NOT for PRs (use built-in `/review` for that).
 
@@ -349,7 +346,7 @@ Agent: Sets up workflow in session.md:
        - [ ] Design - Explore architecture (/design - Opus)
        - [ ] Planning - Create runbook (/runbook)
        - [ ] Execution - Run steps (/orchestrate - Haiku)
-       - [ ] Review - Check changes (vet-fix-agent)
+       - [ ] Review - Check changes (corrector)
        - [ ] Completion - Finalize docs
 Agent: "Design stage requires Opus. Switch to Opus model and type #load to continue."
 ```
@@ -390,8 +387,8 @@ Agent: Calls /handoff: "Switch to Sonnet for Review stage"
 ```
 User: #load
 Agent: Reads session.md, sees Review and Completion pending
-Agent: Delegates to vet agent to review changes
-Agent: Makes any fixes needed based on vet report
+Agent: Delegates to corrector to review changes
+Agent: Makes any fixes needed based on review report
 Agent: Updates documentation
 Agent: Updates session.md (all tasks complete)
 Agent: Calls /handoff: "All workflow tasks complete. Start fresh session for new work."
@@ -427,7 +424,7 @@ Agent: Calls /handoff: "All workflow tasks complete. Start fresh session for new
 1. **Discussion** (Stage 1): Requirements clear, approach straightforward
 2. **Planning** (Stage 3): Create runbook with `/runbook`
 3. **Execution** (Stage 4): Run steps with `/orchestrate`
-4. **Review** (Stage 5): Delegate to vet-fix-agent
+4. **Review** (Stage 5): Delegate to corrector
 5. **Completion** (Stage 6): Update docs, finalize
 
 ---
@@ -443,7 +440,7 @@ Agent: Calls /handoff: "All workflow tasks complete. Start fresh session for new
 4. **Execution** (Stage 4): Run Phase 1 steps with `/orchestrate`
 5. **Planning** (Stage 3): Plan Phase 2 after Phase 1 validation
 6. **Execution** (Stage 4): Run Phase 2 steps
-7. **Review** (Stage 5): Delegate to vet-fix-agent
+7. **Review** (Stage 5): Delegate to corrector
 8. **Completion** (Stage 6): Update architecture docs with `/remember`, finalize
 
 ---

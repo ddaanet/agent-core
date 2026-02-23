@@ -838,7 +838,7 @@ def extract_file_references(content):
     Returns: set of file path strings
     """
     # Strip fenced code blocks to avoid matching paths inside them
-    stripped = re.sub(r"```.*?```", "", content, flags=re.DOTALL)
+    stripped = strip_fenced_blocks(content)
 
     # Match backtick-wrapped paths containing at least one / (directory separator)
     # and ending with a known file extension. Requires / to avoid matching

@@ -1,6 +1,6 @@
 ---
-name: remember
-description: This skill should be used when the user asks to "remember this", "update rules", "add to documentation", "consolidate learnings", "#remember", or when workflow improvements are discovered. Processes pending learnings from session handoffs and updates CLAUDE.md, skill references, and documentation with rules and patterns.
+name: codify
+description: This skill should be used when the user asks to "remember this", "codify this", "update rules", "add to documentation", "consolidate learnings", "#codify", "#remember", or when workflow improvements are discovered. Processes pending learnings from session handoffs and updates CLAUDE.md, skill references, and documentation with rules and patterns.
 allowed-tools: Read, Write, Edit, Bash(git:*), Glob
 user-invocable: true
 ---
@@ -11,7 +11,7 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 ## When to Use
 
-**Use when:** Workflow improvement discovered • Missing constraint identified • Compliance failure resolved • User requests update (#remember) • Completed work reveals patterns
+**Use when:** Workflow improvement discovered • Missing constraint identified • Compliance failure resolved • User requests update (#codify) • Completed work reveals patterns
 
 **Skip when:** Trivial update (fix directly) • No learnings • Temporary/experimental change
 
@@ -146,8 +146,8 @@ For guidance on tiering, budgeting, and maintaining rules in CLAUDE.md, see **`r
 For detailed usage patterns (error handling, workflow improvement, design decisions, pending learnings), see **`examples/remember-patterns.md`**.
 
 ## Integration
-**Invocations**: During work (#remember [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
-**Related**: `/review` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows remember)
+**Invocations**: During work (#codify [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
+**Related**: `/review` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows /codify)
 
 ## Additional Resources
 

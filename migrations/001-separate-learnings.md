@@ -7,7 +7,7 @@
 
 - Learnings moved from `agents/session.md` to dedicated `agents/learnings.md`
 - Handoff skill writes learnings to separate file, never trims them
-- `/remember` skill consolidates old learnings into permanent docs
+- `/codify` skill consolidates old learnings into permanent docs
 - Soft limit (80 lines) with user-directed consolidation guidance
 
 ## Migration Checklist
@@ -42,7 +42,7 @@ After completing all steps:
 
 Institutional knowledge accumulated across sessions. Append new learnings at the bottom.
 
-**Soft limit: 80 lines.** When approaching this limit, use `/remember` to consolidate older learnings into permanent documentation (behavioral rules → `agent-core/fragments/*.md`, technical details → `agents/decisions/*.md` or `agents/decisions/implementation-notes.md`). Keep the 3-5 most recent learnings for continuity.
+**Soft limit: 80 lines.** When approaching this limit, use `/codify` to consolidate older learnings into permanent documentation (behavioral rules → `agent-core/fragments/*.md`, technical details → `agents/decisions/*.md` or `agents/decisions/implementation-notes.md`). Keep the 3-5 most recent learnings for continuity.
 
 ---
 ```

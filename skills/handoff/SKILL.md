@@ -108,7 +108,7 @@ Append to `agents/learnings.md` (not session.md). Format: H2 title → Anti-patt
 - Name after the activity at the decision point — not jargon or root-cause nouns
 - Examples: ❌ "transformation table" → ✅ "When choosing review gate"; ❌ "prose gates" → ✅ "How to prevent skill steps from being skipped"
 
-Titles become `/when` and `/how` triggers mechanically. Design decisions are learnings; learnings.md is a staging area for `/remember` consolidation.
+Titles become `/when` and `/how` triggers mechanically. Design decisions are learnings; learnings.md is a staging area for `/codify` consolidation.
 
 **Append-only.** Never overwrite or trim.
 
@@ -137,7 +137,7 @@ Do NOT delete tasks completed in the current conversation, even if just committe
 ## Principles
 
 - **session.md = working memory.** Next agent context without bloat. Specifics > logs.
-- **learnings.md = semantic memory.** Anti-patterns, correct patterns. Append-only, consolidated via `/remember`.
+- **learnings.md = semantic memory.** Anti-patterns, correct patterns. Append-only, consolidated via `/codify`.
 - **git = archive.** Plan summaries → plan-archive.md. Commit history injected at session start.
 - **Efficient-model review:** Process haiku Session Notes for learnings; apply judgment the efficient model skipped.
 

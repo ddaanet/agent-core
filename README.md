@@ -85,7 +85,7 @@ knowledge in an `agents/` directory in the consuming project:
 - **session.md** — pending tasks, in-progress work, blockers. The handoff
   document. Agents read it at startup, update it at `/handoff`
 - **learnings.md** — institutional knowledge from mistakes and discoveries.
-  Append-only, consolidated via `/remember` when approaching the 80-line limit
+  Append-only, consolidated via `/codify` when approaching the 80-line limit
 - **memory-index.md** — keyword catalog pointing to detailed documentation.
   Agents scan the index to decide what to load on demand
 - **decisions/** — permanent architectural and implementation decisions, one
@@ -121,7 +121,7 @@ isolated context, spawned via the Task tool. Each skill lives in
 | `/commit` | Structured commit messages with gitmoji |
 | `/next` | Shows pending work when no context is loaded |
 | `/shelve` | Archives session context to task list, resets for new work |
-| `/remember` | Consolidates learnings into permanent documentation |
+| `/codify` | Consolidates learnings into permanent documentation |
 
 **Specialized:**
 

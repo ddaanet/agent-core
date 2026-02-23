@@ -59,7 +59,7 @@ COMMANDS = {
     "?": (
         "[#help] List shortcuts (both tiers), "
         "keywords (y/go/continue), and entry skills "
-        "(/design, /commit, /handoff, /orchestrate, /remember, /shelve, /review). "
+        "(/design, /commit, /handoff, /orchestrate, /codify, /shelve, /review). "
         "Format as compact reference table."
     ),
 }

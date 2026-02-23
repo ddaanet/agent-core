@@ -6,7 +6,7 @@ Extracted from handoff Step 4c. Follow when trigger conditions are met.
 
 1. Filter learnings entries with age ≥ 7 active days
 2. Check batch size ≥ 3 entries
-3. If sufficient: invoke `/remember` skill in current session (requires clean session — fresh start)
+3. If sufficient: invoke `/codify` skill in current session (requires clean session — fresh start)
 4. If escalations during consolidation:
    - **Contradictions**: Note in handoff under Blockers/Gotchas
    - **File limits**: Execute refactor flow (below)

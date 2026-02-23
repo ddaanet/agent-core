@@ -20,7 +20,7 @@ Extracted from handoff Step 4c. Follow when trigger conditions are met.
 
 ## Error Handling
 
-On error during script execution or agent delegation:
+On error during consolidation:
 - Log: `echo "Consolidation skipped: [error-message]" >&2`
 - Note in handoff: "Consolidation skipped: [brief-reason]"
 - Continue to next step — consolidation failure must not block handoff (NFR-1)

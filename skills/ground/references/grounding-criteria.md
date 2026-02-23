@@ -44,8 +44,8 @@ External grounding is required when output makes:
 
 | Parameter | Options | Selection criteria |
 |-----------|---------|-------------------|
-| Internal branch | brainstorm / explore | Prescriptive ("how should we X") → brainstorm. Descriptive ("what do we currently do about X") → explore |
-| Model tier | opus / sonnet | Brainstorm → always opus (generative divergence). Explore → sonnet (codebase pattern extraction) |
+| Internal scope | codebase / conceptual | Descriptive ("what patterns exist for X") → codebase. Generative ("what dimensions/constraints apply to X") → conceptual |
+| Model tier | sonnet / opus | Codebase → sonnet (scout pattern extraction). Conceptual → opus (generative divergence) |
 | Research breadth | narrow (1-2) / broad (3-5) | High-stakes, novel domain, or unfamiliar territory → broad. Familiar domain with known prior art → narrow |
 | Output format | reference doc / skill body / decision entry | Reusable methodology → reference doc. Encoding into procedure → skill body. One-time decision → decision entry |
 
@@ -83,7 +83,7 @@ Templates are starting points. Refine based on initial results — if first sear
 
 ## Convergence Template
 
-Required sections when synthesizing Branch A (internal) and Branch B (external) outputs:
+Read both branch artifacts from `plans/reports/` before synthesizing. Required sections:
 
 **Framework Mapping:**
 - Which external framework(s) selected and why

@@ -27,27 +27,30 @@ Frame the research question before searching.
 - Set inclusion criteria: relevance to project context, actionable methodology, procedural (not pure theory)
 - Set exclusion criteria: wrong domain, no procedure, outdated
 - Select parameters (consult `references/grounding-criteria.md` for guidance):
-  - Internal branch type: **brainstorm** (prescriptive — "how should we X") or **explore** (descriptive — "what do we currently do about X")
-  - Model tier for internal branch: brainstorm → always opus; explore → sonnet
+  - Internal scope: **codebase** (descriptive — "what patterns exist for X") or **conceptual** (generative — "what dimensions/constraints apply to X")
+  - Model tier for internal branch: codebase → sonnet (scout); conceptual → opus (generative divergence)
   - Research breadth: narrow (1-2 searches) or broad (3-5 searches)
   - Output format: reference document, skill body, or decision entry
 
 ### Phase 2: Diverge
 
-Execute two branches in parallel. Neither is optional — both are required.
+Execute two branches as parallel Task agents. Launch both in a single message. Neither is optional — both are required.
 
-**Branch A — Internal:**
-- **Brainstorm mode:** Delegate to Task agent (subagent_type: general-purpose, model: opus). Generate project-specific dimensions, constraints, desiderata, evaluation axes. Output: list of dimensions with rationale, written to tmp file. Focus on what no external source would surface.
-- **Explore mode:** Delegate to scout agent. Surface existing codebase patterns, prior decisions, current conventions. Output: inventory of existing patterns with file references, written to tmp file.
+**Branch A — Internal explore:**
+Scope determines agent type and model:
+- **Codebase scope:** Delegate to scout agent. Surface existing codebase patterns, prior decisions, current conventions. Output: inventory of existing patterns with file references. Write to `plans/reports/<topic>-internal-codebase.md`.
+- **Conceptual scope:** Delegate to Task agent (subagent_type: general-purpose, model: opus). Generate project-specific dimensions, constraints, desiderata, evaluation axes. Focus on what no external source would surface. Write to `plans/reports/<topic>-internal-conceptual.md`.
 
-Write internal branch output to `tmp/ground-internal-<topic>.md`.
+**Branch B — External research:**
+Delegate to Task agent (subagent_type: general-purpose, model: sonnet). Model is always sonnet regardless of invoking workflow tier. Agent prompt includes:
+- Research topic and framing question from Phase 1
+- Search query templates from `references/grounding-criteria.md`
+- Evaluation criteria: relevant to project context? Actionable methodology? Named framework with structure?
+- Output contract: framework names, component structures, scoring mechanics, known limitations
 
-**Branch B — External:**
-- Execute web searches using query templates from `references/grounding-criteria.md`
-- Evaluate each source: relevant to project context? Actionable methodology? Named framework with structure?
-- Extract from surviving sources: framework names, component structures, scoring mechanics, known limitations
+Write to `plans/reports/<topic>-external-research.md`.
 
-Write external branch output to `tmp/ground-external-<topic>.md`.
+Both agents write reports and return filepath only (quiet execution pattern).
 
 ### Phase 3: Converge
 
@@ -73,7 +76,7 @@ Required sections:
 - Grounding quality label with evidence basis
 - Sources section with retrieval context
 
-**Branch file retention:** Move internal branch to `plans/reports/` if substantial (>100 lines or >10 file reads). Delete if short brainstorm. Substantial inventories are evidence artifacts supporting the synthesis — needed for audit through the design lifecycle. Delete external branch files (web search results are reproducible).
+**Branch artifacts:** Both branch reports in `plans/reports/` are retained as audit evidence supporting the synthesis through the design lifecycle. The grounding report references both.
 
 ## Integration Points
 

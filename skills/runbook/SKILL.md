@@ -224,7 +224,16 @@ If design document includes "Requirements" section:
    - Factor known constraints into step design and model selection
    - **Do NOT grep memory-index.md** — it's already loaded, scan it mentally
 
-2. **Verify actual file locations:**
+2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
+   - If artifact exists (design stage may have generated it via Pass 1): augment with implementation and testing learnings
+     - Read `agents/decisions/implementation-notes.md` and `agents/decisions/testing.md`
+     - Add entries relevant to the planned work — planning-relevant only: model selection failures, phase typing decisions, checkpoint placement patterns, precommit gotchas
+     - Do NOT add execution-level entries (mock patching, test structure details) — those belong in step files, not recall
+   - If artifact absent: generate initial artifact (read memory-index, select entries by problem-domain matching, read decision files, write artifact — same as design skill A.1 but with implementation focus)
+   - Write augmented artifact back to `plans/<job>/recall-artifact.md`
+   - For multi-session pipelines where design-time artifact may be stale, planner can regenerate from scratch
+
+3. **Verify actual file locations:**
    - Use Glob to find source files referenced by the design
    - Use Glob to find test files: `tests/test_*.py`, `tests/**/test_*.py`
    - Use Grep to find specific functions, classes, or patterns mentioned in the design
@@ -939,6 +948,18 @@ model: haiku
 
 **Key Constraints:**
 - [Constraint]
+
+**Recall (from artifact):**
+Selected entries from `plans/<job>/recall-artifact.md`, curated for this runbook's task agents.
+Token budget: ≤1.5K tokens (ungrounded — needs empirical calibration after first use).
+
+- Phase-neutral entries only here (project conventions, cross-cutting failure modes). Phase-specific entries go in phase preambles instead.
+- Format per consumer model tier:
+  - Haiku/sonnet consumers: constraint format — DO/DO NOT rules with explicit applicability markers
+  - Opus consumers: rationale format — key points with context
+- Content baked at planning time — orchestrator does not filter recall at execution time. Planner resolves conflicting entries and removes least-specific entries when budget exceeded (eviction at planning time, not runtime). Cognitive work at the planner's model tier.
+- Recall entries must avoid conflicting signals: at haiku capability, persistent ambient signal wins over per-step instructions. Curate carefully — Common Context recall is ambient for all task agents.
+- DO NOT rules about recall content go here alongside the content guidance, not in a separate cleanup step.
 
 **Project Paths:**
 - [Path]: [Description]

@@ -111,6 +111,29 @@ If no requirements.md exists:
 
 **Design decision escalation does NOT apply here.** `/opus-design-question` is for planning/execution phases that hit unexpected architectural choices. Design sessions exist to make those decisions — the designer reasons through them directly.
 
+**Recall Artifact Generation**
+
+Documentation findings from A.1 exist only in the current context window — they do not survive to downstream pipeline stages (runbook planning, orchestration, execution, review). Persist them as a recall artifact so all downstream consumers receive the designer's curated documentation context.
+
+**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. The artifact captures entries discovered and read during A.1 — memory-index hits, decision files, skill content, Context7 results, exploration reports. Do not re-read source files; content is already in context from A.1's loading passes.
+
+**Artifact format:** Structured markdown, one section per entry:
+
+```markdown
+## <Entry Heading Name>
+
+**Source:** `<path/to/file.md>`
+**Relevance:** <Why this entry matters for this design — 1-2 sentences>
+
+<Key content excerpt — dense, not full text. Focus on decisions, constraints, and patterns the downstream consumer needs.>
+```
+
+**Selection criteria:** Include entries that informed design decisions or constrain implementation. Do not include entries that were read but proved irrelevant — the artifact is curated, not exhaustive. Do not fabricate relevance notes for entries that had no bearing on the design.
+
+**Staleness:** The artifact reflects corpus state at design time. If documentation changes between design and execution, the artifact becomes stale — this is accepted. Re-running the design pass is the refresh mechanism, not mid-pipeline updates.
+
+**Output:** `plans/<job>/recall-artifact.md`, alongside other design artifacts in the job directory.
+
 #### A.2. Explore Codebase
 
 **Delegate exploration when scope is open-ended or spans multiple unknown files.** Read directly when files are known and few (≤3 files). The goal is cost control — opus tokens on open-ended browsing are expensive, but launching an agent to read a known file costs more than reading it directly.

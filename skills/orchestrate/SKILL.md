@@ -171,6 +171,7 @@ Phase N Checkpoint
 - Design anchoring: verify implementation matches design decisions
 
 **Design reference:** plans/<name>/design.md
+**Review recall:** Read `plans/<name>/recall-artifact.md` if it exists. Incorporate review-relevant entries: common review failures, quality anti-patterns, over-escalation patterns from project history. If file missing, proceed without it.
 **Changed files:** [file list from git diff --name-only]
 
 Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-review.md

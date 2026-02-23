@@ -333,22 +333,55 @@ def validate_phase_numbering(step_phases):
 def _fence_tracker():
     """Returns a callable that tracks fence state line-by-line.
 
-    Tracks 3-backtick fences only (Cycle 1). Returns a callable that:
+    Supports CommonMark fence semantics: opening fence requires ≥3 backticks,
+    closing fence requires ≥ opening count (no info string on closing fence).
+
+    Returns a callable that:
     - Takes a line (str) as argument
     - Returns True if inside a fence after processing this line
     - Uses closure with nonlocal state
 
     Fence tracking rules:
-    - 3 backticks (```) toggle fence on/off
-    - Returns True when inside, False when outside
+    - Opening fence: ≥3 backticks, optional info string
+    - Closing fence: ≥ opening count, no info string (only spaces/tabs allowed after)
     """
     in_fence = False
+    open_count = 0
 
     def tracker(line):
-        nonlocal in_fence
-        # Count leading backticks
-        if line.lstrip().startswith("```"):
-            in_fence = not in_fence
+        nonlocal in_fence, open_count
+        stripped = line.lstrip()
+
+        if in_fence:
+            # Check for closing fence: must start with backticks
+            if stripped.startswith("`"):
+                # Count backticks at start of line
+                backtick_count = 0
+                for char in stripped:
+                    if char == "`":
+                        backtick_count += 1
+                    else:
+                        break
+
+                # Check if this is a valid closing fence
+                # Must have >= opening count and only spaces/tabs after backticks
+                remainder = stripped[backtick_count:]
+                if backtick_count >= open_count and all(c in " \t" for c in remainder):
+                    in_fence = False
+                    open_count = 0
+        # Check for opening fence: must start with >=3 backticks
+        elif stripped.startswith("```"):
+            backtick_count = 0
+            for char in stripped:
+                if char == "`":
+                    backtick_count += 1
+                else:
+                    break
+
+            if backtick_count >= 3:
+                in_fence = True
+                open_count = backtick_count
+
         return in_fence
 
     return tracker

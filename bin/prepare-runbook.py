@@ -1071,6 +1071,8 @@ def generate_default_orchestrator(
     phase_dir=None,
     phase_models=None,
     default_model=None,
+    phase_agents=None,
+    phase_types=None,
 ):
     """Generate default orchestrator instructions.
 
@@ -1083,13 +1085,20 @@ def generate_default_orchestrator(
         phase_dir: Optional path to directory containing source phase files
         phase_models: Optional dict of phase_num -> model (phase-level overrides)
         default_model: Optional fallback model from frontmatter
+        phase_agents: Optional dict of phase_num -> agent_name
+        phase_types: Optional dict of phase_num -> type_str
 
     Returns:
         Orchestrator plan content with phase boundary markers
     """
+    if phase_agents:
+        header_text = "Execute steps using per-phase agents."
+    else:
+        header_text = f"Execute steps sequentially using {runbook_name}-task agent."
+
     content = f"""# Orchestrator Plan: {runbook_name}
 
-Execute steps sequentially using {runbook_name}-task agent.
+{header_text}
 
 Stop on error and escalate to sonnet for diagnostic/fix.
 """
@@ -1133,12 +1142,30 @@ Stop on error and escalate to sonnet for diagnostic/fix.
         return content
 
     items.sort(key=lambda x: (x[0], x[1]))
+
+    if phase_agents is not None:
+        all_phases = sorted({item[0] for item in items})
+        content += "\n## Phase-Agent Mapping\n\n"
+        content += "| Phase | Agent | Type |\n"
+        content += "| --- | --- | --- |\n"
+        for p in all_phases:
+            agent = (phase_agents or {}).get(p, f"crew-{runbook_name}-p{p}")
+            ptype = (phase_types or {}).get(p, "")
+            content += f"| {p} | {agent} | {ptype} |\n"
+        content += "\n"
+
     content += "\n## Step Execution Order\n\n"
 
     for i, (phase, minor, file_stem, display, exec_mode) in enumerate(items):
         is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
+        agent_line = ""
+        if phase_agents is not None:
+            agent_name = phase_agents.get(phase, f"crew-{runbook_name}-p{phase}")
+            agent_line = f"Agent: {agent_name}\n"
         if exec_mode == "inline":
             content += f"## {file_stem} ({display})\n"
+            if agent_line:
+                content += agent_line
             content += "Execution: inline\n"
             if is_phase_boundary:
                 content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
@@ -1146,12 +1173,16 @@ Stop on error and escalate to sonnet for diagnostic/fix.
                 content += "\n"
         elif is_phase_boundary:
             content += f"## {file_stem} ({display}) — PHASE_BOUNDARY\n"
+            if agent_line:
+                content += agent_line
             content += f"Execution: steps/{file_stem}.md\n"
             if phase_dir is not None:
                 content += f"Phase file: {phase_dir}/runbook-phase-{phase}.md\n"
             content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
         else:
             content += f"## {file_stem} ({display})\n"
+            if agent_line:
+                content += agent_line
             content += f"Execution: steps/{file_stem}.md\n\n"
 
     if phase_models is not None or default_model is not None:

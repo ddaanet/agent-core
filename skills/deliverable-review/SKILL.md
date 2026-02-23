@@ -41,10 +41,8 @@ Before starting, gather:
 ### Phase 1: Inventory
 
 1. Read the design's Scope section (IN/OUT) to establish expected deliverables
-2. Glob for all files matching the scope patterns
-3. Measure line counts per file (`wc -l`)
-   - **Exclude plan artifacts** from line counts: runbook files, step files, phase files, orchestrator plans, review reports (`plans/<plan>/` contents). These are planning/execution artifacts, not production deliverables. Including them inflates the count and triggers unnecessary Layer 1 delegation.
-4. Classify each deliverable by artifact type:
+2. Run exact command: `agent-core/bin/deliverable-inventory.py` (no arguments, no pipes, no redirect). Outputs markdown tables: per-file diff stats and summary by type
+3. Classify each deliverable by artifact type (script auto-classifies, verify):
 
 | Type | Pattern | Review axes |
 |------|---------|-------------|

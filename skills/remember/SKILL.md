@@ -31,7 +31,8 @@ Transform session learnings into persistent, actionable documentation. Updates C
 **Implementation patterns** → `agents/decisions/implementation-notes.md`: Mock patterns • Python quirks • API details
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
 **Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
-**Other**: `.claude/agents/*.md` • Plan files (historical only)
+**Agent templates** → `agent-core/agents/*.md`: Execution patterns • Tool usage • Error handling • Domain-specific guidance. Route when learning is actionable for a specific agent role (execution pattern, stop condition, tool preference, error handling heuristic). Eligible agents: artisan, brainstorm-name, corrector, design-corrector, hooks-tester, outline-corrector, refactor, runbook-corrector, runbook-outline-corrector, runbook-simplifier, scout, tdd-auditor, test-driver. Exclude plan-specific agents (generated per-runbook by prepare-runbook.py)
+**Other**: Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
 
 **For detailed routing guidance**, see `references/consolidation-patterns.md`

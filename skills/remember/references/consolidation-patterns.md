@@ -31,6 +31,24 @@ Route learnings to appropriate documentation based on domain.
 
 **Format:** Append to skill's `references/learnings.md` (create if needed)
 
+### Agent-Specific → agent-core/agents/*.md
+
+**Route when:** Learning is actionable for a specific agent role — execution pattern, stop condition, tool preference, error handling heuristic.
+
+**Pattern:** Append to matching agent definition's system prompt (after existing instructions, before `---` separator if present).
+
+**Example routing:**
+- "When haiku rationalizes test failures" → `agent-core/agents/test-driver.md`
+- "When step agents leave uncommitted files" → `agent-core/agents/artisan.md`
+- "When holistic review applies fixes" → `agent-core/agents/corrector.md`
+- "When outline review produces ungrounded corrections" → `agent-core/agents/outline-corrector.md`
+
+**Eligible agents (13):** artisan, brainstorm-name, corrector, design-corrector, hooks-tester, outline-corrector, refactor, runbook-corrector, runbook-outline-corrector, runbook-simplifier, scout, tdd-auditor, test-driver
+
+**Exclusion:** Plan-specific agents (generated per-runbook by `prepare-runbook.py`) are ephemeral — do not consolidate learnings into them.
+
+**Format:** Behavioral rule under relevant section heading, matching agent's existing instruction style.
+
 ## Progressive Disclosure Principle
 
 **Rule:** Learnings should live where they're most likely to be needed.

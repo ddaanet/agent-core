@@ -67,17 +67,16 @@ Route learnings to appropriate documentation based on domain.
 
 ### 1. Append to Memory Index
 
-Add one-line entry to `agents/memory-index.md` in the appropriate domain section:
+Add `/when` or `/how` entry to `agents/memory-index.md` in the appropriate domain section.
 
-```markdown
-- [Summary of learning] → `agent-core/fragments/file.md` or `agents/decisions/file.md`
-```
+**Trigger derivation** (mechanical — no rephrasing):
+- `## When X Y Z` → `/when x y z`
+- `## How to X Y` → `/how x y`
+- Title IS the trigger. Lowercase, preserve all words after operator prefix
 
-**Examples:**
-```markdown
-- Sandbox bypass requires dangerouslyDisableSandbox + permissions.allow → `agent-core/fragments/sandbox-exemptions.md`
-- Tier assessment determines runbook vs direct implementation → `agents/decisions/workflows.md`
-```
+**Operator selection:**
+- `/when` for behavioral knowledge (when to do X, when X applies)
+- `/how` for procedural knowledge (how to do X, technique for X)
 
 **Append-only.** Never remove or consolidate entries. Each entry provides keyword discovery surface for on-demand knowledge — removal loses ambient awareness.
 

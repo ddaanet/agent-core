@@ -165,8 +165,6 @@ Sub-agents are invoked via the Task tool for isolated work. Each is defined in
 | Agent | Purpose |
 |-------|---------|
 | `scout` | Codebase exploration with results persisted to files |
-| `remember-task` | Learnings consolidation during handoff |
-| `memory-refactor` | Splits documentation files exceeding 400 lines |
 | `hooks-tester` | Tests all configured hooks after modifications |
 
 ## Fragments

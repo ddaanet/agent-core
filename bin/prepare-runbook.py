@@ -2,7 +2,7 @@
 """Prepare execution artifacts from runbook markdown files.
 
 Transforms a runbook markdown file (or phase-grouped directory) into:
-1. Plan-specific agent (.claude/agents/<runbook-name>-task.md)
+1. Per-phase agents (.claude/agents/crew-<runbook-name>[-p<N>].md)
 2. Step/Cycle files (plans/<runbook-name>/steps/)
 3. Orchestrator plan (plans/<runbook-name>/orchestrator-plan.md)
 
@@ -18,7 +18,7 @@ Usage:
 Example (File):
     prepare-runbook.py plans/foo/runbook.md
     # Creates:
-    #   .claude/agents/foo-task.md (uses artisan.md baseline)
+    #   .claude/agents/crew-foo.md (uses artisan.md baseline)
     #   plans/foo/steps/step-*.md
     #   plans/foo/orchestrator-plan.md
 
@@ -29,7 +29,7 @@ Example (Phase Directory):
 Example (TDD):
     prepare-runbook.py plans/tdd-test/runbook.md
     # Creates:
-    #   .claude/agents/tdd-test-task.md (uses test-driver.md baseline)
+    #   .claude/agents/crew-tdd-test.md (uses test-driver.md baseline)
     #   plans/tdd-test/steps/cycle-*.md
     #   plans/tdd-test/orchestrator-plan.md
 """
@@ -1094,7 +1094,7 @@ def generate_default_orchestrator(
     if phase_agents:
         header_text = "Execute steps using per-phase agents."
     else:
-        header_text = f"Execute steps sequentially using {runbook_name}-task agent."
+        header_text = f"Execute steps sequentially using crew-{runbook_name} agent."
 
     content = f"""# Orchestrator Plan: {runbook_name}
 
@@ -1461,7 +1461,7 @@ def main() -> None:
         print(file=sys.stderr)
         print("Transforms runbook markdown into execution artifacts:", file=sys.stderr)
         print(
-            "  - Plan-specific agent (.claude/agents/<runbook-name>-task.md)",
+            "  - Per-phase agents (.claude/agents/crew-<runbook-name>[-p<N>].md)",
             file=sys.stderr,
         )
         print("  - Step/Cycle files (plans/<runbook-name>/steps/)", file=sys.stderr)

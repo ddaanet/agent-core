@@ -32,7 +32,7 @@ Common mistakes in runbook creation and how to fix them.
 | **Structure-only validation** | Expected Outcome: "File has 3 sections" (ignores content quality) | Expected Outcome: "Each section defines detection criteria with concrete heuristics and at least one example" |
 | **Missing Expected Outcome** | Step lists Implementation but no Expected Outcome section | Every step needs Expected Outcome with verifiable statements about post-step state |
 | **Ambiguous Error Conditions** | Error Conditions: "If something goes wrong, fix it" | Error Conditions: "If target section not found -> Grep file for heading variants, update section name in step" |
-| **Downstream reference in bootstrapping** | "Apply same criteria as outline-review-agent" (agent not yet updated) | "Apply criteria from review-plan skill Section 11" (upstream source where criteria are defined) |
+| **Downstream reference in bootstrapping** | "Apply same criteria as outline-corrector" (agent not yet updated) | "Apply criteria from review-plan skill Section 11" (upstream source where criteria are defined) |
 | **Self-modification without expand/contract** | Step modifies pipeline artifact (skill, executor, review agent) and later step uses the modified tool without compatibility consideration | When modifying a tool used by later steps: apply improvement completely first (bootstrapping ordering), or use expand/contract — forward-compatible edit, transition, remove backward compatibility. |
 
 ---

@@ -21,7 +21,7 @@ user-invocable: true
 
 Create detailed execution runbooks suitable for weak orchestrator agents. Transforms designs into structured runbooks with per-phase type tagging — behavioral phases get TDD cycles (RED/GREEN), infrastructure phases get general steps, prose/config phases pass through as inline.
 
-**Workflow context:** Part of implementation workflow (see `agents/decisions/pipeline-contracts.md` for full pipeline): `/design` → `/runbook` → [plan-reviewer] → prepare-runbook.py → `/orchestrate`
+**Workflow context:** Part of implementation workflow (see `agents/decisions/pipeline-contracts.md` for full pipeline): `/design` → `/runbook` → [runbook-corrector] → prepare-runbook.py → `/orchestrate`
 
 ## Per-Phase Type Model
 
@@ -121,8 +121,8 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 **Sequence:**
 1. Implement changes directly using Read/Write/Edit tools
-2. Delegate to vet agent for review
-3. Apply all fixes from vet review
+2. Delegate to review agent for review
+3. Apply all fixes from review
 4. Tail-call `/handoff --commit`
 
 **Behavioral code changes:** Write one RED test, make it GREEN, verify, then write the next RED test. Per-cycle sequencing applies even without runbook ceremony — batching all REDs then all GREENs skips the incremental verification that catches wiring mistakes between layers.
@@ -137,17 +137,17 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 **For TDD work (~4-10 cycles):**
 - Plan cycle descriptions (lightweight — no full runbook format)
-- For each cycle: delegate via `Task(subagent_type="tdd-task", model="haiku", prompt="...")` with context included in prompt (requires tdd-task agent definition)
+- For each cycle: delegate via `Task(subagent_type="test-driver", model="haiku", prompt="...")` with context included in prompt (requires test-driver agent definition)
 - Per-cycle sequencing: one RED → one GREEN → verify, then next cycle. Do not batch multiple REDs before GREENs.
 - Intermediate checkpoints: every 3-5 delegated cycles, run tests and review accumulated changes
 
 **For general work (6-15 files):**
-- Delegate work via `Task(subagent_type="quiet-task", model="haiku", prompt="...")` with relevant context from design included in prompt (standard delegation pattern — agent executes and reports to file)
+- Delegate work via `Task(subagent_type="artisan", model="haiku", prompt="...")` with relevant context from design included in prompt (standard delegation pattern — agent executes and reports to file)
 - Single agent for cohesive work; break into 2-4 components only if logically distinct
 
 **Common tail:**
-- After delegation complete: delegate to vet agent for review
-- Apply all fixes from vet review
+- After delegation complete: delegate to review agent for review
+- Apply all fixes from review
 - Tail-call `/handoff --commit`
 
 **Design constraints are non-negotiable:**
@@ -274,7 +274,7 @@ If design document includes "Requirements" section:
    - Review agents operate on filesystem state — committed state prevents dirty-tree issues
 
 4. **Review outline:**
-   - Delegate to `runbook-outline-review-agent` (fix-all mode)
+   - Delegate to `runbook-outline-corrector` (fix-all mode)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
@@ -337,7 +337,7 @@ If design document includes "Requirements" section:
 **Actions:**
 
 1. **Delegate to simplification agent:**
-   - Agent: `runbook-simplification-agent`
+   - Agent: `runbook-simplifier`
    - Input: `plans/<job>/runbook-outline.md` (post-0.85 state)
    - Output: Consolidated outline + report at `plans/<job>/reports/simplification-report.md`
 
@@ -473,7 +473,7 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
    - Review agents operate on filesystem state — committed state prevents dirty-tree issues
 
 4. **Review phase content:**
-   - Delegate to `plan-reviewer` (fix-all mode)
+   - Delegate to `runbook-corrector` (fix-all mode)
    - Agent applies type-aware criteria: TDD discipline for TDD phases, step quality for general phases, vacuity/density/ordering for inline phases, LLM failure modes for ALL phases
    - Agent returns review report path
 
@@ -481,7 +481,7 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
 
    **Domain Validation:**
 
-   When writing vet checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the vet step:
+   When writing review checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the review step:
 
    ```
    - **Domain validation:** Read and apply criteria from
@@ -688,7 +688,7 @@ Every assembled runbook MUST include this metadata section:
 
 **After assembly validation, perform final cross-phase review.**
 
-Delegate to `plan-reviewer` (fix-all mode) for cross-phase consistency:
+Delegate to `runbook-corrector` (fix-all mode) for cross-phase consistency:
 
 **Review scope:**
 - Cross-phase dependency ordering
@@ -734,7 +734,7 @@ Delegate to `plan-reviewer` (fix-all mode) for cross-phase consistency:
 2. **Handle results:**
    - All exit 0: proceed to Phase 4
    - Any exit 1: STOP, report violations to user
-   - Any exit 2 (red-plausibility only): optionally delegate semantic analysis to plan-reviewer, then proceed
+   - Any exit 2 (red-plausibility only): optionally delegate semantic analysis to runbook-corrector, then proceed
 
 **Graceful degradation:** If `validate-runbook.py` doesn't exist, skip Phase 3.5 and proceed to Phase 4 with warning. Supports incremental adoption — Phase A lands skill references before Phase B implements the script.
 
@@ -785,17 +785,17 @@ Checkpoints are verification points between phases. They validate accumulated wo
 **Light checkpoint** (Fix + Functional):
 - **Placement:** Every phase boundary
 - **Process:**
-  1. **Fix:** Run `just dev`, sonnet quiet-task diagnoses and fixes, commit when passing
+  1. **Fix:** Run `just dev`, sonnet artisan diagnoses and fixes, commit when passing
   2. **Functional:** Sonnet reviews implementations against design
      - Check: Real implementations or stubs? Functions compute or return constants?
      - If stubs found: STOP, report which need real behavior
      - If all functional: proceed
 
-**Full checkpoint** (Fix + Vet + Functional):
+**Full checkpoint** (Fix + Review + Functional):
 - **Placement:** Final phase boundary, or phases marked `checkpoint: full`
 - **Process:**
   1. **Fix:** Run `just dev`, sonnet fixes, commit when passing
-  2. **Vet:** Sonnet reviews accumulated changes (presentation, clarity, alignment). Apply all fixes. Commit.
+  2. **Review:** Sonnet reviews accumulated changes (presentation, clarity, alignment). Apply all fixes. Commit.
   3. **Functional:** Same checks as light checkpoint
 
 **Integration tests (TDD composition tasks):**
@@ -979,7 +979,7 @@ model: haiku
 
 **Workflow:**
 ```
-/design → /runbook → plan-reviewer (fix-all) → prepare-runbook.py → /orchestrate
+/design → /runbook → runbook-corrector (fix-all) → prepare-runbook.py → /orchestrate
 ```
 
 **Handoff:**

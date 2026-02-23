@@ -1,13 +1,13 @@
 ---
 name: doc-writing
-description: This skill should be used when the user asks to "write a README", "rewrite the README", "update README", "write documentation", "rewrite documentation", "document this project", "write project docs", "docs are stale", "improve the README", or when creating, rewriting, or improving project-facing documentation (READMEs, guides, overviews). Covers exploration, drafting, reader testing with a fresh agent, gap fixing, and vet review.
+description: This skill should be used when the user asks to "write a README", "rewrite the README", "update README", "write documentation", "rewrite documentation", "document this project", "write project docs", "docs are stale", "improve the README", or when creating, rewriting, or improving project-facing documentation (READMEs, guides, overviews). Covers exploration, drafting, reader testing with a fresh agent, gap fixing, and review.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Task
 user-invocable: true
 ---
 
 # Write Project Documentation
 
-Write project documentation through a structured cycle: explore the subject, draft with audience awareness, reader-test with a fresh agent, fix gaps, vet.
+Write project documentation through a structured cycle: explore the subject, draft with audience awareness, reader-test with a fresh agent, fix gaps, review.
 
 ## When to Use
 
@@ -114,13 +114,13 @@ Address issues found by reader testing. Typical fixes:
 - **Structural gap:** Reader couldn't find information that exists — reorganize or add a heading
 - **Unnecessary detail surfaced:** Reader's wrong answer came from over-explaining an edge case — simplify
 
-Re-run reader test only if fixes were substantial (>30% of document changed). Otherwise, proceed to vet.
+Re-run reader test only if fixes were substantial (>30% of document changed). Otherwise, proceed to review.
 
-### 5. Vet
+### 5. Review
 
-Delegate to `vet-fix-agent` for quality review. The vet catches mechanical issues (broken paths, inconsistencies, formatting) that reader testing misses.
+Delegate to `corrector` for quality review. The review catches mechanical issues (broken paths, inconsistencies, formatting) that reader testing misses.
 
-**Execution context for vet delegation:**
+**Execution context for review delegation:**
 - **IN:** The documentation file written/rewritten
 - **OUT:** Other project files not being documented — do NOT flag issues outside the document
 - **Changed files:** The documentation file path
@@ -148,6 +148,6 @@ Delegate to `vet-fix-agent` for quality review. The vet catches mechanical issue
 
 4. **Fix gaps:** Add prerequisites section, state memory file paths, add comparison sentence distinguishing skills from agents.
 
-5. **Vet:** Delegate to vet-fix-agent. 2 minor fixes applied (expand inline list to table, fix relative path).
+5. **Review:** Delegate to corrector. 2 minor fixes applied (expand inline list to table, fix relative path).
 
 6. **Commit.**

@@ -124,7 +124,7 @@ For detailed usage patterns (error handling, workflow improvement, design decisi
 
 ## Integration
 **Invocations**: During work (#remember [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
-**Related**: `/vet` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows remember)
+**Related**: `/review` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows remember)
 
 ## Additional Resources
 

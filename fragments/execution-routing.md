@@ -16,7 +16,7 @@ It is not a default mode for interactive work.
 - Runbook step execution (isolated context per step)
 - Parallel independent tasks (multiple Task calls)
 - Work requiring a different model tier than current session
-- Tasks benefiting from agent specialization (vet, design review)
+- Tasks benefiting from agent specialization (review, design review)
 
 ### When NOT to Delegate
 

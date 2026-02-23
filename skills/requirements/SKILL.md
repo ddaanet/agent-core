@@ -70,7 +70,7 @@ Quick scan to ground requirements (runs after extraction, so scan is targeted):
 **Boundaries:**
 - Direct tool use only (Glob, Grep, Read)
 - No agent delegation
-- No Context7, no web research, no quiet-explore
+- No Context7, no web research, no scout
 - Purpose: prevent naive requirements (e.g., "add X" when X exists)
 - Tool count is a guideline, not a hard limit — use judgment for complex domains
 

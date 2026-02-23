@@ -1,12 +1,12 @@
 ---
-name: test-hooks
+name: hooks-tester
 description: |
   Use this agent to test all configured hooks (PreToolUse, PostToolUse, UserPromptSubmit) after hook modifications or to verify hook behavior. Examples:
 
   <example>
   Context: User just modified hook scripts and wants to verify they work correctly
   user: "test the hooks"
-  assistant: "I'll use the test-hooks agent to verify all hook behaviors"
+  assistant: "I'll use the hooks-tester agent to verify all hook behaviors"
   <commentary>
   Hook modifications require testing to prevent regressions. This agent runs comprehensive tests for all hook types.
   </commentary>

@@ -18,7 +18,7 @@ Usage:
 Example (File):
     prepare-runbook.py plans/foo/runbook.md
     # Creates:
-    #   .claude/agents/foo-task.md (uses quiet-task.md baseline)
+    #   .claude/agents/foo-task.md (uses artisan.md baseline)
     #   plans/foo/steps/step-*.md
     #   plans/foo/orchestrator-plan.md
 
@@ -29,7 +29,7 @@ Example (Phase Directory):
 Example (TDD):
     prepare-runbook.py plans/tdd-test/runbook.md
     # Creates:
-    #   .claude/agents/tdd-test-task.md (uses tdd-task.md baseline)
+    #   .claude/agents/tdd-test-task.md (uses test-driver.md baseline)
     #   plans/tdd-test/steps/cycle-*.md
     #   plans/tdd-test/orchestrator-plan.md
 """
@@ -639,9 +639,9 @@ def read_baseline_agent(runbook_type="general"):
         Baseline agent body (without frontmatter)
     """
     if runbook_type == "tdd":
-        baseline_path = Path("agent-core/agents/tdd-task.md")
+        baseline_path = Path("agent-core/agents/test-driver.md")
     else:
-        baseline_path = Path("agent-core/agents/quiet-task.md")
+        baseline_path = Path("agent-core/agents/artisan.md")
 
     if not baseline_path.exists():
         print(f"ERROR: Baseline agent not found: {baseline_path}", file=sys.stderr)

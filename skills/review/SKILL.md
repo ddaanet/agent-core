@@ -1,5 +1,5 @@
 ---
-name: vet
+name: review
 description: Review in-progress changes for quality and correctness
 allowed-tools: Read, Bash(git:*, diff:*)
 user-invocable: true
@@ -148,7 +148,7 @@ git diff HEAD <file1> <file2> ...
 **Feedback structure:**
 
 ```markdown
-# Vet Review: [scope description]
+# Review Report: [scope description]
 
 **Scope**: [What was reviewed]
 **Date**: [timestamp]
@@ -232,8 +232,8 @@ git diff HEAD <file1> <file2> ...
 ### 5. Output Review
 
 **Write review to file:**
-- Path: `scratch/reviews/vet-review-[timestamp].md` or
-- Path: `plans/[plan-name]/reports/vet-review.md` (if part of runbook)
+- Path: `scratch/reviews/review-report-[timestamp].md` or
+- Path: `plans/[plan-name]/reports/review-report.md` (if part of runbook)
 
 **Return summary to user:**
 - Overall assessment
@@ -267,7 +267,7 @@ git diff HEAD <file1> <file2> ...
 
 ## Example Execution
 
-**User:** `/vet`
+**User:** `/review`
 
 **Agent:** "What should I review?
 
@@ -284,7 +284,7 @@ git diff HEAD <file1> <file2> ...
 *Runs git status and git diff HEAD*
 
 Found changes in 5 files:
-- agent-core/agents/quiet-task.md (new file)
+- agent-core/agents/artisan.md (new file)
 - agent-core/bin/prepare-runbook.py (new file)
 - CLAUDE.md (modified)
 - plans/general-workflow/design.md (modified)
@@ -303,11 +303,11 @@ Review complete.
 - Major: 0
 - Minor: 2
 
-Full review written to: scratch/reviews/vet-review-2026-01-19-142530.md
+Full review written to: scratch/reviews/review-report-2026-01-19-142530.md
 
 **Minor issues:**
 1. prepare-runbook.py: Consider adding --help flag example to docstring
-2. quiet-task.md: Typo in line 87 \"specificed\" → \"specified\"
+2. artisan.md: Typo in line 87 \"specificed\" → \"specified\"
 
 **Recommendations:**
 - All files follow project conventions
@@ -348,29 +348,28 @@ Full review written to: scratch/reviews/vet-review-2026-01-19-142530.md
 
 ## Integration with General Workflow
 
-**This skill is the protocol used by vet agents.** In workflow contexts, prefer agent delegation over direct skill invocation:
+**This skill is the protocol used by review/correction agents.** In workflow contexts, prefer agent delegation over direct skill invocation:
 
-- `vet-agent` — review only (Tier 1/2, caller applies fixes)
-- `vet-fix-agent` — review + apply fixes (Tier 3 orchestration)
+- `corrector` — review + apply fixes (Tier 3 orchestration)
 
-**Direct `/vet` invocation** is still valid when the user explicitly requests a review in conversation.
+**Direct `/review` invocation** is still valid when the user explicitly requests a review in conversation.
 
 **Workflow stages:**
 1. `/design` — Opus creates design document
 2. `/runbook` — Sonnet creates runbook (per-phase typing: TDD + general)
 3. `/orchestrate` — Executes runbook
-4. vet-fix-agent — Review and fix changes before commit
+4. corrector — Review and fix changes before commit
 5. `/commit` — Commit changes
 6. Complete job
 
 ## Execution Context for Review Delegations
 
-When delegating to vet-fix-agent, include scope context per `agent-core/fragments/vet-requirement.md`:
+When delegating to corrector, include scope context per `agent-core/fragments/review-requirement.md`:
 
 **Required:** Scope IN, Scope OUT, Changed files, Requirements summary
 **Optional:** Prior state, Design reference
 
-See `agent-core/fragments/vet-requirement.md` for full template and rationale.
+See `agent-core/fragments/review-requirement.md` for full template and rationale.
 
 ## References
 
@@ -381,5 +380,5 @@ See `agent-core/fragments/vet-requirement.md` for full template and rationale.
 
 **Related skills:**
 - Built-in `/review` - For PR reviews
-- `/commit` - After vet review passes
+- `/commit` - After review passes
 - `/remember` - To document discovered patterns

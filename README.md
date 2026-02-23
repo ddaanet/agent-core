@@ -42,7 +42,7 @@ These are loaded into every conversation as ambient context.
 The core pipeline:
 
 ```
-/design → /runbook → [plan-reviewer] → /orchestrate → [vet-fix-agent] → /handoff
+/design → /runbook → [runbook-corrector] → /orchestrate → [corrector] → /handoff
 ```
 
 `/design` triages complexity. Simple tasks execute directly. Moderate tasks skip
@@ -50,13 +50,13 @@ to planning. Complex tasks get Opus architectural design with outline iteration
 and design review.
 
 `/runbook` produces step-by-step execution plans with per-phase typing — TDD
-cycles or general steps, mixed within a single runbook. `plan-reviewer` checks
+cycles or general steps, mixed within a single runbook. `runbook-corrector` checks
 TDD discipline, step quality, and LLM failure modes before execution.
 
 `/orchestrate` dispatches each step to a sub-agent in isolated context.
 Executing agents receive only their step file plus the design — no access to
 other steps, so scope is enforced structurally rather than by prose
-instructions. Vet review follows every production artifact.
+instructions. Review follows every production artifact.
 
 `/handoff` captures completed work, pending tasks, and blockers for the next
 session. `/commit` handles structured commit messages with gitmoji.
@@ -111,7 +111,7 @@ isolated context, spawned via the Task tool. Each skill lives in
 | `/runbook` | Creates execution plans with per-phase TDD or general typing |
 | `/review-plan` | Reviews runbook quality, TDD discipline, LLM failure modes |
 | `/orchestrate` | Dispatches runbook steps to sub-agents |
-| `/vet` | Reviews production artifacts for quality |
+| `/review` | Reviews production artifacts for quality |
 
 **Session management:**
 
@@ -145,30 +145,29 @@ Sub-agents are invoked via the Task tool for isolated work. Each is defined in
 
 | Agent | Purpose |
 |-------|---------|
-| `quiet-task` | General task execution (reports to files, terse returns) |
-| `tdd-task` | TDD cycle execution with RED/GREEN/REFACTOR phases |
+| `artisan` | General task execution (reports to files, terse returns) |
+| `test-driver` | TDD cycle execution with RED/GREEN/REFACTOR phases |
 | `refactor` | Escalated refactoring with sonnet-level evaluation |
 
 **Review:**
 
 | Agent | Purpose |
 |-------|---------|
-| `vet-fix-agent` | Reviews changes, applies all fixes, returns report |
-| `vet-agent` | Review-only (writes report, caller applies fixes) |
-| `design-vet-agent` | Opus architectural review for design documents |
-| `plan-reviewer` | Runbook quality and TDD discipline review |
-| `outline-review-agent` | Design outline validation before user discussion |
-| `runbook-outline-review-agent` | Runbook outline validation before expansion |
-| `review-tdd-process` | Post-execution TDD quality analysis |
+| `corrector` | Reviews changes, applies all fixes, returns report |
+| `design-corrector` | Opus architectural review for design documents |
+| `runbook-corrector` | Runbook quality and TDD discipline review |
+| `outline-corrector` | Design outline validation before user discussion |
+| `runbook-outline-corrector` | Runbook outline validation before expansion |
+| `tdd-auditor` | Post-execution TDD quality analysis |
 
 **Utilities:**
 
 | Agent | Purpose |
 |-------|---------|
-| `quiet-explore` | Codebase exploration with results persisted to files |
+| `scout` | Codebase exploration with results persisted to files |
 | `remember-task` | Learnings consolidation during handoff |
 | `memory-refactor` | Splits documentation files exceeding 400 lines |
-| `test-hooks` | Tests all configured hooks after modifications |
+| `hooks-tester` | Tests all configured hooks after modifications |
 
 ## Fragments
 
@@ -179,13 +178,13 @@ patterns, and project conventions.
 Fragments are ambient context — agents don't need to explicitly load them.
 
 **Behavioral:**
-`communication.md`, `deslop.md`, `execute-rule.md`, `error-handling.md`,
+`communication.md`, `execute-rule.md`, `error-handling.md`,
 `no-estimates.md`, `code-removal.md`, `token-economy.md`,
 `design-decisions.md`, `commit-skill-usage.md`
 
 **Operational:**
 `execution-routing.md`, `delegation.md`, `tool-batching.md`,
-`vet-requirement.md`, `sandbox-exemptions.md`, `bash-strict-mode.md`,
+`review-requirement.md`, `sandbox-exemptions.md`, `bash-strict-mode.md`,
 `tmp-directory.md`, `project-tooling.md`, `claude-config-layout.md`
 
 **Workflow:**

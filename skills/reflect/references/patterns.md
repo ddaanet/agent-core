@@ -155,7 +155,7 @@ Catalog of recurring agent deviation patterns with diagnostic heuristics and fix
 
 **Fix strategy:**
 - Fix immediate contradiction in runbook
-- Check if vet agent was used (should be REQUIRED)
+- Check if corrector was used (should be REQUIRED)
 - Strengthen runbook review to catch design mismatches
 
 ---

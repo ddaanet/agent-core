@@ -27,7 +27,7 @@ Guidance for decomposing prose-edit and non-TDD work into steps with proper gran
 ### When to Split
 
 - Files serve unrelated purposes (agent definition vs decision document)
-- Different reviewers needed (skill-reviewer vs agent-creator vs vet-fix-agent)
+- Different reviewers needed (skill-reviewer vs agent-creator vs corrector)
 - Different validation criteria per artifact
 - Independent failure modes (one can succeed while other fails)
 

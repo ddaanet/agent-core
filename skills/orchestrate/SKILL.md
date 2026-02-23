@@ -84,9 +84,9 @@ The orchestrator reads the phase content from the runbook and executes edits dir
 3. After all instructions in the inline phase complete, run `just precommit` to validate
    - If precommit fails: fix issues, re-run precommit, then proceed
    - If unfixable: STOP and escalate to user
-4. **Phase boundary vet:** Apply vet-requirement proportionality (from `agent-core/fragments/vet-requirement.md`):
+4. **Phase boundary review:** Apply review-requirement proportionality (from `agent-core/fragments/review-requirement.md`):
    - ≤5 net lines across ≤2 files, additive → self-review (`git diff`, verify correctness before commit)
-   - Larger → commit first, then delegate to vet-fix-agent with standard checkpoint template
+   - Larger → commit first, then delegate to corrector with standard checkpoint template
 5. Commit the inline phase changes (if not already committed in step 4)
 6. Proceed to next item
 
@@ -142,14 +142,14 @@ Compare its `Phase:` field with the current step's phase.
 
 IF same phase: proceed to 3.4.
 
-IF phase changed (or no next step = final phase): delegate to vet-fix-agent for checkpoint.
+IF phase changed (or no next step = final phase): delegate to corrector for checkpoint.
 
 Do NOT proceed to next step until checkpoint completes.
 
 **Checkpoint delegation:**
 1. Run precommit first: `just precommit` to ground "Changed files" in reality
 2. Gather context: design path, changed files (`git diff --name-only`), phase scope
-3. Delegate to vet-fix-agent with structured template (see below)
+3. Delegate to corrector with structured template (see below)
 4. Read report: if UNFIXABLE issues, STOP and escalate to user
 5. If all fixed: commit checkpoint, continue to next phase
 
@@ -173,7 +173,7 @@ Phase N Checkpoint
 **Design reference:** plans/<name>/design.md
 **Changed files:** [file list from git diff --name-only]
 
-Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-vet.md
+Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-review.md
 Return filepath or "UNFIXABLE: [description]"
 ```
 
@@ -182,9 +182,9 @@ Return filepath or "UNFIXABLE: [description]"
 - **MUST run precommit first** to ensure changed files reflect actual state
 - **MUST include changed files list** from `git diff --name-only`
 - **MUST specify requirements** from design or phase objective
-- **Fail loudly if template fields empty:** If IN list is empty, OUT list is empty, Changed files is missing, or Requirements has no bullet items — STOP orchestration and report which field is incomplete before delegating to vet
+- **Fail loudly if template fields empty:** If IN list is empty, OUT list is empty, Changed files is missing, or Requirements has no bullet items — STOP orchestration and report which field is incomplete before delegating to corrector
 
-**Rationale:** Prevents confabulating future-phase issues. Vet validates current filesystem, not execution-time state — without explicit OUT scope, vet may flag unimplemented features from future phases as missing.
+**Rationale:** Prevents confabulating future-phase issues. Review validates current filesystem, not execution-time state — without explicit OUT scope, reviewer may flag unimplemented features from future phases as missing.
 
 **Final checkpoint lifecycle audit (D-7):**
 When the phase boundary is the final one (no next step), add to checkpoint delegation:
@@ -295,10 +295,10 @@ Current status: Blocked on Step 3
 
 **When all steps successful:**
 
-1. Delegate to vet-fix-agent for quality review
-   - Write report to `plans/<name>/reports/vet-review.md`
+1. Delegate to corrector for quality review
+   - Write report to `plans/<name>/reports/review.md`
 2. If runbook frontmatter has `type: tdd`:
-   - Delegate to review-tdd-process for process analysis
+   - Delegate to tdd-auditor for process analysis
    - Write report to `plans/<name>/reports/tdd-process-review.md`
 3. Report overall success with report links
 4. **Deliverable review assessment:**
@@ -419,7 +419,7 @@ Reports:
 - plans/oauth2-auth/reports/step-3-diagnostic.md (escalation)
 - plans/oauth2-auth/reports/step-4-execution.md
 
-Next: Delegate to vet-fix-agent to review and fix changes before committing."
+Next: Delegate to corrector to review and fix changes before committing."
 
 ## Handling Common Scenarios
 
@@ -457,14 +457,14 @@ Next: Delegate to vet-fix-agent to review and fix changes before committing."
 1. `/design` — Opus creates design document
 2. `/runbook` — Sonnet creates runbook and artifacts (per-phase typing: TDD + general)
 3. `/orchestrate` — Executes runbook (THIS SKILL)
-4. vet-fix-agent — Review and fix changes
-5. review-tdd-process — TDD process analysis (if runbook has TDD phases)
+4. corrector — Review and fix changes
+5. tdd-auditor — TDD process analysis (if runbook has TDD phases)
 6. Complete job
 
 **Handoff:**
 - Input: Prepared artifacts from `/runbook`
 - Output: Executed steps with reports
-- Next: vet-fix-agent review, then `/handoff --commit` → `/commit`
+- Next: corrector review, then `/handoff --commit` → `/commit`
 
 ## Continuation Protocol
 

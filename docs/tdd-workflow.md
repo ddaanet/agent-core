@@ -25,7 +25,7 @@ The TDD workflow implements the RED/GREEN/REFACTOR cycle for building features i
 Both workflows share:
 - `/design` skill (with mode-specific sections)
 - `/orchestrate` execution engine (with runbook type detection)
-- Vet review process (vet-agent / vet-fix-agent)
+- Review/correction process (corrector)
 - Common orchestration patterns (weak orchestrator, plan-specific agents)
 
 **Key difference:** TDD uses cycles (RED/GREEN/REFACTOR) instead of generic steps.
@@ -48,7 +48,7 @@ The workflow automatically detects TDD methodology based on:
 The TDD workflow follows this progression:
 
 ```
-/design (TDD mode) → /runbook → /orchestrate → [vet-fix-agent] → /review-analysis
+/design (TDD mode) → /runbook → /orchestrate → [corrector] → /review-analysis
 ```
 
 ### Stage 1: Design Session (TDD Mode)
@@ -104,7 +104,7 @@ model: haiku
 ## Weak Orchestrator Metadata
 - Runbook Type: TDD
 - Total Cycles: N
-- Execution Model: Haiku (tdd-task agent)
+- Execution Model: Haiku (test-driver agent)
 - Error Escalation: Haiku → Sonnet → User
 - Report Locations: plans/<name>/reports/
 
@@ -132,7 +132,7 @@ model: haiku
 
 **Output:** Reviewed TDD runbook at `plans/<feature-name>/runbook.md`
 
-**Review completed:** /runbook automatically delegates review to plan-reviewer agent before finalization.
+**Review completed:** /runbook automatically delegates review to runbook-corrector agent before finalization.
 
 **After /runbook (runbook reviewed and finalized), run prepare-runbook.py:**
 ```bash
@@ -151,11 +151,11 @@ This generates:
 **Skill:** `/orchestrate`
 **Model:** Haiku (weak orchestrator)
 
-**Purpose:** Execute TDD cycles using tdd-task agent baseline.
+**Purpose:** Execute TDD cycles using test-driver agent baseline.
 
 **Execution pattern:**
 1. `prepare-runbook.py` creates plan-specific agent from:
-   - `agent-core/agents/tdd-task.md` (baseline protocol)
+   - `agent-core/agents/test-driver.md` (baseline protocol)
    - Runbook common context (design decisions, paths)
 2. Orchestrator invokes plan-specific agent for each cycle
 3. Agent executes full RED/GREEN/REFACTOR protocol
@@ -171,7 +171,7 @@ This generates:
 
 ### Stage 4: Review
 
-**Agent:** vet-fix-agent
+**Agent:** corrector
 **Model:** Sonnet
 
 **Purpose:** Review uncommitted changes before finalization.
@@ -179,7 +179,7 @@ This generates:
 **Scope:** All uncommitted changes from TDD execution.
 
 **Activities:**
-- Delegate to vet-fix-agent (orchestrator has no implementation context)
+- Delegate to corrector (orchestrator has no implementation context)
 - Agent reviews all changes and applies critical/major fixes directly
 - Agent writes detailed report with FIXED/UNFIXABLE status per issue
 
@@ -483,11 +483,11 @@ Agent stops and reports when encountering:
 |--------|------------------|--------------|
 | **Unit of work** | Steps | Cycles (RED/GREEN/REFACTOR) |
 | **Planning skill** | `/runbook` | `/runbook` |
-| **Baseline agent** | `quiet-task.md` | `tdd-task.md` |
+| **Baseline agent** | `artisan.md` | `test-driver.md` |
 | **Execution focus** | Sequential steps | Test-first development |
 | **Refactoring** | Optional | Mandatory per cycle |
 | **Commit strategy** | Per step or milestone | WIP + amend per cycle |
-| **Post-execution** | vet-fix-agent | vet-fix-agent + `/review-analysis` |
+| **Post-execution** | corrector | corrector + `/review-analysis` |
 
 ### When to Use Each Workflow
 
@@ -520,7 +520,7 @@ Agent stops and reports when encountering:
 
 ## Structured Log Entry
 
-After each cycle, tdd-task agent appends to execution report:
+After each cycle, test-driver agent appends to execution report:
 
 ```markdown
 ### Cycle X.Y: [name] [timestamp]
@@ -550,7 +550,7 @@ This structured format enables:
 - **agents/session.md**: Current task context and architecture
 - **agents/decisions/**: Architectural decisions and rationale
 - **agents/session.md**: Current session handoff context
-- **agents/tdd-task.md**: TDD task agent baseline template
+- **agents/test-driver.md**: TDD task agent baseline template
 
 ---
 

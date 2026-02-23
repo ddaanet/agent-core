@@ -28,7 +28,7 @@ Review production artifacts against a design specification to identify conforman
 - When session.md lists a deliverable review as pending task
 - On explicit user request to review implementation quality
 
-**Not for:** In-progress work (use vet-fix-agent during phase execution), design documents (use design-vet-agent), or planning artifacts (use plan-reviewer). Deliverable review runs after all phases are committed.
+**Not for:** In-progress work (use corrector during phase execution), design documents (use design-corrector), or planning artifacts (use runbook-corrector). Deliverable review runs after all phases are committed.
 
 ## Prerequisites
 

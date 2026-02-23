@@ -1,5 +1,5 @@
 ---
-name: plan-reviewer
+name: runbook-corrector
 description: |
   Reviews runbook phase files for quality, TDD discipline (if TDD), step quality (if general),
   and LLM failure modes (always).
@@ -41,8 +41,8 @@ Accept TDD, general, and inline artifacts:
 - **General:** `## Step` / `### Step` headers or no type marker (default: general)
 - **Inline:** `(type: inline)` tag in phase heading — no step/cycle headers expected
 - **Mixed:** Multiple header types or inline + non-inline phases — valid (per-phase type tagging)
-- **Design document** → Error: Use `design-vet-agent` for design review
-- **Code/implementation** → Error: Use `vet-agent` for code review
+- **Design document** → Error: Use `design-corrector` for design review
+- **Code/implementation** → Error: Use `corrector` for code review
 
 ## Outline Validation
 

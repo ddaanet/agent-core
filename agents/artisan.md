@@ -1,5 +1,5 @@
 ---
-name: quiet-task
+name: artisan
 description: Execute plan steps with quiet execution pattern (reports to files, terse returns).
 model: haiku
 color: blue

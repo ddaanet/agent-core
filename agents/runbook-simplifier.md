@@ -1,5 +1,5 @@
 ---
-name: runbook-simplification-agent
+name: runbook-simplifier
 description: |
   Use this agent when consolidating redundant patterns in runbook outlines after Phase 0.85.
 
@@ -7,7 +7,7 @@ description: |
   <example>
   Context: Runbook outline has 4 items each adding artifact detection for a different status level
   user: "Run simplification pass on the outline"
-  assistant: "I'll use the runbook-simplification-agent to consolidate the identical-pattern items."
+  assistant: "I'll use the runbook-simplifier to consolidate the identical-pattern items."
   <commentary>
   Four items with same function and test structure, only fixture data varies — consolidate to single parametrized item.
   </commentary>
@@ -16,7 +16,7 @@ description: |
   <example>
   Context: Phase 0.86 of /runbook pipeline after outline review
   user: "Simplify runbook-outline.md before expansion"
-  assistant: "I'll use the runbook-simplification-agent to detect and consolidate redundant patterns."
+  assistant: "I'll use the runbook-simplifier to detect and consolidate redundant patterns."
   <commentary>
   Mandatory pipeline step between Phase 0.85 and Phase 0.9.
   </commentary>

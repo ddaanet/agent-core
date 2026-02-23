@@ -1,12 +1,12 @@
 ---
-name: review-tdd-process
+name: tdd-auditor
 description: |
   Use this agent when analyzing TDD execution quality after completing TDD cycles. Examples:
 
   <example>
   Context: TDD execution complete, all cycles finished
   user: "Analyze the TDD process quality"
-  assistant: "I'll use the review-tdd-process agent to assess compliance and produce recommendations"
+  assistant: "I'll use the tdd-auditor agent to assess compliance and produce recommendations"
   <commentary>
   Post-execution review analyzes how well TDD discipline was followed during implementation.
   </commentary>
@@ -15,9 +15,9 @@ description: |
   <example>
   Context: Orchestrator completed TDD runbook execution
   orchestrator: "Review TDD execution for process compliance"
-  assistant: "I'll delegate to review-tdd-process agent to compare plan vs execution"
+  assistant: "I'll delegate to tdd-auditor agent to compare plan vs execution"
   <commentary>
-  Automated review step in TDD workflow after vet-fix-agent completes.
+  Automated review step in TDD workflow after corrector completes.
   </commentary>
   </example>
 
@@ -399,7 +399,7 @@ Do not provide summary, explanation, or commentary in return message. The review
 
 **Workflow Position:**
 ```
-/design → /runbook → /orchestrate → [vet-fix-agent] → [review-tdd-process] → /commit
+/design → /runbook → /orchestrate → [corrector] → [tdd-auditor] → /commit
 ```
 
 **Typical Invocation:**
@@ -410,7 +410,7 @@ Write report to: plans/<feature-name>/reports/tdd-process-review.md
 ```
 
 **Orchestrator Integration:**
-After vet-fix-agent completes, orchestrator delegates to review-tdd-process agent to assess process quality before final commit.
+After corrector completes, orchestrator delegates to tdd-auditor agent to assess process quality before final commit.
 
 ---
 

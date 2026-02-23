@@ -1,5 +1,5 @@
 ---
-name: quiet-explore
+name: scout
 description: |
   Use this agent when exploration results need to persist to files for reuse
   across design, planning, and execution phases. Prefer over built-in Explore

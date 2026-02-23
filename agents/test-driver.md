@@ -1,5 +1,5 @@
 ---
-name: tdd-task
+name: test-driver
 description: Execute TDD cycles with RED/GREEN/REFACTOR phases. Use for runbook cycle execution or standalone TDD tasks.
 
 model: haiku

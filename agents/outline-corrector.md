@@ -1,5 +1,5 @@
 ---
-name: outline-review-agent
+name: outline-corrector
 description: |
   Reviews design outlines after Phase A.5, before user discussion. Validates soundness, completeness, feasibility against requirements.
 
@@ -46,7 +46,7 @@ Recommendation: Ensure requirements.md exists or provide requirements inline
 Error: Wrong artifact type
 Details: Expected outline.md, found <filename>
 Context: This agent reviews design outlines after Phase A.5
-Recommendation: Use design-vet-agent for design.md, or vet-fix-agent for runbooks
+Recommendation: Use design-corrector for design.md, or corrector for runbooks
 ```
 
 ### 2. Load Context

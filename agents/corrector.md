@@ -1,5 +1,5 @@
 ---
-name: vet-fix-agent
+name: corrector
 description: Vet review agent that applies all fixes directly. Reviews changes, writes report, applies all fixes (critical, major, minor), then returns report filepath.
 model: sonnet
 color: cyan
@@ -78,7 +78,7 @@ The following items were identified but are out of scope:
 
 **Scope:** This agent reviews implementation changes (code, tests) only. It does NOT review:
 - Runbooks or planning artifacts
-- Design documents (use design-vet-agent)
+- Design documents (use design-corrector)
 - Requirements documents
 
 **Input format:** Changed file list (e.g., `src/auth/handlers.py`, `tests/test_auth.py`), NOT git diff text, NOT runbook paths.
@@ -93,22 +93,22 @@ The following items were identified but are out of scope:
 If task prompt contains path to `runbook.md`:
 ```
 Error: Wrong agent type
-Details: This agent reviews implementation changes, not planning artifacts. Use vet-agent for runbook review.
+Details: This agent reviews implementation changes, not planning artifacts. Use runbook-corrector for runbook review.
 Context: Task prompt contains runbook.md path
-Recommendation: vet-agent is designed for document review with full fix-all capability
+Recommendation: runbook-corrector is designed for document review with full fix-all capability
 ```
 
 **Design document rejection:**
 If task prompt specifies a file path to review (not git diff scope):
 - Check if file is `design.md` or in a `design` path
-- Design documents should go to `design-vet-agent` (opus model, architectural analysis)
+- Design documents should go to `design-corrector` (opus model, architectural analysis)
 
 **If given a design document:**
 ```
 Error: Wrong agent type
-Details: vet-fix-agent reviews implementation changes, not design documents
+Details: corrector reviews implementation changes, not design documents
 Context: File appears to be a design document (design.md)
-Recommendation: Use design-vet-agent for design document review (uses opus for architectural analysis)
+Recommendation: Use design-corrector for design document review (uses opus for architectural analysis)
 ```
 
 **Requirements context requirement:**

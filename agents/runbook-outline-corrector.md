@@ -1,5 +1,5 @@
 ---
-name: runbook-outline-review-agent
+name: runbook-outline-corrector
 description: |
   Reviews runbook outlines after Point 0.75 (plan-adhoc) or Phase 1.5 (plan-tdd), before full runbook generation. Validates requirements coverage, phase structure, complexity distribution.
 
@@ -59,7 +59,7 @@ Recommendation: Ensure design.md exists before creating runbook outline
 Error: Wrong artifact type
 Details: Expected runbook-outline.md, found <filename>
 Context: This agent reviews runbook outlines after plan-adhoc Point 0.75 or plan-tdd Phase 1.5
-Recommendation: Use outline-review-agent for design outlines, or vet-fix-agent for full runbooks
+Recommendation: Use outline-corrector for design outlines, or corrector for full runbooks
 ```
 
 ### 2. Load Context

@@ -552,8 +552,8 @@ def extract_sections(content):
     for i, line in enumerate(lines):
         in_fence = tracker(line)
 
-        # Phase headers are section boundaries
-        if re.match(phase_pattern, line):
+        # Phase headers are section boundaries (only when not inside a fence)
+        if re.match(phase_pattern, line) and not in_fence:
             save_current()
             current_section = None
             current_content = []

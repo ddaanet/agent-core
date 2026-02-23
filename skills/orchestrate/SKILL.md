@@ -36,7 +36,7 @@ Execute prepared runbooks using the weak orchestrator pattern. This skill coordi
 ```bash
 # Verify required artifacts
 ls -1 plans/<runbook-name>/orchestrator-plan.md
-ls -1 .claude/agents/<runbook-name>-task.md
+ls -1 .claude/agents/crew-<runbook-name>*.md
 
 # Step files may be absent for all-inline runbooks
 ls -1 plans/<runbook-name>/steps/step-*.md 2>/dev/null || true
@@ -44,7 +44,7 @@ ls -1 plans/<runbook-name>/steps/step-*.md 2>/dev/null || true
 
 **Required artifacts:**
 - Orchestrator plan: `plans/<runbook-name>/orchestrator-plan.md`
-- Plan-specific agent: `.claude/agents/<runbook-name>-task.md` (unused for all-inline runbooks, but created by prepare-runbook.py)
+- Per-phase agents: `.claude/agents/crew-<runbook-name>[-p<N>].md` (one per non-inline phase; unused for all-inline runbooks)
 - Step files: `plans/<runbook-name>/steps/step-*.md` (may be absent for all-inline runbooks)
 
 **If orchestrator plan missing:** ERROR, stop execution.
@@ -94,7 +94,7 @@ The orchestrator reads the phase content from the runbook and executes edits dir
 
 ```
 Use Task tool with:
-- subagent_type: "<runbook-name>-task"
+- subagent_type: [from orchestrator plan "Agent:" field for this step]
 - prompt: "Execute step from: plans/<runbook-name>/steps/step-N.md
 
 CRITICAL: For session handoffs, use /handoff-haiku, NOT /handoff."

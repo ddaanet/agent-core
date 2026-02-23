@@ -2,7 +2,7 @@
 """Prepare execution artifacts from runbook markdown files.
 
 Transforms a runbook markdown file (or phase-grouped directory) into:
-1. Plan-specific agent (.claude/agents/<runbook-name>-task.md)
+1. Per-phase agents (.claude/agents/crew-<runbook-name>[-p<N>].md)
 2. Step/Cycle files (plans/<runbook-name>/steps/)
 3. Orchestrator plan (plans/<runbook-name>/orchestrator-plan.md)
 
@@ -18,7 +18,7 @@ Usage:
 Example (File):
     prepare-runbook.py plans/foo/runbook.md
     # Creates:
-    #   .claude/agents/foo-task.md (uses artisan.md baseline)
+    #   .claude/agents/crew-foo.md (uses artisan.md baseline)
     #   plans/foo/steps/step-*.md
     #   plans/foo/orchestrator-plan.md
 
@@ -29,7 +29,7 @@ Example (Phase Directory):
 Example (TDD):
     prepare-runbook.py plans/tdd-test/runbook.md
     # Creates:
-    #   .claude/agents/tdd-test-task.md (uses test-driver.md baseline)
+    #   .claude/agents/crew-tdd-test.md (uses test-driver.md baseline)
     #   plans/tdd-test/steps/cycle-*.md
     #   plans/tdd-test/orchestrator-plan.md
 """
@@ -647,6 +647,56 @@ def extract_phase_preambles(content):
     return preambles
 
 
+def get_phase_baseline_type(phase_content) -> str:
+    """Determine baseline type for a phase by inspecting its content structure.
+
+    Returns "tdd" if the content contains Cycle headers (indicating TDD
+    workflow), "general" otherwise.
+    """
+    stripped = strip_fenced_blocks(phase_content)
+    if re.search(r"^##\s+Cycle\s+\d+\.\d+:", stripped, re.MULTILINE):
+        return "tdd"
+    return "general"
+
+
+def detect_phase_types(content) -> dict:
+    """Return {phase_num: type_str} for all phases in content.
+
+    Classifies each phase as "tdd", "general", or "inline":
+    - "inline" if the phase header contains `(type: inline)`
+    - Otherwise delegates to get_phase_baseline_type() on the phase's content
+    """
+    stripped = strip_fenced_blocks(content)
+    phase_header_re = re.compile(r"^###?\s+Phase\s+(\d+):", re.MULTILINE)
+    inline_re = re.compile(r"\(type:\s*inline\)", re.IGNORECASE)
+
+    # Find all phase header positions and numbers
+    matches = list(phase_header_re.finditer(stripped))
+    if not matches:
+        return {}
+
+    result = {}
+    for i, m in enumerate(matches):
+        phase_num = int(m.group(1))
+        header_line = (
+            stripped[m.start() : stripped.index("\n", m.start())]
+            if "\n" in stripped[m.start() :]
+            else stripped[m.start() :]
+        )
+        if inline_re.search(header_line):
+            result[phase_num] = "inline"
+        else:
+            # Extract content from after the header to the next phase header (or end)
+            content_start = m.end()
+            content_end = (
+                matches[i + 1].start() if i + 1 < len(matches) else len(stripped)
+            )
+            phase_content = stripped[content_start:content_end]
+            result[phase_num] = get_phase_baseline_type(phase_content)
+
+    return result
+
+
 def assemble_phase_files(directory):
     """Assemble runbook from phase files in a directory.
 
@@ -754,18 +804,18 @@ def derive_paths(runbook_path):
     Input: plans/foo/runbook.md
     Returns:
         runbook_name: 'foo' (parent directory)
-        agent_path: .claude/agents/foo-task.md
+        agents_dir: .claude/agents/ (directory for per-phase agent files)
         steps_dir: plans/foo/steps/
         orchestrator_path: plans/foo/orchestrator-plan.md
     """
     path = Path(runbook_path)
     runbook_name = path.parent.name
 
-    agent_path = Path(".claude/agents") / f"{runbook_name}-task.md"
+    agents_dir = Path(".claude/agents")
     steps_dir = path.parent / "steps"
     orchestrator_path = path.parent / "orchestrator-plan.md"
 
-    return runbook_name, agent_path, steps_dir, orchestrator_path
+    return runbook_name, agents_dir, steps_dir, orchestrator_path
 
 
 def read_baseline_agent(runbook_type="general"):
@@ -791,10 +841,38 @@ def read_baseline_agent(runbook_type="general"):
     return body
 
 
-def generate_agent_frontmatter(runbook_name, model=None) -> str:
+def generate_agent_frontmatter(
+    runbook_name, model=None, phase_num=1, total_phases=1
+) -> str:
     """Generate frontmatter for plan-specific agent."""
     model_line = f"model: {model}\n" if model is not None else ""
-    return f'---\nname: {runbook_name}-task\ndescription: Execute {runbook_name} steps from the plan with plan-specific context.\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+    if total_phases > 1:
+        name = f"crew-{runbook_name}-p{phase_num}"
+        description = f"Execute phase {phase_num} of {runbook_name}"
+    else:
+        name = f"crew-{runbook_name}"
+        description = f"Execute {runbook_name}"
+    return f'---\nname: {name}\ndescription: {description}\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+
+
+def generate_phase_agent(
+    runbook_name,
+    phase_num,
+    phase_type,
+    plan_context="",
+    phase_context="",
+    model=None,
+    total_phases=1,
+) -> str:
+    """Compose a phase-scoped agent from 5 ordered layers."""
+    result = generate_agent_frontmatter(runbook_name, model, phase_num, total_phases)
+    result += read_baseline_agent(phase_type)
+    if plan_context:
+        result += "\n---\n# Runbook-Specific Context\n\n" + plan_context
+    if phase_context:
+        result += "\n---\n# Phase Context\n\n" + phase_context
+    result += "\n\n---\n\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
+    return result
 
 
 def extract_step_metadata(content, default_model=None):
@@ -993,6 +1071,8 @@ def generate_default_orchestrator(
     phase_dir=None,
     phase_models=None,
     default_model=None,
+    phase_agents=None,
+    phase_types=None,
 ):
     """Generate default orchestrator instructions.
 
@@ -1005,13 +1085,20 @@ def generate_default_orchestrator(
         phase_dir: Optional path to directory containing source phase files
         phase_models: Optional dict of phase_num -> model (phase-level overrides)
         default_model: Optional fallback model from frontmatter
+        phase_agents: Optional dict of phase_num -> agent_name
+        phase_types: Optional dict of phase_num -> type_str
 
     Returns:
         Orchestrator plan content with phase boundary markers
     """
+    if phase_agents:
+        header_text = "Execute steps using per-phase agents."
+    else:
+        header_text = f"Execute steps sequentially using crew-{runbook_name} agent."
+
     content = f"""# Orchestrator Plan: {runbook_name}
 
-Execute steps sequentially using {runbook_name}-task agent.
+{header_text}
 
 Stop on error and escalate to sonnet for diagnostic/fix.
 """
@@ -1055,12 +1142,30 @@ Stop on error and escalate to sonnet for diagnostic/fix.
         return content
 
     items.sort(key=lambda x: (x[0], x[1]))
+
+    if phase_agents is not None:
+        all_phases = sorted({item[0] for item in items})
+        content += "\n## Phase-Agent Mapping\n\n"
+        content += "| Phase | Agent | Type |\n"
+        content += "| --- | --- | --- |\n"
+        for p in all_phases:
+            agent = (phase_agents or {}).get(p, f"crew-{runbook_name}-p{p}")
+            ptype = (phase_types or {}).get(p, "")
+            content += f"| {p} | {agent} | {ptype} |\n"
+        content += "\n"
+
     content += "\n## Step Execution Order\n\n"
 
     for i, (phase, minor, file_stem, display, exec_mode) in enumerate(items):
         is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
+        agent_line = ""
+        if phase_agents is not None:
+            agent_name = phase_agents.get(phase, f"crew-{runbook_name}-p{phase}")
+            agent_line = f"Agent: {agent_name}\n"
         if exec_mode == "inline":
             content += f"## {file_stem} ({display})\n"
+            if agent_line:
+                content += agent_line
             content += "Execution: inline\n"
             if is_phase_boundary:
                 content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
@@ -1068,12 +1173,16 @@ Stop on error and escalate to sonnet for diagnostic/fix.
                 content += "\n"
         elif is_phase_boundary:
             content += f"## {file_stem} ({display}) — PHASE_BOUNDARY\n"
+            if agent_line:
+                content += agent_line
             content += f"Execution: steps/{file_stem}.md\n"
             if phase_dir is not None:
                 content += f"Phase file: {phase_dir}/runbook-phase-{phase}.md\n"
             content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
         else:
             content += f"## {file_stem} ({display})\n"
+            if agent_line:
+                content += agent_line
             content += f"Execution: steps/{file_stem}.md\n\n"
 
     if phase_models is not None or default_model is not None:
@@ -1091,7 +1200,7 @@ def validate_and_create(
     runbook_path,
     sections,
     runbook_name,
-    agent_path,
+    agents_dir,
     steps_dir,
     orchestrator_path,
     metadata,
@@ -1169,7 +1278,7 @@ def validate_and_create(
         return False
 
     # Create directories
-    agent_path.parent.mkdir(parents=True, exist_ok=True)
+    agents_dir.mkdir(parents=True, exist_ok=True)
     steps_dir.mkdir(parents=True, exist_ok=True)
 
     # Clean steps directory to prevent orphaned files from previous runs
@@ -1179,33 +1288,91 @@ def validate_and_create(
 
     # Verify writable
     try:
-        agent_path.parent.touch(exist_ok=True)
+        agents_dir.touch(exist_ok=True)
         steps_dir.touch(exist_ok=True)
     except (OSError, IsADirectoryError):
         pass
 
-    # Generate plan-specific agent
-    baseline_body = read_baseline_agent(
-        "general" if runbook_type == "mixed" else runbook_type
-    )
     model = metadata.get("model")
-    # Resolve agent model: frontmatter model, or first phase model if absent
-    agent_model = model or (phase_models[min(phase_models)] if phase_models else None)
-    frontmatter = generate_agent_frontmatter(runbook_name, agent_model)
 
-    agent_content = frontmatter + baseline_body
-    if sections["common_context"]:
-        agent_content += (
-            "\n---\n# Runbook-Specific Context\n\n" + sections["common_context"]
-        )
+    # Detect phase types from assembled content
+    assembled_content = ""
+    if cycles:
+        for cycle in cycles:
+            assembled_content += cycle.get("content", "")
+    if sections.get("steps"):
+        for step_content in sections["steps"].values():
+            assembled_content += step_content
 
-    # Add clean-tree contract for orchestrated execution
-    agent_content += "\n\n---\n\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
+    # Build full content with phase headers for detect_phase_types
+    full_content_parts = []
+    if cycles:
+        # Reconstruct phase headers from cycle major numbers
+        seen_phases: set = set()
+        for cycle in sorted(cycles, key=lambda c: (c["major"], c["minor"])):
+            if cycle["major"] not in seen_phases:
+                full_content_parts.append(f"### Phase {cycle['major']}:\n")
+                seen_phases.add(cycle["major"])
+            full_content_parts.append(cycle.get("content", "") + "\n")
+    if sections.get("steps"):
+        step_phases_map = sections.get("step_phases", {})
+        seen_phases = set()
+        for step_num in sorted(
+            sections["steps"].keys(), key=lambda x: tuple(map(int, x.split(".")))
+        ):
+            phase = step_phases_map.get(step_num, 1)
+            if phase not in seen_phases:
+                full_content_parts.append(f"### Phase {phase}:\n")
+                seen_phases.add(phase)
+            full_content_parts.append(sections["steps"][step_num] + "\n")
+    if sections.get("inline_phases"):
+        for phase_num, phase_content in sorted(sections["inline_phases"].items()):
+            full_content_parts.append(
+                f"### Phase {phase_num}: (type: inline)\n{phase_content}\n"
+            )
 
-    agent_path.write_text(agent_content)
-    print(f"✓ Created agent: {agent_path}")
+    full_content = "".join(full_content_parts)
+    phase_types = detect_phase_types(full_content)
 
+    # Determine total non-inline phases for naming
+    non_inline_phases = sorted(p for p, t in phase_types.items() if t != "inline")
+    total_non_inline = len(non_inline_phases)
+
+    # Generate per-phase agent files
+    plan_context = sections["common_context"] or ""
     preambles = phase_preambles or {}
+    phase_agents: dict = {}
+    created_agents = []
+
+    for phase_num, ptype in sorted(phase_types.items()):
+        if ptype == "inline":
+            phase_agents[phase_num] = "(orchestrator-direct)"
+            continue
+
+        # Resolve model for this phase
+        phase_model = phase_models.get(phase_num) or model
+
+        # For single non-inline phase, use no -pN suffix
+        if total_non_inline == 1:
+            agent_name = f"crew-{runbook_name}"
+        else:
+            agent_name = f"crew-{runbook_name}-p{phase_num}"
+
+        phase_agents[phase_num] = agent_name
+
+        agent_content = generate_phase_agent(
+            runbook_name,
+            phase_num=phase_num,
+            phase_type=ptype,
+            plan_context=plan_context,
+            phase_context=preambles.get(phase_num, ""),
+            model=phase_model,
+            total_phases=total_non_inline,
+        )
+        agent_file = agents_dir / f"{agent_name}.md"
+        agent_file.write_text(agent_content)
+        print(f"✓ Created agent: {agent_file}")
+        created_agents.append(str(agent_file))
 
     # Generate step files for TDD cycles
     if cycles:
@@ -1257,6 +1424,8 @@ def validate_and_create(
             phase_dir=phase_dir,
             phase_models=phase_models or {},
             default_model=frontmatter_model,
+            phase_agents=phase_agents if phase_agents else None,
+            phase_types=phase_types if phase_types else None,
         )
 
     orchestrator_path.write_text(orchestrator_content)
@@ -1271,7 +1440,7 @@ def validate_and_create(
     print(f"  Model: {model}")
 
     # Stage all generated artifacts
-    paths_to_stage = [str(agent_path), str(steps_dir), str(orchestrator_path)]
+    paths_to_stage = [*created_agents, str(steps_dir), str(orchestrator_path)]
     result = subprocess.run(
         ["git", "add", *paths_to_stage], check=False, capture_output=True, text=True
     )
@@ -1292,7 +1461,7 @@ def main() -> None:
         print(file=sys.stderr)
         print("Transforms runbook markdown into execution artifacts:", file=sys.stderr)
         print(
-            "  - Plan-specific agent (.claude/agents/<runbook-name>-task.md)",
+            "  - Per-phase agents (.claude/agents/crew-<runbook-name>[-p<N>].md)",
             file=sys.stderr,
         )
         print("  - Step/Cycle files (plans/<runbook-name>/steps/)", file=sys.stderr)
@@ -1409,7 +1578,7 @@ def main() -> None:
         print(warning, file=sys.stderr)
 
     # Derive paths
-    runbook_name, agent_path, steps_dir, orchestrator_path = derive_paths(runbook_path)
+    runbook_name, agents_dir, steps_dir, orchestrator_path = derive_paths(runbook_path)
 
     # Extract per-phase model overrides and phase preambles
     phase_models = extract_phase_models(body)
@@ -1421,7 +1590,7 @@ def main() -> None:
         runbook_path,
         sections,
         runbook_name,
-        agent_path,
+        agents_dir,
         steps_dir,
         orchestrator_path,
         metadata,

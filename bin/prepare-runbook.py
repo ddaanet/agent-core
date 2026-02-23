@@ -817,6 +817,26 @@ def generate_agent_frontmatter(
     return f'---\nname: {name}\ndescription: {description}\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
 
 
+def generate_phase_agent(
+    runbook_name,
+    phase_num,
+    phase_type,
+    plan_context="",
+    phase_context="",
+    model=None,
+    total_phases=1,
+) -> str:
+    """Compose a phase-scoped agent from 5 ordered layers."""
+    result = generate_agent_frontmatter(runbook_name, model, phase_num, total_phases)
+    result += read_baseline_agent(phase_type)
+    if plan_context:
+        result += "\n---\n# Runbook-Specific Context\n\n" + plan_context
+    if phase_context:
+        result += "\n---\n# Phase Context\n\n" + phase_context
+    result += "\n\n---\n\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
+    return result
+
+
 def extract_step_metadata(content, default_model=None):
     """Extract execution metadata from step/cycle content.
 

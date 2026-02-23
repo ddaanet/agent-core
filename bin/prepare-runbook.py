@@ -659,6 +659,44 @@ def get_phase_baseline_type(phase_content) -> str:
     return "general"
 
 
+def detect_phase_types(content) -> dict:
+    """Return {phase_num: type_str} for all phases in content.
+
+    Classifies each phase as "tdd", "general", or "inline":
+    - "inline" if the phase header contains `(type: inline)`
+    - Otherwise delegates to get_phase_baseline_type() on the phase's content
+    """
+    stripped = strip_fenced_blocks(content)
+    phase_header_re = re.compile(r"^###?\s+Phase\s+(\d+):", re.MULTILINE)
+    inline_re = re.compile(r"\(type:\s*inline\)", re.IGNORECASE)
+
+    # Find all phase header positions and numbers
+    matches = list(phase_header_re.finditer(stripped))
+    if not matches:
+        return {}
+
+    result = {}
+    for i, m in enumerate(matches):
+        phase_num = int(m.group(1))
+        header_line = (
+            stripped[m.start() : stripped.index("\n", m.start())]
+            if "\n" in stripped[m.start() :]
+            else stripped[m.start() :]
+        )
+        if inline_re.search(header_line):
+            result[phase_num] = "inline"
+        else:
+            # Extract content from after the header to the next phase header (or end)
+            content_start = m.end()
+            content_end = (
+                matches[i + 1].start() if i + 1 < len(matches) else len(stripped)
+            )
+            phase_content = stripped[content_start:content_end]
+            result[phase_num] = get_phase_baseline_type(phase_content)
+
+    return result
+
+
 def assemble_phase_files(directory):
     """Assemble runbook from phase files in a directory.
 

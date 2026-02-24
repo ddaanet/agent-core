@@ -144,6 +144,18 @@ def extract_cycles(content):
             }
             current_content = [line]
 
+        # Check for phase header - terminates current cycle
+        # H3 phase headers (### Phase N:) mark phase boundaries
+        elif (
+            re.match(r"^### Phase\s+\d+", line)
+            and current_cycle is not None
+            and not in_fence
+        ):
+            current_cycle["content"] = "\n".join(current_content).strip()
+            cycles.append(current_cycle)
+            current_cycle = None
+            current_content = []
+
         # Check for next H2 (non-cycle section) - terminates current cycle
         # Only H2 headers terminate cycles (H3 like ### RED Phase are cycle content)
         # Skip H2 check if inside a fence (so fenced headers don't terminate cycles)
@@ -1374,15 +1386,22 @@ def validate_and_create(
         print(f"✓ Created agent: {agent_file}")
         created_agents.append(str(agent_file))
 
+    def _source_for_phase(phase_num: int) -> str:
+        """Resolve provenance path to actual phase file or canonical runbook."""
+        if phase_dir:
+            return str(Path(phase_dir) / f"runbook-phase-{phase_num}.md")
+        return str(runbook_path)
+
     # Generate step files for TDD cycles
     if cycles:
         for cycle in sorted(cycles, key=lambda c: (c["major"], c["minor"])):
             step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
             step_path = steps_dir / step_file_name
             cycle_model = phase_models.get(cycle["major"], model)
+            source_path = _source_for_phase(cycle["major"])
             step_file_content = generate_cycle_file(
                 cycle,
-                str(runbook_path),
+                source_path,
                 cycle_model,
                 phase_context=preambles.get(cycle["major"], ""),
             )
@@ -1400,10 +1419,11 @@ def validate_and_create(
             step_path = steps_dir / step_file_name
             phase = step_phases.get(step_num, 1)
             step_model = phase_models.get(phase, model)
+            source_path = _source_for_phase(phase)
             step_file_content = generate_step_file(
                 step_num,
                 step_content,
-                str(runbook_path),
+                source_path,
                 step_model,
                 phase,
                 phase_context=preambles.get(phase, ""),

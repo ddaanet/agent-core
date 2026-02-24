@@ -153,7 +153,9 @@ For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify r
 
 #### A.5. Produce Plan Outline
 
-**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against what exploration revealed. Codebase findings, external research, and Context7 results make different recall entries relevant than what A.1 selected from the initial problem description. Add entries that exploration surfaced; remove entries that proved irrelevant. Write the updated artifact back.
+**Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>`
+
+Review the changed files list. Codebase findings, external research, and Context7 results make different recall entries relevant than what A.1 selected from the initial problem description. If files changed that affect which recall entries are relevant, update the artifact: add entries surfaced by changes, remove entries that proved irrelevant. Write updated artifact back.
 
 **Output:** Write outline to `plans/<job>/outline.md` (create directory if needed).
 
@@ -272,7 +274,9 @@ After user validates the outline, assess whether it already contains enough spec
 
 #### C.1. Create Design Document
 
-**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against user discussion outcomes. Approach commitment, revised scope, or rejected alternatives change which implementation and testing entries are relevant. Add entries surfaced by the discussion; remove entries for approaches that were rejected. Write the updated artifact back.
+**Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>`
+
+Review the changed files list. Approach commitment, revised scope, or rejected alternatives change which implementation and testing entries are relevant. If files changed that affect which recall entries are relevant, update the artifact: add entries surfaced by the discussion, remove entries for approaches that were rejected. Write updated artifact back.
 
 **Output:** `plans/<job-name>/design.md`
 

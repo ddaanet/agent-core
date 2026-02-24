@@ -149,11 +149,25 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
 - **Minor** — style, clarity, naming, robustness edge case
 
 **Next steps:**
-1. For Critical + Major findings: create one pending task → `/design` with report reference
+1. **Lifecycle entry:** Append to `plans/<plan-name>/lifecycle.md`:
+   - **Re-review:** If the plan's current lifecycle last entry is `rework`, first append `{YYYY-MM-DD} review-pending — /deliverable-review`
+   - **Outcome:** `reviewed` if no Critical findings; `rework` if any Critical findings
+     ```
+     {YYYY-MM-DD} reviewed — /deliverable-review
+     ```
+     or
+     ```
+     {YYYY-MM-DD} rework — /deliverable-review
+     ```
+   - **In-main delivery:** If in the main repository (not a worktree — `git rev-parse --git-dir` returns `.git`), also append:
+     ```
+     {YYYY-MM-DD} delivered — /deliverable-review
+     ```
+2. For Critical + Major findings: create one pending task → `/design` with report reference
    - Task format: `- [ ] **Fix <plan-name> findings** — \`/design plans/<plan>/reports/deliverable-review.md\` | opus`
    - Unconditional `/design` routing — `/design` triage handles proportionality
-2. Minor findings: note in report for inline fix or deferral
-3. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
+3. Minor findings: note in report for inline fix or deferral
+4. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
 
 ## References
 

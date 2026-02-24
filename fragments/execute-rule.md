@@ -48,8 +48,9 @@ Unscheduled Plans:
 **Unscheduled Plans:** Plans with no associated pending task.
 - Call `list_plans(Path('plans'))` for all plans
 - Exclude plans that appear in any pending task's plan directory
+- Exclude plans with status `delivered` (terminal — no action needed)
 - **Format:** `<plan-name> — <status>`
-- **Status values:** `requirements`, `designed`, `planned`, `ready`
+- **Status values:** `requirements`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`
 - **Sorting:** Alphabetical by plan name
 
 **Status source:** `claudeutils _worktree ls` for plan states and tree status; `session.md` for task notes. The CLI wraps `list_plans()` + `format_rich_ls()` — do not call these via ad-hoc Python.

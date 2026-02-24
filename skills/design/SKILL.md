@@ -38,20 +38,50 @@ Before doing design work, assess whether design is actually needed.
 - `design.md` exists → route to `/runbook`
 - `outline.md` sufficient (concrete approach, no open questions, explicit scope, low coordination complexity) → skip to Phase B
 - `outline.md` insufficient → resume from A.5 (revise) or A.6 (review)
-- Otherwise → triage below
+- Otherwise → classify below
 
-**Simple (no design needed):**
-- Single file, obvious implementation, no architectural decisions
-- **No behavioral code changes** — new functions, changed logic paths, conditional branches are NOT simple. Route behavioral code to Moderate regardless of conceptual simplicity.
-- → Check for applicable skills and project recipes first. Skip design — all other operational rules (skills, project tooling, communication) remain in effect. Update session.md with what was done.
+#### Triage Recall (D+B anchor)
 
-**Moderate (planning needed, not design):**
-- Clear requirements, no architectural uncertainty, well-defined scope
-- → Skip design. Route to `/runbook`, which has its own tier assessment.
+Load triage-relevant decisions before classifying. This tool call is the structural anchor — prevents classification from being skipped or rationalized.
 
-**Complex (design needed):**
+```bash
+agent-core/bin/when-resolve.py "when behavioral code" "when complexity" "when triage" "when <domain-keyword>" ...
+```
+
+- Derive domain keywords from the task/problem description
+- Always include: behavioral code, complexity, triage
+- Add domain-specific keywords from the task context
+- Purpose: surface codified decisions that constrain classification before it happens
+
+#### Classification Criteria
+
+Assess the task against these criteria. Classify only — do not route yet.
+
+**Complex:**
 - Architectural decisions, multiple valid approaches, uncertain requirements, significant codebase impact
-- → Proceed with Phases A-C below.
+
+**Moderate:**
+- Clear requirements, no architectural uncertainty, well-defined scope
+- Behavioral code changes: new functions, changed logic paths, conditional branches
+
+**Simple:**
+- Single file, obvious implementation, no architectural decisions
+- **No behavioral code changes** — new functions, changed logic paths, conditional branches are Moderate regardless of conceptual simplicity
+
+#### Classification Gate
+
+Produce this classification block before routing (visible output, not internal reasoning):
+- **Classification:** [Simple / Moderate / Complex]
+- **Behavioral code check:** Does this task add functions, change logic paths, or add conditional branches? [Yes → Moderate minimum / No]
+- **Evidence:** Which criteria matched and which recall entries informed the decision
+
+#### Routing
+
+- **Simple →** Check for applicable skills and project recipes first. Skip design — all other operational rules (skills, project tooling, communication) remain in effect. Update session.md with what was done.
+- **Moderate →** Skip design. Route to `/runbook`, which has its own tier assessment.
+- **Complex →** Proceed with Phases A-C below.
+
+**Companion tasks:** If session notes bundle additional work into this /design invocation ("address X during /design"), each companion task gets its own pass through Phase 0 — recall, classification, routing. The /design invocation is the venue; process is not optional. Route each workstream independently.
 
 **Session state check:** If session has significant pending work (>5 tasks), suggest `/shelve` before proceeding.
 

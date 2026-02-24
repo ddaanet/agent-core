@@ -5,7 +5,7 @@ description: |
   "plan the implementation", "expand the design into steps", or when a design
   document needs decomposition into executable steps. Creates execution runbooks
   with per-phase typing (TDD cycles, general steps, or inline pass-through).
-allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
+allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, agent-core/bin/recall-diff.sh, echo:*|pbcopy)
 requires:
   - Design document from /design
   - CLAUDE.md for project conventions (if exists)

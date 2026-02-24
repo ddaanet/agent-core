@@ -22,7 +22,7 @@ fi
 triggers=()
 while IFS= read -r line; do
   # Strip annotation (everything after first ' — ')
-  line="${line% — *}"
+  line="${line%% — *}"
   # Trim trailing whitespace
   line="${line%"${line##*[![:space:]]}"}"
   # Skip blank lines and comment lines

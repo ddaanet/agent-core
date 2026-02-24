@@ -1,10 +1,10 @@
 ---
 name: runbook
 description: |
-  Create execution runbooks with per-phase typing (TDD cycles, general steps,
-  or inline pass-through). Supports mixed runbooks: behavioral phases use TDD
-  discipline, infrastructure phases use general steps, prose/config phases use
-  inline execution. Routes based on design context and phase requirements.
+  This skill should be used when the user asks to "/runbook", "create a runbook",
+  "plan the implementation", "expand the design into steps", or when a design
+  document needs decomposition into executable steps. Creates execution runbooks
+  with per-phase typing (TDD cycles, general steps, or inline pass-through).
 allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, echo:*|pbcopy)
 requires:
   - Design document from /design
@@ -119,6 +119,8 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 - Single session, single model
 - No parallelization benefit
 
+**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists (moderate path skipped design), do lightweight recall before exploring: Read `memory-index.md` (skip if already in context), identify domain-relevant entries using keywords from design/user request, then batch-resolve via `when-resolve.py "when <trigger>" "how <trigger>" ...` (single call, multiple entries). Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
+
 **Sequence:**
 1. Implement changes directly using Read/Write/Edit tools
 2. Delegate to review agent for review
@@ -134,6 +136,8 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 - Work benefits from agent isolation but not full orchestration
 - Components are sequential (no parallelization benefit)
 - No model switching needed
+
+**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists, do lightweight recall before exploring: Read `memory-index.md` (skip if already in context), identify domain-relevant entries, then batch-resolve via `when-resolve.py "when <trigger>" "how <trigger>" ...`. Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 
 **For TDD work (~4-10 cycles):**
 - Plan cycle descriptions (lightweight — no full runbook format)
@@ -219,12 +223,21 @@ If design document includes "Requirements" section:
 - Carry requirements context into runbook Common Context
 
 1. **Discover relevant prior knowledge:**
-   - Check loaded memory-index context (already in CLAUDE.md) for entries related to the task domain
-   - When entry is relevant, Read the referenced file
+   - Read `memory-index.md` (skip if already in context from design stage or prior recall)
+   - Identify entries related to the task domain, Read the referenced decision files
    - Factor known constraints into step design and model selection
-   - **Do NOT grep memory-index.md** — it's already loaded, scan it mentally
+   - Batch-resolve multiple entries via `when-resolve.py "when <trigger>" ...` when resolving section-level entries
 
-2. **Verify actual file locations:**
+2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
+   - If artifact exists (design stage may have generated it via Pass 1): augment with implementation and testing learnings
+     - Read `agents/decisions/implementation-notes.md` and `agents/decisions/testing.md`
+     - Add entries relevant to the planned work — planning-relevant only: model selection failures, phase typing decisions, checkpoint placement patterns, precommit gotchas
+     - Do NOT add execution-level entries (mock patching, test structure details) — those belong in step files, not recall
+   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, batch-resolve via `when-resolve.py`, write artifact — same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
+   - Write augmented artifact back to `plans/<job>/recall-artifact.md`
+   - For multi-session pipelines where design-time artifact may be stale, planner can regenerate from scratch
+
+3. **Verify actual file locations:**
    - Use Glob to find source files referenced by the design
    - Use Glob to find test files: `tests/test_*.py`, `tests/**/test_*.py`
    - Use Grep to find specific functions, classes, or patterns mentioned in the design
@@ -235,6 +248,8 @@ If design document includes "Requirements" section:
 ---
 
 ### Phase 0.75: Generate Runbook Outline
+
+**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against codebase discovery findings. File locations, existing patterns, and structural constraints make different implementation learnings relevant than what Phase 0.5 initially selected. Add entries revealed by discovery (e.g., testing patterns for the discovered module structure); remove entries for patterns that don't apply to the actual codebase. Write the updated artifact back.
 
 **Before writing full runbook content, create a holistic outline for cross-phase coherence.**
 
@@ -939,6 +954,18 @@ model: haiku
 
 **Key Constraints:**
 - [Constraint]
+
+**Recall (from artifact):**
+Selected entries from `plans/<job>/recall-artifact.md`, curated for this runbook's task agents.
+Token budget: ≤1.5K tokens (ungrounded — needs empirical calibration after first use).
+
+- Phase-neutral entries only here (project conventions, cross-cutting failure modes). Phase-specific entries go in phase preambles instead.
+- Format per consumer model tier:
+  - Haiku/sonnet consumers: constraint format — DO/DO NOT rules with explicit applicability markers
+  - Opus consumers: rationale format — key points with context
+- Content baked at planning time — orchestrator does not filter recall at execution time. Planner resolves conflicting entries and removes least-specific entries when budget exceeded (eviction at planning time, not runtime). Cognitive work at the planner's model tier.
+- Recall entries must avoid conflicting signals: at haiku capability, persistent ambient signal wins over per-step instructions. Curate carefully — Common Context recall is ambient for all task agents.
+- DO NOT rules about recall content go here alongside the content guidance, not in a separate cleanup step.
 
 **Project Paths:**
 - [Path]: [Description]

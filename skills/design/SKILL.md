@@ -94,13 +94,15 @@ If no requirements.md exists:
 
 | Level | Source | How | When |
 |-------|--------|-----|------|
-| 1. Local knowledge | `memory-index.md` for keyword discovery → read referenced files. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, scout, or Grep | Always (core), flexible method |
+| 1. Local knowledge | Read `memory-index.md` (skip if already in context), keyword discovery → batch-resolve via `when-resolve.py` or read referenced files directly. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, when-resolve.py, scout, or Grep | Always (core), flexible method |
 | 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
 | 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
 | 4. Local explore | Codebase exploration | Delegate to scout agent | Always for complex designs |
 | 5. Web research | External patterns, prior art, specifications | WebSearch/WebFetch (direct in main session) | When local sources insufficient |
 
 **Not all levels needed for every task.** Level 1 is always loaded. Levels 2-5 are conditional on task domain.
+
+**No-requirements case:** When no requirements.md exists, derive domain keywords for memory-index matching from the user request and task description. Memory-index's keyword-rich entries amplify thin user input — even sparse queries surface relevant decisions through index cross-references, superior to direct corpus search. Without formal requirements, cast a wider net on Level 1 (check more memory-index entries, read adjacent decision file sections) to compensate for weaker signal.
 
 **Level 1 clarification:** Memory-index is an ambient awareness index — keyword-rich entries that surface relevant knowledge. It is NOT the only way to discover local knowledge. For targeted doc collection (e.g., "what do we know about agent patterns?"), the designer can also:
 - Delegate scout to read and summarize `agents/decisions/` and `agent-core/fragments/`
@@ -110,6 +112,29 @@ If no requirements.md exists:
 **Flexibility:** The checkpoint is domain-aware, not prescriptive. Designer identifies what domain the task touches and loads relevant docs for that domain. No fixed "always read X" list beyond level 1 core.
 
 **Design decision escalation does NOT apply here.** `/opus-design-question` is for planning/execution phases that hit unexpected architectural choices. Design sessions exist to make those decisions — the designer reasons through them directly.
+
+**Recall Artifact Generation**
+
+Documentation findings from A.1 exist only in the current context window — they do not survive to downstream pipeline stages (runbook planning, orchestration, execution, review). Persist them as a recall artifact so all downstream consumers receive the designer's curated documentation context.
+
+**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. The artifact captures entries discovered and read during A.1 — memory-index hits, decision files, skill content, Context7 results, exploration reports. Do not re-read source files; content is already in context from A.1's loading passes.
+
+**Artifact format:** Structured markdown, one section per entry:
+
+```markdown
+## <Entry Heading Name>
+
+**Source:** `<path/to/file.md>`
+**Relevance:** <Why this entry matters for this design — 1-2 sentences>
+
+<Key content excerpt — dense, not full text. Focus on decisions, constraints, and patterns the downstream consumer needs.>
+```
+
+**Selection criteria:** Include entries that informed design decisions or constrain implementation. Do not include entries that were read but proved irrelevant — the artifact is curated, not exhaustive. Do not fabricate relevance notes for entries that had no bearing on the design.
+
+**Staleness:** The artifact reflects corpus state at design time. If documentation changes between design and execution, the artifact becomes stale — this is accepted. Re-running the design pass is the refresh mechanism, not mid-pipeline updates.
+
+**Output:** `plans/<job>/recall-artifact.md`, alongside other design artifacts in the job directory.
 
 #### A.2. Explore Codebase
 
@@ -126,6 +151,8 @@ For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify r
 **Grounding:** When the design will produce a methodology, framework, scoring system, or taxonomy, invoke `/ground` to prevent confabulated structures. The ground skill runs parallel internal+external research branches and produces a grounded reference document in `plans/reports/`.
 
 #### A.5. Produce Plan Outline
+
+**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against what exploration revealed. Codebase findings, external research, and Context7 results make different recall entries relevant than what A.1 selected from the initial problem description. Add entries that exploration surfaced; remove entries that proved irrelevant. Write the updated artifact back.
 
 **Output:** Write outline to `plans/<job>/outline.md` (create directory if needed).
 
@@ -223,7 +250,7 @@ After user validates the outline, assess whether it already contains enough spec
 
 **If execution-ready** — offer direct execution. On confirmation:
 1. Execute edits in current session
-2. Delegate to `corrector` (review requirement applies regardless of execution path)
+2. Delegate to `corrector` — include review-relevant entries from `plans/<job>/recall-artifact.md` in corrector prompt (failure modes, quality anti-patterns)
 3. Invoke `/handoff [CONTINUATION: /commit]`
 
 **If not execution-ready** — route to `/runbook`:
@@ -241,6 +268,8 @@ After user validates the outline, assess whether it already contains enough spec
 **Objective:** Produce full design document, review, fix, commit.
 
 #### C.1. Create Design Document
+
+**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against user discussion outcomes. Approach commitment, revised scope, or rejected alternatives change which implementation and testing entries are relevant. Add entries surfaced by the discussion; remove entries for approaches that were rejected. Write the updated artifact back.
 
 **Output:** `plans/<job-name>/design.md`
 
@@ -423,7 +452,7 @@ Design can resolve complexity — a job correctly classified as Complex may prod
 - No cross-file coordination (edits are independent per file)
 - No implementation loops (no test/build feedback required)
 
-- **If execution-ready:** Execute edits, review, then `/handoff [CONTINUATION: /commit]`
+- **If execution-ready:** Execute edits, review (include recall artifact review entries in corrector prompt), then `/handoff [CONTINUATION: /commit]`
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 ## Output Expectations

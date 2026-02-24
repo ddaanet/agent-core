@@ -95,7 +95,7 @@ If no requirements.md exists:
 
 | Level | Source | How | When |
 |-------|--------|-----|------|
-| 1. Local knowledge | Read `memory-index.md` (skip if already in context), keyword discovery → batch-resolve via `when-resolve.py` or read referenced files directly. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, when-resolve.py, scout, or Grep | Always (core), flexible method |
+| 1. Local knowledge | Read `memory-index.md` (skip if already in context), keyword discovery → batch-resolve via `agent-core/bin/when-resolve.py` or read referenced files directly. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, agent-core/bin/when-resolve.py, scout, or Grep | Always (core), flexible method |
 | 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
 | 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
 | 4. Local explore | Codebase exploration | Delegate to scout agent | Always for complex designs |
@@ -197,6 +197,8 @@ Delegate to `outline-corrector` using Task tool with `subagent_type="outline-cor
 
 ```
 Review plans/<job>/outline.md for completeness, clarity, and alignment with requirements.
+
+Include review-relevant entries from plans/<job>/recall-artifact.md if present (failure modes, quality anti-patterns).
 
 Apply all fixes (critical, major, minor) directly to outline.md.
 
@@ -423,6 +425,8 @@ Use Task tool with `subagent_type="design-corrector"`:
 
 ```
 Review plans/<job-name>/design.md for completeness, clarity, feasibility, and consistency.
+
+Include review-relevant entries from plans/<job-name>/recall-artifact.md if present (failure modes, quality anti-patterns).
 
 Write detailed review to: plans/<job-name>/reports/design-review.md
 

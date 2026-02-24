@@ -103,7 +103,7 @@ Always runs in main session with full cross-project context.
 - Fragment convention compliance
 - Memory index pattern verification
 - Other skills' allowed-tools and frontmatter cross-reference validation
-- Read `plans/<plan>/recall-artifact.md` if present — failure-mode entries (common review failures, quality anti-patterns) augment reviewer awareness of project-specific patterns. Supplements existing axes, does not replace them. If absent (design skipped, first use): do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, artifact-type conventions), batch-resolve via `when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields
+- Read `plans/<plan>/recall-artifact.md` if present — failure-mode entries (common review failures, quality anti-patterns) augment reviewer awareness of project-specific patterns. Supplements existing axes, does not replace them. If absent (design skipped, first use): do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, artifact-type conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields
 
 **Per-file review (when Layer 1 skipped):**
 - Read each deliverable and evaluate against type-specific axes
@@ -149,11 +149,25 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
 - **Minor** — style, clarity, naming, robustness edge case
 
 **Next steps:**
-1. For Critical + Major findings: create one pending task → `/design` with report reference
+1. **Lifecycle entry:** Append to `plans/<plan-name>/lifecycle.md`:
+   - **Re-review:** If the plan's current lifecycle last entry is `rework`, first append `{YYYY-MM-DD} review-pending — /deliverable-review`
+   - **Outcome:** `reviewed` if no Critical findings; `rework` if any Critical findings
+     ```
+     {YYYY-MM-DD} reviewed — /deliverable-review
+     ```
+     or
+     ```
+     {YYYY-MM-DD} rework — /deliverable-review
+     ```
+   - **In-main delivery:** If outcome is `reviewed` AND in the main repository (not a worktree — `git rev-parse --git-dir` returns `.git`), also append:
+     ```
+     {YYYY-MM-DD} delivered — /deliverable-review
+     ```
+2. For Critical + Major findings: create one pending task → `/design` with report reference
    - Task format: `- [ ] **Fix <plan-name> findings** — \`/design plans/<plan>/reports/deliverable-review.md\` | opus`
    - Unconditional `/design` routing — `/design` triage handles proportionality
-2. Minor findings: note in report for inline fix or deferral
-3. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
+3. Minor findings: note in report for inline fix or deferral
+4. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
 
 ## References
 

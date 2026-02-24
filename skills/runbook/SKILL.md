@@ -119,7 +119,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 - Single session, single model
 - No parallelization benefit
 
-**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists (moderate path skipped design), do lightweight recall before exploring: Read `memory-index.md` (skip if already in context), identify domain-relevant entries using keywords from design/user request, then batch-resolve via `when-resolve.py "when <trigger>" "how <trigger>" ...` (single call, multiple entries). Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
+**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists (moderate path skipped design), do lightweight recall before exploring: Read `memory-index.md` (skip if already in context), identify domain-relevant entries using keywords from design/user request, then batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...` (single call, multiple entries). Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
 
 **Sequence:**
 1. Implement changes directly using Read/Write/Edit tools
@@ -137,7 +137,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 - Components are sequential (no parallelization benefit)
 - No model switching needed
 
-**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists, do lightweight recall before exploring: Read `memory-index.md` (skip if already in context), identify domain-relevant entries, then batch-resolve via `when-resolve.py "when <trigger>" "how <trigger>" ...`. Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
+**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists, do lightweight recall before exploring: Read `memory-index.md` (skip if already in context), identify domain-relevant entries, then batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...`. Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 
 **For TDD work (~4-10 cycles):**
 - Plan cycle descriptions (lightweight — no full runbook format)
@@ -226,14 +226,14 @@ If design document includes "Requirements" section:
    - Read `memory-index.md` (skip if already in context from design stage or prior recall)
    - Identify entries related to the task domain, Read the referenced decision files
    - Factor known constraints into step design and model selection
-   - Batch-resolve multiple entries via `when-resolve.py "when <trigger>" ...` when resolving section-level entries
+   - Batch-resolve multiple entries via `agent-core/bin/when-resolve.py "when <trigger>" ...` when resolving section-level entries
 
 2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
    - If artifact exists (design stage may have generated it via Pass 1): augment with implementation and testing learnings
      - Read `agents/decisions/implementation-notes.md` and `agents/decisions/testing.md`
      - Add entries relevant to the planned work — planning-relevant only: model selection failures, phase typing decisions, checkpoint placement patterns, precommit gotchas
      - Do NOT add execution-level entries (mock patching, test structure details) — those belong in step files, not recall
-   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, batch-resolve via `when-resolve.py`, write artifact — same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
+   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, batch-resolve via `agent-core/bin/when-resolve.py`, write artifact — same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
    - Write augmented artifact back to `plans/<job>/recall-artifact.md`
    - For multi-session pipelines where design-time artifact may be stale, planner can regenerate from scratch
 
@@ -290,6 +290,7 @@ If design document includes "Requirements" section:
 
 4. **Review outline:**
    - Delegate to `runbook-outline-corrector` (fix-all mode)
+   - Include review-relevant entries from `plans/<job>/recall-artifact.md` in delegation prompt (failure modes, quality anti-patterns)
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
@@ -489,6 +490,7 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
 
 4. **Review phase content:**
    - Delegate to `runbook-corrector` (fix-all mode)
+   - Include review-relevant entries from `plans/<job>/recall-artifact.md` in delegation prompt (failure modes, quality anti-patterns)
    - Agent applies type-aware criteria: TDD discipline for TDD phases, step quality for general phases, vacuity/density/ordering for inline phases, LLM failure modes for ALL phases
    - Agent returns review report path
 
@@ -705,6 +707,7 @@ Every assembled runbook MUST include this metadata section:
 **After assembly validation, perform final cross-phase review.**
 
 Delegate to `runbook-corrector` (fix-all mode) for cross-phase consistency:
+- Include review-relevant entries from `plans/<job>/recall-artifact.md` in delegation prompt (failure modes, quality anti-patterns)
 
 **Review scope:**
 - Cross-phase dependency ordering

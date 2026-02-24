@@ -307,7 +307,12 @@ Current status: Blocked on Step 3
    - Task format: `- [ ] **Deliverable review: <plan-name>** — \`/deliverable-review plans/<plan>\` | opus | restart`
    - Restart required: orchestration may produce new agents requiring session restart
    - Do NOT run deliverable review inline — needs opus + cross-project context + restart
-5. Default-exit: `/handoff --commit` → `/commit`
+5. **Lifecycle entry:** If `plans/<plan-name>/` exists, append to `plans/<plan-name>/lifecycle.md`:
+   ```
+   {YYYY-MM-DD} review-pending — /orchestrate
+   ```
+   Create the file if it doesn't exist. Date: today's ISO date.
+6. Default-exit: `/handoff --commit` → `/commit`
 
 **When blocked:**
 - Report which step failed

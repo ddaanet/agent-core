@@ -42,6 +42,7 @@ Before doing design work, assess whether design is actually needed.
 
 **Simple (no design needed):**
 - Single file, obvious implementation, no architectural decisions
+- **No behavioral code changes** — new functions, changed logic paths, conditional branches are NOT simple. Route behavioral code to Moderate regardless of conceptual simplicity.
 - → Check for applicable skills and project recipes first. Skip design — all other operational rules (skills, project tooling, communication) remain in effect. Update session.md with what was done.
 
 **Moderate (planning needed, not design):**

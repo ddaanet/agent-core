@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: This skill should be used when the user asks to "reflect", "diagnose deviation", "root cause", "why did you do X", "RCA", or after interrupting an agent that deviated from rules. Performs structured root cause analysis of agent behavior deviations within the current session context.
+description: This skill should be used when the user asks to "reflect", "diagnose deviation", "root cause", "why did you do X", "what went wrong", "RCA", or after interrupting an agent that deviated from rules. Performs structured root cause analysis of agent behavior deviations within the current session context.
 allowed-tools: Read, Write, Edit, Grep, Glob
 user-invocable: true
 ---
@@ -88,20 +88,43 @@ Analyze why the deviation occurred:
 
 ### Phase 4: Classify Fix Scope
 
-Based on RCA findings, classify the required fix:
+Based on RCA findings, classify the structural root cause:
 
-| Classification | Meaning | Typical Action |
+| Classification | Meaning | Fix Approach |
 |---|---|---|
-| **Rule fix** | Rule text is ambiguous or incomplete | Edit fragment/skill in-session |
-| **Input fix** | Upstream document (design/plan) is incorrect | May need handoff to fix upstream first |
-| **Behavioral** | Agent rationalized past clear rule | Strengthen rule with "no exceptions" language |
-| **Systemic** | Pattern recurs across sessions | Create fragment/hook, update memory index |
+| **Directive conflict** | Competing signals; agent follows the wrong one | Resolve the conflict — remove, reconcile, or separate competing signals |
+| **Unanchored gate** | Decision point lacks tool-call anchor | Add Read/Bash anchor per D+B hybrid (implementation-notes.md) |
+| **Missing enforcement** | Rule exists but nothing prevents violation | Environmental enforcement: hook, script, or structural constraint with guidance |
+| **Insufficient context** | Relevant decisions not loaded at decision point | Add recall loading or context embedding before the decision |
+| **Input fix** | Upstream document (design/plan) is incorrect | Handoff to fix upstream first |
+| **Rule gap** | Rule is genuinely missing or ambiguous | Create or clarify rule — only after ruling out structural fixes above |
+| **Systemic** | Pattern recurs across sessions | Combine structural fix with memory index entry |
 
-**Multiple classifications possible.** Example: Bad upstream design (input fix) led to missing constraint (rule fix) which caused agent rationalization (behavioral). Address all layers.
+**Multiple classifications possible.** Example: Well-specified problem.md creates execution pressure (directive conflict) at an unanchored triage gate (unanchored gate) where prior identical instance wasn't loaded (insufficient context). Address all layers.
+
+**Anti-pattern: Language strengthening.** Adding "no exceptions," "MUST," or scenario-specific warnings to rules the agent already saw and rationalized past. If the rule was clear and the agent overrode it, clarity was not the problem — the environment allowed the override. Fix the environment, not the prose. Language strengthening is never the correct fix for behavioral deviation.
+
+### Phase 4.5: Diagnostic Checkpoint
+
+**Anchor:** Read the primary target file(s) identified for fixes — verify current state matches RCA assumptions before proposing changes. Read `agents/learnings.md` to check line count (informs consolidation need in Phase 5).
+
+Present diagnostic summary:
+- Deviation(s) and violated rules (Phase 2)
+- Root cause classification (Phases 3-4)
+- Proposed fixes with target files and scope estimate
+- Learnings line count
+
+**STOP.** Do not proceed to Phase 5 without explicit user direction. The diagnostic is the deliverable of Phases 1-4; fixes are a separate decision.
+
+**User options:**
+- **Proceed** → Phase 5 (apply fixes)
+- **Deepen** → revisit Phase 3 with further investigation
+- **Recall** → invoke `/recall` to load relevant decisions before fixes
+- **Redirect** → provide alternative fix direction
 
 ### Phase 5: Execute or Handoff
 
-Choose exit path based on context budget and fix scope:
+After user confirms at diagnostic checkpoint, choose exit path based on context budget and fix scope:
 
 #### Exit Path 1: Fix In-Session
 
@@ -161,7 +184,7 @@ Choose exit path based on context budget and fix scope:
 
 **Always produced:**
 - Learning in `agents/learnings.md` (anti-pattern / correct pattern / rationale)
-- Line count check after appending (warn if approaching 80 lines)
+- Line count check after appending (warn if ≥70 lines)
 - Pending tasks in session.md (structured task format, inserted at estimated priority position)
 
 **Produced when fixing in-session (Exit Path 1):**
@@ -219,6 +242,10 @@ The skill assumes opus model for high-quality diagnosis. It cannot verify or swi
 
 Emitting the diagnostic-mode framing block is the first action, not optional. Without it, the agent continues in execution mode and applies surface fixes instead of systematic diagnosis.
 
+### Diagnostic Before Fixes
+
+Phase 4.5 checkpoint stops after presenting findings and before applying any changes. Anchored with Read calls per D+B hybrid pattern (prose-only gates get skipped — implementation-notes.md). Follows multi-layer RCA stop pattern (operational-practices.md): analysis and remediation are separate decisions. The checkpoint enables `/recall` loading between diagnosis and fixes — the gap that caused the original deviation (no recall before fixing the design skill in-session).
+
 ### Three Exit Paths
 
 Context budget varies. Sometimes the deviation is simple (fix a rule, 5 minutes). Sometimes root cause is a bad design requiring a new session. The skill supports graceful exit at any point, returning control to user.
@@ -237,15 +264,15 @@ For detailed diagnostic guidance:
 
 ## Examples
 
-**Rule Ambiguity (Fix In-Session)**
+**Unanchored Gate (Fix In-Session)**
 
 User interrupts agent that committed despite dirty submodule. Agent rationalized "only pointer matters."
 
 - Framing block emitted
 - Deviation: Agent committed parent before submodule (violated commit-rca-fixes)
-- Proximal cause: Agent misinterpreted "commit submodule first" as optional
-- Classification: Behavioral + Rule fix (language not strong enough)
-- Fix: Edit `agent-core/fragments/commit-delegation.md` to add "MUST" and "no exceptions" language
+- Proximal cause: Submodule check was prose instruction with no tool-call anchor — skipped in execution mode
+- Classification: Unanchored gate (no Bash check before commit) + Insufficient context (submodule pattern not recalled)
+- Fix: Anchor submodule check with `git submodule status` Bash call in commit skill; add submodule handling to recall-relevant entries
 - Append learning, return control to user
 
 **Upstream Input Error (Partial RCA, Handoff)**

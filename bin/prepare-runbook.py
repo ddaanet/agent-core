@@ -1386,17 +1386,19 @@ def validate_and_create(
         print(f"✓ Created agent: {agent_file}")
         created_agents.append(str(agent_file))
 
+    def _source_for_phase(phase_num: int) -> str:
+        """Resolve provenance path to actual phase file or canonical runbook."""
+        if phase_dir:
+            return str(Path(phase_dir) / f"runbook-phase-{phase_num}.md")
+        return str(runbook_path)
+
     # Generate step files for TDD cycles
     if cycles:
         for cycle in sorted(cycles, key=lambda c: (c["major"], c["minor"])):
             step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
             step_path = steps_dir / step_file_name
             cycle_model = phase_models.get(cycle["major"], model)
-            source_path = (
-                str(Path(phase_dir) / f"runbook-phase-{cycle['major']}.md")
-                if phase_dir
-                else str(runbook_path)
-            )
+            source_path = _source_for_phase(cycle["major"])
             step_file_content = generate_cycle_file(
                 cycle,
                 source_path,
@@ -1417,11 +1419,7 @@ def validate_and_create(
             step_path = steps_dir / step_file_name
             phase = step_phases.get(step_num, 1)
             step_model = phase_models.get(phase, model)
-            source_path = (
-                str(Path(phase_dir) / f"runbook-phase-{phase}.md")
-                if phase_dir
-                else str(runbook_path)
-            )
+            source_path = _source_for_phase(phase)
             step_file_content = generate_step_file(
                 step_num,
                 step_content,

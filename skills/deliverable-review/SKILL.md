@@ -159,7 +159,7 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
      ```
      {YYYY-MM-DD} rework — /deliverable-review
      ```
-   - **In-main delivery:** If in the main repository (not a worktree — `git rev-parse --git-dir` returns `.git`), also append:
+   - **In-main delivery:** If outcome is `reviewed` AND in the main repository (not a worktree — `git rev-parse --git-dir` returns `.git`), also append:
      ```
      {YYYY-MM-DD} delivered — /deliverable-review
      ```

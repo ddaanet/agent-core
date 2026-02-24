@@ -38,7 +38,7 @@ agent-core/bin/when-resolve.py "when ..testing.md"
 ## When NOT to Use
 
 - Need procedural/how-to knowledge — use `/how` instead
-- Content already loaded via CLAUDE.md `@`-reference (already in context — do not re-read)
+- Content already in context from a prior `/recall`, `/when`, or `/how` invocation (do not re-resolve)
 - Exploring unfamiliar code (use Grep/Read directly)
 
 ## Output Format

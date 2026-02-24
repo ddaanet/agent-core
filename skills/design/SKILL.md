@@ -94,13 +94,15 @@ If no requirements.md exists:
 
 | Level | Source | How | When |
 |-------|--------|-----|------|
-| 1. Local knowledge | `memory-index.md` for keyword discovery → read referenced files. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, scout, or Grep | Always (core), flexible method |
+| 1. Local knowledge | Read `memory-index.md` (skip if already in context), keyword discovery → batch-resolve via `when-resolve.py` or read referenced files directly. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, when-resolve.py, scout, or Grep | Always (core), flexible method |
 | 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
 | 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
 | 4. Local explore | Codebase exploration | Delegate to scout agent | Always for complex designs |
 | 5. Web research | External patterns, prior art, specifications | WebSearch/WebFetch (direct in main session) | When local sources insufficient |
 
 **Not all levels needed for every task.** Level 1 is always loaded. Levels 2-5 are conditional on task domain.
+
+**No-requirements case:** When no requirements.md exists, derive domain keywords for memory-index matching from the user request and task description. Memory-index's keyword-rich entries amplify thin user input — even sparse queries surface relevant decisions through index cross-references, superior to direct corpus search. Without formal requirements, cast a wider net on Level 1 (check more memory-index entries, read adjacent decision file sections) to compensate for weaker signal.
 
 **Level 1 clarification:** Memory-index is an ambient awareness index — keyword-rich entries that surface relevant knowledge. It is NOT the only way to discover local knowledge. For targeted doc collection (e.g., "what do we know about agent patterns?"), the designer can also:
 - Delegate scout to read and summarize `agents/decisions/` and `agent-core/fragments/`
@@ -246,7 +248,7 @@ After user validates the outline, assess whether it already contains enough spec
 
 **If execution-ready** — offer direct execution. On confirmation:
 1. Execute edits in current session
-2. Delegate to `corrector` (review requirement applies regardless of execution path)
+2. Delegate to `corrector` — include review-relevant entries from `plans/<job>/recall-artifact.md` in corrector prompt (failure modes, quality anti-patterns)
 3. Invoke `/handoff [CONTINUATION: /commit]`
 
 **If not execution-ready** — route to `/runbook`:
@@ -446,7 +448,7 @@ Design can resolve complexity — a job correctly classified as Complex may prod
 - No cross-file coordination (edits are independent per file)
 - No implementation loops (no test/build feedback required)
 
-- **If execution-ready:** Execute edits, review, then `/handoff [CONTINUATION: /commit]`
+- **If execution-ready:** Execute edits, review (include recall artifact review entries in corrector prompt), then `/handoff [CONTINUATION: /commit]`
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 ## Output Expectations

@@ -30,7 +30,7 @@ Agents self-retrieve at ~3% rate. The pipeline injects recall at fixed points, b
 ### Pass 1: Scan and Select
 
 1. **Identify the active topic** from conversation context (or explicit argument)
-2. **Scan memory-index.md** — already loaded via CLAUDE.md `@`-reference, scan mentally. Do NOT re-read the file.
+2. **Read memory-index.md** (skip if already in context). Review entries for domain matches.
 3. **Select targets** based on mode:
    - Default/deep: select relevant entry triggers (section-level)
    - Broad/all: select relevant `## agents/decisions/<file>.md` headers (file-level)
@@ -40,7 +40,7 @@ Agents self-retrieve at ~3% rate. The pipeline injects recall at fixed points, b
 
 Resolution method depends on mode:
 
-**Section-level (default, deep):** Resolve via Bash transport. Batch multiple queries:
+**Section-level (default, deep):** Batch-resolve via `when-resolve.py`:
 
 ```bash
 agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...
@@ -57,7 +57,7 @@ Batch multiple Read calls in a single message. Line limits are enforced by preco
 
 ### Pass 3: Tail-Recurse or Exit
 
-After loading, re-scan memory-index for targets that became relevant due to newly loaded context (e.g., a decision file references another pattern).
+After loading, re-check memory-index (already in context from Pass 1) for targets that became relevant due to newly loaded context (e.g., a decision file references another pattern).
 
 - **New targets found** → go to Pass 2 with the new targets
 - **No new targets** → stop (saturation reached)
@@ -85,7 +85,7 @@ If tail-recursion added entries beyond the initial selection, note which pass fo
 
 Each `/recall` invocation builds on prior ones within the session:
 
-- Track which entries have been loaded (by their heading + source path)
+- Check which entries are already in context (by their heading + source path visible in prior conversation)
 - On re-invocation, skip already-loaded entries
 - New topic → new relevant entries selected → loaded on top of existing context
 - The conversation window IS the accumulation mechanism (skill continuation)

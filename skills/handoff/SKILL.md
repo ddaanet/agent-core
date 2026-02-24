@@ -74,6 +74,16 @@ Write session.md following this structure:
 
 **Carry-forward rule:** Pending Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, mark blocked `[!]` with reason (see `task-failure-lifecycle.md`), mark failed `[✗]` with error summary, mark canceled `[–]` with reason, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items. Blocked/failed/canceled tasks persist across handoffs — do NOT trim them.
 
+**Command derivation:** For tasks with a plan directory, derive the backtick command from the plan's current lifecycle status:
+- `requirements` → `/design plans/{name}/requirements.md`
+- `designed` → `/runbook plans/{name}/design.md`
+- `planned` → `agent-core/bin/prepare-runbook.py plans/{name}`
+- `ready` → `/orchestrate {name}`
+- `review-pending` → `/deliverable-review plans/{name}`
+- Unmapped statuses (`rework`, `reviewed`, `delivered`) → preserve existing command
+
+Non-plan tasks keep their static command. This prevents stale commands from persisting across handoffs.
+
 **Multiple handoffs before commit:** Merge incrementally via Edit (append to Completed, mutate Pending, append Blockers, replace Next Steps). Do NOT Write a fresh file discarding prior content.
 
 **NEVER reference commits as pending** in session.md — no "ready to commit" language. With `--commit`, write status assuming commit succeeds.

@@ -15,6 +15,8 @@ Display pending tasks with metadata, then wait for instruction.
 **STATUS display format:**
 
 ```
+Session: uncommitted changes — `/handoff`, `/commit`
+
 Next: <first pending task name>
   `<command to start it>`
   Model: <recommended model> | Restart: <yes/no>
@@ -54,6 +56,17 @@ Unscheduled Plans:
 - **Sorting:** Alphabetical by plan name
 
 **Status source:** `claudeutils _worktree ls` for plan states and tree status; `session.md` for task notes. The CLI wraps `list_plans()` + `format_rich_ls()` — do not call these via ad-hoc Python.
+
+**Planstate-derived commands:**
+- For tasks with an associated plan directory, derive the command from planstate (shown in CLI output as `→ <command>`)
+- Use the CLI-derived command instead of the static session.md command
+- Session.md command is fallback only for tasks without plans
+
+**Session continuation:**
+- Shown only when git tree is dirty (uncommitted changes from skill execution or manual edits)
+- Shows the natural next steps: `` `/handoff`, `/commit` ``
+- If any plan-associated task has status `review-pending`, append: `` `/deliverable-review plans/<name>` ``
+- Omit entirely when tree is clean
 
 **Parallel task detection:**
 

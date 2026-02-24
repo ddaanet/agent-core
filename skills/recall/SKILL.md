@@ -63,7 +63,7 @@ After loading, re-check memory-index (already in context from Pass 1) for target
 - **No new targets** → stop (saturation reached)
 
 **Depth by mode:**
-- Default: 1-2 passes (stop at first saturation)
+- Default: 1 pass (select all relevant entries from index in a single batch). Pass 2 only if loaded *content* reveals entries not identifiable from index headings alone
 - Deep/all: up to 4 passes (aggressive re-scan, include tangential entries)
 - Broad: 1 pass (whole files already capture internal connections)
 - Everything: no recursion (full corpus loaded in one pass)

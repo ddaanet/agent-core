@@ -152,6 +152,8 @@ For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify r
 
 #### A.5. Produce Plan Outline
 
+**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against what exploration revealed. Codebase findings, external research, and Context7 results make different recall entries relevant than what A.1 selected from the initial problem description. Add entries that exploration surfaced; remove entries that proved irrelevant. Write the updated artifact back.
+
 **Output:** Write outline to `plans/<job>/outline.md` (create directory if needed).
 
 **Content:**
@@ -266,6 +268,8 @@ After user validates the outline, assess whether it already contains enough spec
 **Objective:** Produce full design document, review, fix, commit.
 
 #### C.1. Create Design Document
+
+**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against user discussion outcomes. Approach commitment, revised scope, or rejected alternatives change which implementation and testing entries are relevant. Add entries surfaced by the discussion; remove entries for approaches that were rejected. Write the updated artifact back.
 
 **Output:** `plans/<job-name>/design.md`
 

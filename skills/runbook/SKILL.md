@@ -249,6 +249,8 @@ If design document includes "Requirements" section:
 
 ### Phase 0.75: Generate Runbook Outline
 
+**Recall re-evaluation:** Re-evaluate `plans/<job>/recall-artifact.md` against codebase discovery findings. File locations, existing patterns, and structural constraints make different implementation learnings relevant than what Phase 0.5 initially selected. Add entries revealed by discovery (e.g., testing patterns for the discovered module structure); remove entries for patterns that don't apply to the actual codebase. Write the updated artifact back.
+
 **Before writing full runbook content, create a holistic outline for cross-phase coherence.**
 
 1. **Create runbook outline:**

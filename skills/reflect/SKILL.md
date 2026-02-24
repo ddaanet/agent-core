@@ -106,20 +106,23 @@ Based on RCA findings, classify the structural root cause:
 
 ### Phase 4.5: Diagnostic Checkpoint
 
-**Anchor:** Read the primary target file(s) identified for fixes — verify current state matches RCA assumptions before proposing changes. Read `agents/learnings.md` to check line count (informs consolidation need in Phase 5).
+1. `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve entries matching (a) the deviation's pattern class and (b) design patterns for the artifact type being modified. Read `memory-index.md` first if triggers not known from context.
 
-Present diagnostic summary:
-- Deviation(s) and violated rules (Phase 2)
-- Root cause classification (Phases 3-4)
-- Proposed fixes with target files and scope estimate
-- Learnings line count
+2. Read the primary target file(s) identified for fixes — verify current state matches RCA assumptions. Read `agents/learnings.md` for line count.
+
+3. Present diagnostic summary:
+   - Deviation(s) and violated rules (Phase 2)
+   - Root cause classification (Phases 3-4)
+   - Recall entries loaded and relevance to fix design
+   - Proposed fixes with target files and scope estimate
+   - Learnings line count
 
 **STOP.** Do not proceed to Phase 5 without explicit user direction. The diagnostic is the deliverable of Phases 1-4; fixes are a separate decision.
 
 **User options:**
 - **Proceed** → Phase 5 (apply fixes)
 - **Deepen** → revisit Phase 3 with further investigation
-- **Recall** → invoke `/recall` to load relevant decisions before fixes
+- **Additional recall** → invoke `/recall` for broader coverage
 - **Redirect** → provide alternative fix direction
 
 ### Phase 5: Execute or Handoff

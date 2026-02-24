@@ -85,6 +85,14 @@ Recommendation: Add requirements.md file or include Requirements section in desi
 
 Use Read tool to load the full design document.
 
+### 1.5. Load Recall Context
+
+Before analysis, load project-specific quality patterns:
+- Read `plans/<job-name>/recall-artifact.md` if present and not already provided in the task prompt — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns.
+- If recall-artifact absent and no caller-provided entries: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, architectural conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
+
+Recall supplements the review criteria below.
+
 ### 2. Analyze Design
 
 Review the design document for:
@@ -375,12 +383,13 @@ Before returning filename:
 
 1. **Read design document** from specified path
 2. **Validate requirements** exist (Step 0)
-3. **Analyze design** against all criteria (completeness, clarity, feasibility, consistency)
-4. **Verify references** (Glob for file paths, Grep for patterns if needed)
-5. **Check plugin topics** for skill-loading directives
-6. **Apply ALL fixes** (critical, major, minor) directly to design document using Edit tool
-7. **Write review** to file with complete structure documenting fixes applied
-8. **Verify** review file created
-9. **Return** filename only (or error)
+3. **Load recall context** (Step 1.5) — read recall-artifact or do lightweight recall
+4. **Analyze design** against all criteria (completeness, clarity, feasibility, consistency)
+5. **Verify references** (Glob for file paths, Grep for patterns if needed)
+6. **Check plugin topics** for skill-loading directives
+7. **Apply ALL fixes** (critical, major, minor) directly to design document using Edit tool
+8. **Write review** to file with complete structure documenting fixes applied
+9. **Verify** review file created
+10. **Return** filename only (or error)
 
 Do not provide summary, explanation, or commentary in return message. The review file contains all details.

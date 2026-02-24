@@ -68,6 +68,7 @@ Recommendation: Use outline-corrector for design outlines, or corrector for full
 1. Design file: `plans/<job>/design.md` (extract Requirements section and key decisions)
 2. Outline file: `plans/<job>/runbook-outline.md`
 3. Exploration reports (if referenced): `plans/<job>/reports/*.md`
+4. Recall context: Read `plans/<job>/recall-artifact.md` if present and not already provided in the task prompt — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns. If absent: do lightweight recall — Read `memory-index.md` (skip if already in context), identify relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
 
 **Extract requirements:**
 - Identify all FR-* (functional requirements)
@@ -512,7 +513,7 @@ Before returning filename:
 ## Response Protocol
 
 1. **Validate inputs** (requirements exist, design exists, artifact is runbook-outline.md)
-2. **Load context** (design, requirements, outline, reports if any)
+2. **Load context** (design, requirements, outline, reports, recall context per Step 2 item 4)
 3. **Build traceability validation** (verify mapping table, check coverage)
 4. **Review against criteria** (coverage, alignment, structure, complexity, dependencies)
 5. **Apply all fixes** (critical, major, AND minor)

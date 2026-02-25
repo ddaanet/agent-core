@@ -1,16 +1,12 @@
 ---
 name: gitmoji
-description: This skill should be used when the user asks to "use gitmoji", "add gitmoji to commit", "select gitmoji", "find appropriate emoji for commit", or when creating commit messages that should include gitmojis. Provides semantic matching of commit messages to appropriate gitmoji emojis from the official gitmoji database.
+description: This skill should be used when the user asks to "use gitmoji", "add gitmoji", "select gitmoji", or when creating commit messages requiring gitmoji prefixes. Semantic matching of commit message intent to gitmoji emoji.
 version: 0.1.0
 ---
 
 # Semantic Gitmoji Matcher
 
 Semantic gitmoji selection for commit messages. Reads gitmoji index, analyzes commit message, selects appropriate emoji prefix. Augments `/commit` workflow.
-
-## When to Use
-
-**Use when:** User requests gitmoji • Integrated into `/commit` skill • Projects using gitmoji conventions • CLAUDE.md specifies gitmoji usage
 
 ## Execution Protocol
 
@@ -41,40 +37,16 @@ Return emoji character only (not name/code): `🐛` ✓ • `:bug:` ✗ • `"bu
 
 **Commit format**: `emoji commit message` (example: `🐛 Fix null pointer exception in user authentication`)
 
-## Integration
-
-**Methods:**
-- **CLAUDE.md**: Always-use instruction
-- **Custom /commit skill**: Gitmoji selection step
-- **On-demand**: User explicit request
-
-**Scope boundary**: This skill does NOT analyze git diffs - caller's responsibility. Focuses on semantic matching message→gitmoji only.
-
 ## Index Maintenance
 
 **Update script**: `skills/gitmoji/scripts/update-gitmoji-index.sh`
-**Requirements**: curl • jq • internet connection to gitmoji.dev
-**Run when**: New gitmojis released • Initial setup • Periodic refresh (monthly)
+**Requirements**: curl, jq, internet connection to gitmoji.dev
 
-## Critical Rules
+## Constraints
 
-**Do:**
-- Read entire index (small, efficient)
-- Semantic matching (not keyword matching)
-- Return emoji character in commit message
-- Prioritize primary intent
-
-**Don't:**
-- Search/grep index (read entirely)
-- Use codes (`:bug:`) instead of emoji (🐛)
-- Add multiple gitmojis per commit
-- Skip selection (make best judgment)
-
-## Resources
-
-**Files:**
-- `cache/gitmojis.txt` - Official gitmoji index (75 entries)
-- `scripts/update-gitmoji-index.sh` - Index updater
-
-**Limitations**: Internet for initial download • Manual updates • jq dependency • One gitmoji per commit • No git diff analysis
+- Read entire index (small, efficient) — do not grep
+- Semantic matching, not keyword matching
+- Return emoji character only (`🐛`), not codes (`:bug:`)
+- One gitmoji per commit
+- This skill does not analyze git diffs — caller's responsibility
 

@@ -138,7 +138,8 @@ Analyze outline against these dimensions:
 - Recommend checkpoints after phases with complex data manipulation, integration points, or ≥8 steps
 
 **Growth Projection:**
-- For each target file, estimate net new lines added per item from outline descriptions
+- **Anchor:** `Bash: wc -l <target-files>` — measure current line counts for all files referenced in outline before projection
+- For each target file, use measured `current_lines` and estimate net new lines added per item from outline descriptions
 - Formula: `current_lines + (items × avg_lines_per_item)` — use outline step descriptions to estimate avg_lines_per_item
 - Flag when projected cumulative size exceeds 350 lines (400-line enforcement threshold minus buffer)
 - Flag outlines with >10 items modifying same file but no growth projection in outline

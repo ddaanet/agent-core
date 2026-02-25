@@ -1,6 +1,6 @@
 ---
 name: doc-writing
-description: This skill should be used when the user asks to "write a README", "rewrite the README", "update README", "write documentation", "rewrite documentation", "document this project", "write project docs", "docs are stale", "improve the README", or when creating, rewriting, or improving project-facing documentation (READMEs, guides, overviews). Covers exploration, drafting, reader testing with a fresh agent, gap fixing, and review.
+description: This skill should be used when the user asks to "write a README", "write documentation", "document this project", "docs are stale", or when creating or rewriting project-facing documentation. Explore, draft, reader-test with fresh agent, fix gaps, review.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Task
 user-invocable: true
 ---
@@ -8,15 +8,6 @@ user-invocable: true
 # Write Project Documentation
 
 Write project documentation through a structured cycle: explore the subject, draft with audience awareness, reader-test with a fresh agent, fix gaps, review.
-
-## When to Use
-
-- Writing or rewriting a README
-- Creating project guides or overviews
-- Documenting a subsystem, library, or tool for external readers
-- Any documentation that will be read by people without your current context
-
-**Not for:** API reference docs (auto-generated), inline code comments, session handoffs, internal agent procedures.
 
 ## Process
 

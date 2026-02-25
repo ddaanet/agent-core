@@ -41,27 +41,7 @@ When invoked, update session.md mechanically:
 - Add new pending tasks from current session
 - Mark completed tasks with [x] if they were completed in current session
 
-**Task metadata format:**
-
-Use this convention when writing tasks:
-
-```
-- [ ] **Task Name** — `command` | model | restart?
-```
-
-Examples:
-```
-- [ ] **Implement ambient awareness** — `/runbook plans/ambient-awareness/design.md` | sonnet
-- [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/problem.md` | opus | restart
-```
-
-**Field rules:**
-- Command: Backtick-wrapped command to start the task
-- Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
-- Restart: Optional flag - only include if restart needed (omit = no restart)
-
-**Mechanical merge:**
-Preserve metadata format verbatim when carrying forward unresolved items. No judgment needed - copy unchanged.
+**Task metadata format:** Follow the format defined in `execute-rule.md` (always loaded). Preserve metadata format verbatim when carrying forward unresolved items.
 
 **MERGE semantics for Blockers / Gotchas:**
 - Review all blockers/gotchas from previous session.md
@@ -95,27 +75,7 @@ Report line count: "Session handoff complete. [X] lines."
 
 ## Key Differences from Full Handoff
 
-**"Session Notes" not "Recent Learnings":**
-- No judgment about what qualifies as a learning
-- Dump raw observations for standard model to process later
-- Preserve verbatim what happened
-
-**No learnings staging:**
-- Don't call add-learning.py
-- Let standard model handle learnings judgment
-
-**No size advice:**
-- Just report completion with line count
-- Let user decide on session continuity
-
-## Principles
-
-**Preserve everything mechanically:**
-- Don't filter or judge importance
-- Include specifics: commit hashes, file paths, line numbers, metrics
-- Document what happened and why
-
-**Trust the next agent:**
-- Standard model will review Session Notes for learnings
-- Standard model will decide on consolidation needs
-- Preserve context completely without filtering
+- **"Session Notes" not "Recent Learnings"** — no judgment about learnings, dump raw observations
+- **No learnings staging** — do not call add-learning.py
+- **No size advice** — report completion with line count only
+- **Preserve everything mechanically** — commit hashes, file paths, line numbers, metrics. Do not filter or judge importance

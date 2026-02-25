@@ -1,6 +1,6 @@
 ---
 name: codify
-description: This skill should be used when the user asks to "remember this", "codify this", "update rules", "add to documentation", "consolidate learnings", "#codify", "#remember", or when workflow improvements are discovered. Processes pending learnings from session handoffs and updates CLAUDE.md, skill references, and documentation with rules and patterns.
+description: This skill should be used when consolidating learnings into permanent documentation, updating rules or decision files, or when learnings.md approaches its soft limit. Transforms session learnings into persistent CLAUDE.md fragments, decision files, and skill references.
 allowed-tools: Read, Write, Edit, Bash(git:*), Glob
 user-invocable: true
 ---
@@ -9,13 +9,7 @@ user-invocable: true
 
 Transform session learnings into persistent, actionable documentation. Updates CLAUDE.md, context files, and related docs to capture rules and patterns.
 
-## When to Use
-
-**Use when:** Workflow improvement discovered • Missing constraint identified • Compliance failure resolved • User requests update (#codify) • Completed work reveals patterns
-
-**Skip when:** Trivial update (fix directly) • No learnings • Temporary/experimental change
-
-**Prerequisite:** Execute in a clean session (fresh start). This skill runs inline in the calling session — no delegation to sub-agents.
+**Prerequisite:** Execute in a clean session (fresh start). Runs inline — no delegation to sub-agents.
 
 ## Execution Protocol
 
@@ -27,6 +21,14 @@ Transform session learnings into persistent, actionable documentation. Updates C
 - Read: `agents/decisions/*.md` (relevant domain doc, if exists)
 
 ### 2. File Selection
+
+For each eligible learning, search candidate target files for related headings:
+```bash
+Grep pattern="<keyword from learning>" path="agent-core/fragments/" glob="*.md"
+Grep pattern="<keyword from learning>" path="agents/decisions/" glob="*.md"
+```
+
+Use Grep results to ground routing — match the learning to the file that already contains related content.
 
 **Behavioral rules** → `agent-core/fragments/*.md`: Workflow patterns • Anti-patterns • Directive conflicts • Agent behavior
 **Technical details** → `agents/decisions/*.md`: Architecture • Implementation patterns • Technology choices (consult `agents/decisions/README.md` for domain → file routing)
@@ -147,24 +149,3 @@ For guidance on tiering, budgeting, and maintaining rules in CLAUDE.md, see **`r
 
 For detailed usage patterns (error handling, workflow improvement, design decisions, pending learnings), see **`examples/codify-patterns.md`**.
 
-## Integration
-**Invocations**: During work (#codify [rule]) • After completion (capture learnings) • After failure (prevent recurrence)
-**Related**: `/review` (may ID patterns) • `/design` (decisions→rules) • `/commit` (often follows /codify)
-
-## Additional Resources
-
-### Reference Files
-
-For detailed guidance:
-- **`references/rule-management.md`** - Tiering, budgeting, and maintenance strategies for CLAUDE.md rules
-- **`references/consolidation-patterns.md`** - Routing learnings to appropriate documentation, progressive disclosure, anti-patterns
-
-### Example Files
-
-Working patterns for common scenarios:
-- **`examples/codify-patterns.md`** - Error handling, workflow improvements, design decisions, pending learnings consolidation
-
-### Target Files
-
-**Primary targets**: Project's `CLAUDE.md` • `agents/session.md` • Domain-specific files per routing config
-**Historical**: `agents/role-remember.md` (git: 56929e2^)

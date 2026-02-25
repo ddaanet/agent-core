@@ -2,12 +2,9 @@
 name: deliverable-review
 description: >-
   This skill should be used when the user asks to "review deliverables",
-  "deliverable review", "review implementation quality", "review plan output",
-  "check design conformance", "artifact review", "quality review", or after
-  completing a plan execution that produced production artifacts. Two-layer
-  review: optional delegated per-file depth for large deliverable sets,
-  mandatory interactive review with full cross-project context. Severity-classified
-  report grounded in ISO 25010 / IEEE 1012.
+  "deliverable review", "artifact review", or after completing plan execution.
+  Two-layer review (delegated per-file + interactive cross-project) producing
+  severity-classified report grounded in ISO 25010 / IEEE 1012.
 allowed-tools:
   - Task
   - Read
@@ -21,14 +18,6 @@ user-invocable: true
 # Review Production Artifacts
 
 Review production artifacts against a design specification to identify conformance gaps, correctness issues, coverage holes, and excess artifacts.
-
-## When to Use
-
-- After plan execution completes (all phases done, commits landed)
-- When session.md lists a deliverable review as pending task
-- On explicit user request to review implementation quality
-
-**Not for:** In-progress work (use corrector during phase execution), design documents (use design-corrector), or planning artifacts (use runbook-corrector). Deliverable review runs after all phases are committed.
 
 ## Prerequisites
 

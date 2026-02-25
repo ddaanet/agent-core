@@ -1,6 +1,6 @@
 ---
 name: how
-description: This skill should be used when the agent needs to recall procedural knowledge, when looking up "how to do X", when needing a technique or step-by-step procedure from project decisions, or to retrieve implementation guidance. Invoke with "/how <trigger>" (e.g., "/how encode paths", "/how commit delegation", "/how .Path Encoding").
+description: This skill should be used when the agent needs procedural knowledge recall — "how to do X", step-by-step techniques, or implementation guidance from project decisions. Invoke with "/how <trigger>".
 allowed-tools: Bash(agent-core/bin/when-resolve.py:*)
 user-invocable: true
 ---

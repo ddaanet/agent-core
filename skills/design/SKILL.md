@@ -1,11 +1,10 @@
 ---
 name: design
 description: >-
-  This skill should be used when the user asks to "design", "architect",
-  "plan implementation", "/design", or presents an implementation task
-  that needs complexity triage. Entry point for implementation tasks —
-  triages complexity (simple/moderate/complex), then produces design
-  documents for complex jobs or routes to planning for moderate ones.
+  This skill should be used when the user invokes /design, requests
+  architecture or implementation planning, or presents a task needing
+  complexity triage. Triages simple/moderate/complex, produces design
+  documents for complex jobs, routes moderate to /runbook.
 allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 user-invocable: true
 ---
@@ -70,6 +69,8 @@ Assess the task against these criteria. Classify only — do not route yet.
 
 #### Classification Gate
 
+**Structural check (D+B anchor):** If classification is borderline Simple/Moderate, verify with `Glob` or `Grep` on affected files to confirm whether behavioral code changes are involved (new functions, changed logic paths).
+
 Produce this classification block before routing (visible output, not internal reasoning):
 - **Classification:** [Simple / Moderate / Complex]
 - **Behavioral code check:** Does this task add functions, change logic paths, or add conditional branches? [Yes → Moderate minimum / No]
@@ -133,16 +134,9 @@ If no requirements.md exists:
 
 **Not all levels needed for every task.** Level 1 is always loaded. Levels 2-5 are conditional on task domain.
 
-**No-requirements case:** When no requirements.md exists, derive domain keywords for memory-index matching from the user request and task description. Memory-index's keyword-rich entries amplify thin user input — even sparse queries surface relevant decisions through index cross-references, superior to direct corpus search. Without formal requirements, cast a wider net on Level 1 (check more memory-index entries, read adjacent decision file sections) to compensate for weaker signal.
+**No-requirements case:** When no requirements.md exists, derive domain keywords from user request. Memory-index's keyword-rich entries amplify thin user input through cross-references. Cast a wider net on Level 1 to compensate for weaker signal.
 
-**Level 1 clarification:** Memory-index is an ambient awareness index — keyword-rich entries that surface relevant knowledge. It is NOT the only way to discover local knowledge. For targeted doc collection (e.g., "what do we know about agent patterns?"), the designer can also:
-- Delegate scout to read and summarize `agents/decisions/` and `agent-core/fragments/`
-- Use Grep to search for specific topics across decision/fragment files
-- These approaches work well when the doc volume is small enough to read completely
-
-**Flexibility:** The checkpoint is domain-aware, not prescriptive. Designer identifies what domain the task touches and loads relevant docs for that domain. No fixed "always read X" list beyond level 1 core.
-
-**Design decision escalation does NOT apply here.** `/opus-design-question` is for planning/execution phases that hit unexpected architectural choices. Design sessions exist to make those decisions — the designer reasons through them directly.
+**Design decision escalation does NOT apply here.** Design sessions exist to make architectural decisions directly.
 
 **Recall Artifact Generation**
 
@@ -173,39 +167,21 @@ Documentation findings from A.1 exist only in the current context window — the
 
 For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify report path: `plans/<job-name>/reports/explore-<topic>.md`. Agent writes findings to file and returns filepath.
 
-#### A.3-4. External Research (if needed)
+#### A.3-5. Research and Outline
 
-**Context7:** Call MCP tools directly from main session (unavailable in sub-agents). Write results to report file: `plans/<job-name>/reports/context7-<topic>.md`.
+**When external research needed** (Context7, web, grounding): Read `references/research-protocol.md` for Context7 usage, web research, grounding invocation, recall diff, and outline content/format guidance.
 
-**Web research:** WebSearch/WebFetch for external patterns, prior art, or specifications.
+**When no external research needed:** Proceed directly to outline generation.
 
-**Grounding:** When the design will produce a methodology, framework, scoring system, or taxonomy, invoke `/ground` to prevent confabulated structures. The ground skill runs parallel internal+external research branches and produces a grounded reference document in `plans/reports/`.
+**Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>` — update artifact if codebase findings changed relevance.
 
-#### A.5. Produce Plan Outline
-
-**Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>`
-
-Review the changed files list. Codebase findings, external research, and Context7 results make different recall entries relevant than what A.1 selected from the initial problem description. If files changed that affect which recall entries are relevant, update the artifact: add entries surfaced by changes, remove entries that proved irrelevant. Write updated artifact back.
-
-**Output:** Write outline to `plans/<job>/outline.md` (create directory if needed).
-
-**Content:**
-- Approach summary
-- Key decisions
-- Open questions
-- Scope boundaries
-
-**Example outline** (for reference — adapt to task):
-```
-Approach: Add rate limiting middleware to API gateway using token bucket algorithm.
-Key decisions: Per-user limits (not global), Redis-backed counters, 429 response with Retry-After header.
-Open questions: Should rate limits vary by endpoint? Should admin users be exempt?
-Scope: API gateway only. Dashboard/monitoring out of scope.
-```
+**Output:** Write outline to `plans/<job>/outline.md` — approach, key decisions, open questions, scope boundaries.
 
 **Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
 
 #### Post-Outline Complexity Re-check
+
+`Read plans/<job>/outline.md` — load the outline to ground re-assessment.
 
 The outline resolves the architectural uncertainty that justified "complex" classification. Re-assess before continuing ceremony.
 
@@ -248,22 +224,11 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 
 ### Phase B: Iterative Discussion
 
-**Objective:** Validate approach with user before expensive design generation.
-
-**Process:**
-1. Open outline for user review: `open plans/<job>/outline.md`
-2. User reads outline in editor, provides feedback in chat
-3. Designer applies deltas to outline.md file (not inline conversation)
-4. Re-review via outline-corrector after applying changes
-5. Loop until user validates approach
-
-**Plugin-topic detection (reminder):** If design involves Claude Code plugin components (hooks, agents, skills), note which skill to load before planning: "Plugin-topic: [component type] — load plugin-dev:[skill-name] before planning."
-
-**Termination:** If user feedback fundamentally changes the approach (not refining it), restart Phase A with updated understanding. Phase B is for convergence, not exploration of new directions.
-
-**Convergence guidance:** If after 3 rounds the outline is not converging, ask user whether to proceed with current state or restart with different constraints.
+**Protocol:** Read `references/discussion-protocol.md` for the full iterative discussion process (open outline, apply deltas, re-review, convergence guidance).
 
 ### Outline Sufficiency Gate
+
+`Read plans/<job>/outline.md` — load the outline to ground sufficiency assessment.
 
 After user validates the outline, assess whether it already contains enough specificity to skip design generation.
 
@@ -310,138 +275,7 @@ Review the changed files list. Approach commitment, revised scope, or rejected a
 
 **Output:** `plans/<job-name>/design.md`
 
-**Content principles:**
-- Dense, not verbose - downstream agents are intelligent
-- Decisions with rationale, not just conclusions
-- Concrete file paths and integration points
-- Explicit scope boundaries (in/out)
-
-**Density checkpoint:**
-
-Before generating design, validate outline item granularity:
-- **Too granular:** >8 items per phase, or adjacent items with <20 LOC delta each → collapse into parent item or merge adjacents
-- **Too coarse:** Single item handling >3 unrelated concerns or spanning multiple module boundaries → split by concern
-- **Heuristic:** items-per-phase x avg-LOC-per-item should fall in the 100-300 range. Below 100 suggests items are trivially small; above 300 suggests items are overloaded.
-- Flag and fix before proceeding to design generation.
-
-**Repetition helper prescription:**
-
-When design specifies 5+ operations following the same pattern (e.g., "update field X in files A, B, C, D, E, F"), recommend extracting a helper function or script. Rationale: repeated manual operations multiply both token cost (each repetition consumes expansion + execution budget) and error rate (drift between repetitions increases with count). The 5-repetition threshold balances extraction overhead against repetition cost.
-
-**Agent-name validation:**
-
-Before finalizing design, verify all referenced agent names exist on disk:
-- Glob `agent-core/agents/*.md`, `.claude/agents/*.md`, and `.claude/plugins/*/agents/*.md`
-- Every agent name in the design must resolve to an actual file
-- If an agent name doesn't exist: flag as design error, not an implementation detail to defer
-- Prevention: catches naming mismatches (e.g., `outline-corrector` vs `runbook-outline-corrector`) before they propagate to planning and execution
-
-**Late-addition completeness check:**
-
-Requirements added after outline review (Phase B) must be re-validated before design generation:
-- **Traceability:** Does the new requirement map to a specific outline item or design section?
-- **Mechanism:** Does the new requirement specify a concrete implementation approach, not just a goal?
-- If a late-added requirement lacks either: flag for completion before proceeding.
-- Grounding: FR-18 added during a design session bypassed outline-level validation, resulting in a mechanism-free specification that downstream planners could not implement.
-
-**Classification tables are binding:**
-
-When design includes classification tables (e.g., "X is type A, Y is type B"), these are LITERAL constraints for downstream planners/agents, not interpretable guidelines. Planners must pass classifications through verbatim to delegated agents.
-
-Format classification tables with explicit scope:
-- Default behavior (what happens without markers)
-- Opt-out mechanism (how to deviate from default)
-- Complete enumeration (all cases covered)
-
-**Structure guidance (adapt as needed):**
-- Problem statement
-- Requirements (functional, non-functional, out of scope)
-- Architecture/approach
-- Key design decisions with rationale
-- Implementation notes (affected files, testing strategy)
-- References (see below)
-- Documentation Perimeter (see below)
-- Next steps
-
-**Requirements section format:**
-
-When requirements.md exists in job directory, include traceability mapping:
-
-```markdown
-## Requirements
-
-**Source:** `plans/<job-name>/requirements.md` (or inline if documented during design)
-
-**Functional:**
-- FR-1: [requirement] — addressed by [design decision/section]
-- FR-2: [requirement] — addressed by [design decision/section]
-
-**Non-functional:**
-- NFR-1: [requirement] — addressed by [design decision/section]
-
-**Out of scope:**
-- [item] — rationale
-```
-
-Each requirement should map to a design element for downstream validation.
-
-**TDD mode additions:** For designs with behavioral phases, include spike test strategy, confirmation markers for uncertain decisions, "what might already work" analysis. Reference the Diamond Shape integration-first strategy (defined in `/runbook` skill) — note when integration-first ordering applies (external boundaries → internal logic, not bottom-up by module).
-
-**References section:**
-
-Track research artifacts and external references that informed the design. Backward-looking provenance (what shaped this design), distinct from Documentation Perimeter (forward-looking — what the planner should read).
-
-```markdown
-## References
-
-- `plans/<job-name>/reports/explore-<topic>.md` — codebase exploration findings
-- `plans/reports/<topic>.md` — grounding research (if `/ground` invoked)
-- [External Paper Title](url) — informed decision D-3
-- Context7: `/org/project` — queried for hook configuration patterns
-```
-
-**Include when:** Any Phase A research produced reports, external sources were consulted, or `/ground` was invoked. Omit if design was based entirely on loaded internal documentation.
-
-**Documentation Perimeter section:**
-
-Include this section specifying what the planner should read before starting:
-
-```markdown
-## Documentation Perimeter
-
-**Required reading (planner must load before starting):**
-- `agents/decisions/architecture.md` — module patterns, path handling
-- `agent-core/fragments/delegation.md` — quiet execution pattern
-- `plans/{job-name}/reports/explore-{topic}.md` — exploration results
-
-**Context7 references:**
-- `/anthropics/claude-code` — hook configuration patterns (query: "PostToolUse hooks")
-
-**Pipeline contracts:** `agents/decisions/pipeline-contracts.md` (for tasks producing runbooks)
-
-**Additional research allowed:** Planner may do additional Context7 queries or exploration for technical implementation details not covered above.
-```
-
-**Rationale:** Designer has deepest understanding of what knowledge the task requires. Encoding this explicitly prevents planner from either under-reading (missing critical context) or over-reading (wasting tokens on irrelevant docs).
-
-**Skill-loading directives:**
-
-**Plugin-related topics (hooks, agents, skills, plugins):**
-When the design involves Claude Code plugin components, include a skill-loading directive in "Next steps":
-- Hooks → `Load plugin-dev:hook-development before planning`
-- Agents → `Load plugin-dev:agent-development before planning`
-- Skills → `Load plugin-dev:skill-development before planning`
-- Plugin structure → `Load plugin-dev:plugin-structure before planning`
-- MCP integration → `Load plugin-dev:mcp-integration before planning`
-
-This ensures the planner has domain-specific guidance loaded before creating the runbook.
-
-**Execution model directives:**
-
-When the design involves modifying workflow definitions (`agents/decisions/workflow-*.md`), skill files (`agent-core/skills/`), or agent procedures (`agent-core/agents/`), include an execution directive in "Next steps":
-- Workflow/skill/agent edits: opus required
-
-Ensures architectural artifacts get appropriate scrutiny during execution, not just planning.
+**Content rules:** Read `references/design-content-rules.md` for content principles, density checkpoint, agent-name validation, classification table format, structure guidance, requirements section format, TDD additions, references/documentation perimeter sections, and skill-loading/execution model directives.
 
 #### C.2. Checkpoint Commit
 
@@ -482,6 +316,8 @@ The design-corrector applies all fixes (critical, major, minor) directly. This s
 
 #### C.5. Execution Readiness and Handoff
 
+`Read plans/<job>/design.md` — load the design to ground execution-readiness assessment.
+
 Design can resolve complexity — a job correctly classified as Complex may produce Simple execution. Assess whether the completed design can be executed directly or needs runbook planning.
 
 **Direct execution criteria (all must hold):**
@@ -494,28 +330,9 @@ Design can resolve complexity — a job correctly classified as Complex may prod
 - **If execution-ready:** Execute edits, review (include recall artifact review entries in corrector prompt), then `/handoff [CONTINUATION: /commit]`
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
-## Output Expectations
-
-Design documents are consumed by the planning skill (`/runbook`).
-
-**Minimize designer output tokens** by relying on planner inference:
-- Omit obvious details planners can infer
-- Focus on non-obvious decisions and constraints
-- Provide enough context for autonomous planning
-- Flag areas requiring user confirmation
-
-Large tasks require planning anyway - dense design output naturally aligns with planning needs.
-
-**Binding constraints for planners:**
-
-Design documents contain two types of content:
-1. **Guidance** — Rationale, context, recommendations (planners may adapt)
-2. **Constraints** — Classification tables, explicit rules, scope boundaries (planners must follow literally)
-
-Classification tables are constraints. When the table says "### Title is semantic," that's not a suggestion — it's a specification the planner must enforce.
-
 ## Constraints
 
 - High-capability model only (deep reasoning required)
 - Delegate exploration (cost/context management)
-- Dense output (minimize designer output tokens)
+- Dense output — omit obvious details planners can infer, focus on non-obvious decisions and constraints
+- Design documents contain guidance (planners may adapt) and constraints (planners must follow literally). Classification tables are constraints.

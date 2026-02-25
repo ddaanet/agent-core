@@ -89,8 +89,10 @@ The following items were identified but are out of scope:
 
 **This agent reviews implementation changes, not planning artifacts or design documents.**
 
+**Anchor:** If task prompt specifies a file path, `Read` that file first — confirm type from content (runbook markers: `## Step`, `## Cycle`, YAML `type: tdd`; design markers: architectural decisions, `## Requirements` section) before applying path-based rejection below.
+
 **Runbook rejection:**
-If task prompt contains path to `runbook.md`:
+If task prompt contains path to `runbook.md` or file content contains runbook markers:
 ```
 Error: Wrong agent type
 Details: This agent reviews implementation changes, not planning artifacts. Use runbook-corrector for runbook review.

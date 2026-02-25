@@ -14,19 +14,6 @@ Execute prepared runbooks using the weak orchestrator pattern. This skill coordi
 
 **Prerequisites:** Runbook must be prepared with `/runbook` skill (artifacts created by `prepare-runbook.py`)
 
-## When to Use
-
-**Use this skill when:**
-- Runbook has been prepared and artifacts exist
-- Ready to execute multi-step plan
-- Need systematic step-by-step execution with tracking
-- Want automated error escalation
-
-**Do NOT use when:**
-- Runbook not yet prepared (use `/runbook` first)
-- Single-step task (execute directly)
-- Interactive execution needed (user decisions during execution)
-
 ## Execution Process
 
 ### 1. Verify Runbook Preparation
@@ -253,44 +240,9 @@ Return: "fixed: [summary]" or "blocked: [what's needed]"
 
 ### 5. Progress Tracking
 
-**Track execution state:**
+Log each step completion to stdout: "Step N: [name] - completed" or "Step N: [name] - failed: [error]"
 
-**Simple approach:**
-- Log each step completion to stdout
-- Format: "✓ Step N: [step name] - completed"
-- On error: "✗ Step N: [step name] - failed: [error]"
-
-**Detailed approach (optional):**
-- Maintain progress file: `plans/<runbook-name>/progress.md`
-- Update after each step with status and timestamp
-- Include report file references
-
-**Progress file format:**
-
-```markdown
-# Runbook Execution Progress
-
-**Runbook**: [name]
-**Started**: [timestamp]
-**Status**: [In Progress / Completed / Blocked]
-
-## Step Execution
-
-- ✓ Step 1: [name] - Completed at [timestamp]
-  - Report: plans/<runbook-name>/reports/step-1-execution.md
-- ✓ Step 2: [name] - Completed at [timestamp]
-  - Report: plans/<runbook-name>/reports/step-2-execution.md
-- ✗ Step 3: [name] - Failed at [timestamp]
-  - Report: plans/<runbook-name>/reports/step-3-execution.md
-  - Error: [brief error description]
-  - Escalated to: [sonnet / user]
-
-## Summary
-
-Steps completed: 2/5
-Steps failed: 1
-Current status: Blocked on Step 3
-```
+**Detailed tracking:** Read `references/progress-tracking.md` for optional progress file format with timestamps and report references.
 
 ### 6. Completion
 
@@ -322,200 +274,27 @@ Current status: Blocked on Step 3
 
 ## Weak Orchestrator Pattern
 
-**Key characteristics:**
+**Delegate, don't decide.** All decisions made during planning (/runbook). Execution is mechanical: invoke agent, check result, continue or escalate. Trust agent success reports. Never second-guess, validate, or modify steps during execution. Inline phases (Section 3.0) are orchestrator-executed by design; this principle applies to agent-delegated steps (Section 3.1).
 
-**Delegate, don't decide:**
-- Orchestrator does NOT make judgment calls
-- All decisions made during planning (/runbook)
-- Execution is mechanical: invoke agent, check result, continue or escalate
+## Constraints
 
-**Trust agents:**
-- If agent reports success, trust it
-- If agent reports error, escalate according to plan
-- Don't second-guess or validate agent output
-
-**No ad-hoc logic (for delegated steps):**
-- Don't parse files to verify delegated agent completion
-- Don't make recovery decisions for delegated steps
-- Don't modify steps during execution
-- If something unexpected happens: escalate
-
-Note: Inline phases (Section 3.0) are explicitly orchestrator-executed by design. This principle applies to agent-delegated steps (Section 3.1).
-
-**Error escalation only:**
-- Simple errors → delegate to sonnet for fix
-- Complex errors → stop and report to user
-- Never suppress errors or proceed on failure
-
-## Critical Constraints
-
-**Tool Usage:**
-- Use **Task** to invoke plan-specific agents (delegated steps)
-- Use **Read** to check artifacts and reports
-- Use **Edit** for inline phase modifications (Section 3.0)
-- Use **Write** for progress tracking (optional)
-- Use **Bash** only for git operations if specified in orchestrator plan
-
-**Execution Flow:**
-- Always sequential unless orchestrator plan explicitly allows parallel
-- Complete one step before starting next
+- **Task** for plan-specific agents, **Read** for artifacts/reports, **Edit** for inline phases, **Bash** for git only
+- Sequential unless orchestrator plan explicitly allows parallel
 - Never skip steps, even if they seem unnecessary
+- Always escalate failures with full context
 
-**Error Handling:**
-- Never suppress errors
-- Always escalate failures
-- Provide full context in escalation
-- Don't attempt ad-hoc fixes
+## Common Scenarios
 
-**Progress Tracking:**
-- Log step completions clearly
-- Reference report files
-- Make current state obvious
-
-## Example Execution
-
-**User:** `/orchestrate oauth2-auth`
-
-**Agent:** "Executing runbook: oauth2-auth
-
-Verifying artifacts...
-✓ Plan-specific agent: .claude/agents/oauth2-auth-task.md
-✓ Step files: 4 steps found
-✓ Orchestrator plan: plans/oauth2-auth/orchestrator-plan.md
-
-Reading orchestrator plan...
-- Execution: Sequential
-- Model: haiku
-- Escalation: haiku → sonnet → user
-
-Starting execution...
-
-**Step 1: Setup OAuth2 configuration**
-*Invokes oauth2-auth-task agent with step-1.md*
-✓ Completed - report at plans/oauth2-auth/reports/step-1-execution.md
-
-**Step 2: Implement auth routes**
-*Invokes oauth2-auth-task agent with step-2.md*
-✓ Completed - report at plans/oauth2-auth/reports/step-2-execution.md
-
-**Step 3: Add session management**
-*Invokes oauth2-auth-task agent with step-3.md*
-✗ Failed - error: Missing session store configuration
-
-Escalating to sonnet...
-*Delegates diagnostic to sonnet agent*
-Sonnet diagnostic: Configuration needs DB_SESSION_STORE env var
-*Sonnet makes fix: adds env var to config*
-✓ Step 3 retry successful
-
-**Step 4: Create user profile integration**
-*Invokes oauth2-auth-task agent with step-4.md*
-✓ Completed - report at plans/oauth2-auth/reports/step-4-execution.md
-
----
-
-**Execution Complete**
-
-All 4 steps completed successfully.
-
-Reports:
-- plans/oauth2-auth/reports/step-1-execution.md
-- plans/oauth2-auth/reports/step-2-execution.md
-- plans/oauth2-auth/reports/step-3-execution.md
-- plans/oauth2-auth/reports/step-3-diagnostic.md (escalation)
-- plans/oauth2-auth/reports/step-4-execution.md
-
-Next: Delegate to corrector to review and fix changes before committing."
-
-## Handling Common Scenarios
-
-**Scenario: Step reports unexpected result but no error**
-- Action: Stop and report to user
-- Reason: "Unexpected" means planning assumptions were wrong
-- Don't proceed without user guidance
-
-**Scenario: Report file missing after agent completes**
-- Action: Escalate to sonnet
-- Reason: Likely agent error or path issue
-- Sonnet can investigate and fix
-
-**Scenario: Multiple steps fail with same error**
-- Action: After second failure, stop and report pattern to user
-- Reason: Systemic issue, not one-off error
-- User needs to update runbook or fix root cause
-
-**Scenario: Agent never returns**
-- Action: Check task status with TaskOutput tool
-- If hanging: Kill task and escalate to user
-- If still running: Wait and check periodically
-
-**Scenario: Resuming after context ceiling or kill**
-- Previous session hit token limit mid-execution. Fresh agent picks up.
-- Action: Find last completed phase boundary (last checkpoint commit in git log)
-- Run that checkpoint's verification commands from the runbook phase file
-- Build complete inventory of remaining work from verification output
-- Then resume from next step after the checkpoint
-- Do NOT use `just precommit` as a state assessment tool — it's a pass/fail gate, not a diagnostic. Use the runbook's checkpoint verification commands, which are designed to produce a complete inventory of what's done and what's missing.
-
-## Integration with Workflows
-
-**Implementation workflow:**
-1. `/design` — Opus creates design document
-2. `/runbook` — Sonnet creates runbook and artifacts (per-phase typing: TDD + general)
-3. `/orchestrate` — Executes runbook (THIS SKILL)
-4. corrector — Review and fix changes
-5. tdd-auditor — TDD process analysis (if runbook has TDD phases)
-6. Complete job
-
-**Handoff:**
-- Input: Prepared artifacts from `/runbook`
-- Output: Executed steps with reports
-- Next: corrector review, then `/handoff --commit` → `/commit`
+**For scenario handling** (unexpected results, missing reports, repeated failures, agent hangs, context ceiling resume): Read `references/common-scenarios.md`.
 
 ## Continuation Protocol
 
-**This skill is cooperative** with the continuation passing system.
+This skill is **cooperative** with the continuation passing system. After orchestration completes, check Skill args suffix for `[CONTINUATION: ...]` transport. If no continuation, use default-exit from frontmatter.
 
-**Consumption:**
-
-After completing the orchestration, check the Skill args suffix for `[CONTINUATION: ...]` transport.
-
-IF continuation present:
-1. Parse the `[CONTINUATION: ...]` structured list
-2. Peel first entry: `(/skill args)` or `/skill` (if no args)
-3. Strip continuation from current context (delete `[CONTINUATION: ...]` suffix)
-4. Invoke next skill: `Skill(/skill args="args [CONTINUATION: remainder]")` where remainder = remaining entries (if any)
-
-IF no continuation present:
-- Use default-exit from frontmatter: `/handoff --commit` then `/commit`
-- Invoke first entry, pass remainder as continuation to that skill
-
-**Example:**
-
-Incoming: `/orchestrate myplan [CONTINUATION: /commit]`
-- Complete orchestration
-- Strip continuation from current context
-- Peel first entry: `/commit`
-- No remainder, so invoke: `Skill(/commit)`
-
-Incoming: `/orchestrate myplan [CONTINUATION: /handoff --commit, /commit]`
-- Complete orchestration
-- Strip continuation from current context
-- Peel first: `/handoff --commit`
-- Remainder: `/commit`
-- Invoke: `Skill(/handoff args="--commit [CONTINUATION: /commit]")`
-
-Incoming: `/orchestrate myplan` (no continuation)
-- Complete orchestration
-- Use default-exit: `["/handoff --commit", "/commit"]`
-- Invoke: `Skill(/handoff args="--commit [CONTINUATION: /commit]")`
-
-**Constraint:** This skill does NOT pass continuations to sub-agents (Task tool). Continuations apply only to the main session skill chain.
+**Full protocol and examples:** Read `references/continuation.md`.
 
 ## References
 
-**Example Orchestrator Plan**: `/Users/david/code/claudeutils/plans/unification/orchestrator-plan.md`
-**Example Plan-Specific Agent**: `/Users/david/code/claudeutils/.claude/agents/unification-task.md`
-**Example Step Files**: `/Users/david/code/claudeutils/plans/unification/steps/step-2-*.md`
-
-These demonstrate the artifacts structure and execution pattern.
+**Example Orchestrator Plan**: `plans/unification/orchestrator-plan.md`
+**Example Plan-Specific Agent**: `.claude/agents/unification-task.md`
+**Example Step Files**: `plans/unification/steps/step-2-*.md`

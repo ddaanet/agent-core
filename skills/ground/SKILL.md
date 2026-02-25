@@ -1,12 +1,10 @@
 ---
 name: ground
 description: >-
-  This skill should be used when producing output that contains methodological
-  claims ("the best way to X is Y"), framework claims ("the dimensions of X
-  are"), taxonomic claims ("there are N types of X"), or best-practice claims
-  ("established practice is to X"). Also when the user asks to "create a
-  scoring system", "design a methodology", "build a framework", "define a
-  taxonomy", "synthesize best practices", or "ground this claim".
+  This skill should be used when producing methodological, framework, taxonomic,
+  or best-practice claims, or when the user asks to "ground", "create a scoring
+  system", "design a methodology", "build a framework", or "synthesize best
+  practices". Parallel diverge-converge research preventing confabulated structures.
 allowed-tools: Read, Write, Grep, Glob, Bash, WebSearch, WebFetch, Task
 user-invocable: true
 ---
@@ -78,17 +76,6 @@ Required sections:
 
 **Branch artifacts:** Both branch reports in `plans/reports/` are retained as audit evidence supporting the synthesis through the design lifecycle. The grounding report references both.
 
-## Integration Points
+## References
 
-**From /design:** Phase A.3-4 (external research) can invoke `/ground` when the design will produce a new methodology or framework as part of its output.
-
-**From ad-hoc work:** Any task producing methodological claims should consider loading this skill. The trigger is claim type (see `references/grounding-criteria.md` for mandatory vs optional criteria).
-
-**Not needed for:** Applying an already-grounded framework to data, project-specific logical analysis, mechanical execution of defined procedures.
-
-## Additional Resources
-
-### Reference Files
-
-For detailed trigger criteria, quality label definitions, parameterization guidance, and templates:
 - **`references/grounding-criteria.md`** — Trigger criteria, quality labels, parameter selection, search query templates, convergence template

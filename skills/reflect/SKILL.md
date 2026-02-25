@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: This skill should be used when the user asks to "reflect", "diagnose deviation", "root cause", "why did you do X", "what went wrong", "RCA", or after interrupting an agent that deviated from rules. Performs structured root cause analysis of agent behavior deviations within the current session context.
+description: This skill should be used when the user asks to "reflect", "diagnose deviation", "root cause", "why did you do X", "what went wrong", or "RCA". Must run in the session where deviation occurred — conversation context is the diagnostic evidence.
 allowed-tools: Read, Write, Edit, Grep, Glob
 user-invocable: true
 ---
@@ -8,21 +8,6 @@ user-invocable: true
 # Diagnose Agent Rule Violations
 
 Perform structured root cause analysis of agent behavior deviations within the current session context. Diagnoses why an agent violated rules, bypassed constraints, or rationalized exceptions.
-
-## When to Use
-
-**Reflect for RCA:**
-
-**Use when:**
-- Agent deviated from documented rules or constraints
-- Agent bypassed stop conditions or escalation triggers
-- Agent rationalized exceptions to clear directives
-- Unexpected behavior needs systematic diagnosis
-- User asks "why did you do X?" after interruption
-
-**Critical constraint:** Must run in the session where deviation occurred. The conversation context IS the diagnostic evidence. Post-session RCA loses essential context.
-
-**Model expectation:** Designed for opus model. User switches to opus before invoking. If invoked on sonnet, RCA quality will be lower but process still works.
 
 ## Execution Protocol
 
@@ -205,100 +190,12 @@ After user confirms at diagnostic checkpoint, choose exit path based on context 
 
 ## Tool Constraints
 
-**Allowed tools:**
-- **Read:** Check current rule files, fragments, skills
-- **Write:** Create RCA reports, append learnings
-- **Edit:** Fix rules/fragments/skills in-session
-- **Grep:** Find rule references, search for patterns
-- **Glob:** Locate relevant documentation files
+- Use current model (expected opus). Do not delegate RCA to sub-agents (loses conversation context).
+- Related skills: `/codify` (consolidates learnings), `/hookify` (creates enforcement hooks)
 
-**Model selection:**
-- Use current model (expected to be opus after user switch)
-- Do not delegate RCA to sub-agents (loses conversation context)
+## Reference Files
 
-## Integration
-
-**Workflow position:** Reactive, invoked during execution when deviation noticed
-
-**Triggers:**
-- User interrupts agent mid-deviation
-- User asks "why did you X?"
-- User notices rule violation
-
-**Exit:** Stop and return control to user after completing RCA work
-
-**Related skills:**
-- `/codify` — Consolidates learnings from RCA
-- `/hookify` — Creates enforcement hooks if RCA identifies need
-
-## Key Design Decisions
-
-### Session-Local Diagnosis
-
-RCA must run in the session where deviation occurred. The conversation context is the diagnostic evidence. A new session would need to reconstruct what happened from git history — lossy and unreliable.
-
-### Opus Expected, Not Enforced
-
-The skill assumes opus model for high-quality diagnosis. It cannot verify or switch the model — that's a user action. If invoked on sonnet, RCA quality will be lower but the process still works.
-
-### Framing Block is Mandatory
-
-Emitting the diagnostic-mode framing block is the first action, not optional. Without it, the agent continues in execution mode and applies surface fixes instead of systematic diagnosis.
-
-### Diagnostic Before Fixes
-
-Phase 4.5 checkpoint stops after presenting findings and before applying any changes. Anchored with Read calls per D+B hybrid pattern (prose-only gates get skipped — implementation-notes.md). Follows multi-layer RCA stop pattern (operational-practices.md): analysis and remediation are separate decisions. The checkpoint enables `/recall` loading between diagnosis and fixes — the gap that caused the original deviation (no recall before fixing the design skill in-session).
-
-### Three Exit Paths
-
-Context budget varies. Sometimes the deviation is simple (fix a rule, 5 minutes). Sometimes root cause is a bad design requiring a new session. The skill supports graceful exit at any point, returning control to user.
-
-### Returns Control After RCA
-
-The skill runs in opus model (after user switches). Once RCA work is complete (fixes applied, reports written, or findings documented), it returns control to the user. This allows the user to switch back to their original model and continue working. User invokes `/handoff` and `/commit` manually when ready.
-
-## Additional Resources
-
-### Reference Files
-
-For detailed diagnostic guidance:
-- **`references/patterns.md`** - Common deviation patterns, diagnostic heuristics, rationalization anti-patterns
-- **`references/rca-template.md`** - Structured template for RCA reports (Exit Path 2)
-
-## Examples
-
-**Unanchored Gate (Fix In-Session)**
-
-User interrupts agent that committed despite dirty submodule. Agent rationalized "only pointer matters."
-
-- Framing block emitted
-- Deviation: Agent committed parent before submodule (violated commit-rca-fixes)
-- Proximal cause: Submodule check was prose instruction with no tool-call anchor — skipped in execution mode
-- Classification: Unanchored gate (no Bash check before commit) + Insufficient context (submodule pattern not recalled)
-- Fix: Anchor submodule check with `git submodule status` Bash call in commit skill; add submodule handling to recall-relevant entries
-- Append learning, return control to user
-
-**Upstream Input Error (Partial RCA, Handoff)**
-
-User interrupts agent implementing a step that contradicts design doc.
-
-- Framing block emitted
-- Deviation: Agent added feature X (design doc said "do not add X")
-- Proximal cause: Runbook step says "add X" (contradicts design)
-- Classification: Input fix (bad runbook)
-- Partial RCA: Runbook author misread design
-- Pending tasks: (1) Fix runbook step, (2) Resume RCA if pattern recurs
-- Append learning, return control to user
-
-**Systemic Pattern (RCA Complete, Handoff for Fixes)**
-
-User interrupts orchestrator that continued past failed step.
-
-- Framing block emitted
-- Deviation: Orchestrator rationalized "partial success is enough"
-- Proximal cause: Success criteria checked structure, not behavior (test passed but wrong output)
-- Contributing factors: Common pattern across multiple runbooks
-- Classification: Systemic (needs fragment + memory index entry)
-- RCA report written to `plans/reflect-rca-success-criteria/rca.md`
-- Pending tasks: Create `agent-core/fragments/success-criteria.md`, update memory index
-- Append learning, return control to user
+- **`references/patterns.md`** — Common deviation patterns, diagnostic heuristics, rationalization anti-patterns
+- **`references/rca-template.md`** — Structured template for RCA reports (Exit Path 2)
+- **`references/rca-design-decisions.md`** — Key design decisions (session-local, opus expected, framing mandatory, diagnostic-before-fixes, three exit paths)
+- **`references/rca-examples.md`** — Worked examples for each exit path (unanchored gate, upstream input error, systemic pattern)

@@ -72,10 +72,14 @@ git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5)
 ```bash
 git status --porcelain
 ```
+```bash
+# Grep changed file paths for production artifact prefixes
+git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5) | grep -E '^(agent-core/|plans/|src/|agents/|\.claude/)' || true
+```
 
-Classify changed files — production artifacts (code, scripts, plans, skills, agents)?
+Classify using Grep output — production artifacts are files matching the artifact prefixes above.
 
-- **No production artifacts?** Proceed to validation.
+- **No artifact-prefix matches?** Proceed to validation.
 - **Trivial?** (≤5 net lines, ≤2 files, additive, no behavioral change) Self-review via `git diff HEAD`.
 - **Non-trivial?** Check for review report in `plans/*/reports/` or `tmp/`. No report → STOP, delegate review first. UNFIXABLE → escalate. No alignment criteria → escalate.
 
@@ -137,8 +141,6 @@ Separate Bash calls:
 1. `git add <specific files>` — not `git add -A`. Include session.md, plans/, submodule pointers if changed. Preserve already-staged files.
 2. `git commit -m "$(cat <<'EOF'` ... `EOF` `)"` — heredoc for multiline
 3. `git status` — verify clean
-
-Do NOT commit secrets (.env, credentials, keys).
 
 ## Post-Commit: Display STATUS
 

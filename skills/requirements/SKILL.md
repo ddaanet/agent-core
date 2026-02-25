@@ -23,24 +23,11 @@ Skill automatically detects appropriate mode based on conversation history.
 
 ## Mode Detection
 
-**Extract mode** — conversation contains substantive discussion:
-- Feature descriptions, desired behaviors
-- Constraints or limitations mentioned
-- Scope discussions
-- Technical requirements stated
+**Primary signal:** `Glob: plans/<job>/requirements.md` — if file exists, Read it and use as base for update/refinement (extract mode with existing artifact). If absent, fall through to conversation heuristic.
 
-**Elicit mode** — fresh conversation or minimal context:
-- No prior feature discussion
-- User asks "help me figure out what I need"
-- Cold-start scenario
-
-**Heuristic:** Scan conversation history before `/requirements` invocation. If feature/task discussion present → extract mode. Otherwise → elicit mode.
-
-**Examples:**
-- Extract: "I want a feature that validates git hooks before commit" (description present)
-- Extract: "The system should support both sync and async workflows" (constraints stated)
-- Elicit: "Help me figure out what I need for this project" (no specifics)
-- Elicit: Fresh session with just `/requirements skill-name` invocation
+**Conversation heuristic (fallback):**
+- **Extract mode** — conversation contains substantive discussion (feature descriptions, constraints, scope)
+- **Elicit mode** — fresh conversation or minimal context (no prior feature discussion, cold-start)
 
 ## Extract Mode Procedure
 
@@ -137,39 +124,11 @@ When conversation lacks requirements context:
 
 ### 1. Semi-Structured Elicitation
 
-Use standard sections as framework with adaptive follow-ups. Research validates this as most effective technique (predetermined structure + freedom to explore).
+Use `AskUserQuestion` for each critical section (Functional Requirements, Scope Boundaries) with domain-relevant options. Add optional Constraints/Dependencies questions if job suggests them. Adaptive follow-ups: 1-2 clarifying questions based on responses. Total budget: 4-6 questions.
 
-**Section-by-section approach:**
+### 2-6. Shared Steps
 
-```
-Use AskUserQuestion for each critical section:
-
-1. Functional Requirements:
-   question: "What should the system do?"
-   options: [domain-relevant examples based on job name]
-
-2. Scope Boundaries:
-   question: "What should this NOT do?"
-   options: [common scope boundaries for this type of work]
-
-3. (Optional) Constraints:
-   question: "Any technical constraints?" (only if job suggests constraints)
-
-4. (Optional) Dependencies:
-   question: "Does this depend on other work?" (only if relevant)
-```
-
-**Adaptive follow-ups:** Based on responses, ask 1-2 clarifying questions (not rigid template).
-
-**Total question budget:** 4-6 questions maximum (including initial section questions + follow-ups). Capture what user knows; don't interrogate.
-
-### 2. Lightweight Codebase Discovery
-
-Same as Extract mode step 2 — runs after initial scope is understood.
-
-### 3. Structure and Validate
-
-Same as Extract mode steps 3-6.
+After elicitation, follow Extract mode steps 2-6 (Codebase Discovery, Structure, Gap Detection, Present Draft, Write Artifact).
 
 ## Standard Format
 
@@ -257,22 +216,9 @@ Next steps (decision criteria):
 /requirements <job> (standalone — capture intent, no immediate follow-up)
 ```
 
-## Integration Notes
-
-- **Design A.0:** Already consumes `requirements.md` from job directory — no changes needed
-- **Session.md tasks:** Can reference `/requirements` as entry command
-- **Jobs.md status:** `requirements` status already exists for plans with requirements.md
-- **No changes to `/design` or `/runbook` needed** — they already support requirements artifacts
-
 ## Key Principles
 
-| Principle | Rationale |
-|-----------|-----------|
-| Extract from conversation, don't infer | Hallucination risk — ground in what was said |
-| Opus tier | Synthesizing nuanced conversation requires premium model |
-| Semi-structured elicitation | Research-validated most effective technique |
-| Lightweight discovery (capped) | Grounds requirements without duplicating design exploration |
-| Gap-fill, not interrogation | Max 3 questions (extract) or 4-6 (elicit); captures conversation, doesn't replace it |
-| Omit empty sections | Clean artifacts; don't scaffold structure nobody will fill |
-
-See `agent-core/skills/requirements/references/empirical-grounding.md` for research basis.
+- Extract from conversation, do not infer (hallucination risk)
+- Gap-fill, not interrogation: max 3 questions (extract) or 4-6 (elicit)
+- Omit empty sections — do not scaffold structure nobody will fill
+- See `references/empirical-grounding.md` for research basis

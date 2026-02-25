@@ -9,13 +9,6 @@ user-invocable: true
 
 Archive current session context to todo list and reset session file for new work.
 
-## When to Use
-
-**Use this skill when:**
-- Switching to unrelated work within the same project
-- Completing a project phase and starting a new one
-- Current work needs to be paused and documented for later
-
 **Ask user for approval before running.**
 
 ## Execution Steps
@@ -82,55 +75,16 @@ Report to user:
 - Session file reset to template
 - Updated `agents/todo.md` with reference
 
-## Critical Constraints
+## Constraints
 
-- **Read first**: Must read existing files before modifying
-- **Use tools**: Read, Write, Edit for file operations (NOT bash cat/echo)
-- **Bash only for**: mkdir, cp commands
-- **Metadata**: Always add archive metadata header to shelved files
-- **Date format**: YYYY-MM-DD (e.g., 2026-01-18)
-- **Error handling**: Report errors explicitly, do not suppress
+- Read existing files before modifying (Read, Write, Edit for file ops; Bash only for mkdir, cp)
+- Always add archive metadata header to shelved files (date: YYYY-MM-DD)
+- Session template: `.claude/skills/shelve/templates/session.md` — use `cp` to reset
 
-## Template Location
-
-- Session template: `.claude/skills/shelve/templates/session.md`
-
-Use `cp` command to copy this template when resetting session.md.
-
-## Example Interaction
-
-**User:** `/shelve`
-
-**Agent:** "I'll help you shelve the current session context.
-
-What name/topic should I use for this archive? (e.g., 'unification-phase1', 'auth-refactor')"
-
-**User:** "Use 'unification-phase1'"
-
-**Agent:**
-*Archives session file with metadata*
-*Updates todo.md with reference*
-*Resets session file to template*
-
-"Shelving complete:
-
-Archived:
-- `agents/shelf/unification-phase1-session.md`
-
-Reset:
-- `agents/session.md` (from template)
-
-Updated:
-- `agents/todo.md` (prepended session reference)
-
-You can now start fresh with a new session file."
-
-## Restoration Notes
-
-**To restore from shelf:**
+## Restoration
 
 ```bash
 cp agents/shelf/<name>-session.md agents/session.md
 ```
 
-Then remove the metadata header and "Archived Session" title.
+Remove the metadata header and "Archived Session" title after restoring.

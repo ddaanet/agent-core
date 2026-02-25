@@ -74,41 +74,7 @@ Recall supplements, does not replace, the review criteria below.
 
 ### 1. GREEN Phase Anti-Pattern (CRITICAL) — TDD phases only
 
-**Violation:** GREEN phase contains implementation code
-
-```markdown
-**GREEN Phase:**
-
-**Implementation**: Add load_config() function
-
-```python
-def load_config(config_path: Path) -> dict:
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-    return config
-```
-```
-
-**Why this is wrong:**
-- Prescribes exact code
-- Agent becomes code copier, not implementer
-- Test doesn't drive implementation
-- Violates TDD RED→GREEN discovery
-
-**Correct approach:**
-
-```markdown
-**GREEN Phase:**
-
-**Implementation**: Minimal load_config() to pass tests
-
-**Behavior:**
-- Read YAML file from config_path
-- Return parsed dict
-- Must pass test assertions from RED phase
-
-**Hint**: Use yaml.safe_load(), Path.open()
-```
+**Violation:** GREEN phase contains implementation code — prescribes exact code, agent becomes copier. See `references/review-examples.md` Section 1 for violation/correct examples.
 
 ### 2. RED/GREEN Sequencing — TDD phases only
 
@@ -127,82 +93,27 @@ def load_config(config_path: Path) -> dict:
 
 ### 3. Implementation Hints vs Prescription — TDD phases only
 
-**Acceptable:** Implementation hints for sequencing
-
-```markdown
-**Implementation Hint**: Happy path only - no error handling, no validation
-```
-
-**Violation:** Prescriptive code blocks
-
-```python
-# This tells agent EXACTLY what to write
-def compose(fragments, output):
-    # Implementation here
-```
+Hints for sequencing are acceptable; prescriptive code blocks are violations. See `references/review-examples.md` Section 3 for examples.
 
 ### 4. Test Specifications — TDD phases only
 
-**Must have:**
-- Specific test name
-- Expected failure message
-- File location
-- Why it will fail
-
-**Good example:**
-```markdown
-**Expected failure:**
-```
-ImportError: cannot import name 'compose' from 'claudeutils.compose'
-```
-
-**Why it fails**: Function doesn't exist yet
-```
+**Must have:** Specific test name, expected failure message, file location, why it will fail. See `references/review-examples.md` Section 4 for good example.
 
 ### 5. Weak RED Phase Assertions (CRITICAL) — TDD phases only
 
-**Violation:** RED test prose only verifies structure, not behavior
+**Violation:** RED test prose only verifies structure, not behavior.
 
-**Indicators (prose format):**
-- Prose says "returns correct value" without specifying what value
-- Prose says "handles error" without specifying error type/message
-- Prose says "processes correctly" without expected output
-- No specific values, patterns, or behaviors specified
+**Check:** For each RED phase, ask: "Could an executor write different tests that all satisfy this description?" If yes → VIOLATION: prose too vague.
 
-**Indicators (legacy code format):**
-- Test only checks `exit_code == 0` or `exit_code != 0`
-- Test only checks key existence (`"KEY" in dict`) without value verification
-- Test only checks class/method existence (would pass with `pass` body)
-- Test has no mocking for I/O-dependent behavior
-
-**Check:** For each RED phase, ask: "Could an executor write different tests that all satisfy this description?" If yes → VIOLATION: prose too vague
-
-**Correct prose pattern:**
-- Specific values: "returns string containing 🥈 emoji"
-- Specific errors: "raises ValueError with message 'invalid input'"
-- Specific structure: "output dict contains 'count' key with integer > 0"
-- Mock requirements: "mock keychain, verify get_password called with service='claude'"
+Read `references/review-examples.md` Section 5 for indicator lists and correct prose patterns.
 
 ### 5.5. Prose Test Quality — TDD phases only
 
-**Violation:** RED phase uses full test code instead of prose description
+**Violation:** RED phase uses full test code instead of prose description.
 
-**Check:** Scan RED phases for python code blocks containing test implementations
+**Check:** Scan RED phases for python code blocks containing `def test_*():` or multiple `assert` statements.
 
-**Indicators:**
-- `def test_*():` pattern in RED phase code block
-- `assert` statements in code blocks (not in prose)
-- Complete test function with imports and fixtures
-
-**Acceptable in RED:**
-- Prose test descriptions with specific assertions
-- Expected failure message/pattern (in code block OK)
-- Fixture setup hints (prose, not code)
-
-**Not acceptable:**
-- Complete pytest function implementations
-- Multiple assert statements in code blocks
-- Full test file content
+Read `references/review-examples.md` Section 5.5 for acceptable vs unacceptable patterns.
 
 ### 6. Metadata Accuracy — all phases
 
@@ -296,13 +207,11 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 **10.5.1 Vacuity (instruction specificity)**
 - Each instruction must name a concrete target (file path) and operation (add/update/remove specific content)
-- ❌ "Update pipeline-contracts.md"
-- ✅ "Add inline type row to the type table in pipeline-contracts.md"
 
 **10.5.2 Density (verifiable outcome)**
 - Outcome must be unambiguous — completion is binary, not a judgment call
-- ❌ "Improve the error handling section"
-- ✅ "Add 'inline' to the valid_types list in parse_frontmatter()"
+
+See `references/review-examples.md` Section 10.5 for good/bad examples of both.
 
 **10.5.3 Dependency ordering**
 - Instructions within an inline phase must sequence correctly
@@ -519,28 +428,9 @@ Extract all file paths referenced in the runbook. For each path:
 
 ## Output Format
 
-**Report file:** plans/<feature-name>/reports/runbook-review.md (or phase-N-review.md for phase files)
+**Report file:** `plans/<feature-name>/reports/runbook-review.md` (or `phase-N-review.md` for phase files)
 
-**Return to caller:** Filepath only (or with escalation note)
-
-**On success (all issues fixed):**
-```
-plans/<feature>/reports/runbook-review.md
-```
-
-**On success with unfixable issues:**
-```
-plans/<feature>/reports/runbook-review.md
-ESCALATION: 2 unfixable issues require attention (see report)
-```
-
-**On failure:**
-```
-Error: [What failed]
-Details: [Error message]
-Context: [What was being attempted]
-Recommendation: [What to do]
-```
+Return filepath only (or with escalation note). Read `references/report-template.md` for full report structure and return format.
 
 ---
 
@@ -562,26 +452,3 @@ Recommendation: [What to do]
 
 **Escalation path:** If ESCALATION noted in return, caller must address unfixable issues before proceeding
 
----
-
-## Key Principles
-
-1. **Tests drive implementation** — Not scripts (TDD)
-2. **Minimal means minimal** — One behavior per cycle (TDD)
-3. **RED must fail** — Before GREEN can pass (TDD)
-4. **Describe behavior** — Not code (TDD)
-5. **Provide hints** — Not solutions (TDD)
-6. **Prerequisites ground execution** — Investigation before creation (general)
-7. **Decisions resolved at planning** — No deferred choices (general)
-8. **Foundation-first ordering** — Existence → structure → behavior (all)
-9. **Fix everything** — Review agents fix, not just report (all)
-10. **Escalate unfixable** — Clear communication of blockers (all)
-
----
-
-## Sources
-
-- [Jiang et al., 2024](https://arxiv.org/html/2406.08731v1) — LLM code generation error taxonomy, meaningless code failure, model-size scaling
-- [Fan et al., 2025](https://arxiv.org/html/2505.09027v1) — WebApp1K: instruction loss, pretraining bias, dependency ordering errors
-- [Mathews & Nagappan, ASE 2024](https://arxiv.org/abs/2402.13521) — TDD for code generation, remediation loop value
-- [Microsoft, 2025](https://www.microsoft.com/en-us/security/blog/2025/04/24/new-whitepaper-outlines-the-taxonomy-of-failure-modes-in-ai-agents/) — Taxonomy of failure modes in agentic AI

@@ -2,10 +2,9 @@
 name: worktree
 description: >-
   This skill should be used when the user asks to "create a worktree",
-  "set up parallel work", "merge a worktree", "remove a worktree",
-  "branch off a task", or uses the `wt`, `wt merge`, or `wt-rm`
-  shortcuts. Handles worktree lifecycle: creation with focused sessions,
-  merge with ceremony, cleanup, and parallel task setup.
+  "set up parallel work", "merge a worktree", "branch off a task",
+  or uses the `wt`, `wt merge`, or `wt-rm` shortcuts. Worktree lifecycle:
+  creation, focused sessions, merge ceremony, cleanup, parallel task setup.
 allowed-tools:
   - Read
   - Write
@@ -48,7 +47,7 @@ The `new` command with a task name automatically moves the task from Pending Tas
 
 Used when the user invokes `wt` with no arguments. This mode detects a group of independent parallel tasks and creates multiple worktrees simultaneously, enabling concurrent work on independent tasks.
 
-1. **Read `agents/session.md`** and call `list_plans(Path('plans'))` to identify all pending tasks and plan statuses. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
+1. **Read `agents/session.md`** and run `claudeutils _worktree ls` to identify all pending tasks and plan statuses. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
 
 2. **Check for shared plan directories and dependencies.** For each pending task, extract the plan directory (if specified). Build a dependency map:
 

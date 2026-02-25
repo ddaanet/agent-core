@@ -1,7 +1,7 @@
 ---
 name: recall
 description: |
-  This skill should be used when the user asks to "recall", "load context", "recall pass", "load decisions", "what do I need to know", or when starting work on a topic that likely has relevant project decisions. Front-loads relevant decision file content into the session context. Cumulative — multiple invocations build up context as topics shift. Tail-recursive — saturates within a single invocation.
+  This skill should be used when the user asks to "recall", "load context", "load decisions", or when starting work on a topic with relevant project decisions. Front-loads decision file content into session context. Cumulative across invocations, tail-recursive within each.
 allowed-tools: Bash(agent-core/bin/when-resolve.py:*)
 user-invocable: true
 ---

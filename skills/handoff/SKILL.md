@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: This skill should be used when the user asks to "handoff", "update session", "end session", or mentions switching agents. Updates session.md with completed tasks, pending work, blockers, and learnings for seamless agent continuation. NOT for Haiku model orchestrators - use /handoff-haiku instead.
+description: This skill should be used when the user requests a handoff, session update, or agent switch. Writes session.md with completed tasks, pending work, blockers, and learnings for agent continuation. Not for Haiku orchestrators — use /handoff-haiku instead.
 allowed-tools: Read, Write, Edit, Bash(wc:*), Task, Skill
 user-invocable: true
 continuation:
@@ -30,7 +30,7 @@ Standard (Sonnet)
 
 - Review conversation for completed tasks, pending/remaining tasks, blockers
 - If reviewing a handoff-haiku session, process Session Notes for learnings
-- **Uncommitted prior handoff:** Read `agents/session.md`. If it contains prior uncommitted handoff content (`# Session Handoff:` header, Completed section, pending tasks not from this conversation), preserve as base state in Step 2
+- **Uncommitted prior handoff:** Read `agents/session.md`. If it contains a `# Session Handoff:` header with a date different from today, prior uncommitted handoff content exists — preserve as base state in Step 2
 
 ### 2. Update session.md
 
@@ -44,7 +44,7 @@ Write session.md following this structure:
 ## Completed This Session
 
 **[Category/Feature]:**
-- Item with specifics (commit: abc123f, file: path/to/report.md)
+- Item with specifics (file: path/to/report.md)
 - Item with context (metrics, root cause, decisions)
 
 ## Pending Tasks
@@ -74,7 +74,7 @@ Write session.md following this structure:
 
 **Carry-forward rule:** Pending Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, mark blocked `[!]` with reason (see `task-failure-lifecycle.md`), mark failed `[✗]` with error summary, mark canceled `[–]` with reason, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items. Blocked/failed/canceled tasks persist across handoffs — do NOT trim them.
 
-**Command derivation:** For tasks with a plan directory, derive the backtick command from the plan's current lifecycle status:
+**Command derivation:** Run `Bash: claudeutils _worktree ls` to load current plan statuses. For tasks with a plan directory, derive the backtick command from the plan's lifecycle status:
 - `requirements` → `/design plans/{name}/requirements.md`
 - `designed` → `/runbook plans/{name}/design.md`
 - `planned` → `agent-core/bin/prepare-runbook.py plans/{name}`
@@ -102,7 +102,9 @@ Without criteria, haiku cannot verify alignment and quality surfaces only at com
 
 **Target: 75-150 lines.**
 
-**Preserve:** commit hashes, file paths, line numbers, metrics, root causes, failed approaches, decision rationale, rejected tradeoffs.
+**Preserve:** file paths, line numbers, metrics, root causes, failed approaches, decision rationale, rejected tradeoffs.
+
+**No commit hashes in session.md.** They change on amend and rebase. Use file paths and plan names as stable references.
 
 **Omit:** execution logs (git history), obvious outcomes, dead-end debugging, info already in referenced files.
 
@@ -144,20 +146,8 @@ Do NOT delete tasks completed in the current conversation, even if just committe
 
 **With `--commit`:** Skip — `/commit` displays it after committing.
 
-## Principles
-
-- **session.md = working memory.** Next agent context without bloat. Specifics > logs.
-- **learnings.md = semantic memory.** Anti-patterns, correct patterns. Append-only, consolidated via `/codify`.
-- **git = archive.** Plan summaries → plan-archive.md. Commit history injected at session start.
-- **Efficient-model review:** Process haiku Session Notes for learnings; apply judgment the efficient model skipped.
-
 ## Continuation
 
 Read continuation from `additionalContext` or `[CONTINUATION: ...]` suffix. If empty: stop. Otherwise tail-call first entry: `Skill(skill: "<target>", args: "<target-args> [CONTINUATION: <remainder>]")`.
 
 Do NOT include continuation metadata in Task tool prompts.
-
-## Reference
-
-- **`examples/good-handoff.md`** — Real-world best practice example
-- **`references/learnings.md`** — Handoff-specific patterns and anti-patterns

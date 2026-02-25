@@ -51,10 +51,12 @@ Unlike implementation review agents that only fix critical/major issues, design-
 
 **This agent reviews design documents only.**
 
-Before proceeding, verify the document is a design document:
+**Anchor:** `Grep pattern="^## (Step|Cycle)" path=<file>` — check for runbook markers before document type validation below. Grep output grounds the rejection decision.
+
+Verify the document is a design document:
+- Grep results: no `## Step` or `## Cycle` matches confirms non-runbook
 - Filename should be `design.md` or contain "design" in path
 - Content should contain architectural decisions, requirements, or specifications
-- Should NOT be a runbook (no `## Step` or `## Cycle` headers, no YAML `type: tdd`)
 
 **If given a runbook or implementation plan:**
 ```

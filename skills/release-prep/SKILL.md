@@ -11,12 +11,6 @@ Validate preconditions, update documentation, and produce a readiness assessment
 
 Documentation updates are batched at the end of the development cycle: hack → hack → hack → **prep** → release. This skill handles the prep stage.
 
-## When to Use
-
-- Before releasing a package to PyPI, npm, crates.io, etc.
-- When the user wants to verify the project is ready to release
-- After completing a batch of work and before cutting a release
-
 ## Execution Steps
 
 ### 1. Validate git state
@@ -169,44 +163,6 @@ After displaying the readiness report:
 - **No error suppression**: Never use `|| true`, `2>/dev/null`, or ignore exit codes (exceptions: token-efficient bash pattern per `/token-efficient-bash` skill; expected no-upstream in `git log @{u}` probe)
 - **Token-efficient bash**: When running 3+ sequential git commands, use `/token-efficient-bash` skill pattern for 40-60% token savings
 - **Explicit errors**: If anything fails, report it clearly and stop
-
-## Example Interaction
-
-**User:** `/release-prep`
-
-**Agent:**
-
-*Runs git state checks, quality checks, and scope assessment*
-
-```
-## Release Readiness
-
-| Check               | Status |
-|---------------------|--------|
-| Branch (main)       | pass   |
-| Clean tree          | pass   |
-| Remote sync         | pass   |
-| Quality checks      | pass   |
-| Pending tasks       | warn (2 pending) |
-
-Current version: 0.0.2
-Commits since v0.0.2: 14
-Key changes:
-- Add statusline CLI with TDD
-- Fix authentication flow
-- Update memory index infrastructure
-
-Pending tasks (non-blocking):
-- Design runbook identifiers
-- Implement ambient awareness
-
-Release command:
-  just release           # → 0.0.3 (patch)
-  just release minor     # → 0.1.0
-  just release --dry-run # verify first
-```
-
-"Ready to release. 2 pending tasks exist but are independent of this release. Run `just release` (or `just release --dry-run` to verify first)."
 
 ## References
 

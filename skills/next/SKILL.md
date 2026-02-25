@@ -1,21 +1,12 @@
 ---
 name: next
-description: This skill should be used when the user asks "what's next?", "next?", "what should I work on?", or "any pending work?" and no pending work exists in already-loaded context (CLAUDE.md, session.md). Checks secondary locations: shelf, todo.md, ROADMAP.md.
+description: This skill should be used when the user asks "what's next?" or "any pending work?" and no pending work exists in already-loaded context. Checks secondary locations (shelf, todo.md, ROADMAP.md).
 version: 0.1.0
 ---
 
 # Find Pending Work
 
 Check secondary locations (shelf, todo.md, ROADMAP.md) for pending work after confirming no work exists in primary context.
-
-## When to Use
-
-**Check context first, THEN decide:**
-
-1. User asks: "what's next?", "next?", "what should I work on?", "any pending work?"
-2. Check already-loaded context (CLAUDE.md, session.md) for pending work
-3. **If work found in context**: Report it directly, DO NOT load this skill
-4. **If no work in context**: THEN invoke this skill to check other locations
 
 ## How It Works
 

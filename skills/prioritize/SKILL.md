@@ -1,6 +1,6 @@
 ---
 name: prioritize
-description: This skill should be used when the user asks to "prioritize tasks", "score the backlog", "what should I work on next", "rank pending tasks", "reprioritize", "reorder backlog", or needs to determine task ordering from session.md. Applies WSJF-adapted scoring to produce priority-ordered tables with parallel batches.
+description: This skill should be used when the user asks to "prioritize", "score the backlog", "rank tasks", "reprioritize", or needs task ordering from session.md. WSJF-adapted scoring producing priority-ordered tables with parallel batches.
 allowed-tools: Read, Grep, Glob, Bash
 user-invocable: true
 ---
@@ -119,9 +119,6 @@ Re-run prioritization when:
 - Major work completed that changes dependency graph
 - Design or plan status changes (affects Marginal Effort scores)
 
-## Additional Resources
+## References
 
-### Reference Files
-
-For detailed scoring criteria and evidence sources:
 - **`references/scoring-tables.md`** — Full Fibonacci scoring tables for all five components, evidence source guidance, and worked examples

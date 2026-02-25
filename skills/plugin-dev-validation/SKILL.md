@@ -68,44 +68,7 @@ Review criteria for Claude Code plugin components. This skill is consumed by cor
 - **No duplicate content:** Cross-references instead of copying content
 - **Clear section boundaries:** H2/H3 structure with logical grouping
 
-**Good/Bad Examples:**
-
-✅ **Good frontmatter:**
-```yaml
----
-name: commit
-description: Create git commits with multi-line messages and gitmoji selection
-user-invocable: true
-allowed-tools: Bash, Read, Grep, Skill
----
-```
-
-❌ **Bad frontmatter (missing user-invocable):**
-```yaml
----
-name: commit
-description: Commit tool
----
-```
-
-✅ **Good progressive disclosure:**
-```markdown
-## When to Use
-[simple trigger conditions]
-
-## Quick Start
-[basic usage example]
-
-## Advanced Patterns
-[edge cases, complex scenarios]
-```
-
-❌ **Bad structure (dump all content):**
-```markdown
-# Skill Name
-
-[3000 words of mixed content without organization]
-```
+See `references/examples-per-type.md` Skills section for good/bad examples.
 
 ---
 
@@ -143,33 +106,7 @@ description: Commit tool
 - **Color consistency:** Related agents use related colors (all review agents cyan)
 - **Naming convention:** Agent names end with `-agent` or `-task`
 
-**Good/Bad Examples:**
-
-✅ **Good frontmatter:**
-```yaml
----
-name: corrector
-description: |
-  Review agent that applies all fixes directly.
-  Reviews changes, writes report, applies all fixes (critical, major, minor),
-  then returns report filepath.
-
-  Usage: delegate to corrector
-model: sonnet
-color: cyan
-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
----
-```
-
-❌ **Bad frontmatter (vague description):**
-```yaml
----
-name: review
-description: Reviews code
-model: sonnet
-tools: []
----
-```
+See `references/examples-per-type.md` Agents section for good/bad examples.
 
 ---
 
@@ -207,34 +144,7 @@ tools: []
 - **Script permissions:** Hook scripts have execute bit (`chmod +x`)
 - **Shebang present:** Scripts start with `#!/usr/bin/env bash` or `#!/usr/bin/env python3`
 
-**Good/Bad Examples:**
-
-✅ **Good security pattern:**
-```python
-ALLOWED = {"git restore", "git checkout"}
-if command in ALLOWED:
-    # Allow
-```
-
-❌ **Bad security (exploitable):**
-```python
-if command.startswith("git restore"):
-    # Exploitable: "git restore && rm -rf /"
-```
-
-✅ **Good error output:**
-```bash
-if [[ invalid ]]; then
-    >&2 echo "Operation blocked: reason"
-    exit 2
-fi
-```
-
-❌ **Bad error (wrong stream/code):**
-```bash
-echo "Error" # stdout, not stderr
-exit 1       # wrong exit code
-```
+See `references/examples-per-type.md` Hooks section for good/bad examples.
 
 ---
 
@@ -264,28 +174,7 @@ exit 1       # wrong exit code
 - **Consistent naming:** Command names use kebab-case
 - **Help text:** Command includes --help flag with usage info
 
-**Good/Bad Examples:**
-
-✅ **Good command frontmatter:**
-```yaml
----
-name: deploy
-description: Deploy application to environment
-arguments:
-  - name: environment
-    type: string
-    required: true
-    description: Target environment (dev/staging/prod)
----
-```
-
-❌ **Bad frontmatter (missing args):**
-```yaml
----
-name: deploy
-description: Deploys stuff
----
-```
+See `references/examples-per-type.md` Commands section for good/bad examples.
 
 ---
 
@@ -320,113 +209,7 @@ description: Deploys stuff
 - **README present:** Plugin directory includes README.md with usage
 - **Version tracking:** plugin.json includes version field
 
-**Good/Bad Examples:**
-
-✅ **Good plugin.json:**
-```json
-{
-  "description": "Plugin for X functionality",
-  "hooks": {
-    "PreToolUse": [...]
-  },
-  "skills": [...],
-  "version": "1.0.0"
-}
-```
-
-❌ **Bad plugin.json (missing description):**
-```json
-{
-  "hooks": {...}
-}
-```
-
----
-
-## Alignment Criteria
-
-**What "correct" means for each artifact type:**
-
-**Skills:**
-- Skill enables user/agent to accomplish stated purpose
-- Instructions are unambiguous and executable
-- Examples demonstrate common use cases
-- Progressive disclosure supports incremental learning
-
-**Agents:**
-- Agent behavior matches description
-- Tool access matches responsibilities
-- System prompt provides clear protocol
-- Triggering conditions are discoverable
-
-**Hooks:**
-- Hook fires at correct event
-- Security constraints prevent exploitation
-- Output format matches Claude Code expectations
-- Performance impact is acceptable (matcher prevents over-firing)
-
-**Commands:**
-- Command executes successfully with declared arguments
-- Help text guides users to correct usage
-- Error messages are actionable
-
-**Plugin structure:**
-- All components discoverable via auto-discovery
-- No silent failures from broken paths or invalid JSON
-- Symlinks resolve correctly
-
-**How to verify alignment:**
-
-1. **Functional test:** Can the artifact be used as intended?
-2. **Discovery test:** Does Claude Code discover and load the artifact?
-3. **Integration test:** Does artifact work with related components?
-4. **Security test:** Are there exploitable patterns (hooks especially)?
-
-### Verification Procedures
-
-**For corrector performing alignment verification:**
-
-**Skills verification:**
-1. Check "When to Use" or "Purpose" section exists and is clear
-2. Verify examples demonstrate stated purpose
-3. Check progressive disclosure (simple before complex)
-4. Confirm imperative form in instructions
-
-**Agents verification:**
-1. Compare frontmatter description to system prompt body
-2. Verify tool list matches responsibilities in system prompt
-3. Check triggering examples in description
-4. Confirm model tier matches complexity (haiku=execution, sonnet=balanced, opus=architecture)
-
-**Hooks verification:**
-1. Check event type is valid (PreToolUse, PostToolUse, UserPromptSubmit, SessionStart)
-2. Verify security patterns (exact match not startswith for commands)
-3. Test error output format (stderr + exit 2)
-4. Check matcher exists for PreToolUse hooks (performance)
-
-**Commands verification:**
-1. Check YAML frontmatter parses correctly
-2. Verify script exists and is executable (shebang + +x)
-3. Compare frontmatter arguments to script usage
-4. Check help text exists (--help flag)
-
-**Plugin structure verification:**
-1. Parse plugin.json for validity
-2. Check directory structure matches conventions
-3. Verify symlinks resolve (test with readlink or equivalent)
-4. Confirm all referenced artifacts exist
-
-**Alignment check against design/requirements:**
-
-If task prompt includes design document or requirements context:
-1. Read design/requirements to understand intended behavior
-2. Check implementation matches design decisions (algorithms, patterns, structure)
-3. Verify functional requirements are satisfied
-4. Flag gaps as major issues
-
-**Escalation criteria:**
-
-If verification reveals the artifact fundamentally doesn't serve its stated purpose, mark as UNFIXABLE with explanation. Alignment issues that require architectural rework cannot be fixed via edits.
+See `references/examples-per-type.md` Plugin Structure section for good/bad examples.
 
 ---
 
@@ -507,22 +290,3 @@ If verification reveals the artifact fundamentally doesn't serve its stated purp
 
 **No changes to corrector protocol:** This skill provides enriched criteria; corrector applies them using existing review process.
 
----
-
-## Usage Notes
-
-**For planners:**
-- Reference this skill in review checkpoint steps when planning plugin development work
-- Specify artifact type (skills, agents, hooks, commands, plugin-structure) for targeted review
-- This skill is additive — generic quality + alignment checks still apply
-
-**For corrector:**
-- Read this skill when task prompt references it
-- Apply criteria for specified artifact type
-- Use fix procedures to determine fixable vs UNFIXABLE
-- Report all findings, fix all fixable issues, escalate UNFIXABLE
-
-**For users:**
-- This skill is NOT user-invocable (consumed by corrector)
-- For interactive plugin review, use dedicated review agents (skill-reviewer, plugin-validator)
-- For validation workflow questions, see `agent-core/fragments/review-requirement.md`

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Validate runbook files for structural and semantic correctness."""
+
 import argparse
 import importlib.util
 import re
 import sys
+from datetime import UTC
 from pathlib import Path
 
 _spec = importlib.util.spec_from_file_location(
@@ -24,7 +26,7 @@ ARTIFACT_PREFIXES = (
 
 def _is_artifact_path(file_path: str) -> bool:
     if any(file_path.startswith(p) for p in ARTIFACT_PREFIXES):
-        return True
+        return file_path.endswith(".md")
     return bool(re.match(r"agents/decisions/workflow-[^/]+\.md$", file_path))
 
 
@@ -40,13 +42,10 @@ def write_report(
     For directory input: report goes to <path>/reports/validation-<subcommand>.md.
     For file input: report goes to plans/<job>/reports/validation-<subcommand>.md.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     p = Path(path)
-    if p.is_dir():
-        report_dir = p / "reports"
-    else:
-        report_dir = Path("plans") / p.stem / "reports"
+    report_dir = p / "reports" if p.is_dir() else Path("plans") / p.stem / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"validation-{subcommand}.md"
 
@@ -58,7 +57,7 @@ def write_report(
         result = "AMBIGUOUS"
     else:
         result = "PASS"
-    date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    date = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
         f"# Validation Report: {subcommand}\n\n",
         f"**Runbook:** {path}\n\n",
@@ -113,9 +112,17 @@ def cmd_model_tags(args: argparse.Namespace) -> None:
     sys.exit(1 if violations else 0)
 
 
-def check_lifecycle(content: str, path: str) -> list[str]:
-    """Check that files are created before being modified."""
+def check_lifecycle(
+    content: str, path: str, known_files: set[str] | None = None
+) -> list[str]:
+    """Check that files are created before being modified.
+
+    Args:
+        known_files: Set of file paths known to pre-exist. These are exempt
+            from modify-before-create violations.
+    """
     violations = []
+    _known = known_files or set()
     cycles = extract_cycles(content)
     # Map file_path -> (action_type, cycle_number) for first occurrence
     first_seen: dict[str, tuple[str, str]] = {}
@@ -139,7 +146,7 @@ def check_lifecycle(content: str, path: str) -> list[str]:
             )
             if file_path not in first_seen:
                 first_seen[file_path] = (action, cycle_id)
-                if is_modify:
+                if is_modify and file_path not in _known:
                     violations.append(
                         f"Cycle {cycle_id}: `{file_path}` — no prior creation found"
                     )
@@ -161,9 +168,10 @@ def check_lifecycle(content: str, path: str) -> list[str]:
                     orig_lower.startswith(kw)
                     for kw in ("modify", "add", "update", "edit", "extend")
                 )
-                if not any(
-                    orig_lower.startswith(kw) for kw in ("create", "write new")
-                ) and not already_flagged:
+                if (
+                    not any(orig_lower.startswith(kw) for kw in ("create", "write new"))
+                    and not already_flagged
+                ):
                     violations.append(
                         f"Cycle {cycle_id}: `{file_path}` modified before creation "
                         f"(first seen in Cycle {orig_cycle} as '{orig_action}')"
@@ -181,23 +189,25 @@ def cmd_lifecycle(args: argparse.Namespace) -> None:
         content, _ = assemble_phase_files(path)
     else:
         content = p.read_text()
-    violations = check_lifecycle(content, path)
+    known = set(getattr(args, "known_file", None) or [])
+    violations = check_lifecycle(content, path, known_files=known)
     write_report("lifecycle", path, violations)
     sys.exit(1 if violations else 0)
 
 
 def check_test_counts(content: str, path: str) -> list[str]:
-    """Check that checkpoint test-count claims match cumulative test count at each position."""
+    """Check that checkpoint test-count claims match cumulative test count at
+    each position."""
     violations = []
-    test_name_pattern = re.compile(r'\*\*Test:\*\*\s*`?([^`\n]+)`?')
-    checkpoint_pattern = re.compile(r'All\s+(\d+)\s+tests?\s+pass', re.IGNORECASE)
+    test_name_pattern = re.compile(r"\*\*Test:\*\*\s*`?([^`\n]+)`?")
+    checkpoint_pattern = re.compile(r"All\s+(\d+)\s+tests?\s+pass", re.IGNORECASE)
 
     # Process line-by-line: accumulate tests, check at each checkpoint
     test_names: set[str] = set()
-    for line in content.split('\n'):
+    for line in content.split("\n"):
         test_match = test_name_pattern.search(line)
         if test_match:
-            name = re.sub(r'\[.*?\]$', '', test_match.group(1).strip())
+            name = re.sub(r"\[.*?\]$", "", test_match.group(1).strip())
             test_names.add(name)
 
         cp_match = checkpoint_pattern.search(line)
@@ -249,13 +259,13 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
     )
     # Pattern to detect non-import error types in failure text
     non_import_err_pattern = re.compile(
-        r'\b(ValueError|AttributeError|TypeError|RuntimeError|KeyError|IndexError'
-        r'|NameError|OSError|FileNotFoundError|NotImplementedError)\b',
+        r"\b(ValueError|AttributeError|TypeError|RuntimeError|KeyError|IndexError"
+        r"|NameError|OSError|FileNotFoundError|NotImplementedError)\b",
         re.IGNORECASE,
     )
     # Pattern to extract stem from "Action: Create" file entries
     create_file_pattern = re.compile(
-        r'- File: `?([^`\n]+)`?\s*\n\s+Action:\s*Create',
+        r"- File: `?([^`\n]+)`?\s*\n\s+Action:\s*Create",
         re.IGNORECASE,
     )
 
@@ -265,7 +275,7 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
 
         # Extract RED expected failure text
         red_match = re.search(
-            r'\*\*Expected failure:\*\*\s*`?([^\n`]+)`?', cycle_content
+            r"\*\*Expected failure:\*\*\s*`?([^\n`]+)`?", cycle_content
         )
         if red_match:
             failure_text = red_match.group(1).strip()
@@ -338,7 +348,16 @@ def main() -> None:
     ]:
         p = sub.add_parser(name)
         p.add_argument("path")
-        p.add_argument(f"--skip-{name}", dest=skip_dest, action="store_true", default=False)
+        p.add_argument(
+            f"--skip-{name}", dest=skip_dest, action="store_true", default=False
+        )
+        if name == "lifecycle":
+            p.add_argument(
+                "--known-file",
+                action="append",
+                default=[],
+                help="File known to pre-exist (repeatable)",
+            )
         p.set_defaults(func=fn)
 
     args = parser.parse_args()

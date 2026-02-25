@@ -447,7 +447,6 @@ def strip_fenced_blocks(content):
 
     Rationale: Position-dependent logic elsewhere depends on stable line numbers.
     """
-    content.splitlines(keepends=True)
     tracker = _fence_tracker()
     result = []
 

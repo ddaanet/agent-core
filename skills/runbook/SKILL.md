@@ -438,9 +438,19 @@ Check for common planning defects (criteria from review-plan skill Section 11):
 - Ordering: any items referencing structures from later items?
 - Density: adjacent items on same target with minimal delta? (TDD: <1 branch difference; General: <20 LOC delta)
 - Checkpoints: gaps >10 items without checkpoint?
-Fix inline before promotion. If unfixable, fall through to Phase 1 expansion.
+Fix inline before promotion. If unfixable, fall through to Phase 1 expansion (lightweight orchestration exit is also unavailable — a defect-laden outline cannot serve as the orchestration plan).
 
-**If sufficient → promote outline to runbook:**
+**If sufficient — check for lightweight orchestration exit:**
+
+**Discriminator:** The `## Execution Model` section encodes dispatch protocol (which agents, what context each receives, recall injection method, checkpoint sequencing). Its presence means the outline was designed as an orchestration plan, not as input to the runbook pipeline. Absence means the outline needs promotion to runbook format for prepare-runbook.py to generate step files and plan-specific agents.
+
+If outline contains `## Execution Model` section with dispatch protocol:
+
+1. Do not promote to runbook format, do not run prepare-runbook.py — the outline IS the execution plan
+2. Commit outline, then tail-call `/handoff --commit`
+3. Set task command in session.md: orchestrate from outline + recall artifact per Execution Model and Recall Injection sections
+
+**Otherwise — promote outline to runbook:**
 
 1. **Reformat headings:** Convert item headings to H2 (`## Step N.M:` or `## Cycle X.Y:`)
 2. **Convert content:** Bullets become body content under each H2

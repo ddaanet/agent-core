@@ -141,7 +141,7 @@ If no requirements.md exists:
 
 | Level | Source | How | When |
 |-------|--------|-----|------|
-| 1. Local knowledge | Read `memory-index.md` (skip if already in context), keyword discovery → batch-resolve via `agent-core/bin/when-resolve.py` or read referenced files directly. `agents/decisions/*.md` always. `agents/plan-archive.md` when design overlaps with previously completed plans (prior art, integration points, affected modules). `agent-core/fragments/*.md` only when memory-index entries reference them. For small doc volumes, scout or Grep on decision/fragment directories is also valid. | Direct Read, agent-core/bin/when-resolve.py, scout, or Grep | Always (core), flexible method |
+| 1. Local knowledge | Execute `/recall all` protocol (deep + broad, topic-scoped). Covers memory-index, `agents/decisions/*.md`, `agents/plan-archive.md` when design overlaps with prior plans, `agent-core/fragments/*.md` when referenced. | `/recall all` | Always (core) |
 | 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
 | 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
 | 4. Local explore | Codebase exploration | Delegate to scout agent | Always for complex designs |
@@ -155,24 +155,24 @@ If no requirements.md exists:
 
 **Recall Artifact Generation**
 
-Documentation findings from A.1 exist only in the current context window — they do not survive to downstream pipeline stages (runbook planning, orchestration, execution, review). Persist them as a recall artifact so all downstream consumers receive the designer's curated documentation context.
+Documentation findings from A.1 exist only in the current context window — they do not survive to downstream pipeline stages (runbook planning, orchestration, execution, review). Persist them as a recall artifact so all downstream consumers resolve fresh content at consumption time.
 
-**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. The artifact captures entries discovered and read during A.1 — memory-index hits, decision files, skill content, Context7 results, exploration reports. Do not re-read source files; content is already in context from A.1's loading passes.
+**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. Entry keys only — no excerpts, no summaries. Downstream consumers batch-resolve via `when-resolve.py` to get current content.
 
-**Artifact format:** Structured markdown, one section per entry:
+**Artifact format:**
 
 ```markdown
-## <Entry Heading Name>
+# Recall Artifact: <Job Name>
 
-**Source:** `<path/to/file.md>`
-**Relevance:** <Why this entry matters for this design — 1-2 sentences>
+Resolve entries via `agent-core/bin/when-resolve.py` — do not use inline summaries.
 
-<Key content excerpt — dense, not full text. Focus on decisions, constraints, and patterns the downstream consumer needs.>
+## Entry Keys
+
+<trigger phrase> — <1-line relevance note>
+<trigger phrase> — <1-line relevance note>
 ```
 
-**Selection criteria:** Include entries that informed design decisions or constrain implementation. Do not include entries that were read but proved irrelevant — the artifact is curated, not exhaustive. Do not fabricate relevance notes for entries that had no bearing on the design.
-
-**Staleness:** The artifact reflects corpus state at design time. If documentation changes between design and execution, the artifact becomes stale — this is accepted. Re-running the design pass is the refresh mechanism, not mid-pipeline updates.
+**Selection criteria:** Include entries that informed design decisions or constrain implementation. Exclude entries read but proved irrelevant — the artifact is curated, not exhaustive.
 
 **Output:** `plans/<job>/recall-artifact.md`, alongside other design artifacts in the job directory.
 

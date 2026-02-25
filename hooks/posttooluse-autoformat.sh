@@ -11,7 +11,6 @@ if [[ ! "$file_path" =~ \.py$ ]]; then
   exit 0
 fi
 
-ruff check --fix-only --quiet "$file_path" 2>/dev/null || true
 ruff format --quiet "$file_path" 2>/dev/null || true
 
 if command -v docformatter >/dev/null 2>&1; then

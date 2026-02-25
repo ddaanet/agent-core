@@ -94,8 +94,9 @@ Git history surfaces what current files cannot: failure patterns, correction cyc
 - `agents/learnings.md` — accumulated antipatterns with evidence and root causes
 - `plans/reports/workflow-grounding-audit.md` — grounding provenance for workflow skills (if present)
 - `/reflect` RCA artifacts in `plans/reports/` — structured failure analyses
+- `agent-core/bin/scrape-session-logs.py <topic>` — extract conversation turns relevant to topic from session transcripts (**script does not exist yet**). Session logs contain the user feedback, discussion turns, and design iteration reasoning that produced the committed corrections — material git history alone cannot recover. Git history shows *what* changed; session logs show *why the user asked for the change*.
 
-**Scope selector:** If topic is a process skill → use codebase scope **with git history mining**. Standard codebase scope (file inspection only) misses the failure evidence that makes process grounding credible.
+**Scope selector:** If topic is a process skill → use codebase scope **with git history mining + session log scraping** (when scraping script available). Standard codebase scope (file inspection only) misses the failure evidence that makes process grounding credible.
 
 ---
 

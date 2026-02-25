@@ -23,13 +23,18 @@ Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-
 
 ### 0. Complexity Triage
 
-**Requirements-clarity gate:** Before any artifact reading or triage, validate requirements are actionable.
+**Requirements-clarity gate (D+B anchor):** Before any artifact reading or triage, assess requirements completeness. Produce this assessment block (visible output, not internal reasoning):
 
-- If `requirements.md` exists: verify each FR/NFR has a concrete mechanism (not just a goal)
-- If user request only: verify intent is clear enough to triage (ask if not)
-- If requirements are vague or mechanism-free: route to `/requirements` before proceeding
+- **Requirements source:** [requirements.md / user request / problem.md / brief.md]
+- **Completeness:** [Each FR has concrete mechanism: Y/N] [Each NFR has measurable criterion: Y/N]
+- **Routing:** [Proceed to triage / Route to `/requirements`]
 
-**Rationale:** Triage reads artifacts that depend on requirements being clear. Vague requirements propagate through design into planning, producing mechanism-free specifications downstream agents cannot implement.
+Assessment rules:
+- `requirements.md` exists: verify each FR/NFR has a concrete mechanism (not just a goal)
+- User request only: verify intent is clear enough to triage (ask if not)
+- Vague or mechanism-free: route to `/requirements` before proceeding
+
+**Rationale:** Triage reads artifacts that depend on requirements being clear. Vague requirements propagate through design into planning, producing mechanism-free specifications downstream agents cannot implement. Structured output anchors the routing decision in observable evidence (IEEE 29148 validation activity principle).
 
 Before doing design work, assess whether design is actually needed.
 
@@ -54,35 +59,45 @@ agent-core/bin/when-resolve.py "when behavioral code" "when complexity" "when tr
 
 #### Classification Criteria
 
-Assess the task against these criteria. Classify only — do not route yet.
+Assess two axes (Stacey Matrix-grounded), then classify. Classify only — do not route yet.
 
-**Complex:**
-- Architectural decisions, multiple valid approaches, uncertain requirements, significant codebase impact
+**Axes:**
+1. **Implementation certainty** — is the approach known? Prior art in codebase? Known technique?
+2. **Requirement stability** — are FRs agreed and mechanism-specified? Scope bounded?
 
-**Moderate:**
-- Clear requirements, no architectural uncertainty, well-defined scope
-- Behavioral code changes: new functions, changed logic paths, conditional branches
+**Complex:** Either axis low. Architectural decisions with multiple valid approaches, uncertain or evolving requirements, significant codebase impact.
 
-**Simple:**
-- Single file, obvious implementation, no architectural decisions
-- **No behavioral code changes** — new functions, changed logic paths, conditional branches are Moderate regardless of conceptual simplicity
+**Moderate:** Both axes moderate-to-high. Clear requirements, no architectural uncertainty, well-defined scope. Behavioral code changes: new functions, changed logic paths, conditional branches.
+
+**Simple:** Both axes high. Single file, obvious implementation, no architectural decisions. **No behavioral code changes** — new functions, changed logic paths, conditional branches are Moderate regardless of conceptual simplicity.
+
+**Defect:** Observed behavior ≠ expected behavior. Route to structured-bugfix regardless of apparent complexity — the investigation structure replaces architectural design. Cynefin Complicated domain: cause analyzable, fix knowable, but analysis must be structured to prevent premature-closure bias.
 
 #### Classification Gate
 
 **Structural check (D+B anchor):** If classification is borderline Simple/Moderate, verify with `Glob` or `Grep` on affected files to confirm whether behavioral code changes are involved (new functions, changed logic paths).
 
 Produce this classification block before routing (visible output, not internal reasoning):
-- **Classification:** [Simple / Moderate / Complex]
+- **Classification:** [Simple / Moderate / Complex / Defect]
+- **Implementation certainty:** [High / Moderate / Low] — is approach known?
+- **Requirement stability:** [High / Moderate / Low] — are FRs mechanism-specified?
 - **Behavioral code check:** Does this task add functions, change logic paths, or add conditional branches? [Yes → Moderate minimum / No]
-- **Evidence:** Which criteria matched and which recall entries informed the decision
+- **Evidence:** Which criteria and recall entries informed the decision
 
 #### Routing
 
 - **Simple →** Check for applicable skills and project recipes first. Skip design — all other operational rules (skills, project tooling, communication) remain in effect. Update session.md with what was done.
 - **Moderate →** Skip design. Route to `/runbook`, which has its own tier assessment.
 - **Complex →** Proceed with Phases A-C below.
+- **Defect →** Route to structured-bugfix workflow: reproduce → root-cause → fix → verify. Skip design — the investigation structure replaces architectural design.
 
-**Companion tasks:** If session notes bundle additional work into this /design invocation ("address X during /design"), each companion task gets its own pass through Phase 0 — recall, classification, routing. The /design invocation is the venue; process is not optional. Route each workstream independently.
+**Companion tasks:** If session notes bundle additional work into this /design invocation ("address X during /design"), enumerate all bundled tasks before processing any:
+
+1. List all bundled tasks explicitly
+2. Each task gets its own Phase 0 pass with visible output block (Requirements-clarity → Triage Recall → Classification → Routing)
+3. Only after all tasks are classified, proceed with execution per routing
+
+The enumeration is the structural anchor — forces explicit acknowledgment of each task rather than silently merging them into the primary task's classification.
 
 **Session state check:** If session has significant pending work (>5 tasks), suggest `/shelve` before proceeding.
 
@@ -204,7 +219,11 @@ The outline resolves the architectural uncertainty that justified "complex" clas
 Delegate to `outline-corrector` using Task tool with `subagent_type="outline-corrector"`:
 
 ```
-Review plans/<job>/outline.md for completeness, clarity, and alignment with requirements.
+Review plans/<job>/outline.md — Preliminary Design Review (PDR) criteria:
+- Approach meets requirements (traceability to FRs)
+- Options selected with rationale (not "explore options")
+- Risks and open questions identified
+- Scope boundaries explicit (IN/OUT enumerated)
 
 Include review-relevant entries from plans/<job>/recall-artifact.md if present (failure modes, quality anti-patterns).
 
@@ -292,7 +311,13 @@ Review the changed files list. Approach commitment, revised scope, or rejected a
 Use Task tool with `subagent_type="design-corrector"`:
 
 ```
-Review plans/<job-name>/design.md for completeness, clarity, feasibility, and consistency.
+Review plans/<job-name>/design.md — Critical Design Review (CDR) criteria:
+- Decisions fully specified (implementer needs no inference)
+- Interfaces and integration points defined
+- Agent/tool names verified against disk
+- Test strategy or verification approach specified
+- Late-added requirements re-validated
+- Each major decision includes accepted tradeoffs
 
 Include review-relevant entries from plans/<job-name>/recall-artifact.md if present (failure modes, quality anti-patterns).
 

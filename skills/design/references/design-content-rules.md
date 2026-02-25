@@ -9,6 +9,17 @@ Content principles and structure guidance for Phase C.1 design document generati
 - Concrete file paths and integration points
 - Explicit scope boundaries (in/out)
 
+## Decision Tradeoff Documentation
+
+Each major architectural decision in design.md must include accepted tradeoffs — what the choice makes harder or more expensive, not just what it achieves. Follows ADR consequences pattern (Nygard 2011, Y-statement format).
+
+Embed within each decision's rationale:
+- **Decision:** [the choice]
+- **Rationale:** [why this approach]
+- **Accepted tradeoffs:** [what becomes harder, more expensive, or constrained]
+
+Required for decisions affecting module boundaries, API contracts, execution model, or downstream workflow. Not required for routine implementation choices (variable names, standard patterns).
+
 ## Density Checkpoint
 
 Before generating design, validate outline item granularity:

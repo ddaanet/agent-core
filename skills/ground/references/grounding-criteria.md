@@ -81,6 +81,24 @@ Templates are starting points. Refine based on initial results — if first sear
 
 ---
 
+## Process Skill Internal Sources
+
+When the grounding topic is a **process skill** (agent workflows, decision procedures, execution patterns, skill behavior), the internal codebase branch must include git history mining alongside current file inspection.
+
+Git history surfaces what current files cannot: failure patterns, correction cycles, and behavioral deviations that motivated rule additions. This is the highest-signal internal source for process grounding — external frameworks describe how processes *should* work, git history documents how *this* process actually fails.
+
+**Sources to mine in Branch A for process skills:**
+
+- `git log --oneline --all | head -200` — scan for /reflect, RCA, fix, deviat, correct in messages
+- `git log --oneline --grep="reflect\|RCA\|deviat\|correct" --all` — targeted failure-pattern commits
+- `agents/learnings.md` — accumulated antipatterns with evidence and root causes
+- `plans/reports/workflow-grounding-audit.md` — grounding provenance for workflow skills (if present)
+- `/reflect` RCA artifacts in `plans/reports/` — structured failure analyses
+
+**Scope selector:** If topic is a process skill → use codebase scope **with git history mining**. Standard codebase scope (file inspection only) misses the failure evidence that makes process grounding credible.
+
+---
+
 ## Convergence Template
 
 Read both branch artifacts from `plans/reports/` before synthesizing. Required sections:

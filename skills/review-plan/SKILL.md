@@ -63,8 +63,8 @@ Runbook execution uses three context layers. Review criteria apply to step/cycle
 Before applying review criteria, load project-specific quality patterns:
 
 1. **Infer plan directory** from the reviewed file path — if reviewing `plans/foo/runbook-phase-1.md` or `plans/foo/runbook.md`, the plan directory is `plans/foo/`. If no `plans/` prefix, skip recall.
-2. **Read `plans/<job>/recall-artifact.md`** if present and not already provided in the delegation prompt — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns. Caller-provided entries take precedence; skip re-reading if already provided.
-3. **If recall-artifact absent and no caller-provided entries**: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, testing conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
+2. **Recall context:** `Bash: agent-core/bin/recall-resolve.sh plans/<job>/recall-artifact.md` — if recall-resolve.sh succeeds, its output contains resolved decision content (failure modes, quality anti-patterns). Caller-provided entries take precedence; skip if already provided in the delegation prompt.
+3. **If artifact absent or recall-resolve.sh fails**: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, testing conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
 
 Recall supplements, does not replace, the review criteria below.
 

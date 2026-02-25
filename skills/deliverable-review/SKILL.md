@@ -103,7 +103,7 @@ Always runs in main session with full cross-project context.
 - Fragment convention compliance
 - Memory index pattern verification
 - Other skills' allowed-tools and frontmatter cross-reference validation
-- Read `plans/<plan>/recall-artifact.md` if present — failure-mode entries (common review failures, quality anti-patterns) augment reviewer awareness of project-specific patterns. Supplements existing axes, does not replace them. If absent (design skipped, first use): do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, artifact-type conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields
+- **Recall context:** `Bash: agent-core/bin/recall-resolve.sh plans/<plan>/recall-artifact.md` — if recall-resolve.sh succeeds, its output contains resolved decision content (common review failures, quality anti-patterns). Supplements existing axes, does not replace them. If artifact absent or recall-resolve.sh fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, artifact-type conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields
 
 **Per-file review (when Layer 1 skipped):**
 - Read each deliverable and evaluate against type-specific axes

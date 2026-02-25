@@ -493,7 +493,7 @@ def extract_sections(content):
     line_to_phase = {}
     current_phase = 1  # Default phase for flat runbooks
     phase_pattern = r"^###? Phase\s+(\d+)"
-    inline_phase_pattern = r"^###? Phase\s+(\d+):.*\(type:\s*inline\)"
+    inline_phase_pattern = r"^###? Phase\s+(\d+):.*\(type:\s*inline[^)]*\)"
     inline_phase_nums = set()
     tracker = _fence_tracker()
 
@@ -680,7 +680,7 @@ def detect_phase_types(content) -> dict:
     """
     stripped = strip_fenced_blocks(content)
     phase_header_re = re.compile(r"^###?\s+Phase\s+(\d+):", re.MULTILINE)
-    inline_re = re.compile(r"\(type:\s*inline\)", re.IGNORECASE)
+    inline_re = re.compile(r"\(type:\s*inline[^)]*\)", re.IGNORECASE)
 
     # Find all phase header positions and numbers
     matches = list(phase_header_re.finditer(stripped))

@@ -55,7 +55,7 @@ Recommendation: Use design-corrector for design.md, or corrector for runbooks
 1. Requirements file: `plans/<job>/requirements.md` (or from task prompt)
 2. Outline file: `plans/<job>/outline.md`
 3. Exploration reports (if referenced): `plans/<job>/reports/*.md`
-4. Recall context: Read `plans/<job>/recall-artifact.md` if present and not already provided in the task prompt — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns. If absent: do lightweight recall — Read `memory-index.md` (skip if already in context), identify relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
+4. **Recall context:** `Bash: agent-core/bin/recall-resolve.sh plans/<job>/recall-artifact.md` — if recall-resolve.sh succeeds, its output contains resolved decision content (failure modes, quality anti-patterns). If artifact absent or recall-resolve.sh fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
 
 **Extract requirements:**
 - Identify all FR-* (functional requirements)

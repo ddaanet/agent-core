@@ -87,9 +87,10 @@ Use Read tool to load the full design document.
 
 ### 1.5. Load Recall Context
 
-Before analysis, load project-specific quality patterns:
-- Read `plans/<job-name>/recall-artifact.md` if present and not already provided in the task prompt — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns.
-- If recall-artifact absent and no caller-provided entries: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, architectural conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
+**Recall context:** `Bash: agent-core/bin/recall-resolve.sh plans/<job-name>/recall-artifact.md`
+
+If recall-resolve.sh succeeds, its output contains resolved decision content — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns.
+If artifact absent or recall-resolve.sh fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, architectural conventions), batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`. Proceed with whatever recall yields.
 
 Recall supplements the review criteria below.
 

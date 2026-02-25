@@ -1,7 +1,7 @@
 ---
 name: requirements
-description: Capture requirements from conversation or guide structured elicitation. Produces requirements.md artifact for design/planning phases. Use when the user asks to "capture requirements", "document requirements", "what do I want to build", or starts discussing a feature without clear documentation.
-allowed-tools: Read, Write, Glob, Grep, AskUserQuestion
+description: This skill should be used when the user asks to "capture requirements", "document requirements", "what do I want to build", or starts discussing a feature without clear documentation. Captures requirements from conversation or guides structured elicitation, producing requirements.md artifact for design and planning phases.
+allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion
 user-invocable: true
 ---
 
@@ -29,6 +29,39 @@ Skill automatically detects appropriate mode based on conversation history.
 - **Extract mode** — conversation contains substantive discussion (feature descriptions, constraints, scope)
 - **Elicit mode** — fresh conversation or minimal context (no prior feature discussion, cold-start)
 
+## Recall Pass
+
+**Runs after mode detection, before either procedure.** Ground extraction in existing infrastructure, patterns, and decisions — prevents naive requirements.
+
+### Process
+
+Invoke `/recall all` (deep + broad, topic-scoped). This is a skill invocation — `/recall` handles memory-index scanning, batch resolution, and tail-recursion. Derive topic from job name, conversation context, and any existing `plans/<job>/` artifacts.
+
+**Boundaries:**
+- No agent delegation, no Context7, no web research — those belong to /design A.1
+- Purpose: ground the extraction, not exhaustive documentation loading
+
+### Recall Artifact
+
+After recall completes, write `plans/<job>/recall-artifact.md`. Entry keys only — downstream consumers resolve fresh content at consumption time.
+
+**Format:**
+
+```markdown
+# Recall Artifact: <Job Name>
+
+Resolve entries via `agent-core/bin/when-resolve.py` — do not use inline summaries.
+
+## Entry Keys
+
+<trigger phrase> — <1-line relevance note>
+<trigger phrase> — <1-line relevance note>
+```
+
+**Selection criteria:** Include entries that informed requirements or constrain implementation. Exclude entries read but proved irrelevant — the artifact is curated, not exhaustive.
+
+**Output:** `plans/<job>/recall-artifact.md`
+
 ## Extract Mode Procedure
 
 When conversation contains requirements signals:
@@ -55,11 +88,12 @@ Quick scan to ground requirements (runs after extraction, so scan is targeted):
 3. `Read` existing patterns in relevant area — inform constraints
 
 **Boundaries:**
-- Direct tool use only (Glob, Grep, Read)
+- Direct tool use only (Glob, Grep, Read, Bash, Write)
 - No agent delegation
 - No Context7, no web research, no scout
 - Purpose: prevent naive requirements (e.g., "add X" when X exists)
 - Tool count is a guideline, not a hard limit — use judgment for complex domains
+- Save exploration prototypes to `plans/prototypes/` (not `tmp/`) — they are referenced artifacts, not ephemera
 
 ### 3. Structure Requirements
 

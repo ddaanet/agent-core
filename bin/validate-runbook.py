@@ -5,7 +5,7 @@ import argparse
 import importlib.util
 import re
 import sys
-from datetime import UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
 _spec = importlib.util.spec_from_file_location(
@@ -42,8 +42,6 @@ def write_report(
     For directory input: report goes to <path>/reports/validation-<subcommand>.md.
     For file input: report goes to plans/<job>/reports/validation-<subcommand>.md.
     """
-    from datetime import datetime
-
     p = Path(path)
     report_dir = p / "reports" if p.is_dir() else Path("plans") / p.stem / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)

@@ -80,6 +80,7 @@ Analyze the task and produce explicit assessment output:
 ```
 **Tier Assessment:**
 - Files affected: ~N
+- Artifact destination: [production / exploration / investigation / LLM-prose]
 - Open decisions: none / [list]
 - Components: N (sequential / parallel / mixed)
 - Cycles/steps estimated: ~N (rough count from design)
@@ -90,6 +91,17 @@ Analyze the task and produce explicit assessment output:
 **Rationale:** [1-2 sentences]
 ```
 
+**Destination-aware file counting:** Artifact destination (from Phase 0 classification or design) determines which convention set applies to file counting:
+
+| Destination | File Count Basis | Cycle Conventions |
+|-------------|-----------------|-------------------|
+| Production (`src/`) | Include test mirrors, lint, module split | Full TDD cycles |
+| Exploration (`plans/prototypes/`) | Script files only, no test mirrors | General steps (write, verify, iterate) |
+| LLM-prose (`agent-core/skills/`) | Skill files + behavior verification | Prose review cycles |
+| Investigation (`plans/reports/`) | Report files only | General steps |
+
+A single-file prototype assessed against exploration conventions → Tier 1. Same script assessed against production conventions → inflated count from test mirrors, lint setup, module structure.
+
 When uncertain between tiers, prefer the lower tier (less overhead). Ask user only if genuinely ambiguous.
 
 ### Tier 1: Direct Implementation
@@ -97,7 +109,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Criteria:**
 - Design complete (no open decisions)
 - All edits straightforward (<100 lines each)
-- Total scope: <6 files
+- Total scope: <6 files *(ungrounded threshold — needs empirical calibration, see `agents/decisions/execution-strategy.md`)*
 - Single session, single model
 - No parallelization benefit
 
@@ -118,7 +130,7 @@ Include review-relevant entries in corrector prompt — rationale format for son
 ### Tier 2: Lightweight Delegation
 
 **Criteria:**
-- Design complete, scope moderate (6-15 files or 2-4 logical components)
+- Design complete, scope moderate (6-15 files or 2-4 logical components) *(file thresholds ungrounded — needs calibration)*
 - Work benefits from agent isolation but not full orchestration
 - Components are sequential (no parallelization benefit)
 - No model switching needed
@@ -170,8 +182,8 @@ When delegated agent escalates "ambiguity" or "design gap":
 - Steps need different models
 - Long-running / multi-session execution
 - Complex error recovery
-- >15 files or complex coordination
-- >10 TDD cycles with cross-component dependencies
+- >15 files or complex coordination *(file threshold ungrounded — needs calibration)*
+- >10 TDD cycles with cross-component dependencies *(cycle threshold ungrounded — needs calibration)*
 
 **Sequence:** Planning process below — existing pipeline unchanged.
 

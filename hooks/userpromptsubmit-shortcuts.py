@@ -2,7 +2,7 @@
 """UserPromptSubmit hook: Expand workflow shortcuts.
 
 Tier 1 - Commands (exact match on own line):
-  s, x, xc, r, h, hc, ci, ?
+  s, x, xc, r, h, hc, ci, c, y, ?
 
 Tier 2 - Directives (colon prefix, additive):
   d:, p:, b:, q:, learn: (and long-form aliases)
@@ -56,6 +56,8 @@ COMMANDS = {
         "Update session.md, then commit → status display."
     ),
     "ci": "[/commit] Commit changes → status display.",
+    "c": "Continue.",
+    "y": "Yes, proceed.",
     "?": (
         "[#help] List shortcuts (both tiers), "
         "keywords (y/go/continue), and entry skills "
@@ -128,6 +130,35 @@ DIRECTIVES = {
     "q": _QUICK_EXPANSION,
     "question": _QUICK_EXPANSION,
     "learn": _LEARN_EXPANSION,
+}
+
+
+def _nonblank(text: str) -> int:
+    """Count non-blank lines in text."""
+    return sum(1 for line in text.split("\n") if line.strip())
+
+
+# Tier 2: systemMessage summaries — behavioral outline + non-blank line count
+_DISCUSS_SYS = f"discuss: assess, stress-test, state verdict. ({_nonblank(_DISCUSS_EXPANSION)} lines)"
+_PENDING_SYS = (
+    f"pending: capture task, model, no-execute. ({_nonblank(_PENDING_EXPANSION)} lines)"
+)
+_BRAINSTORM_SYS = f"brainstorm: diverge, no judgment, defer. ({_nonblank(_BRAINSTORM_EXPANSION)} lines)"
+_QUICK_SYS = f"quick: terse, direct, stop. ({_nonblank(_QUICK_EXPANSION)} lines)"
+_LEARN_SYS = (
+    f"learn: append learnings.md H2 format. ({_nonblank(_LEARN_EXPANSION)} lines)"
+)
+
+DIRECTIVE_SYSTEM_MSGS = {
+    "d": _DISCUSS_SYS,
+    "discuss": _DISCUSS_SYS,
+    "p": _PENDING_SYS,
+    "pending": _PENDING_SYS,
+    "b": _BRAINSTORM_SYS,
+    "brainstorm": _BRAINSTORM_SYS,
+    "q": _QUICK_SYS,
+    "question": _QUICK_SYS,
+    "learn": _LEARN_SYS,
 }
 
 # Built-in skills fallback (empty initially — all cooperative skills are project-local or plugin-based)
@@ -888,31 +919,24 @@ def main() -> None:
         for directive_key, _section in directive_matches:
             expansion = DIRECTIVES[directive_key]
             context_parts.append(expansion)
-            if directive_key in ("d", "discuss"):
-                system_parts.append("[DISCUSS] Evaluate critically, do not execute.")
-            elif directive_key in ("p", "pending"):
-                system_parts.append("[PENDING] Capture task, do not execute.")
-            elif directive_key in ("b", "brainstorm"):
-                system_parts.append("[BRAINSTORM] Generate options, do not converge.")
-            elif directive_key in ("q", "question"):
-                system_parts.append("[QUICK] Terse response, no ceremony.")
-            elif directive_key == "learn":
-                system_parts.append("[LEARN] Append to learnings.")
-            else:
-                system_parts.append(expansion)
+            sys_msg = DIRECTIVE_SYSTEM_MSGS.get(directive_key, "")
+            if sys_msg:
+                system_parts.append(sys_msg)
 
-    # Tier 2.5: Pattern guards — additionalContext only, additive with Tier 2
+    # Tier 2.5: Pattern guards — additive with Tier 2
     if EDIT_SKILL_PATTERN.search(prompt) or EDIT_SLASH_PATTERN.search(prompt):
         context_parts.append(
             "Load /plugin-dev:skill-development before editing skill files. "
             "Load /plugin-dev:agent-development before editing agent files. "
             "Skill descriptions require 'This skill should be used when...' format."
         )
+        system_parts.append("Agent instructed: load skill-development skill")
     if CCG_PATTERN.search(prompt):
         context_parts.append(
             "Platform question detected. Use claude-code-guide agent "
             "(subagent_type='claude-code-guide') for authoritative Claude Code documentation."
         )
+        system_parts.append("Agent instructed to use claude-code-guide")
 
     # Directives change interaction mode — output Tier 2 + 2.5, skip Tier 3
     if directive_matches and context_parts:
@@ -945,6 +969,8 @@ def main() -> None:
                 "additionalContext": combined_context,
             }
         }
+        if system_parts:
+            output["systemMessage"] = " | ".join(system_parts)
         print(json.dumps(output))
         return
 

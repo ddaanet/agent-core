@@ -1,121 +1,131 @@
 #!/usr/bin/env python3
-"""PreToolUse hook: intercept Bash commands and redirect or block.
+"""PreToolUse hook: intercept Bash commands and block via permissionDecision:deny.
 
-Routing table with two action types:
-- Soft redirect: additionalContext suggestion (exit 0, agent sees message)
-- Hard block: stderr message + exit 2 (tool call prevented)
+All matched commands are blocked with:
+- permissionDecisionReason: brief rationale (agent + user)
+- additionalContext: extended agent instruction (agent-only)
+- systemMessage: user-facing summary (~60 chars)
 """
 
 import json
 import re
 import sys
 from pathlib import Path
-from typing import NamedTuple
 
 
-class _Redirect(NamedTuple):
-    """Soft redirect — inject additionalContext, allow tool call."""
-
-    message: str
-
-
-class _Block(NamedTuple):
-    """Hard block — stderr message, exit 2, prevent tool call."""
-
-    message: str
-
-
-_Action = _Redirect | _Block
+def _deny(reason: str, agent_msg: str, user_msg: str) -> dict:
+    """Construct permissionDecision:deny JSON output."""
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": reason,
+            "additionalContext": agent_msg,
+        },
+        "systemMessage": user_msg,
+    }
 
 
 def main() -> None:
-    """Entry point: read hook input, match command, act."""
+    """Entry point: read hook input, match command, block if matched."""
     hook_input = json.load(sys.stdin)
     command = hook_input.get("tool_input", {}).get("command", "")
 
-    action = _match(command)
-    if action is None:
+    result = _match(command)
+    if result is None:
         sys.exit(0)
 
-    if isinstance(action, _Block):
-        sys.stderr.write(action.message + "\n")
-        sys.exit(2)
-
-    # Redirect — inject additionalContext
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "additionalContext": action.message,
-        }
-    }
-    print(json.dumps(output))
+    print(json.dumps(result))
     sys.exit(0)
 
 
-def _match_blocks(command: str) -> _Action | None:
-    """Hard blocks — exit 2, tool call prevented."""
-    # python3 -c / python -c: block inline code execution
+def _match_blocks(command: str) -> dict | None:
+    """Hard blocks: python -c inline code, rm index.lock."""
     if re.match(r"python3?\s+-c\s", command):
-        return _Block(
+        return _deny(
+            "python -c is unreadable — use plans/prototypes/ instead",
             "🚫 python -c is unreadable and untestable. "
-            "Write to plans/prototypes/ to identify tooling gaps."
+            "Write to plans/prototypes/ to identify tooling gaps.",
+            "🚫 python -c blocked — use plans/prototypes/",
         )
 
-    # rm index.lock: never delete git lock files
     if re.search(r"rm\s.*index\.lock", command):
-        return _Block(
-            "🚫 index.lock indicates concurrent git access. Retry the git command."
+        return _deny(
+            "index.lock: concurrent git access — retry the git command",
+            "🚫 index.lock indicates concurrent git access. Retry the git command.",
+            "🚫 index.lock blocked — retry the git command",
         )
     return None
 
 
-def _match_python_uv(command: str) -> _Action | None:
-    """Redirects for python/python3/uv invocations."""
-    # python3 -m <tool> / python -m <tool>: strip prefix
+def _match_python_uv(command: str) -> dict | None:
+    """Blocks for python/python3/uv invocations."""
+    # python3 -m <tool>: strip prefix
     m = re.match(r"python3?\s+-m\s+(\S+)(.*)", command)
     if m:
         tool, rest = m.group(1), m.group(2)
-        return _Redirect(f"Use `{tool}{rest}` directly — scripts have shebangs.")
+        return _deny(
+            f"python3 -m prefix unnecessary — use `{tool}` directly",
+            f"Use `{tool}{rest}` directly — scripts have shebangs.",
+            f"🚫 python3 -m — use `{tool}` directly",
+        )
 
-    # python3 <path> / python <path>: direct script invocation
+    # python3 <path>: direct script invocation
     m = re.match(r"python3?\s+(?!-)([\w./_-]+\.\w+)(.*)", command)
     if m:
         script, rest = m.group(1), m.group(2)
-        msg = _validate_script(script)
-        if msg:
-            return _Redirect(msg)
-        return _Redirect(
+        error = _validate_script(script)
+        if error:
+            return _deny(
+                error,
+                error,
+                f"🚫 Script error: {script}",
+            )
+        return _deny(
+            "python3 prefix breaks permissions.allow matching",
             f"Use `{script}{rest}` directly "
-            "— python3 prefix breaks permissions.allow matching."
+            "— python3 prefix breaks permissions.allow matching.",
+            f"🚫 Use `{script}` directly (no python3 prefix)",
         )
 
-    # uv run <command>: unnecessary in sandbox with .venv active
+    # uv run <command>: unnecessary with active .venv
     m = re.match(r"uv\s+run\s+(.*)", command)
     if m:
         rest = m.group(1)
-        return _Redirect(f"Use `{rest}` directly — .venv is already active.")
-    return None
-
-
-def _match_tool_wrappers(command: str) -> _Action | None:
-    """Redirects for commands with project wrappers."""
-    # ln: use just sync-to-parent
-    if command == "ln" or command.startswith("ln "):
-        return _Redirect("Use `just sync-to-parent` — recipe encodes correct paths.")
-
-    # git worktree: use claudeutils wrapper
-    if command.startswith("git worktree "):
-        return _Redirect("Use `claudeutils _worktree` — wrapper manages session.md.")
-
-    # git merge: use claudeutils wrapper
-    if command.startswith("git merge ") or command == "git merge":
-        return _Redirect(
-            "Use `claudeutils _worktree merge` — wrapper manages session.md."
+        return _deny(
+            f"uv run unnecessary — .venv active, use `{rest}` directly",
+            f"Use `{rest}` directly — .venv is already active.",
+            f"🚫 uv run — use `{rest}` directly",
         )
     return None
 
 
-def _match(command: str) -> _Action | None:
+def _match_tool_wrappers(command: str) -> dict | None:
+    """Blocks for commands with project wrapper equivalents."""
+    if command == "ln" or command.startswith("ln "):
+        return _deny(
+            "Use just sync-to-parent — recipe encodes correct paths",
+            "Use `just sync-to-parent` — recipe encodes correct paths.",
+            "🚫 ln blocked — use just sync-to-parent",
+        )
+
+    if command.startswith("git worktree "):
+        return _deny(
+            "Use claudeutils _worktree — wrapper manages session.md",
+            "Use `claudeutils _worktree` — wrapper manages session.md.",
+            "🚫 git worktree — use claudeutils _worktree",
+        )
+
+    if command.startswith("git merge ") or command == "git merge":
+        return _deny(
+            "Use claudeutils _worktree merge — wrapper manages session.md",
+            "Use `claudeutils _worktree merge` — wrapper manages session.md.",
+            "🚫 git merge — use claudeutils _worktree merge",
+        )
+    return None
+
+
+def _match(command: str) -> dict | None:
     """Match command against routing table."""
     return (
         _match_blocks(command)

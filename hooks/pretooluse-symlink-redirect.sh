@@ -32,7 +32,7 @@ if [[ -L "$file_path" ]]; then
     # Normalize the path
     target=$(cd "$(dirname "$target")" && pwd)/$(basename "$target")
 
-    # Block the operation with concise message
+    # Block via permissionDecision:deny
     # Extract just the relative path from project root if env var is set
     if [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
       relative_target="${target#$CLAUDE_PROJECT_DIR/}"
@@ -40,9 +40,12 @@ if [[ -L "$file_path" ]]; then
       relative_target="$target"
     fi
 
-    echo "🚫 BLOCKED: This file is symlinked to agent-core" >&2
-    echo "Instead, $tool_name file: $relative_target" >&2
-    exit 2
+    jq -n \
+      --arg reason "Symlinked to agent-core — edit $relative_target directly" \
+      --arg ctx "This file is symlinked to agent-core. Instead, $tool_name file: $relative_target" \
+      --arg msg "🚫 Symlink — edit $relative_target" \
+      '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":$reason,"additionalContext":$ctx},"systemMessage":$msg}'
+    exit 0
   fi
 fi
 

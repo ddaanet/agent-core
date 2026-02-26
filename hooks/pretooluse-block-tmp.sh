@@ -15,9 +15,9 @@ file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 if [[ "$tool_name" == "Write" || "$tool_name" == "Edit" ]]; then
   # Check if path starts with /tmp/ or /private/tmp/
   if [[ "$file_path" =~ ^(/tmp/|/private/tmp/) ]]; then
-    # Block the operation - output plain message to stderr and exit 2
-    echo "🚫 **BLOCKED: Do not write to /tmp/. Use project-local tmp/ instead.**" >&2
-    exit 2
+    # Block via permissionDecision:deny
+    jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Write to /tmp/ blocked — use project-local tmp/ instead","additionalContext":"Do not write to /tmp/. Use project-local tmp/ directory (per CLAUDE.md File System Rules)."},"systemMessage":"🚫 /tmp/ write blocked — use project-local tmp/"}'
+    exit 0
   fi
 fi
 

@@ -110,6 +110,14 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
    After resolving root cause, **retry:** `claudeutils _worktree merge <slug>` (same command, will resume from current state).
 
+## Diff Baseline Rule
+
+When diffing branches (for inspection, validation, or user questions — NOT a required pre-merge step):
+
+- **Three-dot** (`main...branch`) for "what did the branch change?" — isolates branch work from the merge base.
+- **Two-dot** (`main..branch`) shows tip-to-tip difference — misleading before merge because main-only additions appear as branch deletions.
+- **Append-only files** (learnings.md, memory-index.md): diff merge-base to each side independently (`git diff $(git merge-base main branch)..main`, `..branch`) to see what each side added.
+
 ## Usage Notes
 
 - **CLI signature:** `claudeutils _worktree new [TASK_NAME] [--branch TEXT] [--base TEXT]`. Positional `TASK_NAME` is the task name from session.md (quoted). Use `--branch <slug>` to override the derived slug or to create a bare worktree without session integration. There is no `--task` flag — the task name is always positional.

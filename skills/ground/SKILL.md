@@ -1,8 +1,8 @@
 ---
 name: ground
 description: >-
-  This skill should be used when producing methodological, framework, taxonomic,
-  or best-practice claims, or when the user asks to "ground", "create a scoring
+  Ground claims with external research before asserting methodology. Triggers on
+  "ground", "create a scoring
   system", "design a methodology", "build a framework", or "synthesize best
   practices". Parallel diverge-converge research preventing confabulated structures.
 allowed-tools: Read, Write, Grep, Glob, Bash, WebSearch, WebFetch, Task

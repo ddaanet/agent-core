@@ -1,8 +1,8 @@
 ---
 name: runbook
 description: |
-  This skill should be used when the user invokes /runbook or needs a design
-  decomposed into executable steps. Creates runbooks with per-phase typing
+  Decompose a design into executable implementation steps. Triggers on /runbook or when
+  a design needs step-by-step planning. Creates runbooks with per-phase typing
   (TDD cycles, general steps, or inline pass-through) for weak orchestrator execution.
 allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, agent-core/bin/recall-diff.sh, echo:*|pbcopy)
 requires:
@@ -14,7 +14,7 @@ outputs:
 user-invocable: true
 ---
 
-# Create Execution Runbooks
+# Plan Implementation Steps
 
 **Usage:** `/runbook plans/<job-name>/design.md`
 

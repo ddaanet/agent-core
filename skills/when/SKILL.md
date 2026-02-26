@@ -1,6 +1,6 @@
 ---
 name: when
-description: This skill should be used when the agent needs behavioral knowledge recall — "when to do X", situational patterns, or decision content for recognized situations. Invoke with "/when <trigger>".
+description: Recall behavioral knowledge from project decisions. Triggers on "when to do X", situational patterns, or decision content for recognized situations. Invoke with "/when <trigger>".
 allowed-tools: Bash(agent-core/bin/when-resolve.py:*)
 user-invocable: true
 ---

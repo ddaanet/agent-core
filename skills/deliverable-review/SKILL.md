@@ -1,7 +1,7 @@
 ---
 name: deliverable-review
 description: >-
-  This skill should be used when the user asks to "review deliverables",
+  Review production artifacts after plan execution. Triggers on "review deliverables",
   "deliverable review", "artifact review", or after completing plan execution.
   Two-layer review (delegated per-file + interactive cross-project) producing
   severity-classified report grounded in ISO 25010 / IEEE 1012.

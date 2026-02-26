@@ -1,6 +1,6 @@
 ---
 name: requirements
-description: This skill should be used when the user asks to "capture requirements", "document requirements", "what do I want to build", or starts discussing a feature without clear documentation. Captures requirements from conversation or guides structured elicitation, producing requirements.md artifact for design and planning phases.
+description: Capture and document requirements for implementation. Triggers on "capture requirements", "document requirements", "what do I want to build", or feature discussions without clear documentation. Produces requirements.md artifact for design and planning phases.
 allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion
 user-invocable: true
 ---

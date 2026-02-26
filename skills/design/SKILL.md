@@ -1,15 +1,15 @@
 ---
 name: design
 description: >-
-  This skill should be used when the user invokes /design, requests
-  architecture or implementation planning, or presents a task needing
-  complexity triage. Triages simple/moderate/complex, produces design
+  Triage complexity and design implementation approach. Triggers on /design,
+  architecture or implementation planning requests, or tasks needing
+  complexity assessment. Triages simple/moderate/complex, produces design
   documents for complex jobs, routes moderate to /runbook.
 allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 user-invocable: true
 ---
 
-# Triage Implementation Complexity
+# Design Implementation Approach
 
 Produce dense design documents that guide implementation by downstream agents (Sonnet/Haiku).
 

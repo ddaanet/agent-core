@@ -1,6 +1,6 @@
 ---
 name: prioritize
-description: This skill should be used when the user asks to "prioritize", "score the backlog", "rank tasks", "reprioritize", or needs task ordering from session.md. WSJF-adapted scoring producing priority-ordered tables with parallel batches.
+description: Score and rank pending tasks by priority. Triggers on "prioritize", "score the backlog", "rank tasks", "reprioritize", or task ordering needs. WSJF-adapted scoring producing priority-ordered tables with parallel batches.
 allowed-tools: Read, Grep, Glob, Bash
 user-invocable: true
 ---

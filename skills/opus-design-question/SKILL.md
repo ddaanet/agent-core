@@ -1,8 +1,8 @@
 ---
 name: opus-design-question
 description: >
-  REQUIRED instead of AskUserQuestion for design/architectural decisions.
-  When you face a choice between approaches (A vs B), trade-off analysis,
+  Consult Opus for design and architectural decisions. REQUIRED instead of AskUserQuestion.
+  Triggers on approach choices (A vs B), trade-off analysis,
   pattern selection, or structural decisions — use this skill to consult
   Opus instead of asking the user. Only ask the user for subjective
   preferences, business logic, scope changes, or unclear requirements.

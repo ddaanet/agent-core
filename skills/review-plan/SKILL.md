@@ -1,8 +1,8 @@
 ---
 name: review-plan
 description: |
-  Reviews runbook phase files for quality, TDD discipline (if TDD), step quality (if general),
-  and LLM failure modes (always). Detects prescriptive code in GREEN phases, validates RED/GREEN
+  Review runbook quality for TDD discipline, step clarity, and LLM failure modes.
+  Detects prescriptive code in GREEN phases, validates RED/GREEN
   sequencing, checks prerequisite validation, script evaluation, and step clarity.
 
   Use when reviewing runbooks after generation by /plan. Use when the user asks to "review runbook",

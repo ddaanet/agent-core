@@ -1,6 +1,6 @@
 ---
 name: doc-writing
-description: This skill should be used when the user asks to "write a README", "write documentation", "document this project", "docs are stale", or when creating or rewriting project-facing documentation. Explore, draft, reader-test with fresh agent, fix gaps, review.
+description: Write or rewrite project documentation. Triggers on "write a README", "write documentation", "document this project", "docs are stale", or documentation creation requests. Explore, draft, reader-test with fresh agent, fix gaps, review.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Task
 user-invocable: true
 ---

@@ -1,11 +1,11 @@
 ---
 name: error-handling
 description: |
-  This skill should be used when agents need error handling rules for bash command execution or token-efficient bash exception patterns.
+  Bash error handling rules and token-efficient exception patterns. Loaded when agents need error handling guidance for bash command execution.
 user-invocable: false
 ---
 
-# Error Handling
+# Apply Bash Error Handling Rules
 
 Content is in the always-loaded fragment: `agent-core/fragments/error-handling.md`
 

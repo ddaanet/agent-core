@@ -1,7 +1,7 @@
 ---
 name: recall
 description: |
-  This skill should be used when the user asks to "recall", "load context", "load decisions", or when starting work on a topic with relevant project decisions. Front-loads decision file content into session context. Cumulative across invocations, tail-recursive within each.
+  Load project decisions into session context before working. Triggers on "recall", "load context", "load decisions", or when starting work on a topic with relevant decisions. Cumulative across invocations, tail-recursive within each.
 allowed-tools: Bash(agent-core/bin/when-resolve.py:*)
 user-invocable: true
 ---

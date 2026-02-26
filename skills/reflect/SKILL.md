@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: This skill should be used when the user asks to "reflect", "diagnose deviation", "root cause", "why did you do X", "what went wrong", or "RCA". Must run in the session where deviation occurred — conversation context is the diagnostic evidence.
+description: Diagnose agent deviations and rule violations via root cause analysis. Triggers on "reflect", "diagnose deviation", "root cause", "why did you do X", "what went wrong", or "RCA". Must run in the session where the deviation occurred.
 allowed-tools: Read, Write, Edit, Grep, Glob
 user-invocable: true
 ---

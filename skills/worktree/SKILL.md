@@ -1,7 +1,7 @@
 ---
 name: worktree
 description: >-
-  This skill should be used when the user asks to "create a worktree",
+  Manage git worktrees for parallel task execution. Triggers on "create a worktree",
   "set up parallel work", "merge a worktree", "branch off a task",
   or uses the `wt`, `wt merge`, or `wt-rm` shortcuts. Worktree lifecycle:
   creation, focused sessions, merge ceremony, cleanup, parallel task setup.

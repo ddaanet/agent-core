@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: This skill should be used when the user requests a handoff, session update, or agent switch. Writes session.md with completed tasks, pending work, blockers, and learnings for agent continuation. Not for Haiku orchestrators — use /handoff-haiku instead.
+description: Save session state for the next agent. Triggers on "handoff", "h", "hc", session update, or agent switch requests. Writes session.md with completed tasks, pending work, blockers, and learnings. Not for Haiku orchestrators — use /handoff-haiku instead.
 allowed-tools: Read, Write, Edit, Bash(wc:*), Task, Skill
 user-invocable: true
 continuation:

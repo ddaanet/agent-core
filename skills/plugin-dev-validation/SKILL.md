@@ -4,7 +4,7 @@ description: Domain validation criteria for plugin components. Consumed by corre
 user-invocable: false
 ---
 
-# Plugin Development Validation
+# Validate Plugin Components During Review
 
 Review criteria for Claude Code plugin components. This skill is consumed by corrector during artifact review, not invoked interactively.
 

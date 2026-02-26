@@ -1,6 +1,6 @@
 ---
 name: next
-description: This skill should be used when the user asks "what's next?" or "any pending work?" and no pending work exists in already-loaded context. Checks secondary locations (shelf, todo.md, ROADMAP.md).
+description: Find pending work in secondary locations. Triggers on "what's next?", "any pending work?", or when no pending work exists in already-loaded context. Checks shelf, todo.md, ROADMAP.md.
 version: 0.1.0
 ---
 

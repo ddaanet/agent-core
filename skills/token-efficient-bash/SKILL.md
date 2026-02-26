@@ -1,6 +1,6 @@
 ---
 name: token-efficient-bash
-description: This skill should be used when writing bash scripts with 3+ sequential commands. Teaches the exec 2>&1 + set -xeuo pipefail pattern that eliminates echo statements via automatic command tracing, reducing script size by 40-60%.
+description: Write compact bash scripts using exec tracing pattern. Triggers when writing bash scripts with 3+ sequential commands. The exec 2>&1 + set -xeuo pipefail pattern eliminates echo statements via automatic command tracing, reducing script size by 40-60%.
 version: 0.1.0
 ---
 

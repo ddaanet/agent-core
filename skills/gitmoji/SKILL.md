@@ -1,10 +1,10 @@
 ---
 name: gitmoji
-description: This skill should be used when the user asks to "use gitmoji", "add gitmoji", "select gitmoji", or when creating commit messages requiring gitmoji prefixes. Semantic matching of commit message intent to gitmoji emoji.
+description: Select gitmoji emoji for commit messages. Triggers on "use gitmoji", "add gitmoji", "select gitmoji", or when creating commit messages requiring gitmoji prefixes. Semantic matching of commit intent to emoji.
 version: 0.1.0
 ---
 
-# Semantic Gitmoji Matcher
+# Select Gitmoji for Commit Messages
 
 Semantic gitmoji selection for commit messages. Reads gitmoji index, analyzes commit message, selects appropriate emoji prefix. Augments `/commit` workflow.
 

@@ -1,6 +1,6 @@
 ---
 name: codify
-description: This skill should be used when consolidating learnings into permanent documentation, updating rules or decision files, or when learnings.md approaches its soft limit. Transforms session learnings into persistent CLAUDE.md fragments, decision files, and skill references.
+description: Consolidate learnings into permanent documentation. Triggers on "codify", "consolidate learnings", or when learnings.md approaches its soft limit. Transforms session learnings into CLAUDE.md fragments, decision files, and skill references.
 allowed-tools: Read, Write, Edit, Bash(git:*), Glob
 user-invocable: true
 ---

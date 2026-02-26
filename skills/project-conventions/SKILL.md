@@ -6,7 +6,7 @@ description: |
 user-invocable: false
 ---
 
-# Project Conventions
+# Apply Project Code and Output Conventions
 
 ## Code Quality
 

@@ -1,7 +1,7 @@
 ---
 name: memory-index
 description: |
-  This skill should be used when sub-agents need memory recall via Bash transport (agents without Skill tool access). Provides when/how entry index and resolution examples.
+  Memory recall via Bash transport for sub-agents without Skill tool access. Provides when/how entry index and resolution examples.
 user-invocable: false
 ---
 

@@ -73,6 +73,32 @@ Assess two axes (Stacey Matrix-grounded), then classify. Classify only — do no
 
 **Defect:** Observed behavior ≠ expected behavior. Route to structured-bugfix regardless of apparent complexity — the investigation structure replaces architectural design. Cynefin Complicated domain: cause analyzable, fix knowable, but analysis must be structured to prevent premature-closure bias.
 
+#### Work Type Assessment
+
+Assess work type alongside complexity — independent dimension (XP spike/story, Boehm throwaway/evolutionary). Work type determines execution ceremony (quality obligations); complexity determines design ceremony.
+
+| Work Type | Diagnostic Question | Deliverable | Done Criteria |
+|-----------|-------------------|-------------|---------------|
+| **Production** | Does this deliver capability to users/agents? | Working feature, behavior change | Tested, linted, reviewed, integrated |
+| **Exploration** | Does this produce knowledge or validate an approach? | Prototype, spike, feasibility answer | Functional, produces intended learning |
+| **Investigation** | Does this produce a decision or analysis? | Report, decision entry, requirements | Accurate, complete, actionable |
+
+**Assessment signals:**
+- Explicit constraints: "prototype first," "spike," "investigate," "explore"
+- Artifact destination: `plans/prototypes/` → Exploration, `plans/reports/` → Investigation, `src/` → Production
+- Requirement framing: "can we...?" → Exploration, "build X" → Production, "what is...?" → Investigation
+- If ambiguous, default to Production (highest ceremony — safe default)
+
+**Artifact destination** informs quality obligations (Boehm throwaway vs evolutionary prototype distinction):
+
+| Destination | Paths | Quality Obligations |
+|------------|-------|-------------------|
+| **production** | `src/`, `agent-core/bin/`, `agent-core/lib/` | Tests, lint, module structure, review |
+| **agentic-prose** | `agent-core/skills/`, `agent-core/fragments/`, `agent-core/agents/`, `agents/` | Wording quality, behavioral verification |
+| **exploration** | `plans/prototypes/`, `plans/spikes/` | Functional, documented purpose, no test mirrors |
+| **investigation** | `plans/reports/`, `agents/decisions/` | Accuracy, completeness, grounding |
+| **ephemeral** | `tmp/` | None |
+
 #### Classification Gate
 
 **Structural check (D+B anchor):** If classification is borderline Simple/Moderate, verify with `Glob` or `Grep` on affected files to confirm whether behavioral code changes are involved (new functions, changed logic paths).
@@ -82,11 +108,18 @@ Produce this classification block before routing (visible output, not internal r
 - **Implementation certainty:** [High / Moderate / Low] — is approach known?
 - **Requirement stability:** [High / Moderate / Low] — are FRs mechanism-specified?
 - **Behavioral code check:** Does this task add functions, change logic paths, or add conditional branches? [Yes → Moderate minimum / No]
+- **Work type:** [Production / Exploration / Investigation] — what does this deliver?
+- **Artifact destination:** [production / agentic-prose / exploration / investigation / ephemeral]
 - **Evidence:** Which criteria and recall entries informed the decision
 
 #### Routing
 
-- **Simple →** Check for applicable skills and project recipes first. Skip design — all other operational rules (skills, project tooling, communication) remain in effect. Update session.md with what was done.
+- **Simple →** Lightweight recall-explore-execute:
+  1. Recall: `agent-core/bin/when-resolve.py "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
+  2. Explore: if affected files not already known, `Glob`/`Grep` to identify targets
+  3. Execute: check for applicable skills and project recipes first, then implement directly
+  4. Update session.md with what was done
+  Skip design — all other operational rules (skills, project tooling, communication) remain in effect.
 - **Moderate →** Skip design. Route to `/runbook`, which has its own tier assessment.
 - **Complex →** Proceed with Phases A-C below.
 - **Defect →** Route to structured-bugfix workflow: reproduce → root-cause → fix → verify. Skip design — the investigation structure replaces architectural design.
@@ -182,6 +215,14 @@ Resolve entries via `agent-core/bin/when-resolve.py` — do not use inline summa
 
 For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify report path: `plans/<job-name>/reports/explore-<topic>.md`. Agent writes findings to file and returns filepath.
 
+#### A.2.5. Post-Explore Recall
+
+Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-scan memory-index (already in context from A.1) for entries relevant to domains discovered during exploration.
+
+**Gate anchor (mandatory tool call on both paths):**
+- **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
+- **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
+
 #### A.3-5. Research and Outline
 
 **When external research needed** (Context7, web, grounding): Read `references/research-protocol.md` for Context7 usage, web research, grounding invocation, recall diff, and outline content/format guidance.
@@ -260,12 +301,23 @@ After user validates the outline, assess whether it already contains enough spec
 
 **If sufficient** — present sufficiency assessment to user. The outline IS the design; confirm user agrees to skip design generation. On confirmation, assess execution readiness:
 
-**Direct execution criteria (all must hold):**
+**Execution routing (work-type-aware):**
+
+```
+IF all prose edits, no implementation loops → direct execution
+ELSE IF work type = Investigation → direct execution
+ELSE IF work type = Exploration AND design resolved all questions → direct execution
+ELSE (work type = Production AND behavioral code) → /runbook
+```
+
+**Direct execution criteria (all must hold for prose/investigation/exploration paths):**
 - All decisions pre-resolved (no open questions requiring feedback)
-- All changes are prose edits or additive (no behavioral code changes)
 - Insertion points or edit targets are identified (line-level or section-level)
-- No cross-file coordination (edits are independent per file)
+- No cross-file coordination requiring sequencing
 - No implementation loops (no test/build feedback required)
+- Scope fits inline capacity (single session, single model)
+
+Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
 **If execution-ready** — offer direct execution. On confirmation:
 1. Execute edits in current session
@@ -345,12 +397,23 @@ The design-corrector applies all fixes (critical, major, minor) directly. This s
 
 Design can resolve complexity — a job correctly classified as Complex may produce Simple execution. Assess whether the completed design can be executed directly or needs runbook planning.
 
-**Direct execution criteria (all must hold):**
+**Execution routing (work-type-aware):**
+
+```
+IF all prose edits, no implementation loops → direct execution
+ELSE IF work type = Investigation → direct execution
+ELSE IF work type = Exploration AND design resolved all questions → direct execution
+ELSE (work type = Production AND behavioral code) → /runbook
+```
+
+**Direct execution criteria (all must hold for prose/investigation/exploration paths):**
 - All decisions pre-resolved (no open questions requiring feedback)
-- All changes are prose edits or additive (no behavioral code changes)
 - Insertion points or edit targets are identified (line-level or section-level)
-- No cross-file coordination (edits are independent per file)
+- No cross-file coordination requiring sequencing
 - No implementation loops (no test/build feedback required)
+- Scope fits inline capacity (single session, single model)
+
+Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
 - **If execution-ready:** Execute edits, review (include recall artifact review entries in corrector prompt), then `/handoff [CONTINUATION: /commit]`
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`

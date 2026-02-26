@@ -80,7 +80,7 @@ Analyze the task and produce explicit assessment output:
 ```
 **Tier Assessment:**
 - Files affected: ~N
-- Artifact destination: [production / exploration / investigation / LLM-prose]
+- Artifact destination: [production / agentic-prose / exploration / investigation / ephemeral]
 - Open decisions: none / [list]
 - Components: N (sequential / parallel / mixed)
 - Cycles/steps estimated: ~N (rough count from design)
@@ -97,7 +97,7 @@ Analyze the task and produce explicit assessment output:
 |-------------|-----------------|-------------------|
 | Production (`src/`) | Include test mirrors, lint, module split | Full TDD cycles |
 | Exploration (`plans/prototypes/`) | Script files only, no test mirrors | General steps (write, verify, iterate) |
-| LLM-prose (`agent-core/skills/`) | Skill files + behavior verification | Prose review cycles |
+| Agentic-prose (`agent-core/skills/`, `agent-core/fragments/`, `agents/`) | Skill files + behavior verification | Prose review cycles |
 | Investigation (`plans/reports/`) | Report files only | General steps |
 
 A single-file prototype assessed against exploration conventions → Tier 1. Same script assessed against production conventions → inflated count from test mirrors, lint setup, module structure.

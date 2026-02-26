@@ -91,13 +91,13 @@ Assess work type alongside complexity — independent dimension (XP spike/story,
 
 **Artifact destination** informs quality obligations (Boehm throwaway vs evolutionary prototype distinction):
 
-| Destination | Quality Obligations |
-|------------|-------------------|
-| `src/`, `agent-core/` | Production: tests, lint, module structure, review |
-| `agent-core/skills/`, `agents/` | LLM-consumed prose: wording quality, behavioral verification |
-| `plans/prototypes/`, `plans/spikes/` | Exploration: functional, documented purpose, no test mirrors |
-| `plans/reports/`, `agents/decisions/` | Investigation: accuracy, completeness, grounding |
-| `tmp/` | Ephemeral: none |
+| Destination | Paths | Quality Obligations |
+|------------|-------|-------------------|
+| **production** | `src/`, `agent-core/bin/`, `agent-core/lib/` | Tests, lint, module structure, review |
+| **agentic-prose** | `agent-core/skills/`, `agent-core/fragments/`, `agent-core/agents/`, `agents/` | Wording quality, behavioral verification |
+| **exploration** | `plans/prototypes/`, `plans/spikes/` | Functional, documented purpose, no test mirrors |
+| **investigation** | `plans/reports/`, `agents/decisions/` | Accuracy, completeness, grounding |
+| **ephemeral** | `tmp/` | None |
 
 #### Classification Gate
 
@@ -109,13 +109,13 @@ Produce this classification block before routing (visible output, not internal r
 - **Requirement stability:** [High / Moderate / Low] — are FRs mechanism-specified?
 - **Behavioral code check:** Does this task add functions, change logic paths, or add conditional branches? [Yes → Moderate minimum / No]
 - **Work type:** [Production / Exploration / Investigation] — what does this deliver?
-- **Artifact destination:** [path or category] — where do deliverables land?
+- **Artifact destination:** [production / agentic-prose / exploration / investigation / ephemeral]
 - **Evidence:** Which criteria and recall entries informed the decision
 
 #### Routing
 
 - **Simple →** Lightweight recall-explore-execute:
-  1. Recall: `agent-core/bin/when-resolve.py "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, 3-5 triggers from task context)
+  1. Recall: `agent-core/bin/when-resolve.py "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
   2. Explore: if affected files not already known, `Glob`/`Grep` to identify targets
   3. Execute: check for applicable skills and project recipes first, then implement directly
   4. Update session.md with what was done
@@ -222,8 +222,6 @@ Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-s
 **Gate anchor (mandatory tool call on both paths):**
 - **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
 - **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
-
-Skip A.2.5 only when A.2 used direct Read (no delegated exploration occurred) — observable condition, not judgment.
 
 #### A.3-5. Research and Outline
 

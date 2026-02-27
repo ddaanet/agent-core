@@ -17,6 +17,10 @@
 
 **Anti-pattern:** Using `ln -sf` to create symlinks in `.claude/` when `just sync-to-parent` exists.
 
+### Precommit Cost
+
+`just precommit` is fast when the test suite is green, thanks to test sentinel. Valid as both entry gate and exit gate without redundant overhead concern.
+
 **Partial failure recovery:** If a recipe fails partway through, fix the obstruction and **retry the recipe** — do not complete remaining steps manually. Recipes are atomic units; manually finishing steps bypasses error handling, ordering, and side effects encoded in the recipe.
 
 **Deny-list as routing signal:** When a CLI command fails and raw commands are denied, the deny list is a routing signal — it means "use the wrapper." After CLI failure, retry with escalated flags (`--force`) before decomposing into raw commands.

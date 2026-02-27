@@ -223,13 +223,21 @@ Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-s
 - **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
 - **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
 
-#### A.3-5. Research and Outline
+#### A.3-4. Research
 
-**When external research needed** (Context7, web, grounding): Read `references/research-protocol.md` for Context7 usage, web research, grounding invocation, recall diff, and outline content/format guidance.
+**When external research needed** (Context7, web, grounding): Read `references/research-protocol.md` for Context7 usage, web research, grounding invocation, and recall diff guidance.
 
-**When no external research needed:** Proceed directly to outline generation.
+**When no external research needed:** Skip to A.5.
+
+**Research artifact (required when research conducted):** Write findings to `plans/<job>/reports/research-<topic>.md` — frameworks considered, findings per framework, gaps identified. This file is a cascading dependency: A.5 reads it, absence blocks outline generation.
 
 **Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>` — update artifact if codebase findings changed relevance.
+
+#### A.5. Outline
+
+**Gate:** If research was conducted (A.3-4), verify `plans/<job>/reports/research-*.md` exists before proceeding.
+
+Read `references/research-protocol.md` for outline content/format guidance.
 
 **Output:** Write outline to `plans/<job>/outline.md` — approach, key decisions, open questions, scope boundaries.
 

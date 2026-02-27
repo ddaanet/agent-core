@@ -162,7 +162,7 @@ agent-core/bin/when-resolve.py "when writing mock tests" "how encode paths"
 
 ## agents/decisions/pipeline-contracts.md
 
-/when transformation table | T1-T6 pipeline stages defect types review gates criteria
+/when transformation table | T1-T6.5 pipeline stages defect types review gates criteria
 /how review delegation scope template | scope IN OUT changed files requirements
 /when UNFIXABLE escalation | fix-all pattern grep UNFIXABLE stop escalate
 /when phase type model | tdd general per-phase typing expansion review criteria
@@ -171,6 +171,9 @@ agent-core/bin/when-resolve.py "when writing mock tests" "how encode paths"
 /when review receives execution context | filesystem vs execution-time state
 /when corrector rejects planning artifacts | runbook-corrector routing
 /when expansion reintroduces defects | LLM failure modes at both levels
+/when using inline execution lifecycle | Tier 1 Tier 2 entry gate corrector triage feedback
+/how dispatch corrector from inline skill | standardized template baseline diff recall report
+/when triage feedback shows divergence | classification comparison heuristics calibration log
 
 ## agents/decisions/project-config.md
 

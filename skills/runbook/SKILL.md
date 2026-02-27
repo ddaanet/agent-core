@@ -119,13 +119,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
 
-**Sequence:**
-1. Implement changes directly using Read/Write/Edit tools
-2. Delegate to review agent for review
-3. Apply all fixes from review
-4. Tail-call `/handoff --commit`
-
-**Behavioral code changes:** Write one RED test, make it GREEN, verify, then write the next RED test. Per-cycle sequencing applies even without runbook ceremony — batching all REDs then all GREENs skips the incremental verification that catches wiring mistakes between layers.
+**Sequence:** Invoke `/inline plans/<job> execute`. Handles implementation, corrector dispatch, triage feedback, and handoff continuation.
 
 ### Tier 2: Lightweight Delegation
 
@@ -141,20 +135,7 @@ Include review-relevant entries in corrector prompt — rationale format for son
 
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 
-**For TDD work (~4-10 cycles):**
-- Plan cycle descriptions (lightweight — no full runbook format)
-- For each cycle: delegate via `Task(subagent_type="test-driver", model="haiku", prompt="...")` with context included in prompt (requires test-driver agent definition)
-- Per-cycle sequencing: one RED → one GREEN → verify, then next cycle. Do not batch multiple REDs before GREENs.
-- Intermediate checkpoints: every 3-5 delegated cycles, run tests and review accumulated changes
-
-**For general work (6-15 files):**
-- Delegate work via `Task(subagent_type="artisan", model="haiku", prompt="...")` with relevant context from design included in prompt (standard delegation pattern — agent executes and reports to file)
-- Single agent for cohesive work; break into 2-4 components only if logically distinct
-
-**Common tail:**
-- After delegation complete: delegate to review agent for review
-- Apply all fixes from review
-- Tail-call `/handoff --commit`
+**Sequence:** After assessment, invoke `/inline plans/<job> execute`. Handles delegated execution (TDD piecemeal dispatch, general work delegation), corrector dispatch, triage feedback, and handoff continuation.
 
 **Design constraints are non-negotiable:**
 

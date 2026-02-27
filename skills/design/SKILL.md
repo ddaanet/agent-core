@@ -5,7 +5,7 @@ description: >-
   architecture or implementation planning requests, or tasks needing
   complexity assessment. Triages simple/moderate/complex, produces design
   documents for complex jobs, routes moderate to /runbook.
-allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
+allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch, Skill
 user-invocable: true
 ---
 
@@ -13,11 +13,10 @@ user-invocable: true
 
 Produce dense design documents that guide implementation by downstream agents (Sonnet/Haiku).
 
-## Downstream Consumer
+## Downstream Consumers
 
-All planning routes to `/runbook` (unified — handles both TDD and general phases).
-
-Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-phase type tagging during planning.
+- **Planning:** `/runbook` (unified — handles both TDD and general phases). Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-phase type tagging.
+- **Execution:** `/inline` when work is execution-ready (Phase B sufficiency gate, Phase C.5 execution readiness). Handles execution lifecycle: corrector, triage feedback, deliverable-review chain.
 
 ## Process
 
@@ -111,6 +110,8 @@ Produce this classification block before routing (visible output, not internal r
 - **Work type:** [Production / Exploration / Investigation] — what does this deliver?
 - **Artifact destination:** [production / agentic-prose / exploration / investigation / ephemeral]
 - **Evidence:** Which criteria and recall entries informed the decision
+
+**Classification persistence (C-2):** Write the classification block verbatim to `plans/<job>/classification.md`. This file is consumed by `triage-feedback.sh` for post-execution comparison (FR-5/FR-6).
 
 #### Routing
 
@@ -327,10 +328,7 @@ ELSE (work type = Production AND behavioral code) → /runbook
 
 Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
-**If execution-ready** — offer direct execution. On confirmation:
-1. Execute edits in current session
-2. Delegate to `corrector` — include review-relevant entries from `plans/<job>/recall-artifact.md` in corrector prompt (failure modes, quality anti-patterns)
-3. Invoke `/handoff [CONTINUATION: /commit]`
+**If execution-ready** — offer direct execution. On confirmation, invoke `/inline plans/<job> execute`. Handles execution, corrector dispatch, triage feedback, and handoff continuation.
 
 **If not execution-ready** — route to `/runbook`:
 1. Commit design artifact (`outline.md` or `design.md`)
@@ -423,7 +421,7 @@ ELSE (work type = Production AND behavioral code) → /runbook
 
 Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
-- **If execution-ready:** Execute edits, review (include recall artifact review entries in corrector prompt), then `/handoff [CONTINUATION: /commit]`
+- **If execution-ready:** Invoke `/inline plans/<job> execute`. Handles execution, corrector dispatch, triage feedback, and handoff continuation.
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 ## Constraints

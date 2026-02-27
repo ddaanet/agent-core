@@ -30,7 +30,7 @@ Agents self-retrieve at ~3% rate. The pipeline injects recall at fixed points, b
 ### Pass 1: Scan and Select
 
 1. **Identify the active topic** from conversation context (or explicit argument)
-2. **Read memory-index.md** (skip if already in context). Review entries for domain matches.
+2. **Read agents/memory-index.md** (skip if already in context). Review entries for domain matches.
 3. **Select targets** based on mode:
    - Default/deep: select relevant entry triggers (section-level)
    - Broad/all: select relevant `## agents/decisions/<file>.md` headers (file-level)

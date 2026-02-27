@@ -65,4 +65,19 @@ if [[ "$verdict" == "underclassified" ]] || [[ "$verdict" == "overclassified" ]]
     echo "Triage: predicted $classification, evidence suggests $verdict"
 fi
 
+# Append to triage-feedback-log.md (only if verdict is not no-classification)
+if [[ "$verdict" != "no-classification" ]]; then
+    log_dir="plans/reports"
+    mkdir -p "$log_dir"
+    log_file="$log_dir/triage-feedback-log.md"
+
+    if [[ ! -f "$log_file" ]]; then
+        echo "| Date | Job | Predicted | Files Changed | Reports | Behavioral Code | Verdict |" > "$log_file"
+        echo "|---|---|---|---|---|---|---|" >> "$log_file"
+    fi
+
+    log_date=$(date -u +%Y-%m-%d)
+    echo "| $log_date | $job_dir | $classification | $files_changed | $reports_count | $behavioral_code | $verdict |" >> "$log_file"
+fi
+
 exit 0

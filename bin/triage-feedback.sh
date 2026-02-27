@@ -22,13 +22,47 @@ if [[ -d "$reports_dir" ]]; then
     reports_count=$(find "$reports_dir" -maxdepth 1 -type f ! -name "design-review*" ! -name "outline-review*" ! -name "recall-*" | wc -l | tr -d ' ')
 fi
 
-# Placeholder output structure
+# Detect behavioral code: check for new function/class definitions in git diff
+behavioral_code="no"
+if git diff "$baseline_commit" | grep -E "^\+.*(def |class |function )" > /dev/null; then
+    behavioral_code="yes"
+fi
+
+# Compare against classification if present
+verdict="no-classification"
+classification_file="plans/$job_dir/classification.md"
+if [[ -f "$classification_file" ]]; then
+    classification=$(grep -E "(^\*\*Classification:\*\*|^Classification:)" "$classification_file" | head -1 | sed -E 's/.*:\s*//;s/\*//g' | xargs)
+
+    if [[ "$classification" == "Simple" ]]; then
+        if [[ "$behavioral_code" == "yes" ]] || [[ "$reports_count" -gt 0 ]]; then
+            verdict="underclassified"
+        else
+            verdict="match"
+        fi
+    elif [[ "$classification" == "Complex" ]]; then
+        if [[ "$files_changed" -le 2 ]] && [[ "$reports_count" -eq 0 ]] && [[ "$behavioral_code" == "no" ]]; then
+            verdict="overclassified"
+        else
+            verdict="match"
+        fi
+    else
+        verdict="match"
+    fi
+fi
+
+# Output structure
 echo "## Evidence"
 echo "- Files changed: $files_changed"
 echo "- Reports: $reports_count"
-echo "- Behavioral code: no"
+echo "- Behavioral code: $behavioral_code"
 echo ""
 echo "## Verdict"
-echo "no-classification"
+echo "$verdict"
+
+if [[ "$verdict" == "underclassified" ]] || [[ "$verdict" == "overclassified" ]]; then
+    echo ""
+    echo "Triage: predicted $classification, evidence suggests $verdict"
+fi
 
 exit 0

@@ -93,6 +93,10 @@ sync-to-parent:
     echo "Syncing hook configuration..."
     python3 bin/sync-hooks-config.py
 
+    # Stage new symlinks in parent git repo (hooks are gitignored)
+    echo "Staging new symlinks..."
+    git -C "$PARENT_DIR" add .claude/skills/ .claude/agents/
+
     echo "Sync complete!"
 
 # Set up development environment (agent-core is documentation/skills only)

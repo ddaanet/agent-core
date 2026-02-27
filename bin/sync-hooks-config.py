@@ -46,6 +46,48 @@ def get_command_string(hook_entry):
     return None
 
 
+def normalize_command(cmd):
+    """Normalize hook command to base script path for dedup comparison.
+
+    Strips interpreter prefixes (python3, bash) and $CLAUDE_PROJECT_DIR/ so that
+    'python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/foo.py' matches 'agent-
+    core/hooks/foo.py'.
+    """
+    if cmd is None:
+        return None
+    # Strip interpreter prefix
+    for prefix in ("python3 ", "bash "):
+        if cmd.startswith(prefix):
+            cmd = cmd[len(prefix) :]
+            break
+    # Strip $CLAUDE_PROJECT_DIR/
+    cmd = cmd.replace("$CLAUDE_PROJECT_DIR/", "")
+    return cmd
+
+
+def _merge_hook_entries(existing_entry, new_entry):
+    """Merge new hooks into existing entry, replacing old-form commands.
+
+    Uses normalized comparison so 'agent-core/hooks/foo.py' is recognized as
+    equivalent to 'python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/foo.py'. When
+    matched, the old-form entry is replaced with the new-form entry.
+    """
+    existing_hooks = existing_entry.get("hooks", [])
+    existing_normalized = {
+        normalize_command(get_command_string(h)): i
+        for i, h in enumerate(existing_hooks)
+    }
+
+    for new_hook in new_entry.get("hooks", []):
+        new_cmd = get_command_string(new_hook)
+        norm = normalize_command(new_cmd)
+        if norm in existing_normalized:
+            # Replace old-form with new-form
+            existing_hooks[existing_normalized[norm]] = new_hook
+        else:
+            existing_hooks.append(new_hook)
+
+
 def merge_hooks(settings, hooks_config):
     """Merge hooks.json into settings.json, deduplicating by command string.
 
@@ -78,15 +120,7 @@ def merge_hooks(settings, hooks_config):
                 if matching_entry_idx is None:
                     existing_hooks.append(new_entry)
                 else:
-                    existing_entry = existing_hooks[matching_entry_idx]
-                    existing_commands = {
-                        get_command_string(h) for h in existing_entry.get("hooks", [])
-                    }
-
-                    for new_hook in new_entry.get("hooks", []):
-                        cmd = get_command_string(new_hook)
-                        if cmd not in existing_commands:
-                            existing_entry["hooks"].append(new_hook)
+                    _merge_hook_entries(existing_hooks[matching_entry_idx], new_entry)
 
             else:
                 matching_entry_idx = None
@@ -98,15 +132,7 @@ def merge_hooks(settings, hooks_config):
                 if matching_entry_idx is None:
                     existing_hooks.append(new_entry)
                 else:
-                    existing_entry = existing_hooks[matching_entry_idx]
-                    existing_commands = {
-                        get_command_string(h) for h in existing_entry.get("hooks", [])
-                    }
-
-                    for new_hook in new_entry.get("hooks", []):
-                        cmd = get_command_string(new_hook)
-                        if cmd not in existing_commands:
-                            existing_entry["hooks"].append(new_hook)
+                    _merge_hook_entries(existing_hooks[matching_entry_idx], new_entry)
 
     return settings
 

@@ -88,7 +88,7 @@ Parallel (N tasks, independent):
 Show largest independent group only. Omit section if no parallelism detected.
 
 **Graceful degradation:**
-- Missing session.md or no Pending Tasks → "No pending tasks."
+- Missing session.md or no Pending Tasks → "No pending tasks." In a worktree (`git rev-parse --git-dir` ≠ `.git`), append: "Branch complete."
 - Old format (no metadata) → use defaults (sonnet, no restart)
 - No unscheduled plans → omit Unscheduled Plans section entirely
 

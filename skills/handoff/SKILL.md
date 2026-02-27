@@ -88,6 +88,8 @@ Non-plan tasks keep their static command. This prevents stale commands from pers
 
 **NEVER reference commits as pending** in session.md — no "ready to commit" language. With `--commit`, write status assuming commit succeeds.
 
+**Worktree-terminal state:** If no `[ ]` pending tasks AND in a worktree (`git rev-parse --git-dir` ≠ `.git`), Next Steps = "Branch work complete." No merge-to-main instructions — the merge is tracked on main's session.md and performed from main.
+
 **Haiku tasks** require execution criteria (acceptance criteria, test commands, or plan references):
 
 ```markdown

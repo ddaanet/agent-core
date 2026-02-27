@@ -68,7 +68,8 @@ Continuation metadata must never reach sub-agents:
 |-------|-------------|-------|
 | `/design` | `["/handoff --commit", "/commit"]` | Planning entry point |
 | `/runbook` | `["/handoff --commit", "/commit"]` | Runbook planning (unified) |
-| `/orchestrate` | `["/handoff --commit", "/commit"]` | Runbook execution |
+| `/inline` | `["/handoff --commit", "/commit"]` | Inline execution lifecycle (Tier 1/2) |
+| `/orchestrate` | `["/handoff --commit", "/commit"]` | Runbook execution (Tier 3) |
 | `/handoff` | `["/commit"]` | Context preservation |
 | `/commit` | `[]` | Terminal skill |
 
@@ -76,7 +77,7 @@ Continuation metadata must never reach sub-agents:
 
 ## Error Propagation
 
-Five cooperative skills chain via tail-calls with zero implicit error handling. A failure mid-chain orphans the remaining continuation.
+Six cooperative skills chain via tail-calls with zero implicit error handling. A failure mid-chain orphans the remaining continuation.
 
 ### Default Behavior: Abort and Record
 

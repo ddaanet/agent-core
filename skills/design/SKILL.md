@@ -5,7 +5,7 @@ description: >-
   architecture or implementation planning requests, or tasks needing
   complexity assessment. Triages simple/moderate/complex, produces design
   documents for complex jobs, routes moderate to /runbook.
-allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
+allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch, Skill
 user-invocable: true
 ---
 
@@ -13,11 +13,10 @@ user-invocable: true
 
 Produce dense design documents that guide implementation by downstream agents (Sonnet/Haiku).
 
-## Downstream Consumer
+## Downstream Consumers
 
-All planning routes to `/runbook` (unified — handles both TDD and general phases).
-
-Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-phase type tagging during planning.
+- **Planning:** `/runbook` (unified — handles both TDD and general phases). Note which phases are behavioral (TDD) vs infrastructure (general) to guide per-phase type tagging.
+- **Execution:** `/inline` when work is execution-ready (Phase B sufficiency gate, Phase C.5 execution readiness). Handles execution lifecycle: corrector, triage feedback, deliverable-review chain.
 
 ## Process
 
@@ -111,6 +110,8 @@ Produce this classification block before routing (visible output, not internal r
 - **Work type:** [Production / Exploration / Investigation] — what does this deliver?
 - **Artifact destination:** [production / agentic-prose / exploration / investigation / ephemeral]
 - **Evidence:** Which criteria and recall entries informed the decision
+
+**Classification persistence (C-2):** Write the classification block verbatim to `plans/<job>/classification.md`. This file is consumed by `triage-feedback.sh` for post-execution comparison (FR-5/FR-6).
 
 #### Routing
 
@@ -223,13 +224,21 @@ Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-s
 - **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
 - **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
 
-#### A.3-5. Research and Outline
+#### A.3-4. Research
 
-**When external research needed** (Context7, web, grounding): Read `references/research-protocol.md` for Context7 usage, web research, grounding invocation, recall diff, and outline content/format guidance.
+**When external research needed** (Context7, web, grounding): Read `references/research-protocol.md` for Context7 usage, web research, grounding invocation, and recall diff guidance.
 
-**When no external research needed:** Proceed directly to outline generation.
+**When no external research needed:** Skip to A.5.
+
+**Research artifact (required when research conducted):** Write findings to `plans/<job>/reports/research-<topic>.md` — frameworks considered, findings per framework, gaps identified. This file is a cascading dependency: A.5 reads it, absence blocks outline generation.
 
 **Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>` — update artifact if codebase findings changed relevance.
+
+#### A.5. Outline
+
+**Gate:** If research was conducted (A.3-4), verify `plans/<job>/reports/research-*.md` exists before proceeding.
+
+Read `references/research-protocol.md` for outline content/format guidance.
 
 **Output:** Write outline to `plans/<job>/outline.md` — approach, key decisions, open questions, scope boundaries.
 
@@ -319,10 +328,7 @@ ELSE (work type = Production AND behavioral code) → /runbook
 
 Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
-**If execution-ready** — offer direct execution. On confirmation:
-1. Execute edits in current session
-2. Delegate to `corrector` — include review-relevant entries from `plans/<job>/recall-artifact.md` in corrector prompt (failure modes, quality anti-patterns)
-3. Invoke `/handoff [CONTINUATION: /commit]`
+**If execution-ready** — offer direct execution. On confirmation, invoke `/inline plans/<job> execute`. Handles execution, corrector dispatch, triage feedback, and handoff continuation.
 
 **If not execution-ready** — route to `/runbook`:
 1. Commit design artifact (`outline.md` or `design.md`)
@@ -415,7 +421,7 @@ ELSE (work type = Production AND behavioral code) → /runbook
 
 Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
-- **If execution-ready:** Execute edits, review (include recall artifact review entries in corrector prompt), then `/handoff [CONTINUATION: /commit]`
+- **If execution-ready:** Invoke `/inline plans/<job> execute`. Handles execution, corrector dispatch, triage feedback, and handoff continuation.
 - **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
 
 ## Constraints

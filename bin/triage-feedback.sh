@@ -31,7 +31,7 @@ fi
 verdict="no-classification"
 classification_file="plans/$job_dir/classification.md"
 if [[ -f "$classification_file" ]]; then
-    classification=$(grep -E "(^\*\*Classification:\*\*|^Classification:)" "$classification_file" | head -1 | sed -E 's/.*:\s*//;s/\*//g' | xargs || true)
+    classification=$(grep -E "(^-?\s*\*\*Classification:\*\*|^-?\s*Classification:)" "$classification_file" | head -1 | sed -E 's/.*:\s*//;s/\*//g' | xargs || true)
 
     if [[ -z "$classification" ]]; then
         verdict="no-classification"

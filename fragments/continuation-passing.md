@@ -99,6 +99,8 @@ Points of no return in the chain where compensation is impractical (Saga pattern
 |---------------|--------|--------|
 | `/design` completes | No | Outline/design is additive, can be revised |
 | `/runbook` completes | No | Runbook artifacts can be regenerated |
+| `/inline` completes (delegated) | **Yes** | Sub-agents commit per cycle — multiple commits, compensation impractical |
+| `/inline` completes (direct) | No | No intermediate commits — single session, revertible |
 | `/orchestrate` completes execution | **Yes** | Multiple commits, file changes, reports — compensating transactions impractical |
 | `/handoff` completes | **Yes** | Session state updated, learnings written — reversion loses institutional knowledge |
 | `/commit` completes | **Yes** | Git history modified, push may have occurred |

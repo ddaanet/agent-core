@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 
-set -uo pipefail
+set -euo pipefail
 
 job_dir="${1:-}"
 baseline_commit="${2:-}"
 
 if [[ -z "$job_dir" ]] || [[ -z "$baseline_commit" ]]; then
     echo "Usage: triage-feedback.sh <job-dir> <baseline-commit>" >&2
-    exit 0
+    exit 1
 fi
 
 # Count files changed since baseline (exclude summary line)
 # The summary line contains "file changed" or "files changed", all other lines are file changes
-files_changed=$(git diff --stat "$baseline_commit" | grep -v "file.*changed" | wc -l | tr -d ' ')
+files_changed=$(git diff --stat "$baseline_commit" | grep -v "file.*changed" | wc -l | tr -d ' ' || true)
 
 # Count report files in plans/$job_dir/reports/
 # Exclude pre-execution artifacts: design-review*, outline-review*, recall-*
@@ -24,7 +24,7 @@ fi
 
 # Detect behavioral code: check for new function/class definitions in git diff
 behavioral_code="no"
-if git diff "$baseline_commit" | grep -E "^\+.*(def |class |function )" > /dev/null; then
+if git diff "$baseline_commit" | grep -E "^\+[^#]*(def |class |function )" > /dev/null; then
     behavioral_code="yes"
 fi
 
@@ -32,7 +32,7 @@ fi
 verdict="no-classification"
 classification_file="plans/$job_dir/classification.md"
 if [[ -f "$classification_file" ]]; then
-    classification=$(grep -E "(^\*\*Classification:\*\*|^Classification:)" "$classification_file" | head -1 | sed -E 's/.*:\s*//;s/\*//g' | xargs)
+    classification=$(grep -E "(^\*\*Classification:\*\*|^Classification:)" "$classification_file" | head -1 | sed -E 's/.*:\s*//;s/\*//g' | xargs || true)
 
     if [[ "$classification" == "Simple" ]]; then
         if [[ "$behavioral_code" == "yes" ]] || [[ "$reports_count" -gt 0 ]]; then

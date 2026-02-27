@@ -10,9 +10,8 @@ if [[ -z "$job_dir" ]] || [[ -z "$baseline_commit" ]]; then
     exit 1
 fi
 
-# Count files changed since baseline (exclude summary line)
-# The summary line contains "file changed" or "files changed", all other lines are file changes
-files_changed=$(git diff --stat "$baseline_commit" | grep -v "file.*changed" | wc -l | tr -d ' ' || true)
+# Count files changed since baseline
+files_changed=$(git diff --name-only "$baseline_commit" | wc -l | tr -d ' ')
 
 # Count report files in plans/$job_dir/reports/
 # Exclude pre-execution artifacts: design-review*, outline-review*, recall-*
@@ -34,7 +33,9 @@ classification_file="plans/$job_dir/classification.md"
 if [[ -f "$classification_file" ]]; then
     classification=$(grep -E "(^\*\*Classification:\*\*|^Classification:)" "$classification_file" | head -1 | sed -E 's/.*:\s*//;s/\*//g' | xargs || true)
 
-    if [[ "$classification" == "Simple" ]]; then
+    if [[ -z "$classification" ]]; then
+        verdict="no-classification"
+    elif [[ "$classification" == "Simple" ]]; then
         if [[ "$behavioral_code" == "yes" ]] || [[ "$reports_count" -gt 0 ]]; then
             verdict="underclassified"
         else
@@ -62,7 +63,7 @@ echo "$verdict"
 
 if [[ "$verdict" == "underclassified" ]] || [[ "$verdict" == "overclassified" ]]; then
     echo ""
-    echo "Triage: predicted $classification, evidence suggests $verdict"
+    echo "Triage: predicted $classification, evidence suggests $verdict (files=$files_changed, reports=$reports_count, code=$behavioral_code)"
 fi
 
 # Append to triage-feedback-log.md (only if verdict is not no-classification)

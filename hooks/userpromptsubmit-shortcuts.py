@@ -872,7 +872,9 @@ def format_continuation_context(parsed: dict[str, Any]) -> str:
 
 
 def _extract_execute_command() -> str | None:
-    """Extract the first pending task command from session.md.
+    """Extract the first eligible task command from session.md.
+
+    Priority: in-progress [>] task over pending [ ] task.
 
     Returns:
         The backtick-wrapped command string if found, None otherwise.
@@ -891,11 +893,17 @@ def _extract_execute_command() -> str | None:
     except Exception:
         return None
 
-    # Match task lines: - [ ] **name** — `COMMAND`
-    # Extract command from backticks on matching lines
-    pattern = r"^\s*-\s+\[\s*\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
+    # Pass 1: Look for in-progress [>] task
+    in_progress_pattern = r"^\s*-\s+\[>\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
     for line in content.split("\n"):
-        match = re.match(pattern, line)
+        match = re.match(in_progress_pattern, line)
+        if match:
+            return match.group(1)
+
+    # Pass 2: Look for pending [ ] task if no in-progress found
+    pending_pattern = r"^\s*-\s+\[\s*\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
+    for line in content.split("\n"):
+        match = re.match(pending_pattern, line)
         if match:
             return match.group(1)
 

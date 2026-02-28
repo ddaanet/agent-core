@@ -42,7 +42,7 @@ As the **final action** of this skill:
    - Existing entries remain in original order (append-only invariant)
    - Prepend only — never remove, reorder, or modify existing entries
    - Skills that don't need subroutines skip this step
-3. Peel first entry from (possibly modified) continuation, tail-call with remainder
+3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
 4. If no continuation: skill implements its own default-exit behavior (standalone/last-in-chain)
 
 **CRITICAL:** Do NOT include continuation metadata in Task tool prompts.

@@ -167,7 +167,7 @@ As the **final action** of this skill:
 
 1. Read continuation from `additionalContext` (first skill in chain) or from `[CONTINUATION: ...]` suffix in Skill args (chained skills)
 2. If skill needs a subroutine before continuing: prepend entries to continuation (existing entries stay in original order — append-only invariant)
-3. Peel first entry from (possibly modified) continuation, tail-call with remainder
+3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
 4. If no continuation: default-exit — `/handoff --commit` → `/commit`
 
 **CRITICAL:** Do NOT include continuation metadata in Task tool prompts.

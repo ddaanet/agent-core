@@ -75,6 +75,7 @@ Continuation metadata must never reach sub-agents:
 | `/inline` | `["/handoff --commit", "/commit"]` | Inline execution lifecycle (Tier 1/2) |
 | `/orchestrate` | `["/handoff --commit", "/commit"]` | Runbook execution (Tier 3) |
 | `/handoff` | `["/commit"]` | Context preservation |
+| `/worktree` | `[]` | Terminal skill (parallel task setup) |
 | `/commit` | `[]` | Terminal skill |
 
 **Note**: Default Exit column documents each skill's standalone behavior (implemented by skill, not enforced by hook).

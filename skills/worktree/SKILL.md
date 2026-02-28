@@ -135,3 +135,9 @@ When diffing branches (for inspection, validation, or user questions — NOT a r
 - **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
 
 - **Emergency `--force` flag:** `claudeutils _worktree rm --force <slug>` bypasses all safety checks (confirm, dirty tree, guard). Use only as emergency escape hatch when normal workflow is blocked.
+
+## Continuation
+
+Read continuation from `additionalContext` or `[CONTINUATION: ...]` suffix. If continuation present: peel first entry, tail-call with remainder. If empty: stop (terminal skill — default-exit is `[]`).
+
+Do NOT include continuation metadata in Task tool prompts.

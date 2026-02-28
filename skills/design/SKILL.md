@@ -7,6 +7,9 @@ description: >-
   documents for complex jobs, routes moderate to /runbook.
 allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch, Skill
 user-invocable: true
+continuation:
+  cooperative: true
+  default-exit: ["/handoff --commit", "/commit"]
 ---
 
 # Design Implementation Approach
@@ -120,8 +123,9 @@ Produce this classification block before routing (visible output, not internal r
   2. Explore: if affected files not already known, `Glob`/`Grep` to identify targets
   3. Execute: check for applicable skills and project recipes first, then implement directly
   4. Update session.md with what was done
+  5. Follow §Continuation
   Skip design — all other operational rules (skills, project tooling, communication) remain in effect.
-- **Moderate →** Skip design. Route to `/runbook`, which has its own tier assessment.
+- **Moderate →** Skip design. Follow §Continuation (prepends `/runbook plans/<job>`).
 - **Complex →** Proceed with Phases A-C below.
 - **Defect →** Route to structured-bugfix workflow: reproduce → root-cause → fix → verify. Skip design — the investigation structure replaces architectural design.
 
@@ -330,11 +334,9 @@ ELSE (work type = Production AND behavioral code) → /runbook
 
 Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
-**If execution-ready** — offer direct execution. On confirmation, invoke `/inline plans/<job> execute`. Handles execution, corrector dispatch, triage feedback, and handoff continuation.
+**If execution-ready** — offer direct execution. On confirmation, follow §Continuation (prepends `/inline plans/<job> execute`).
 
-**If not execution-ready** — route to `/runbook`:
-1. Commit design artifact (`outline.md` or `design.md`)
-2. Invoke `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
+**If not execution-ready** — commit design artifact, then follow §Continuation.
 
 **If insufficient** — proceed to Phase C (full design generation).
 
@@ -423,8 +425,8 @@ ELSE (work type = Production AND behavioral code) → /runbook
 
 Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
 
-- **If execution-ready:** Invoke `/inline plans/<job> execute`. Handles execution, corrector dispatch, triage feedback, and handoff continuation.
-- **If not execution-ready:** Commit design artifact, then `/handoff [CONTINUATION: /commit]` — next pending task is `/runbook`
+- **If execution-ready:** Follow §Continuation (prepends `/inline plans/<job> execute`).
+- **If not execution-ready:** Commit design artifact, then follow §Continuation.
 
 ## Constraints
 
@@ -432,3 +434,19 @@ Direct execution bypasses `/runbook` — this gate must assess both coordination
 - Delegate exploration (cost/context management)
 - Dense output — omit obvious details planners can infer, focus on non-obvious decisions and constraints
 - Design documents contain guidance (planners may adapt) and constraints (planners must follow literally). Classification tables are constraints.
+
+## Continuation
+
+As the **final action** of this skill:
+
+1. Read continuation from `additionalContext` (first skill in chain) or from `[CONTINUATION: ...]` suffix in Skill args (chained skills)
+2. Prepend entries based on routing outcome:
+   - Moderate: prepend `/runbook plans/<job>`
+   - Execution-ready (B gate or C.5): prepend `/inline plans/<job> execute`
+   - Not execution-ready / Simple: no prepend
+3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
+4. If no continuation: default-exit — `/handoff --commit` → `/commit`
+
+**CRITICAL:** Do NOT include continuation metadata in Task tool prompts.
+
+**On failure:** Abort remaining continuation. Record in session.md Blockers: which phase failed, error category, remaining continuation orphaned.

@@ -47,9 +47,9 @@ The `new` command with a task name automatically adds the `→ \`slug\`` marker 
 
 Used when the user invokes `wt` with no arguments. This mode detects a group of independent parallel tasks and creates multiple worktrees simultaneously, enabling concurrent work on independent tasks.
 
-1. **Read `agents/session.md`** and run `claudeutils _worktree ls` to identify all pending tasks and plan statuses. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
+1. **Read `agents/session.md`** and run `claudeutils _worktree ls` to identify all tasks and plan statuses. Extract task names, plan directories, model tiers, restart flags, and any blockers that might create dependencies.
 
-2. **Check for shared plan directories and dependencies.** For each pending task, extract the plan directory (if specified). Build a dependency map:
+2. **Check for shared plan directories and dependencies.** For each task, extract the plan directory (if specified). Build a dependency map:
 
    - **Plan directory independence:** Tasks with different plan directories OR no plan directory can run parallel. Tasks with no plan property are independent from each other. Skip any task that shares a plan directory with another.
 
@@ -61,7 +61,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
    Select the **largest independent group** satisfying all four criteria. If multiple group sizes exist, prefer the larger group.
 
-3. **Check for parallel group existence.** If analysis found no independent group (all tasks have dependencies, different tiers, or restart requirements), **output message**: "No independent parallel group detected. All pending tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees. Return to the user prompt.
+3. **Check for parallel group existence.** If analysis found no independent group (all tasks have dependencies, different tiers, or restart requirements), **output message**: "No independent parallel group detected. All tasks have dependencies or incompatible requirements." Stop execution. Do not create any worktrees. Return to the user prompt.
 
 4. **If group found, for each task in the parallel group:**
    - Invoke `claudeutils _worktree new "<task name>"` with `dangerouslyDisableSandbox: true` (captures `<slug>\t<path>` output)

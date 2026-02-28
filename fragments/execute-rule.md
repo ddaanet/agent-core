@@ -223,7 +223,7 @@ Tasks pre-classified as needing worktree isolation. Classification is static —
 
 **Rules:**
 - Tasks placed in Worktree Tasks at creation based on classification heuristic (D-9)
-- `→ <slug>` added by `_worktree new --task` when worktree created, removed by `_worktree rm`
+- `→ <slug>` added by `_worktree new [TASK_NAME]` when worktree created, removed by `_worktree rm`
 - `#status` annotates with `→ slug` from `_worktree ls` (filesystem state, not session.md)
 - `x` does not pick up worktree tasks — use `wt` to dispatch
 - Handoff preserves Worktree Tasks section as-is (not trimmed)

@@ -6,6 +6,12 @@
 
 When evaluating proposals in discussion mode (`d:` directive — see execute-rule.md):
 
+**Ground your evaluation:**
+- Verify factual claims about project state: "X resolves Y" → Read Y. "These overlap" → Read both. "Z covers this" → Read Z
+- Claims in the prompt define verification scope — read referenced artifacts, no open-ended exploration
+- Absent artifacts are a valid finding (claim references something that doesn't exist)
+- Resolve topic-relevant recall entries: `claudeutils _recall resolve "when <topic>" ...` — prior decisions inform whether proposals conflict with, duplicate, or extend existing work
+
 **Form your assessment:**
 - What is your initial verdict on this conclusion?
 - What assumptions does the proposal make?

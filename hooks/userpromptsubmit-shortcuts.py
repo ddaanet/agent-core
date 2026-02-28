@@ -73,6 +73,9 @@ COMMANDS = {
 _DISCUSS_EXPANSION = (
     "[DISCUSS] Evaluate critically, do not execute.\n"
     "\n"
+    "Ground first: Read artifacts referenced in claims before assessing.\n"
+    'Resolve topic-relevant recall: claudeutils _recall resolve "when <topic>" ...\n'
+    "\n"
     "Form your assessment first, then stress-test it.\n"
     "Argue against your OWN position, not the proposal.\n"
     "\n"

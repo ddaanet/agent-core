@@ -152,11 +152,11 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
      ```
      {YYYY-MM-DD} delivered — /deliverable-review
      ```
-2. For Critical + Major findings: create one pending task → `/design` with report reference
+2. For any findings (Critical, Major, or Minor): create one pending task → `/design` with report reference
    - Task format: `- [ ] **Fix <plan-name> findings** — \`/design plans/<plan>/reports/deliverable-review.md\` | opus`
    - Unconditional `/design` routing — `/design` triage handles proportionality
-3. Minor findings: note in report for inline fix or deferral
-4. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
+   - The fix task scope is ALL findings in the report. Every finding resolves to a fix or a pending task — severity does not grant skip permission.
+3. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
 
 ## References
 

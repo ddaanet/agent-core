@@ -10,6 +10,9 @@ Tier 2 - Directives (colon prefix, additive):
 Tier 2.5 - Pattern guards (additive):
   skill-editing, CCG platform keywords
 
+Tier 3 - Continuation parsing (additive):
+  Multi-skill chains (/skill1 and /skill2)
+
 No match: silent pass-through (exit 0, no output)
 """
 
@@ -186,53 +189,35 @@ CCG_PATTERN = re.compile(
 def is_line_in_fence(lines: list[str], line_idx: int) -> bool:
     """Check if a line is inside a fenced code block.
 
-    Tracks fence depth while scanning from start to line_idx.
-    Opening fence: 3+ consecutive backticks or tildes at line start.
-    Closing fence: same character, same or greater count.
-
-    Args:
-        lines: List of text lines
-        line_idx: Index of line to check
-
-    Returns:
-        True if line is inside or part of a fence, False otherwise
+    Tracks fence state from line 0 to line_idx. Opening fence: 3+ consecutive
+    backticks or tildes at line start. Closing fence: same character, same or
+    greater count.
     """
     if line_idx >= len(lines):
         return False
 
-    fence_char = None  # Current fence character (` or ~)
-    fence_count = 0  # Minimum count for closing fence
+    fence_char = None
+    fence_count = 0
     in_fence = False
 
     for i in range(line_idx + 1):
-        line = lines[i]
-        stripped = line.strip()
-
-        # Check for fence markers (3+ backticks or tildes at start)
+        stripped = lines[i].strip()
         if stripped.startswith(("```", "~~~")):
-            # Determine fence character
             char = stripped[0]
-
-            # Count consecutive fence characters
             count = 0
             for c in stripped:
                 if c == char:
                     count += 1
                 else:
                     break
-
             if count >= 3:
                 if not in_fence:
-                    # Opening fence
                     fence_char = char
                     fence_count = count
                     in_fence = True
-                    # If this is the line we're checking, it's part of the fence
                     if i == line_idx:
                         return True
                 elif char == fence_char and count >= fence_count:
-                    # Closing fence (same char, same or greater count)
-                    # If this is the line we're checking, it's part of the fence
                     if i == line_idx:
                         return True
                     fence_char = None
@@ -892,29 +877,33 @@ def main() -> None:
     hook_input = json.load(sys.stdin)
     prompt = hook_input.get("prompt", "").strip()
 
+    # Initialize accumulator lists
+    context_parts: list[str] = []
+    system_parts: list[str] = []
+
     # Tier 1: Command on its own line (first matching line wins)
     lines = prompt.split("\n")
     is_single_line = len(lines) == 1
+    commands_found: list[str] = []
     for line in lines:
         stripped = line.strip()
         if stripped in COMMANDS:
-            expansion = COMMANDS[stripped]
-            output: dict[str, Any] = {
-                "hookSpecificOutput": {
-                    "hookEventName": "UserPromptSubmit",
-                    "additionalContext": expansion,
-                }
-            }
-            # Single-line exact match gets systemMessage; multi-line avoids noisy status bar
-            if is_single_line:
-                output["systemMessage"] = expansion
-            print(json.dumps(output))
-            return
+            commands_found.append(stripped)
+
+    if commands_found:
+        first_command = commands_found[0]
+        expansion = COMMANDS[first_command]
+        context_parts.append(expansion)
+        # Single-line exact match gets systemMessage; multi-line avoids noisy status bar
+        if is_single_line:
+            system_parts.append(expansion)
+        # If multiple commands found, add warning to systemMessage
+        if len(commands_found) > 1:
+            cmd_list = ", ".join(commands_found)
+            system_parts.append(f"Multiple commands ({cmd_list}) — using first")
 
     # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
     directive_matches = scan_for_directives(prompt)
-    context_parts: list[str] = []
-    system_parts: list[str] = []
     if directive_matches:
         for directive_key, _section in directive_matches:
             expansion = DIRECTIVES[directive_key]
@@ -938,20 +927,6 @@ def main() -> None:
         )
         system_parts.append("Agent instructed to use claude-code-guide")
 
-    # Directives change interaction mode — output Tier 2 + 2.5, skip Tier 3
-    if directive_matches and context_parts:
-        combined_context = "\n\n".join(context_parts)
-        output: dict[str, Any] = {
-            "hookSpecificOutput": {
-                "hookEventName": "UserPromptSubmit",
-                "additionalContext": combined_context,
-            }
-        }
-        if system_parts:
-            output["systemMessage"] = " | ".join(system_parts)
-        print(json.dumps(output))
-        return
-
     # Tier 3: Continuation parsing — combines with Tier 2.5 guards
     try:
         registry = build_registry()
@@ -961,6 +936,7 @@ def main() -> None:
     except Exception:
         pass
 
+    # Single output assembly at end
     if context_parts:
         combined_context = "\n\n".join(context_parts)
         output: dict[str, Any] = {

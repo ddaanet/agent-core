@@ -12,6 +12,9 @@ outputs:
   - Execution runbook at plans/<job-name>/runbook.md
   - Ready for prepare-runbook.py processing
 user-invocable: true
+continuation:
+  cooperative: true
+  default-exit: ["/handoff --commit", "/commit"]
 ---
 
 # Plan Implementation Steps
@@ -121,7 +124,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
 
-**Sequence:** Invoke `/inline plans/<job> execute`. Handles implementation, corrector dispatch, triage feedback, and handoff continuation.
+**Sequence:** Follow §Continuation (prepends `/inline plans/<job> execute`).
 
 ### Tier 2: Lightweight Delegation
 
@@ -143,7 +146,7 @@ Include relevant entries in each delegation prompt — format per consumer model
 - **TDD work (~4-10 cycles):** Plan cycle descriptions (lightweight — no full runbook format). Per-cycle sequencing: one RED, one GREEN, verify, then next cycle.
 - **General work (6-15 files):** Single agent for cohesive work; break into 2-4 components only if logically distinct.
 
-**Sequence:** After planning, invoke `/inline plans/<job> execute`. Handles delegated execution (TDD piecemeal dispatch, general work delegation), corrector dispatch, triage feedback, and handoff continuation.
+**Sequence:** After planning, follow §Continuation (prepends `/inline plans/<job> execute`).
 
 **Design constraints are non-negotiable:**
 
@@ -220,13 +223,9 @@ If script fails: STOP and report error.
 echo -n "/orchestrate {name}" | pbcopy
 ```
 
-**Step 3: Tail-call `/handoff --commit`**
+**Step 3: Follow §Continuation**
 
-This:
-- Hands off session context (marks planning complete, adds orchestration as pending)
-- Then tail-calls `/commit` which commits everything and displays next pending task
-
-Next pending task instructs: "Restart session, paste `/orchestrate {name}` from clipboard."
+Default-exit invokes `/handoff --commit` → `/commit` — hands off session context (marks planning complete, adds orchestration as pending), then commits. Next pending task instructs: "Restart session, paste `/orchestrate {name}` from clipboard."
 
 **Why restart:** prepare-runbook.py creates a new agent in `.claude/agents/`. Claude Code discovers agents at session start.
 
@@ -467,4 +466,19 @@ Token budget: ≤1.5K tokens (ungrounded — needs empirical calibration after f
 - **`references/error-handling.md`** — Error catalog, edge cases, recovery protocols
 - **`references/examples.md`** — Complete runbook examples (TDD and general)
 - **`agents/decisions/pipeline-contracts.md`** — I/O contracts for pipeline transformations
+
+## Continuation
+
+As the **final action** of this skill:
+
+1. Read continuation from `additionalContext` (first skill in chain) or from `[CONTINUATION: ...]` suffix in Skill args (chained skills)
+2. Prepend entries based on tier:
+   - Tier 1/2: prepend `/inline plans/<job> execute`
+   - Tier 3: no prepend (Phase 4 prepares artifacts; orchestration requires session restart)
+3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
+4. If no continuation: default-exit — `/handoff --commit` → `/commit`
+
+**CRITICAL:** Do NOT include continuation metadata in Task tool prompts.
+
+**On failure:** Abort remaining continuation. Record in session.md Blockers: which phase failed, error category, remaining continuation orphaned.
 

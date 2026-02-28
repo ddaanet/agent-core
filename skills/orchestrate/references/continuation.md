@@ -8,9 +8,10 @@ After completing the orchestration, check the Skill args suffix for `[CONTINUATI
 
 IF continuation present:
 1. Parse the `[CONTINUATION: ...]` structured list
-2. Peel first entry: `(/skill args)` or `/skill` (if no args)
-3. Strip continuation from current context (delete `[CONTINUATION: ...]` suffix)
-4. Invoke next skill: `Skill(/skill args="args [CONTINUATION: remainder]")` where remainder = remaining entries (if any)
+2. If skill needs a subroutine before continuing: prepend entries to the list (existing entries stay in original order — append-only invariant)
+3. Peel first entry from (possibly modified) list: `(/skill args)` or `/skill` (if no args)
+4. Strip continuation from current context (delete `[CONTINUATION: ...]` suffix)
+5. Invoke next skill: `Skill(/skill args="args [CONTINUATION: remainder]")` where remainder = remaining entries (if any)
 
 IF no continuation present:
 - Use default-exit from frontmatter: `/handoff --commit` then `/commit`
@@ -35,6 +36,17 @@ Incoming: `/orchestrate myplan` (no continuation)
 - Complete orchestration
 - Use default-exit: `["/handoff --commit", "/commit"]`
 - Invoke: `Skill(/handoff args="--commit [CONTINUATION: /commit]")`
+
+### Prepend (subroutine call)
+
+Incoming: `/orchestrate myplan [CONTINUATION: /handoff --commit, /commit]`
+- Complete orchestration
+- Need `/commit` checkpoint before chain resumes
+- Prepend: `[/commit, /handoff --commit, /commit]`
+- Peel first: `/commit`
+- Remainder: `/handoff --commit, /commit`
+- Invoke: `Skill(/commit args="[CONTINUATION: /handoff --commit, /commit]")`
+- After `/commit` completes, original chain resumes: `/handoff --commit` → `/commit`
 
 ## Constraint
 

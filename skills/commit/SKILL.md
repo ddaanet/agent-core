@@ -151,3 +151,9 @@ Committed: <commit subject line>
 ```
 
 Then display STATUS per execute-rule.md MODE 1. Copy first pending task command to clipboard (`dangerouslyDisableSandbox: true`). No pending tasks → "No pending tasks." and suggest `/next`.
+
+## Continuation
+
+Read continuation from `additionalContext` or `[CONTINUATION: ...]` suffix. If continuation present: peel first entry, tail-call with remainder. If empty: stop (terminal skill — default-exit is `[]`).
+
+Do NOT include continuation metadata in Task tool prompts.

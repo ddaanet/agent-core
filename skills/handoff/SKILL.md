@@ -150,6 +150,6 @@ Do NOT delete tasks completed in the current conversation, even if just committe
 
 ## Continuation
 
-Read continuation from `additionalContext` or `[CONTINUATION: ...]` suffix. If empty: stop. Otherwise tail-call first entry: `Skill(skill: "<target>", args: "<target-args> [CONTINUATION: <remainder>]")`.
+Read continuation from `additionalContext` or `[CONTINUATION: ...]` suffix. If skill needs a subroutine: prepend entries (existing entries stay in original order — append-only invariant). Peel first entry from (possibly modified) continuation, tail-call: `Skill(skill: "<target>", args: "<target-args> [CONTINUATION: <remainder>]")`. If empty: stop.
 
 Do NOT include continuation metadata in Task tool prompts.

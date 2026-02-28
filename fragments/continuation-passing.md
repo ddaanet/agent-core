@@ -38,8 +38,12 @@ As the **final action** of this skill:
 
 1. Read continuation from `additionalContext` (first skill in chain)
    or from `[CONTINUATION: ...]` suffix in Skill args (chained skills)
-2. If continuation present: peel first entry, tail-call with remainder
-3. If no continuation: skill implements its own default-exit behavior (standalone/last-in-chain)
+2. If skill needs a subroutine before continuing: prepend entries to continuation
+   - Existing entries remain in original order (append-only invariant)
+   - Prepend only — never remove, reorder, or modify existing entries
+   - Skills that don't need subroutines skip this step
+3. Peel first entry from (possibly modified) continuation, tail-call with remainder
+4. If no continuation: skill implements its own default-exit behavior (standalone/last-in-chain)
 
 **CRITICAL:** Do NOT include continuation metadata in Task tool prompts.
 ```

@@ -161,6 +161,17 @@ Use AskUserQuestion tool with these options:
 
 **If scope provided:** Proceed directly to gathering changes.
 
+### 1.5. Load Recall Context
+
+**Derive job name:** Extract from first `plans/<name>/` path in task prompt. If no plan path in prompt, skip to lightweight recall.
+
+**Recall context:** `Bash: claudeutils _recall resolve plans/<job-name>/recall-artifact.md`
+
+If _recall resolve succeeds, its output contains resolved decision content — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns.
+If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes), batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields.
+
+Recall supplements the review criteria below.
+
 ### 2. Gather Changes
 
 **For uncommitted changes:**

@@ -871,6 +871,37 @@ def format_continuation_context(parsed: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _extract_execute_command() -> str | None:
+    """Extract the first pending task command from session.md.
+
+    Returns:
+        The backtick-wrapped command string if found, None otherwise.
+        Example: "/design my-requirements"
+    """
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if not project_dir:
+        return None
+
+    session_path = Path(project_dir) / "agents" / "session.md"
+    if not session_path.exists():
+        return None
+
+    try:
+        content = session_path.read_text(encoding="utf-8")
+    except Exception:
+        return None
+
+    # Match task lines: - [ ] **name** — `COMMAND`
+    # Extract command from backticks on matching lines
+    pattern = r"^\s*-\s+\[\s*\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
+    for line in content.split("\n"):
+        match = re.match(pattern, line)
+        if match:
+            return match.group(1)
+
+    return None
+
+
 def main() -> None:
     """Expand workflow shortcuts in user prompts."""
     # Read hook input
@@ -901,6 +932,11 @@ def main() -> None:
         if len(commands_found) > 1:
             cmd_list = ", ".join(commands_found)
             system_parts.append(f"Multiple commands ({cmd_list}) — using first")
+        # For 'x' command, inject pending task command if available
+        if first_command == "x":
+            task_cmd = _extract_execute_command()
+            if task_cmd:
+                context_parts.append(f"Invoke: {task_cmd}")
 
     # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
     directive_matches = scan_for_directives(prompt)

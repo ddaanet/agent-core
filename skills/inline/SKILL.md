@@ -75,7 +75,7 @@ Read `plans/<job>/brief.md` if present (cross-tree context from other sessions).
   ```bash
   agent-core/bin/when-resolve.py "when <domain-keyword-1>" "when <domain-keyword-2>" ...
   ```
-- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
+- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
 
 ### 2.4 Reference Loading
 

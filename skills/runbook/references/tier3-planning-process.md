@@ -21,7 +21,7 @@ If design document includes "Requirements" section:
 
 1. **Discover relevant prior knowledge (D+B anchor — mandatory tool call on both paths):**
    - **Relevant entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve entries related to the task domain. Read `memory-index.md` first if triggers not known from context.
-   - **No relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
+   - **No relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
    - Factor known constraints into step design and model selection
 
 2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):

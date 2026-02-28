@@ -117,7 +117,7 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 
 - **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve entries via `agent-core/bin/when-resolve.py "when <trigger>" ...`
 - **No artifact** (moderate path skipped design): Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...`
-- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
+- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
 
 Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
 
@@ -135,7 +135,7 @@ Include review-relevant entries in corrector prompt — rationale format for son
 
 - **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve entries via `agent-core/bin/when-resolve.py "when <trigger>" ...`
 - **No artifact** (moderate path skipped design): Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...`
-- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
+- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
 
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 

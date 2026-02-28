@@ -892,6 +892,10 @@ def main() -> None:
     hook_input = json.load(sys.stdin)
     prompt = hook_input.get("prompt", "").strip()
 
+    # Initialize accumulator lists
+    context_parts: list[str] = []
+    system_parts: list[str] = []
+
     # Tier 1: Command on its own line (first matching line wins)
     lines = prompt.split("\n")
     is_single_line = len(lines) == 1
@@ -899,22 +903,14 @@ def main() -> None:
         stripped = line.strip()
         if stripped in COMMANDS:
             expansion = COMMANDS[stripped]
-            output: dict[str, Any] = {
-                "hookSpecificOutput": {
-                    "hookEventName": "UserPromptSubmit",
-                    "additionalContext": expansion,
-                }
-            }
+            context_parts.append(expansion)
             # Single-line exact match gets systemMessage; multi-line avoids noisy status bar
             if is_single_line:
-                output["systemMessage"] = expansion
-            print(json.dumps(output))
-            return
+                system_parts.append(expansion)
+            break
 
     # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
     directive_matches = scan_for_directives(prompt)
-    context_parts: list[str] = []
-    system_parts: list[str] = []
     if directive_matches:
         for directive_key, _section in directive_matches:
             expansion = DIRECTIVES[directive_key]
@@ -938,20 +934,6 @@ def main() -> None:
         )
         system_parts.append("Agent instructed to use claude-code-guide")
 
-    # Directives change interaction mode — output Tier 2 + 2.5, skip Tier 3
-    if directive_matches and context_parts:
-        combined_context = "\n\n".join(context_parts)
-        output: dict[str, Any] = {
-            "hookSpecificOutput": {
-                "hookEventName": "UserPromptSubmit",
-                "additionalContext": combined_context,
-            }
-        }
-        if system_parts:
-            output["systemMessage"] = " | ".join(system_parts)
-        print(json.dumps(output))
-        return
-
     # Tier 3: Continuation parsing — combines with Tier 2.5 guards
     try:
         registry = build_registry()
@@ -961,6 +943,7 @@ def main() -> None:
     except Exception:
         pass
 
+    # Single output assembly at end
     if context_parts:
         combined_context = "\n\n".join(context_parts)
         output: dict[str, Any] = {

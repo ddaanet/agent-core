@@ -2,7 +2,7 @@
 name: recall
 description: |
   Load project decisions into session context before working. Triggers on "recall", "load context", "load decisions", or when starting work on a topic with relevant decisions. Cumulative across invocations, tail-recursive within each.
-allowed-tools: Bash(agent-core/bin/when-resolve.py:*)
+allowed-tools: Bash(claudeutils _recall resolve:*)
 user-invocable: true
 ---
 
@@ -40,10 +40,10 @@ Agents self-retrieve at ~3% rate. The pipeline injects recall at fixed points, b
 
 Resolution method depends on mode:
 
-**Section-level (default, deep):** Batch-resolve via `when-resolve.py`:
+**Section-level (default, deep):** Batch-resolve via `claudeutils _recall resolve`:
 
 ```bash
-agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...
+claudeutils _recall resolve "when <trigger>" "how <trigger>" ...
 ```
 
 **File-level (broad, all):** Read decision files directly using the Read tool:
@@ -112,4 +112,4 @@ Each `/recall` invocation builds on prior ones within the session:
 | `/how` | Single entry by trigger | Agent needs a specific procedure |
 | `/recall` | Multiple entries by topic | Front-load before work begins |
 
-`/recall` uses the same resolution infrastructure (`when-resolve.py`) but selects multiple entries by topic relevance rather than resolving a single known trigger. It is the batch, proactive counterpart to `/when` and `/how`'s individual, reactive lookups.
+`/recall` uses the same resolution infrastructure (`claudeutils _recall resolve`) but selects multiple entries by topic relevance rather than resolving a single known trigger. It is the batch, proactive counterpart to `/when` and `/how`'s individual, reactive lookups.

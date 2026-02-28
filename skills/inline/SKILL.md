@@ -69,13 +69,13 @@ Read `plans/<job>/brief.md` if present (cross-tree context from other sessions).
 
 - **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve design-related entries:
   ```bash
-  agent-core/bin/when-resolve.py "<entry-1>" "<entry-2>" ...
+  claudeutils _recall resolve "<entry-1>" "<entry-2>" ...
   ```
 - **No artifact:** Lightweight recall — Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve:
   ```bash
-  agent-core/bin/when-resolve.py "when <domain-keyword-1>" "when <domain-keyword-2>" ...
+  claudeutils _recall resolve "when <domain-keyword-1>" "when <domain-keyword-2>" ...
   ```
-- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
+- **No artifact AND no relevant entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
 
 ### 2.4 Reference Loading
 
@@ -93,7 +93,7 @@ Edits performed in current session. No delegation.
 
 When execution dispatches sub-agents (artisan, test-driver):
 
-**Sub-agent recall:** Curate subset of plan recall-artifact entries relevant to delegation target. Write separate artifact per type (e.g., `plans/<job>/tdd-recall-artifact.md`). Include in each prompt: "Read `plans/<job>/<type>-recall-artifact.md`, then batch-resolve via `agent-core/bin/when-resolve.py`."
+**Sub-agent recall:** Curate subset of plan recall-artifact entries relevant to delegation target. Write separate artifact per type (e.g., `plans/<job>/tdd-recall-artifact.md`). Include in each prompt: "Read `plans/<job>/<type>-recall-artifact.md`, then batch-resolve via `claudeutils _recall resolve`."
 
 **Piecemeal TDD dispatch:** One cycle per invocation. Resume same agent between cycles (preserves context). Fresh agent when context nears 150k.
 

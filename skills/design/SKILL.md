@@ -48,7 +48,7 @@ Before doing design work, assess whether design is actually needed.
 Load triage-relevant decisions before classifying. This tool call is the structural anchor — prevents classification from being skipped or rationalized.
 
 ```bash
-agent-core/bin/when-resolve.py "when behavioral code" "when complexity" "when triage" "when <domain-keyword>" ...
+claudeutils _recall resolve "when behavioral code" "when complexity" "when triage" "when <domain-keyword>" ...
 ```
 
 - Derive domain keywords from the task/problem description
@@ -116,7 +116,7 @@ Produce this classification block before routing (visible output, not internal r
 #### Routing
 
 - **Simple →** Lightweight recall-explore-execute:
-  1. Recall: `agent-core/bin/when-resolve.py "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
+  1. Recall: `claudeutils _recall resolve "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
   2. Explore: if affected files not already known, `Glob`/`Grep` to identify targets
   3. Execute: check for applicable skills and project recipes first, then implement directly
   4. Update session.md with what was done
@@ -191,14 +191,14 @@ If no requirements.md exists:
 
 Documentation findings from A.1 exist only in the current context window — they do not survive to downstream pipeline stages (runbook planning, orchestration, execution, review). Persist them as a recall artifact so all downstream consumers resolve fresh content at consumption time.
 
-**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. Entry keys only — no excerpts, no summaries. Downstream consumers batch-resolve via `when-resolve.py` to get current content.
+**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. Entry keys only — no excerpts, no summaries. Downstream consumers batch-resolve via `claudeutils _recall resolve` to get current content.
 
 **Artifact format:**
 
 ```markdown
 # Recall Artifact: <Job Name>
 
-Resolve entries via `agent-core/bin/when-resolve.py` — do not use inline summaries.
+Resolve entries via `claudeutils _recall resolve` — do not use inline summaries.
 
 ## Entry Keys
 
@@ -206,7 +206,7 @@ Resolve entries via `agent-core/bin/when-resolve.py` — do not use inline summa
 <trigger phrase> — <1-line relevance note>
 ```
 
-**Null artifact (no relevant entries):** Write `null — no relevant entries found` as the sole entry. Downstream consumers batch-resolve it via `when-resolve.py null` (silent exit) — the tool call anchors the gate without consumer-side empty-section handling. Augmenting consumers (/runbook Phase 0.5) remove the null entry when adding real ones.
+**Null artifact (no relevant entries):** Write `null — no relevant entries found` as the sole entry. Downstream consumers batch-resolve it via `claudeutils _recall resolve null` (silent exit) — the tool call anchors the gate without consumer-side empty-section handling. Augmenting consumers (/runbook Phase 0.5) remove the null entry when adding real ones.
 
 **Selection criteria:** Include entries that informed design decisions or constrain implementation. Exclude entries read but proved irrelevant — the artifact is curated, not exhaustive.
 
@@ -223,8 +223,8 @@ For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify r
 Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-scan memory-index (already in context from A.1) for entries relevant to domains discovered during exploration.
 
 **Gate anchor (mandatory tool call on both paths):**
-- **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
-- **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
+- **New entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
+- **No new entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
 
 #### A.3-4. Research
 

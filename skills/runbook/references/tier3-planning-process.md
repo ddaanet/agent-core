@@ -20,8 +20,8 @@ If design document includes "Requirements" section:
 - Carry requirements context into runbook Common Context
 
 1. **Discover relevant prior knowledge (D+B anchor — mandatory tool call on both paths):**
-   - **Relevant entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve entries related to the task domain. Read `memory-index.md` first if triggers not known from context.
-   - **No relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
+   - **Relevant entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve entries related to the task domain. Read `memory-index.md` first if triggers not known from context.
+   - **No relevant entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
    - Factor known constraints into step design and model selection
 
 2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
@@ -29,7 +29,7 @@ If design document includes "Requirements" section:
      - Read `agents/decisions/implementation-notes.md` and `agents/decisions/testing.md`
      - Add entries relevant to the planned work -- planning-relevant only: model selection failures, phase typing decisions, checkpoint placement patterns, precommit gotchas
      - Do NOT add execution-level entries (mock patching, test structure details) -- those belong in step files, not recall
-   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, batch-resolve via `agent-core/bin/when-resolve.py`, write artifact -- same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
+   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, batch-resolve via `claudeutils _recall resolve`, write artifact -- same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
    - Write augmented artifact back to `plans/<job>/recall-artifact.md`
    - For multi-session pipelines where design-time artifact may be stale, planner can regenerate from scratch
 
@@ -45,8 +45,8 @@ If design document includes "Requirements" section:
    Step 3's Glob/Grep verification discovers actual file locations and module structures — may reveal domains not anticipated during step 1 recall. Re-scan memory-index (already in context) for entries relevant to discovered areas.
 
    **Gate anchor (mandatory tool call on both paths):**
-   - **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, augment recall artifact with new entry keys
-   - **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
+   - **New entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve into context, augment recall artifact with new entry keys
+   - **No new entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
 
 ---
 

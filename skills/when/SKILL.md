@@ -1,7 +1,7 @@
 ---
 name: when
 description: Recall behavioral knowledge from project decisions. Triggers on "when to do X", situational patterns, or decision content for recognized situations. Invoke with "/when <trigger>".
-allowed-tools: Bash(agent-core/bin/when-resolve.py:*)
+allowed-tools: Bash(claudeutils _recall resolve:*)
 user-invocable: true
 ---
 
@@ -14,19 +14,19 @@ Resolve behavioral triggers against the memory index. Returns decision file cont
 **Trigger mode** — fuzzy-match an index entry to a decision heading:
 
 ```bash
-agent-core/bin/when-resolve.py "when writing mock tests"
+claudeutils _recall resolve "when writing mock tests"
 ```
 
 **Section mode** — look up a heading directly by name (dot prefix):
 
 ```bash
-agent-core/bin/when-resolve.py "when .Mock Patching"
+claudeutils _recall resolve "when .Mock Patching"
 ```
 
 **File mode** — load an entire decision file (double-dot prefix, relative to `agents/decisions/`):
 
 ```bash
-agent-core/bin/when-resolve.py "when ..testing.md"
+claudeutils _recall resolve "when ..testing.md"
 ```
 
 ## When to Use

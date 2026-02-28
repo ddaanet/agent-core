@@ -91,7 +91,7 @@ Based on RCA findings, classify the structural root cause:
 
 ### Phase 4.5: Diagnostic Checkpoint
 
-1. `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve entries matching (a) the deviation's pattern class and (b) design patterns for the artifact type being modified. Read `memory-index.md` first if triggers not known from context.
+1. `claudeutils _recall resolve "when <trigger>" ...` — resolve entries matching (a) the deviation's pattern class and (b) design patterns for the artifact type being modified. Read `memory-index.md` first if triggers not known from context.
 
 2. Read the primary target file(s) identified for fixes — verify current state matches RCA assumptions. Read `agents/learnings.md` for line count.
 

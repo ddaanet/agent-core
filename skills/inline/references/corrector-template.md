@@ -26,7 +26,7 @@ Review implementation changes against design specification.
 <resolved entries from recall-artifact.md relevant to review — failure modes, quality anti-patterns>
 
 If no recall artifact: do lightweight recall — Read agents/memory-index.md,
-identify review-relevant entries, batch-resolve via agent-core/bin/when-resolve.py.
+identify review-relevant entries, batch-resolve via claudeutils _recall resolve.
 
 **Review criteria:**
 - Implementation matches design decisions
@@ -55,7 +55,7 @@ When `plans/<job>/recall-artifact.md` is absent (e.g., cold-start task with no p
 2. Identify review-relevant entries: quality patterns, failure modes, corrector-specific decisions
 3. Batch-resolve:
    ```bash
-   agent-core/bin/when-resolve.py \
+   claudeutils _recall resolve \
      "when concluding reviews" \
      "when corrector rejects planning artifacts" \
      "when recall-artifact is absent during review" \

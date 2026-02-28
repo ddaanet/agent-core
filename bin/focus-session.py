@@ -204,7 +204,7 @@ def create_focused_session(task_markdown: str, plan_refs: list[str]) -> str:
 
 **Status:** Focused worktree session
 
-## Pending Tasks
+## In-tree Tasks
 
 {task_markdown}
 {ref_section}

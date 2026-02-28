@@ -33,7 +33,7 @@ Manage git worktree lifecycle for parallel task execution and focused work.
 
 Used when user specifies `wt <task-name>`.
 
-1. **Read `agents/session.md`** to locate task in Pending Tasks. Extract full task block including name, command, model, and metadata.
+1. **Read `agents/session.md`** to locate task in Worktree Tasks. Extract full task block including name, command, model, and metadata.
 
 2. **Invoke: `claudeutils _worktree new "<task name>"`** (requires `dangerouslyDisableSandbox: true`) to create the worktree with focused session. The command derives the slug from the task name, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`. Use `--branch <slug>` to override the derived slug (e.g., when the derived slug exceeds 29 chars).
 
@@ -41,7 +41,7 @@ Used when user specifies `wt <task-name>`.
 
 4. **Output launch command** using the path from step 3: `cd <path> && claude    # <task name>`.
 
-The `new` command with a task name automatically moves the task from Pending Tasks to Worktree Tasks in `agents/session.md`, appending the `→ \`slug\`` marker. No manual session.md editing needed.
+The `new` command with a task name automatically adds the `→ \`slug\`` marker inline to the task in Worktree Tasks. No manual session.md editing needed.
 
 ## Mode B: Parallel Group
 
@@ -53,7 +53,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
    - **Plan directory independence:** Tasks with different plan directories OR no plan directory can run parallel. Tasks with no plan property are independent from each other. Skip any task that shares a plan directory with another.
 
-   - **Logical dependencies:** Scan the Blockers/Gotchas section for mentions of other tasks. If Task B's blockers mention Task A, exclude both from parallel group. Check Pending Tasks section for explicit ordering hints (e.g., "Task X blocks Task Y").
+   - **Logical dependencies:** Scan the Blockers/Gotchas section for mentions of other tasks. If Task B's blockers mention Task A, exclude both from parallel group. Check Worktree Tasks section for explicit ordering hints (e.g., "Task X blocks Task Y").
 
    - **Model tier compatibility:** Extract model tier for each candidate task (haiku/sonnet/opus, default sonnet). All tasks in the group must have the same tier.
 
@@ -68,7 +68,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
    - Parse slug and path from output
    - Collect launch commands
 
-   Process tasks sequentially (one at a time, in order). The `new` command automatically moves each task to the Worktree Tasks section.
+   Process tasks sequentially (one at a time, in order). The `new` command automatically adds the `→ \`slug\`` marker to each task in Worktree Tasks.
 
 5. **Output consolidated launch commands** after all worktrees are created:
 
@@ -128,7 +128,7 @@ When diffing branches (for inspection, validation, or user questions — NOT a r
 
 - **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. Fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
 
-- **Session.md task movement is automated:** `new "<task name>"` moves the task from Pending Tasks to Worktree Tasks (with `→ \`slug\`` marker). `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`). No manual session.md editing required for task movement.
+- **Session.md markers are automated:** `new "<task name>"` adds the `→ \`slug\`` marker inline to the task in Worktree Tasks. `rm` removes the marker from the task (task stays in Worktree Tasks throughout — no section moves). No manual session.md editing required.
 
 - **Cleanup is user-initiated:** After merge, worktree is preserved. Remove when ready via `wt-rm <slug>`.
 

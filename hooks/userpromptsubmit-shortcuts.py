@@ -871,14 +871,36 @@ def format_continuation_context(parsed: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _try_planstate_command(project_dir: str, plan_name: str) -> str | None:
+    """Try to derive command from planstate.
+
+    Returns the derived command if successful, None otherwise.
+    """
+    try:
+        from claudeutils.planstate.inference import (
+            _derive_next_action,
+            _determine_status,
+        )
+
+        plan_dir = Path(project_dir) / "plans" / plan_name
+        if not plan_dir.exists():
+            return None
+
+        status = _determine_status(plan_dir)
+        derived = _derive_next_action(status, plan_name)
+        return derived if derived else None
+    except Exception:
+        return None
+
+
 def _extract_execute_command() -> str | None:
     """Extract the first eligible task command from session.md.
 
-    Priority: in-progress [>] task over pending [ ] task.
+    Priority: planstate-derived > in-progress [>] > pending [ ].
 
     Returns:
-        The backtick-wrapped command string if found, None otherwise.
-        Example: "/design my-requirements"
+        The derived or session.md command string if found, None otherwise.
+        Example: "/runbook plans/my-plan/design.md" or "/design my-requirements"
     """
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
     if not project_dir:
@@ -893,21 +915,50 @@ def _extract_execute_command() -> str | None:
     except Exception:
         return None
 
+    lines = content.split("\n")
+
     # Pass 1: Look for in-progress [>] task
     in_progress_pattern = r"^\s*-\s+\[>\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
-    for line in content.split("\n"):
+    for idx, line in enumerate(lines):
         match = re.match(in_progress_pattern, line)
         if match:
-            return match.group(1)
+            session_cmd = match.group(1)
+            # Check next line for plan metadata
+            plan_name = _extract_plan_name(lines, idx + 1)
+            if plan_name:
+                planstate_cmd = _try_planstate_command(project_dir, plan_name)
+                if planstate_cmd:
+                    return planstate_cmd
+            return session_cmd
 
     # Pass 2: Look for pending [ ] task if no in-progress found
     pending_pattern = r"^\s*-\s+\[\s*\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
-    for line in content.split("\n"):
+    for idx, line in enumerate(lines):
         match = re.match(pending_pattern, line)
         if match:
-            return match.group(1)
+            session_cmd = match.group(1)
+            # Check next line for plan metadata
+            plan_name = _extract_plan_name(lines, idx + 1)
+            if plan_name:
+                planstate_cmd = _try_planstate_command(project_dir, plan_name)
+                if planstate_cmd:
+                    return planstate_cmd
+            return session_cmd
 
     return None
+
+
+def _extract_plan_name(lines: list[str], line_idx: int) -> str | None:
+    """Extract plan name from metadata line at given index.
+
+    Metadata format: "  - Plan: plan-name | Status: status"
+    """
+    if line_idx >= len(lines):
+        return None
+
+    line = lines[line_idx]
+    match = re.match(r"^\s*-\s+Plan:\s*(\S+)", line)
+    return match.group(1) if match else None
 
 
 def main() -> None:

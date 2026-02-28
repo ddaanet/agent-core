@@ -51,9 +51,9 @@ def _match_blocks(command: str) -> dict | None:
 
     if re.search(r"rm\s.*index\.lock", command):
         return _deny(
-            "index.lock: concurrent git access — retry the git command",
-            "🚫 index.lock indicates concurrent git access. Retry the git command.",
-            "🚫 index.lock blocked — retry the git command",
+            "Lock contention from concurrent session. Retry your git command — do not delete lock files.",
+            "Lock contention from concurrent session. Retry your git command — do not delete lock files.",
+            "🚫 Lock contention — retry git command, do not delete lock",
         )
     return None
 

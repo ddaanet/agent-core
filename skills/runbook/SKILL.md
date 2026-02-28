@@ -113,9 +113,11 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 - Single session, single model
 - No parallelization benefit
 
-**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists (moderate path skipped design), do lightweight recall before exploring:
+**Recall context (D+B anchor — mandatory tool call on both paths):**
 
-1. `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...` — resolve domain-relevant entries using keywords from design/user request (single call, multiple entries). Read `memory-index.md` first if triggers not known from context.
+- **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve entries via `agent-core/bin/when-resolve.py "when <trigger>" ...`
+- **No artifact** (moderate path skipped design): Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...`
+- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
 
 Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
 
@@ -129,9 +131,11 @@ Include review-relevant entries in corrector prompt — rationale format for son
 - Components are sequential (no parallelization benefit)
 - No model switching needed
 
-**Recall context:** Read `plans/<job>/recall-artifact.md` if it exists. If no artifact exists, do lightweight recall before exploring:
+**Recall context (D+B anchor — mandatory tool call on both paths):**
 
-1. `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...` — resolve domain-relevant entries using keywords from design/user request. Read `memory-index.md` first if triggers not known from context.
+- **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve entries via `agent-core/bin/when-resolve.py "when <trigger>" ...`
+- **No artifact** (moderate path skipped design): Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" "how <trigger>" ...`
+- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
 
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 

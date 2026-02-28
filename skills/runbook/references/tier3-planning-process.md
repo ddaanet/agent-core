@@ -19,8 +19,9 @@ If design document includes "Requirements" section:
 - Note scope boundaries (in/out of scope)
 - Carry requirements context into runbook Common Context
 
-1. **Discover relevant prior knowledge:**
-   - `agent-core/bin/when-resolve.py "when <trigger>" ...` -- resolve entries related to the task domain. Read `memory-index.md` first if triggers not known from context.
+1. **Discover relevant prior knowledge (D+B anchor — mandatory tool call on both paths):**
+   - **Relevant entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve entries related to the task domain. Read `memory-index.md` first if triggers not known from context.
+   - **No relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
    - Factor known constraints into step design and model selection
 
 2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
@@ -39,6 +40,13 @@ If design document includes "Requirements" section:
    - Record actual file paths for use in runbook steps
    - **NEVER assume file paths from conventions alone** -- always verify with Glob/Grep
    - STOP if expected files not found: report missing files to user
+
+4. **Post-explore recall gate:**
+   Step 3's Glob/Grep verification discovers actual file locations and module structures — may reveal domains not anticipated during step 1 recall. Re-scan memory-index (already in context) for entries relevant to discovered areas.
+
+   **Gate anchor (mandatory tool call on both paths):**
+   - **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, augment recall artifact with new entry keys
+   - **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
 
 ---
 

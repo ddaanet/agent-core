@@ -65,19 +65,17 @@ agent-core/bin/task-context.sh '<task-name>'
 
 Read `plans/<job>/brief.md` if present (cross-tree context from other sessions). In worktrees: `git show main:plans/<job>/brief.md 2>/dev/null`.
 
-### 2.3 Recall
+### 2.3 Recall (D+B anchor — mandatory tool call on both paths)
 
-Read `plans/<job>/recall-artifact.md`. Batch-resolve design-related entries:
-
-```bash
-agent-core/bin/when-resolve.py "<entry-1>" "<entry-2>" ...
-```
-
-If no recall artifact: lightweight recall — Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve:
-
-```bash
-agent-core/bin/when-resolve.py "when <domain-keyword-1>" "when <domain-keyword-2>" ...
-```
+- **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve design-related entries:
+  ```bash
+  agent-core/bin/when-resolve.py "<entry-1>" "<entry-2>" ...
+  ```
+- **No artifact:** Lightweight recall — Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve:
+  ```bash
+  agent-core/bin/when-resolve.py "when <domain-keyword-1>" "when <domain-keyword-2>" ...
+  ```
+- **No artifact AND no relevant entries:** `agent-core/bin/when-resolve.py null` — no-op, proves recall gate was reached
 
 ### 2.4 Reference Loading
 

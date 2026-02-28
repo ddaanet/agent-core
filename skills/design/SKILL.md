@@ -206,6 +206,8 @@ Resolve entries via `agent-core/bin/when-resolve.py` — do not use inline summa
 <trigger phrase> — <1-line relevance note>
 ```
 
+**Null artifact (no relevant entries):** Write `null — no relevant entries found` as the sole entry. Downstream consumers batch-resolve it via `when-resolve.py null` (silent exit) — the tool call anchors the gate without consumer-side empty-section handling. Augmenting consumers remove the null entry when adding real ones.
+
 **Selection criteria:** Include entries that informed design decisions or constrain implementation. Exclude entries read but proved irrelevant — the artifact is curated, not exhaustive.
 
 **Output:** `plans/<job>/recall-artifact.md`, alongside other design artifacts in the job directory.

@@ -37,6 +37,8 @@ Skill automatically detects appropriate mode based on conversation history.
 
 Invoke `/recall all` (deep + broad, topic-scoped). This is a skill invocation — `/recall` handles memory-index scanning, batch resolution, and tail-recursion. Derive topic from job name, conversation context, and any existing `plans/<job>/` artifacts.
 
+**Gate anchor:** The `/recall all` Skill invocation is the structural anchor — a tool call on both paths. When no relevant entries are found, write the recall artifact with an explicit null entry (see format below). Downstream consumers batch-resolve it via `when-resolve.py null` — the tool call fires on both paths without consumer-side conditional logic.
+
 **Boundaries:**
 - No agent delegation, no Context7, no web research — those belong to /design A.1
 - Purpose: ground the extraction, not exhaustive documentation loading
@@ -57,6 +59,8 @@ Resolve entries via `agent-core/bin/when-resolve.py` — do not use inline summa
 <trigger phrase> — <1-line relevance note>
 <trigger phrase> — <1-line relevance note>
 ```
+
+**Null artifact (no relevant entries):** Write `null — no relevant entries found` as the sole entry. Downstream consumers batch-resolve it via `when-resolve.py null` (silent exit) — the tool call anchors the gate without consumer-side empty-section handling. Augmenting consumers (/design A.1, /runbook Phase 0.5) remove the null entry when adding real ones.
 
 **Selection criteria:** Include entries that informed requirements or constrain implementation. Exclude entries read but proved irrelevant — the artifact is curated, not exhaustive.
 
@@ -94,6 +98,14 @@ Quick scan to ground requirements (runs after extraction, so scan is targeted):
 - Purpose: prevent naive requirements (e.g., "add X" when X exists)
 - Tool count is a guideline, not a hard limit — use judgment for complex domains
 - Save exploration prototypes to `plans/prototypes/` (not `tmp/`) — they are referenced artifacts, not ephemera
+
+### Post-Explore Recall Gate
+
+Discovery via Glob/Grep may surface domains not anticipated during the initial recall pass. Re-scan memory-index (already in context from recall pass) for entries relevant to areas discovered during codebase exploration.
+
+**Gate anchor (mandatory tool call on both paths):**
+- **New entries found:** `agent-core/bin/when-resolve.py "when <trigger>" ...` — resolve into context, update recall artifact with new entry keys
+- **No new entries:** `agent-core/bin/when-resolve.py null` — no-op, proves gate was reached
 
 ### 3. Structure Requirements
 

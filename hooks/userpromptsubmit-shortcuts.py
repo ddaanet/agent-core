@@ -899,15 +899,23 @@ def main() -> None:
     # Tier 1: Command on its own line (first matching line wins)
     lines = prompt.split("\n")
     is_single_line = len(lines) == 1
+    commands_found: list[str] = []
     for line in lines:
         stripped = line.strip()
         if stripped in COMMANDS:
-            expansion = COMMANDS[stripped]
-            context_parts.append(expansion)
-            # Single-line exact match gets systemMessage; multi-line avoids noisy status bar
-            if is_single_line:
-                system_parts.append(expansion)
-            break
+            commands_found.append(stripped)
+
+    if commands_found:
+        first_command = commands_found[0]
+        expansion = COMMANDS[first_command]
+        context_parts.append(expansion)
+        # Single-line exact match gets systemMessage; multi-line avoids noisy status bar
+        if is_single_line:
+            system_parts.append(expansion)
+        # If multiple commands found, add warning to systemMessage
+        if len(commands_found) > 1:
+            cmd_list = ", ".join(commands_found)
+            system_parts.append(f"Multiple commands ({cmd_list}) — using first")
 
     # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
     directive_matches = scan_for_directives(prompt)

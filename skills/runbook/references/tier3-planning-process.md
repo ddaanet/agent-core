@@ -52,7 +52,7 @@ If design document includes "Requirements" section:
 
 ## Phase 0.75: Generate Runbook Outline
 
-**Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>`
+**Recall diff:** `Bash: claudeutils _recall diff <job-name>`
 
 Review the changed files list. File locations, existing patterns, and structural constraints make different implementation learnings relevant than what Phase 0.5 initially selected. If files changed that affect which recall entries are relevant, update the artifact: add entries revealed by discovery (e.g., testing patterns for the discovered module structure), remove entries for patterns that don't apply to the actual codebase. Write updated artifact back.
 

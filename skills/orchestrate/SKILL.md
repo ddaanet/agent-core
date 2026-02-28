@@ -158,7 +158,7 @@ Phase N Checkpoint
 - Design anchoring: verify implementation matches design decisions
 
 **Design reference:** plans/<name>/design.md
-**Review recall:** `Bash: agent-core/bin/recall-resolve.sh plans/<name>/recall-artifact.md` — if present, resolved content contains review-relevant entries: common review failures, quality anti-patterns, over-escalation patterns. If artifact absent or recall-resolve.sh fails: do lightweight recall — Read `memory-index.md`, identify review-relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`.
+**Review recall:** `Bash: claudeutils _recall resolve plans/<name>/recall-artifact.md` — if present, resolved content contains review-relevant entries: common review failures, quality anti-patterns, over-escalation patterns. If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md`, identify review-relevant entries, batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...`.
 **Changed files:** [file list from git diff --name-only]
 
 Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-review.md

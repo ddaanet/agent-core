@@ -234,7 +234,7 @@ Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-s
 
 **Research artifact (required when research conducted):** Write findings to `plans/<job>/reports/research-<topic>.md` — frameworks considered, findings per framework, gaps identified. This file is a cascading dependency: A.5 reads it, absence blocks outline generation.
 
-**Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>` — update artifact if codebase findings changed relevance.
+**Recall diff:** `Bash: claudeutils _recall diff <job-name>` — update artifact if codebase findings changed relevance.
 
 #### A.5. Outline
 
@@ -348,7 +348,7 @@ Direct execution bypasses `/runbook` — this gate must assess both coordination
 
 #### C.1. Create Design Document
 
-**Recall diff:** `Bash: agent-core/bin/recall-diff.sh <job-name>`
+**Recall diff:** `Bash: claudeutils _recall diff <job-name>`
 
 Review the changed files list. Approach commitment, revised scope, or rejected alternatives change which implementation and testing entries are relevant. If files changed that affect which recall entries are relevant, update the artifact: add entries surfaced by the discussion, remove entries for approaches that were rejected. Write updated artifact back.
 

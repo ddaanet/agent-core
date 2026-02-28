@@ -10,6 +10,9 @@ Tier 2 - Directives (colon prefix, additive):
 Tier 2.5 - Pattern guards (additive):
   skill-editing, CCG platform keywords
 
+Tier 3 - Continuation parsing (additive):
+  Multi-skill chains (/skill1 and /skill2)
+
 No match: silent pass-through (exit 0, no output)
 """
 

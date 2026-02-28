@@ -97,6 +97,8 @@ When execution dispatches sub-agents (artisan, test-driver):
 
 **Piecemeal TDD dispatch:** One cycle per invocation. Resume same agent between cycles (preserves context). Fresh agent when context nears 150k.
 
+**Cycle-scoped prompt composition:** Extract only the current cycle's section from the runbook (`## Cycle X.Y:` to next `---` or `## Cycle`). Include the runbook's Common Context section and recall entries alongside the cycle spec. Do NOT include adjacent or future cycles in the test-driver prompt — scope enforced by context absence, not prose instruction. The executing session holds the full runbook for sequencing; test-driver sees only its cycle.
+
 **Context isolation:** Parent does cognitive work (selecting entries, curating context). Child does mechanical work (resolving entries, executing). Sub-agents have no parent context.
 
 **test-driver commit contract:** test-driver commits each cycle. Caller does not add commit instructions. Expect clean tree on resume.
@@ -154,7 +156,7 @@ Handoff (invoked by default-exit in the Continuation section) captures this from
 | Aspect | Rule |
 |--------|------|
 | Recall | Parent curates, child resolves |
-| TDD dispatch | Piecemeal — one cycle per invocation, resume between |
+| TDD dispatch | Piecemeal — one cycle per invocation, resume between, cycle-scoped prompt |
 | Context | Sub-agents have no parent context |
 | Commits | test-driver commits; caller omits commit instructions |
 | Post-step | `git status --porcelain` clean + `just lint` |

@@ -338,6 +338,32 @@ For external services (databases, APIs, cloud services):
 
 ---
 
+## Recall Resolution Patterns
+
+Two orchestration patterns resolve recall differently:
+
+**Lightweight orchestration (Tier 2):** Orchestrator dispatches agents directly. Each agent runs `claudeutils _recall resolve` with keys from the recall artifact at execution time. Agent has Bash access and the artifact has pure keys. No preparation-time resolution needed.
+
+**Full orchestration (Tier 3, prepare-runbook.py):** `prepare-runbook.py` reads `plans/<job>/recall-artifact.md` during assembly, resolves all entry keys via `claudeutils _recall resolve`, and injects resolved content into generated artifacts:
+- Shared entries (no phase tag) → `## Resolved Recall` section appended to Common Context in agent definition
+- Phase-tagged entries (`(phase N)` suffix) → `## Phase Recall` section appended to phase preamble in step files and phase agent
+
+Step agents receive pre-resolved content. They do NOT run `claudeutils _recall resolve` themselves.
+
+**Recall artifact phase tags:**
+
+```
+when writing recall artifacts — all phases
+when editing skill files — phase 2 context (phase 2)
+when testing patterns — phase 1 TDD (phase 1)
+```
+
+Entries without `(phase N)` suffix are shared. `prepare-runbook.py` errors if a phase tag references a nonexistent or inline phase.
+
+**Conflicting signals constraint:** Common Context recall is ambient for all phase agents. Phase-tagged recall is scoped to one phase's agents. Do not place the same entry in both shared and phase-tagged locations with different framing — at haiku capability, persistent Common Context signal wins over step file input.
+
+---
+
 ## Common Pitfalls
 
 **Avoid:**
@@ -399,13 +425,14 @@ model: haiku
 Selected entries from `plans/<job>/recall-artifact.md`, curated for this runbook's task agents.
 Token budget: ≤1.5K tokens (ungrounded — needs empirical calibration after first use).
 
-- Phase-neutral entries only here (project conventions, cross-cutting failure modes). Phase-specific entries go in phase preambles instead.
+- Phase-neutral entries only here. Phase-specific entries use `(phase N)` tag in recall artifact — `prepare-runbook.py` resolves and injects them into phase preambles automatically.
 - Format per consumer model tier:
   - Haiku/sonnet consumers: constraint format — DO/DO NOT rules with explicit applicability markers
   - Opus consumers: rationale format — key points with context
 - Content baked at planning time — orchestrator does not filter recall at execution time. Planner resolves conflicting entries and removes least-specific entries when budget exceeded (eviction at planning time, not runtime). Cognitive work at the planner's model tier.
 - Recall entries must avoid conflicting signals: at haiku capability, persistent ambient signal wins over per-step instructions. Curate carefully — Common Context recall is ambient for all task agents.
 - DO NOT rules about recall content go here alongside the content guidance, not in a separate cleanup step.
+- See "Recall Resolution Patterns" section for full two-pattern documentation.
 
 **Project Paths:**
 - [Path]: [Description]

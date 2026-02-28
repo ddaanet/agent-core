@@ -58,6 +58,134 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 """
 
 
+def parse_recall_artifact(artifact_path):
+    """Parse recall artifact, extracting entries with optional phase tags.
+
+    Phase tag format: '<trigger> — <note> (phase N)'
+    Entries without tags are shared (all phases).
+
+    Returns: (shared_triggers, {phase_num: [triggers]}) or None if missing/empty.
+    """
+    path = Path(artifact_path)
+    if not path.exists():
+        return None
+
+    content = path.read_text()
+    lines = content.split("\n")
+
+    # Find Entry Keys section
+    entries = []
+    in_section = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped == "## Entry Keys":
+            in_section = True
+            continue
+        if in_section:
+            if stripped.startswith("#"):
+                break
+            if stripped:
+                entries.append(stripped)
+
+    if not entries:
+        return None
+
+    shared = []
+    phased = {}
+    phase_tag_re = re.compile(r"\(phase\s+(\d+)\)\s*$", re.IGNORECASE)
+
+    for entry in entries:
+        # Skip null entries
+        if entry.startswith("null"):
+            continue
+
+        phase_match = phase_tag_re.search(entry)
+        if phase_match:
+            phase_num = int(phase_match.group(1))
+            clean_entry = entry[: phase_match.start()].rstrip()
+            trigger = _parse_artifact_trigger(clean_entry)
+            phased.setdefault(phase_num, []).append(trigger)
+        else:
+            trigger = _parse_artifact_trigger(entry)
+            shared.append(trigger)
+
+    return (shared, phased)
+
+
+def _parse_artifact_trigger(entry_line):
+    """Extract trigger from artifact entry line.
+
+    Strips annotation after ' — ', normalizes operator prefix.
+    """
+    base = entry_line.split(" — ")[0].strip()
+    first_word = base.split()[0].lower() if base.split() else ""
+    if first_word in {"when", "how"}:
+        return base
+    return f"when {base}"
+
+
+def resolve_recall_entries(triggers):
+    """Resolve recall triggers via CLI subprocess.
+
+    Returns resolved content string or empty string on failure/empty input.
+    """
+    if not triggers:
+        return ""
+
+    cmd = ["claudeutils", "_recall", "resolve"] + triggers
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        if result.stderr:
+            print(f"WARNING: recall resolve: {result.stderr.strip()}", file=sys.stderr)
+        return ""
+    return result.stdout
+
+
+def resolve_recall_for_runbook(runbook_path, phase_types):
+    """Read and resolve recall artifact for a runbook.
+
+    Returns (shared_content, {phase_num: content}) or None on validation error.
+    Errors if phase-tagged entries reference nonexistent or inline phases.
+    """
+    plan_dir = Path(runbook_path).parent
+    artifact_path = plan_dir / "recall-artifact.md"
+
+    parsed = parse_recall_artifact(artifact_path)
+    if parsed is None:
+        return ("", {})
+
+    shared_triggers, phased_triggers = parsed
+
+    # Validate phase tags
+    for phase_num in sorted(phased_triggers):
+        if phase_num not in phase_types:
+            print(
+                f"ERROR: Recall artifact tags phase {phase_num} "
+                f"but runbook has phases {sorted(phase_types.keys())}",
+                file=sys.stderr,
+            )
+            return None
+        if phase_types[phase_num] == "inline":
+            print(
+                f"ERROR: Recall artifact tags phase {phase_num} "
+                f"which is inline (no agent/step files generated)",
+                file=sys.stderr,
+            )
+            return None
+
+    # Resolve shared entries
+    shared_content = resolve_recall_entries(shared_triggers)
+
+    # Resolve per-phase entries
+    phase_content = {}
+    for phase_num, triggers in sorted(phased_triggers.items()):
+        resolved = resolve_recall_entries(triggers)
+        if resolved:
+            phase_content[phase_num] = resolved
+
+    return (shared_content, phase_content)
+
+
 def parse_frontmatter(content):
     """Extract YAML frontmatter from markdown content.
 
@@ -1602,6 +1730,25 @@ def main() -> None:
     # Extract per-phase model overrides and phase preambles
     phase_models = extract_phase_models(body)
     phase_preambles = extract_phase_preambles(body)
+
+    # Resolve recall artifact (FR-1/2/3/4, NFR-2/3)
+    phase_types = detect_phase_types(body)
+    recall_result = resolve_recall_for_runbook(runbook_path, phase_types)
+    if recall_result is None:
+        sys.exit(1)
+    shared_recall, phase_recall = recall_result
+
+    if shared_recall:
+        current_cc = sections.get("common_context") or ""
+        sections["common_context"] = (
+            current_cc + "\n\n## Resolved Recall\n\n" + shared_recall
+        )
+
+    for phase_num, recall_content in phase_recall.items():
+        current = phase_preambles.get(phase_num, "")
+        phase_preambles[phase_num] = (
+            current + "\n\n## Phase Recall\n\n" + recall_content
+        )
 
     # Validate and create
     phase_dir = str(input_path) if input_path.is_dir() else None

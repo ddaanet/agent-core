@@ -17,11 +17,11 @@ Display pending tasks with metadata, then wait for instruction.
 ```
 Session: uncommitted changes — `/handoff`, `/commit`
 
-Next: <first pending task name>
+Next: <first in-tree task name>
   `<command to start it>`
   Model: <recommended model> | Restart: <yes/no>
 
-Pending:
+In-tree:
 - <task 2 name> (<model if non-default>)
   - Plan: <plan-directory> | Status: <status> | Notes: <notes>
 - <task 3 name>
@@ -29,23 +29,23 @@ Pending:
 - ...
 
 Worktree:
-- <task name> → <slug>
-- <task name 2> → <slug2>
+- <task name> (<model if non-default>)
+- <task name 2> → <slug> (active worktree)
 
 Unscheduled Plans:
 - <plan-name> — <status>
 - ...
 ```
 
-**Pending list format:**
+**In-tree list format:**
 - First line: task name with model if non-default
 - Nested line: plan directory, status from planstate, notes if present
 - Omit nested line if task has no associated plan
 
 **Worktree section:**
 - Only shown when worktree tasks exist in session.md
-- Tasks in Worktree section are NOT shown in Pending
-- Format shows task name and worktree slug for `wt-rm` reference
+- Tasks with active worktrees show `→ slug` (from `_worktree ls`, filesystem state)
+- Tasks without active worktrees shown without slug (pre-classified, awaiting `wt` setup)
 
 **Unscheduled Plans:** Plans with no associated pending task.
 - Call `list_plans(Path('plans'))` for all plans
@@ -70,7 +70,7 @@ Unscheduled Plans:
 
 **Parallel task detection:**
 
-After listing pending tasks, analyze for parallelizable groups:
+After listing in-tree and worktree tasks, analyze for parallelizable groups:
 - No shared plan directory between tasks
 - No logical dependency (check Blockers/Gotchas section)
 - Compatible model tier (all sonnet, or all same)
@@ -88,8 +88,9 @@ Parallel (N tasks, independent):
 Show largest independent group only. Omit section if no parallelism detected.
 
 **Graceful degradation:**
-- Missing session.md or no Pending Tasks → "No pending tasks." In a worktree (`git rev-parse --git-dir` ≠ `.git`), append: "Branch complete."
+- Missing session.md or no In-tree Tasks → "No in-tree tasks." In a worktree (`git rev-parse --git-dir` ≠ `.git`), append: "Branch complete."
 - Old format (no metadata) → use defaults (sonnet, no restart)
+- Old section name ("Pending Tasks") → treat as "In-tree Tasks"
 - No unscheduled plans → omit Unscheduled Plans section entirely
 
 ### MODE 2: EXECUTE
@@ -98,7 +99,7 @@ Show largest independent group only. Omit section if no parallelism detected.
 - `#execute` or `x`
 
 **Behavior:**
-Smart execute: resume in-progress task if exists, otherwise start first pending task. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Drive to completion, then stop.
+Smart execute: resume in-progress task if exists, otherwise start first in-tree task. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Worktree tasks require `wt` setup — `x` does not pick them up. Drive to completion, then stop.
 
 ### MODE 3: EXECUTE+COMMIT
 
@@ -143,7 +144,7 @@ The task name serves as the lookup key. The script uses `git log -S` to find the
 | State | `x` (#execute) | `r` (#resume) |
 |-------|----------------|---------------|
 | In-progress task exists | Resume it | Resume it |
-| No in-progress, pending exists | Start first pending | Error: "Nothing in progress" |
+| No in-progress, in-tree exists | Start first in-tree | Error: "Nothing in progress" |
 | No tasks | "No pending tasks" | Error: "Nothing in progress" |
 
 **When to use:**
@@ -211,18 +212,20 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 
 **Worktree Tasks section:**
 
-Tasks branched off to worktrees move from Pending Tasks to Worktree Tasks:
+Tasks pre-classified as needing worktree isolation. Classification is static — set at creation by handoff or `p:` directive. No move semantics between sections.
 
 ```markdown
 ## Worktree Tasks
 
-- [ ] **Task Name** → `<slug>` — original metadata
+- [ ] **Task Name** — metadata (not yet dispatched)
+- [ ] **Task Name** → `<slug>` — metadata (active worktree)
 ```
 
 **Rules:**
-- Tasks move from Pending Tasks to Worktree Tasks when `wt` creates their worktree
-- `→ <slug>` tracks which worktree holds the task
-- After merge + `wt-rm`, remove the task from Worktree Tasks (move to Completed or delete)
+- Tasks placed in Worktree Tasks at creation based on classification heuristic (D-9)
+- `→ <slug>` added by `_worktree new --task` when worktree created, removed by `_worktree rm`
+- `#status` annotates with `→ slug` from `_worktree ls` (filesystem state, not session.md)
+- `x` does not pick up worktree tasks — use `wt` to dispatch
 - Handoff preserves Worktree Tasks section as-is (not trimmed)
 
 **Restart triggers:** Session restart is required for structural changes that load at startup:

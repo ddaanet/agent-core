@@ -47,14 +47,14 @@ Write session.md following this structure:
 - Item with specifics (file: path/to/report.md)
 - Item with context (metrics, root cause, decisions)
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task name** — description | model
 - [ ] **Another task** — description | model | restart
 
 ## Worktree Tasks
 
-- [ ] **Task name** → `<slug>` — description | model
+- [ ] **Task name** — description | model
 
 ## Blockers / Gotchas
 
@@ -72,7 +72,12 @@ Write session.md following this structure:
 
 **Allowed sections only.** NEVER create "Learnings", "Key Decisions", or other sections. Learnings go to learnings.md.
 
-**Carry-forward rule:** Pending Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, mark blocked `[!]` with reason (see `task-failure-lifecycle.md`), mark failed `[✗]` with error summary, mark canceled `[–]` with reason, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items. Blocked/failed/canceled tasks persist across handoffs — do NOT trim them.
+**Carry-forward rule:** In-tree Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, mark blocked `[!]` with reason (see `task-failure-lifecycle.md`), mark failed `[✗]` with error summary, mark canceled `[–]` with reason, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items. Blocked/failed/canceled tasks persist across handoffs — do NOT trim them.
+
+**Task classification (D-9):** When creating new tasks, classify into the correct section:
+- **In-tree Tasks:** No plan directory, mechanical edits, no restart needed. Quick work done directly on current branch.
+- **Worktree Tasks:** Has plan directory with behavioral changes, opus model tier, restart flag, or explicitly parallel scope. Tasks pre-classified as needing isolation.
+- Default to In-tree when uncertain. Classification is static — set at creation, no moves between sections.
 
 **Command derivation:** Run `Bash: claudeutils _worktree ls` to load current plan statuses. For tasks with a plan directory, derive the backtick command from the plan's lifecycle status:
 - `requirements` → `/design plans/{name}/requirements.md`
@@ -84,7 +89,7 @@ Write session.md following this structure:
 
 Non-plan tasks keep their static command. This prevents stale commands from persisting across handoffs.
 
-**Multiple handoffs before commit:** Merge incrementally via Edit (append to Completed, mutate Pending, append Blockers, replace Next Steps). Do NOT Write a fresh file discarding prior content.
+**Multiple handoffs before commit:** Merge incrementally via Edit (append to Completed, mutate In-tree/Worktree, append Blockers, replace Next Steps). Do NOT Write a fresh file discarding prior content.
 
 **NEVER reference commits as pending** in session.md — no "ready to commit" language. With `--commit`, write status assuming commit succeeds.
 

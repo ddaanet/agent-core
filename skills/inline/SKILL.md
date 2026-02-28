@@ -101,11 +101,10 @@ When execution dispatches sub-agents (artisan, test-driver):
 
 **test-driver commit contract:** test-driver commits each cycle. Caller does not add commit instructions. Expect clean tree on resume.
 
-**Post-step verification:**
+**Post-step verification (single compound command — do not split):**
 
 ```bash
-git status --porcelain  # must be clean
-just lint               # must pass
+git status --porcelain && just lint
 ```
 
 After each delegated step. Dirty tree or lint failure → diagnose before continuing.

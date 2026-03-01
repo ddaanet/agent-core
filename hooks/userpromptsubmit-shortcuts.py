@@ -872,23 +872,18 @@ def format_continuation_context(parsed: dict[str, Any]) -> str:
 
 
 def _try_planstate_command(project_dir: str, plan_name: str) -> str | None:
-    """Try to derive command from planstate.
+    """Try to derive command from planstate via public API.
 
     Returns the derived command if successful, None otherwise.
     """
     try:
-        from claudeutils.planstate.inference import (
-            _derive_next_action,
-            _determine_status,
-        )
+        from claudeutils.planstate.inference import infer_state
 
         plan_dir = Path(project_dir) / "plans" / plan_name
-        if not plan_dir.exists():
+        state = infer_state(plan_dir)
+        if state is None:
             return None
-
-        status = _determine_status(plan_dir)
-        derived = _derive_next_action(status, plan_name)
-        return derived if derived else None
+        return state.next_action if state.next_action else None
     except Exception:
         return None
 

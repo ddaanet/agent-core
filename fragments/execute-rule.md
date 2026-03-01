@@ -98,7 +98,7 @@ Show largest independent group only. Omit section if no parallelism detected.
 - `#execute` or `x`
 
 **Behavior:**
-Smart execute: resume in-progress task if exists, otherwise start first pending task. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Drive to completion, then stop.
+Smart execute: resume in-progress task if exists, otherwise start first pending task. Invoke the task's backtick command — via Skill tool for `/skill` commands, or Bash for script commands. Do not reinterpret the command or implement the work directly. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Drive to completion, then stop.
 
 ### MODE 3: EXECUTE+COMMIT
 

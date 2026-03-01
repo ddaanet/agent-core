@@ -896,7 +896,8 @@ def _try_planstate_command(project_dir: str, plan_name: str) -> str | None:
 def _extract_execute_command() -> str | None:
     """Extract the first eligible task command from session.md.
 
-    Priority: planstate-derived > in-progress [>] > pending [ ].
+    Priority: in-progress [>] > pending [ ]. Planstate-derived command takes
+    priority over session.md command for whichever task is selected.
 
     Returns:
         The derived or session.md command string if found, None otherwise.

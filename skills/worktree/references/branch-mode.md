@@ -12,12 +12,12 @@ This creates the worktree but skips: slug derivation from task name, focused ses
 
 Branch mode is for worktrees not tied to a tracked task in session.md. No established use case exists yet — the adhoc worktree mode is a pending design task.
 
-## Prefer `--task` Form
+## Prefer Task Name Form
 
 For any task listed in session.md, always use:
 
 ```bash
-claudeutils _worktree new --task "<task name>"
+claudeutils _worktree new "<task name>"
 ```
 
-The `--task` form automates all side effects. Using the bare slug form for tracked tasks forces manual session.md editing that is worse (no focused session), error-prone, and reimplements what the tool already does.
+The task name form automates all side effects. Using the bare slug form for tracked tasks forces manual session.md editing that is worse (no focused session), error-prone, and reimplements what the tool already does.

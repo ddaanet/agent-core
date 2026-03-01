@@ -23,7 +23,7 @@ When invoked, update session.md mechanically:
 
 **Merge rules — read current session.md first, then apply:**
 - **REPLACE** these sections with fresh content: "Completed This Session", "Next Steps"
-- **MERGE** these sections (carry forward unresolved items + add new): "Pending Tasks", "Blockers / Gotchas"
+- **MERGE** these sections (carry forward unresolved items + add new): "In-tree Tasks", "Worktree Tasks", "Blockers / Gotchas"
 - **ADD** "Session Notes" section if new observations to record
 - **PRESERVE UNCHANGED** all other existing sections (especially "Recent Learnings", "Reference Files", any "Prior Session" content)
 
@@ -35,10 +35,10 @@ When invoked, update session.md mechanically:
 5. Add Session Notes section if new observations exist
 6. Keep everything else exactly as-is
 
-**MERGE semantics for Pending Tasks:**
-- Review all pending tasks from previous session.md
+**MERGE semantics for In-tree Tasks and Worktree Tasks:**
+- Review all tasks from previous session.md in both sections
 - Keep all unresolved tasks (mark with [ ] or carry forward as-is)
-- Add new pending tasks from current session
+- Add new tasks to the appropriate section (In-tree or Worktree)
 - Mark completed tasks with [x] if they were completed in current session
 
 **Task metadata format:** Follow the format defined in `execute-rule.md` (always loaded). Preserve metadata format verbatim when carrying forward unresolved items.
@@ -54,7 +54,10 @@ When invoked, update session.md mechanically:
 ## Completed This Session
 [Bullet list of completed work with commit hashes/file refs]
 
-## Pending Tasks
+## In-tree Tasks
+[Bullet list with checkboxes]
+
+## Worktree Tasks
 [Bullet list with checkboxes]
 
 ## Session Notes

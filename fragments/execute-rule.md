@@ -52,7 +52,7 @@ Unscheduled Plans:
 - Exclude plans that appear in any pending task's plan directory
 - Exclude plans with status `delivered` (terminal — no action needed)
 - **Format:** `<plan-name> — <status>`
-- **Status values:** `requirements`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`
+- **Status values:** `requirements`, `outlined`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`
 - **Sorting:** Alphabetical by plan name
 
 **Status source:** `claudeutils _worktree ls` for plan states and tree status; `session.md` for task notes. The CLI wraps `list_plans()` + `format_rich_ls()` — do not call these via ad-hoc Python.
@@ -99,7 +99,7 @@ Show largest independent group only. Omit section if no parallelism detected.
 - `#execute` or `x`
 
 **Behavior:**
-Smart execute: resume in-progress task if exists, otherwise start first in-tree task. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Worktree tasks require `wt` setup — `x` does not pick them up. Drive to completion, then stop.
+Smart execute: resume in-progress task if exists, otherwise start first in-tree task. Invoke the task's backtick command — via Skill tool for `/skill` commands, or Bash for script commands. Do not reinterpret the command or implement the work directly. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Worktree tasks require `wt` setup — `x` does not pick them up. Drive to completion, then stop.
 
 ### MODE 3: EXECUTE+COMMIT
 

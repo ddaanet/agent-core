@@ -81,6 +81,7 @@ Write session.md following this structure:
 
 **Command derivation:** Run `Bash: claudeutils _worktree ls` to load current plan statuses. For tasks with a plan directory, derive the backtick command from the plan's lifecycle status:
 - `requirements` → `/design plans/{name}/requirements.md`
+- `outlined` → `/runbook plans/{name}/outline.md`
 - `designed` → `/runbook plans/{name}/design.md`
 - `planned` → `agent-core/bin/prepare-runbook.py plans/{name}`
 - `ready` → `/orchestrate {name}`

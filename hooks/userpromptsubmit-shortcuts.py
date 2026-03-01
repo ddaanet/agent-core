@@ -874,6 +874,92 @@ def format_continuation_context(parsed: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _try_planstate_command(project_dir: str, plan_name: str) -> str | None:
+    """Try to derive command from planstate via public API.
+
+    Returns the derived command if successful, None otherwise.
+    """
+    try:
+        from claudeutils.planstate.inference import infer_state
+
+        plan_dir = Path(project_dir) / "plans" / plan_name
+        state = infer_state(plan_dir)
+        if state is None:
+            return None
+        return state.next_action if state.next_action else None
+    except Exception:
+        return None
+
+
+def _extract_execute_command() -> str | None:
+    """Extract the first eligible task command from session.md.
+
+    Priority: in-progress [>] > pending [ ]. Planstate-derived command takes
+    priority over session.md command for whichever task is selected.
+
+    Returns:
+        The derived or session.md command string if found, None otherwise.
+        Example: "/runbook plans/my-plan/design.md" or "/design my-requirements"
+    """
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if not project_dir:
+        return None
+
+    session_path = Path(project_dir) / "agents" / "session.md"
+    if not session_path.exists():
+        return None
+
+    try:
+        content = session_path.read_text(encoding="utf-8")
+    except Exception:
+        return None
+
+    lines = content.split("\n")
+
+    # Pass 1: Look for in-progress [>] task
+    in_progress_pattern = r"^\s*-\s+\[>\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
+    for idx, line in enumerate(lines):
+        match = re.match(in_progress_pattern, line)
+        if match:
+            session_cmd = match.group(1)
+            # Check next line for plan metadata
+            plan_name = _extract_plan_name(lines, idx + 1)
+            if plan_name:
+                planstate_cmd = _try_planstate_command(project_dir, plan_name)
+                if planstate_cmd:
+                    return planstate_cmd
+            return session_cmd
+
+    # Pass 2: Look for pending [ ] task if no in-progress found
+    pending_pattern = r"^\s*-\s+\[\s*\]\s+\*\*[^*]+\*\*\s+—\s+`([^`]+)`"
+    for idx, line in enumerate(lines):
+        match = re.match(pending_pattern, line)
+        if match:
+            session_cmd = match.group(1)
+            # Check next line for plan metadata
+            plan_name = _extract_plan_name(lines, idx + 1)
+            if plan_name:
+                planstate_cmd = _try_planstate_command(project_dir, plan_name)
+                if planstate_cmd:
+                    return planstate_cmd
+            return session_cmd
+
+    return None
+
+
+def _extract_plan_name(lines: list[str], line_idx: int) -> str | None:
+    """Extract plan name from metadata line at given index.
+
+    Metadata format: "  - Plan: plan-name | Status: status"
+    """
+    if line_idx >= len(lines):
+        return None
+
+    line = lines[line_idx]
+    match = re.match(r"^\s*-\s+Plan:\s*(\S+)", line)
+    return match.group(1) if match else None
+
+
 def main() -> None:
     """Expand workflow shortcuts in user prompts."""
     # Read hook input
@@ -904,6 +990,11 @@ def main() -> None:
         if len(commands_found) > 1:
             cmd_list = ", ".join(commands_found)
             system_parts.append(f"Multiple commands ({cmd_list}) — using first")
+        # For 'x' command, inject pending task command if available
+        if first_command == "x":
+            task_cmd = _extract_execute_command()
+            if task_cmd:
+                context_parts.append(f"Invoke: {task_cmd}")
 
     # Tier 2: Directive pattern — additive, all matching directives fire (D-7)
     directive_matches = scan_for_directives(prompt)

@@ -133,7 +133,11 @@ def resolve_recall_entries(triggers):
         return ""
 
     cmd = ["claudeutils", "_recall", "resolve"] + triggers
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        print("WARNING: recall resolve: claudeutils not found", file=sys.stderr)
+        return ""
     if result.returncode != 0:
         if result.stderr:
             print(f"WARNING: recall resolve: {result.stderr.strip()}", file=sys.stderr)

@@ -1105,7 +1105,7 @@ _TDD_ROLES = [
     (
         "tester",
         "tdd",
-        "haiku",
+        "sonnet",
         "Execute RED phase: write failing tests for {name}",
         "blue",
         "\n\n---\n\n**Role: Tester.** Your responsibility is test quality — write precise, behavioral RED phase tests that fail for the right reason and guide implementation.\n",
@@ -1113,7 +1113,7 @@ _TDD_ROLES = [
     (
         "implementer",
         "tdd",
-        "haiku",
+        "sonnet",
         "Execute GREEN phase: implement code for {name}",
         "green",
         "\n\n---\n\n**Role: Implementer.** Your responsibility is implementation — write minimal code to make RED phase tests pass without over-engineering.\n",
@@ -1486,9 +1486,10 @@ def generate_default_orchestrator(
     corrector_agent = f"{runbook_name}-corrector" if unique_phases > 1 else "none"
 
     # Build structured header
+    agent_field = "none" if runbook_type == "tdd" else f"{runbook_name}-task"
     content = f"""# Orchestrator Plan: {runbook_name}
 
-**Agent:** {runbook_name}-task
+**Agent:** {agent_field}
 **Corrector Agent:** {corrector_agent}
 **Type:** {runbook_type}
 """
@@ -1758,6 +1759,8 @@ def validate_and_create(
     for phase_num, ptype in sorted(phase_types.items()):
         if ptype == "inline":
             phase_agents[phase_num] = "(orchestrator-direct)"
+        elif ptype == "tdd":
+            phase_agents[phase_num] = f"{runbook_name}-tester"
         else:
             phase_agents[phase_num] = task_agent_name
 

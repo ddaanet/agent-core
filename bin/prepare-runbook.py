@@ -1022,12 +1022,14 @@ def generate_task_agent(
     runbook_name,
     runbook_type="general",
     plan_context="",
+    design_content=None,
     model=None,
 ) -> str:
     """Compose single task agent for the entire runbook.
 
     Uses artisan.md for general/mixed runbooks, test-driver.md for pure TDD.
-    Appends scope enforcement and clean tree footers.
+    Embeds design.md under # Plan Context / ## Design. Appends scope enforcement
+    and clean tree footers.
     """
     baseline_type = "tdd" if runbook_type == "tdd" else "general"
     name = f"{runbook_name}-task"
@@ -1037,8 +1039,15 @@ def generate_task_agent(
 
     result = frontmatter
     result += read_baseline_agent(baseline_type)
+
+    design_text = (
+        design_content if design_content is not None else "No design document found"
+    )
+    plan_ctx_parts = [f"## Design\n\n{design_text}"]
     if plan_context:
-        result += "\n---\n# Runbook-Specific Context\n\n" + plan_context
+        plan_ctx_parts.append(f"## Common Context\n\n{plan_context}")
+    result += "\n---\n# Plan Context\n\n" + "\n\n".join(plan_ctx_parts)
+
     result += "\n\n---\n\n**Scope enforcement:** Execute ONLY the step file assigned by the orchestrator. Do not read or execute other step files.\n"
     result += "\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
     return result
@@ -1510,10 +1519,13 @@ def validate_and_create(
     created_agents = []
 
     task_agent_name = f"{runbook_name}-task"
+    design_path = Path(runbook_path).parent / "design.md"
+    design_content = design_path.read_text() if design_path.exists() else None
     agent_content = generate_task_agent(
         runbook_name,
         runbook_type=runbook_type,
         plan_context=plan_context,
+        design_content=design_content,
         model=model,
     )
     agent_file = agents_dir / f"{task_agent_name}.md"

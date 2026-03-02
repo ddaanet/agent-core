@@ -996,40 +996,6 @@ def read_baseline_agent(runbook_type="general"):
     return body
 
 
-def generate_agent_frontmatter(
-    runbook_name, model=None, phase_num=1, total_phases=1
-) -> str:
-    """Generate frontmatter for plan-specific agent."""
-    model_line = f"model: {model}\n" if model is not None else ""
-    if total_phases > 1:
-        name = f"crew-{runbook_name}-p{phase_num}"
-        description = f"Execute phase {phase_num} of {runbook_name}"
-    else:
-        name = f"crew-{runbook_name}"
-        description = f"Execute {runbook_name}"
-    return f'---\nname: {name}\ndescription: {description}\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
-
-
-def generate_phase_agent(
-    runbook_name,
-    phase_num,
-    phase_type,
-    plan_context="",
-    phase_context="",
-    model=None,
-    total_phases=1,
-) -> str:
-    """Compose a phase-scoped agent from 5 ordered layers."""
-    result = generate_agent_frontmatter(runbook_name, model, phase_num, total_phases)
-    result += read_baseline_agent(phase_type)
-    if plan_context:
-        result += "\n---\n# Runbook-Specific Context\n\n" + plan_context
-    if phase_context:
-        result += "\n---\n# Phase Context\n\n" + phase_context
-    result += "\n\n---\n\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
-    return result
-
-
 def _build_plan_context_section(
     design_content=None, outline_content=None, plan_context=""
 ) -> str:
@@ -1073,7 +1039,7 @@ def generate_task_agent(
     result += read_baseline_agent(baseline_type)
     result += _build_plan_context_section(design_content, outline_content, plan_context)
 
-    result += "\n\n---\n\n**Scope enforcement:** Execute ONLY the step file assigned by the orchestrator. Do not read or execute other step files.\n"
+    result += "\n\n---\n\n**Scope enforcement:** Execute ONLY the step file assigned by the orchestrator. Do not read ahead in the runbook or execute other step files.\n"
     result += "\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
     return result
 
@@ -1503,7 +1469,7 @@ def generate_default_orchestrator(
         content += "| Phase | Agent | Type |\n"
         content += "| --- | --- | --- |\n"
         for p in all_phases:
-            agent = (phase_agents or {}).get(p, f"crew-{runbook_name}-p{p}")
+            agent = (phase_agents or {}).get(p, f"{runbook_name}-task")
             ptype = (phase_types or {}).get(p, "")
             content += f"| {p} | {agent} | {ptype} |\n"
         content += "\n"
@@ -1545,14 +1511,22 @@ def generate_default_orchestrator(
         for p in all_phases:
             content += f"- Phase file: {phase_dir}/runbook-phase-{p}.md\n"
 
-    # Add phase summaries section
+    # Add phase summaries section from preamble descriptions
     all_phases = sorted(set(item[0] for item in items))
+    preamble_dict = phase_preambles or {}
     if all_phases:
         content += "\n## Phase Summaries\n"
         for p in all_phases:
+            preamble = preamble_dict.get(p, "")
+            in_text = next(
+                (line.strip() for line in preamble.splitlines() if line.strip()),
+                "(not specified)",
+            )
+            out_parts = [f"Phase {op}" for op in all_phases if op != p]
+            out_text = ", ".join(out_parts) if out_parts else "(single phase)"
             content += f"\n### Phase {p}:\n\n"
-            content += "- IN: (placeholder)\n"
-            content += "- OUT: (placeholder)\n"
+            content += f"- IN: {in_text}\n"
+            content += f"- OUT: {out_text}\n"
 
     return content
 
@@ -1837,6 +1811,7 @@ def validate_and_create(
             default_model=frontmatter_model,
             phase_agents=phase_agents if phase_agents else None,
             phase_types=phase_types if phase_types else None,
+            phase_preambles=preambles,
         )
 
     orchestrator_path.write_text(orchestrator_content)

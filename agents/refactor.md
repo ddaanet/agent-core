@@ -195,7 +195,7 @@ git commit --amend --no-edit
 
 Do not provide summary, explanation, or commentary beyond the status line.
 
-**Resume support:** If interrupted mid-refactoring, the orchestrator may resume this agent (same agent ID). On resume: continue from current state, don't restart analysis. Fresh launch only if >15 messages exchanged (context near-full).
+**Resume support:** If precommit still has warnings after changes, the orchestrator may resume this agent once (same agent ID, if <15 messages exchanged). On resume: continue from current state, don't restart analysis. If resumed and still cannot fix: return `error: [reason]`, orchestrator delegates recovery.
 
 ## Tool Usage Constraints
 

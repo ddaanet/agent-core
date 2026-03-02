@@ -55,11 +55,11 @@ For each entry in the `## Steps` list, branch by type:
 
 ### 3.0 Inline Execution (D-6)
 
-Read the phase content from `plans/<name>/runbook-phase-P.md`. Execute edits directly — no Task dispatch.
+Read the phase content from the orchestrator plan's `## Phase Files` section (path for Phase P). If no Phase Files section, read from the runbook directly. Execute edits directly — no Task dispatch.
 
 1. Read target files, apply edits (Read → Edit/Write)
 2. `just precommit` — fix failures, escalate if unfixable
-3. Phase boundary review: ≤5 net lines across ≤2 files → self-review via `git diff`; larger → delegate to corrector (Section 3.5)
+3. Phase boundary review: small changes (heuristic: few net lines across few files) → self-review via `git diff`; larger → delegate to corrector (Section 3.5)
 4. Commit inline phase changes
 
 ### 3.1 General Step Dispatch (D-2)
@@ -159,7 +159,7 @@ Recovery is mechanical (lint-clean + git-clean). No design/outline context neede
 
 ### 3.5 Phase Boundary
 
-Read the phase field from the next step entry in the orchestrator plan (pipe-delimited format). If phase changes (or final step):
+Detect phase boundaries via the `PHASE_BOUNDARY` marker in the orchestrator plan step entry (or final step):
 
 ```bash
 just precommit
@@ -189,11 +189,28 @@ Task tool:
 
 Read report. If UNFIXABLE → STOP and escalate. Otherwise commit checkpoint, continue.
 
-**Single-phase plans** (corrector = `none`): delegate to generic `corrector` with file references to design and outline (non-cached, read on demand).
+**Single-phase plans** (corrector = `none`): delegate to generic `corrector` with file references to design, outline (`plans/<name>/outline.md`), and changed files (non-cached, read on demand).
 
 **Final checkpoint** adds lifecycle audit: verify all stateful objects (MERGE_HEAD, staged content, lock files) cleared on success paths.
 
 **Template enforcement:** IN/OUT scope lists must be non-empty. Changed files list must be present. Empty fields → STOP before delegating.
+
+### 3.6 Refactor Dispatch
+
+After any corrector review (phase checkpoint, TDD corrector, or impl-corrector), check the report for refactoring signals:
+
+**Trigger:** Corrector report contains complexity warnings (e.g., "REFACTOR-NEEDED", file exceeds line limits, high cyclomatic complexity, duplicated patterns across files).
+
+**Dispatch:**
+```
+Task tool:
+  subagent_type: "refactor"
+  model: sonnet
+  prompt: "Refactor flagged files: [files from corrector report]. Warnings: [quoted warning text]. Design reference: plans/<name>/design.md"
+  max_turns: 20
+```
+
+The refactor agent applies deslop directives (factorization-before-splitting) and returns `success`, `escalated: [reason]`, or `error: [reason]`. On `escalated` → create pending task for opus-level refactoring. On `error` → log and continue (refactoring is advisory, not blocking).
 
 ## 4. Error Escalation (D-4)
 
@@ -222,10 +239,10 @@ Log each step: `Step N-M: [name] - completed` or `Step N-M: [name] - failed: [er
 ## 6. Completion
 
 ```bash
-git diff --name-only $(git log --all --oneline | tail -1 | cut -d' ' -f1)..HEAD
+git diff --name-only $(git rev-list --max-parents=0 HEAD | head -1)..HEAD
 ```
 
-1. **Final review:** If multi-phase, phase boundary correctors already ran. Single-phase: delegate to generic `corrector` with design reference and changed files. Report to `plans/<name>/reports/review.md`.
+1. **Final review:** If multi-phase, phase boundary correctors already ran. Single-phase: delegate to generic `corrector` with design reference, outline (`plans/<name>/outline.md`), and changed files. Report to `plans/<name>/reports/review.md`.
 2. **TDD audit:** If `**Type:** tdd`, delegate to `tdd-auditor`. Report to `plans/<name>/reports/tdd-process-review.md`.
 3. **Cleanup:** Delete plan-specific agents:
    ```bash

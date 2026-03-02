@@ -80,7 +80,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 
 Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge ceremony that returns worktree commits to the main branch, handling the handoff, commit, and merge sequence.
 
-1. **Invoke `/handoff --commit`** to ensure clean tree and session context committed. If handoff or commit fails, STOP — merge requires clean tree.
+1. **Invoke `/handoff` then `/commit`** to ensure clean tree and session context committed. If handoff or commit fails, STOP — merge requires clean tree.
 
 2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. All output goes to stdout; exit code carries the semantic signal.
 

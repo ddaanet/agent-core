@@ -500,7 +500,7 @@ def build_registry() -> dict[str, dict[str, Any]]:
         {
             "design": {
                 "cooperative": True,
-                "default-exit": ["/handoff --commit", "/commit"]
+                "default-exit": ["/handoff", "/commit"]
             },
             ...
         }

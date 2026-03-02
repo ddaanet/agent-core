@@ -273,7 +273,7 @@ hc
 
 **Expected outcome:**
 - **Hook behavior:** Expands shortcut
-- **additionalContext contains:** `[SHORTCUT: /handoff --commit]`
+- **additionalContext contains:** `[handoff, commit]` expansion
 - **Visible to agent:** Context injection appears before main response
 
 **Actual outcome:** [AGENT FILLS IN or SKIP if sub-agent]

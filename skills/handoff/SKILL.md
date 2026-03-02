@@ -5,7 +5,7 @@ allowed-tools: Read, Write, Edit, Bash(wc:*), Task, Skill
 user-invocable: true
 continuation:
   cooperative: true
-  default-exit: ["/commit"]
+  default-exit: []
 ---
 
 # Update Session Context
@@ -17,12 +17,6 @@ Update session.md for agent handoff, preserving critical context for the next ag
 Standard (Sonnet)
 
 **CRITICAL:** If you are a Haiku orchestrator, use `/handoff-haiku` instead.
-
-## Flags
-
-- `--commit` — After completing handoff, tail-call `/commit`.
-
-**Flag parsing:** Flags are exact tokens, not substrings. `/handoff --commit` has the flag. `/handoff describe the commit process` does NOT.
 
 ## Protocol
 
@@ -92,7 +86,7 @@ Non-plan tasks keep their static command. This prevents stale commands from pers
 
 **Multiple handoffs before commit:** Merge incrementally via Edit (append to Completed, mutate In-tree/Worktree, append Blockers, replace Next Steps). Do NOT Write a fresh file discarding prior content.
 
-**NEVER reference commits as pending** in session.md — no "ready to commit" language. With `--commit`, write status assuming commit succeeds.
+**NEVER reference commits as pending** in session.md — no "ready to commit" language.
 
 **Worktree-terminal state:** If no `[ ]` pending tasks AND in a worktree (`git rev-parse --git-dir` ≠ `.git`), Next Steps = "Branch work complete." No merge-to-main instructions — the merge is tracked on main's session.md and performed from main.
 
@@ -148,11 +142,9 @@ Delete completed tasks only if BOTH: (1) completed before this conversation, AND
 
 Do NOT delete tasks completed in the current conversation, even if just committed.
 
-### 7. Display STATUS (unless --commit)
+### 7. Display STATUS
 
-**Without `--commit`:** Display STATUS per execute-rule.md MODE 1.
-
-**With `--commit`:** Skip — `/commit` displays it after committing.
+Display STATUS per execute-rule.md MODE 1.
 
 ## Continuation
 

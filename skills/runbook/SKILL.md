@@ -14,7 +14,7 @@ outputs:
 user-invocable: true
 continuation:
   cooperative: true
-  default-exit: ["/handoff --commit", "/commit"]
+  default-exit: ["/handoff", "/commit"]
 ---
 
 # Plan Implementation Steps
@@ -190,7 +190,7 @@ As the **final action** of this skill:
    - Tier 1/2: prepend `/inline plans/<job> execute`
    - Tier 3: no prepend (Phase 4 prepares artifacts; orchestration requires session restart)
 3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
-4. If no continuation: default-exit — `/handoff --commit` → `/commit`
+4. If no continuation: default-exit — `/handoff` → `/commit`
 
 **CRITICAL:** Do NOT include continuation metadata in Task tool prompts.
 

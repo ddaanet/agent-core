@@ -167,7 +167,7 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 | `xc` | #execute --commit | Execute → handoff → commit → status |
 | `r` | #resume | Strict: resume only (error if none) |
 | `h` | /handoff | Update session.md → status |
-| `hc` | /handoff --commit | Handoff → commit → status |
+| `hc` | /handoff, /commit | Handoff → commit → status |
 | `ci` | /commit | Commit → status |
 | `wt` | #worktree | Set up worktrees for parallel tasks |
 | `?` | #help | List shortcuts, keywords, entry skills |

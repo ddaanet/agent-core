@@ -9,7 +9,7 @@ allowed-tools: Task, Read, Write, Bash, Grep, Glob, WebSearch, WebFetch, Skill
 user-invocable: true
 continuation:
   cooperative: true
-  default-exit: ["/handoff --commit", "/commit"]
+  default-exit: ["/handoff", "/commit"]
 ---
 
 # Design Implementation Approach
@@ -162,7 +162,7 @@ As the **final action** of this skill:
    - Execution-ready (B gate or C.5): prepend `/inline plans/<job> execute`
    - Not execution-ready / Simple: no prepend
 3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
-4. If no continuation: default-exit — `/handoff --commit` → `/commit`
+4. If no continuation: default-exit — `/handoff` → `/commit`
 
 **CRITICAL:** Do NOT include continuation metadata in Task tool prompts.
 

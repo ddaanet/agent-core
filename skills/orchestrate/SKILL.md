@@ -4,7 +4,7 @@ description: Execute prepared runbooks with plan-specific agents and mechanical 
 user-invocable: true
 continuation:
   cooperative: true
-  default-exit: ["/handoff --commit", "/commit"]
+  default-exit: ["/handoff", "/commit"]
 ---
 
 # Execute Runbooks

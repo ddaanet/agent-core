@@ -85,6 +85,9 @@ Parallel (N tasks, independent):
 
 Show largest independent group only. Omit section if no parallelism detected.
 
+**Next task when in-tree blocked:**
+When all in-tree tasks are blocked and the first actionable work is a worktree task, "Next" should point to worktree setup (`wt <task-name>` or `wt` for parallel group), not the worktree task's execution command. The execution command belongs inside the worktree session.
+
 **Graceful degradation:**
 - Missing session.md or no In-tree Tasks → "No in-tree tasks." In a worktree (`git rev-parse --git-dir` ≠ `.git`), append: "Branch complete."
 - Old format (no metadata) → use defaults (sonnet, no restart)
@@ -225,6 +228,9 @@ Tasks pre-classified as needing worktree isolation. Classification is static —
 - `#status` annotates with `→ slug` from `_worktree ls` (filesystem state, not session.md)
 - `x` does not pick up worktree tasks — use `wt` to dispatch
 - Handoff preserves Worktree Tasks section as-is (not trimmed)
+- Main is worktree-tasks-only — only trivial fixes belong in In-tree. Plan absence does not qualify for in-tree
+
+**Worktree-tasks-only scope:** This rule governs task classification (pending tasks in session.md), not interactive skill execution. Maintenance skills (`/codify`, `/commit`, `/handoff`) run on main regardless.
 
 **Restart triggers:** Session restart is required for structural changes that load at startup:
 - Sub-agent definitions (`.claude/agents/`)

@@ -52,3 +52,11 @@
 **Correct pattern:** The check-for-existing-tools rule applies even when a procedure names a specific function. Specific instructions must not suppress general operational rules.
 
 **Evidence:** execute-rule.md said "Call `list_plans()`" → agent wrote ad-hoc Python → 3 failed attempts guessing attributes → 6-turn guided diagnostic. CLI existed the whole time (`claudeutils _worktree ls`).
+
+### Validation Output Integrity
+
+**Anti-pattern:** `just precommit 2>&1 | tail -N` or similar truncation. Validation output is a diagnostic signal — truncation hides the pass/fail/xfail summary that distinguishes real failures from expected noise.
+
+**Correct pattern:** Show full output from `just precommit`, `just test`, `just lint`. If output is too long, fix the recipe (add `--quiet`, `--tb=no`), not the consumption site.
+
+**Evidence:** xfail traceback from `pytest-markdown-report` was visually identical to real failure. Agent tailed output, missed summary counts, ran unnecessary `git stash` diagnostic cycle.

@@ -11,3 +11,9 @@ Domain-specific patterns for the codification process.
 ## When Splitting Decision Files With Memory-Index Entries
 
 The validation script handles relocating memory-index entries to match their actual file locations. Do not manually move entries between sections during a file split — add new entries, let the validator handle section assignment.
+
+## When Codify Triggers On A Feature Branch
+
+Do not codify on feature branches. Decision file changes create merge conflicts with main's decisions/. Defer codification to main.
+
+The soft-limit age calculation should account for branch context — learnings on feature branches are younger in main-branch terms.

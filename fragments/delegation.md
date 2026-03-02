@@ -55,3 +55,17 @@ When a delegate is interrupted, stopped, or returns incomplete results — resum
 Remind task agents to use specialized tools:
 - **Grep** not `grep`/`rg`, **Glob** not `find`, **Read** not `cat`/`head`/`tail`
 - **Write** not `echo >`, **Edit** not `sed`/`awk`
+
+### Recall Artifacts For Sub-Agents
+
+Two distinct artifact models: pipeline recall (grouped entries with relevance notes, selective resolution by consuming skill) vs sub-agent injection (flat trigger list, resolve-all, no selection judgment). Sub-agents have no parent context — they can't judge which entries are relevant, making selective resolution circular.
+
+**Anti-pattern:** Using pipeline-model artifacts (grouped, relevance notes) when the consumer is a delegated agent.
+
+**Correct pattern:** Flat list for sub-agent injection. Delegation prompt says "resolve ALL entries." Pipeline model for skills/orchestrators that have topic context for selection.
+
+### Multi-Step Verification
+
+**Anti-pattern:** Splitting post-step verification into separate tool calls. First check (git status) returns clean → exit momentum suppresses second check (just lint). The sub-agent "already linted" rationalization makes the skip feel safe.
+
+**Correct pattern:** Single compound command (`git status --porcelain && just lint`). Compound commands can't be partially executed — both run or neither.

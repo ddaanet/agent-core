@@ -13,3 +13,9 @@
 - Reference, never recap — assume the reader has context
 - Let results speak — no framing around visible output
 - Commit to answers — no hedging qualifiers
+
+### Observable State Reporting
+
+**Do not filter observable state.** `git status --porcelain` non-empty means dirty — report it as dirty. The user decides what's ignorable.
+
+**Anti-pattern:** Rationalizing known-dirty files (`.claude/settings.json`) as "always dirty" and therefore ignorable. The file may be dirty for a different reason than assumed.

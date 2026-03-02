@@ -1101,6 +1101,71 @@ def generate_corrector_agent(
     return result
 
 
+_TDD_ROLES = [
+    (
+        "tester",
+        "tdd",
+        "haiku",
+        "Execute RED phase: write failing tests for {name}",
+        "blue",
+        "\n\n---\n\n**Role: Tester.** Your responsibility is test quality — write precise, behavioral RED phase tests that fail for the right reason and guide implementation.\n",
+    ),
+    (
+        "implementer",
+        "tdd",
+        "haiku",
+        "Execute GREEN phase: implement code for {name}",
+        "green",
+        "\n\n---\n\n**Role: Implementer.** Your responsibility is implementation — write minimal code to make RED phase tests pass without over-engineering.\n",
+    ),
+    (
+        "test-corrector",
+        "corrector",
+        "sonnet",
+        "Review test quality for {name}",
+        "yellow",
+        "\n\n---\n\n**Scope enforcement:** Review ONLY the test files provided. Focus on test quality, behavioral assertions, and RED phase correctness. Do NOT flag implementation details.\n",
+    ),
+    (
+        "impl-corrector",
+        "corrector",
+        "sonnet",
+        "Review implementation for {name}",
+        "cyan",
+        "\n\n---\n\n**Scope enforcement:** Review ONLY the implementation files provided. Focus on correctness, minimal implementation, and GREEN phase compliance. Do NOT flag test details.\n",
+    ),
+]
+
+
+def generate_tdd_agents(
+    runbook_name,
+    agents_dir,
+    design_content=None,
+    outline_content=None,
+    plan_context="",
+) -> list[str]:
+    """Generate 4 TDD ping-pong agents: tester, implementer, test-corrector, impl-corrector.
+
+    Returns list of created agent file paths.
+    """
+    created = []
+    plan_ctx_section = _build_plan_context_section(
+        design_content, outline_content, plan_context
+    )
+    for role, baseline_type, model, desc_template, color, footer in _TDD_ROLES:
+        name = f"{runbook_name}-{role}"
+        description = desc_template.format(name=runbook_name)
+        frontmatter = f'---\nname: {name}\ndescription: {description}\nmodel: {model}\ncolor: {color}\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+        content = (
+            frontmatter + read_baseline_agent(baseline_type) + plan_ctx_section + footer
+        )
+        agent_file = agents_dir / f"{name}.md"
+        agent_file.write_text(content)
+        print(f"✓ Created agent: {agent_file}")
+        created.append(str(agent_file))
+    return created
+
+
 def extract_step_metadata(content, default_model=None):
     """Extract execution metadata from step/cycle content.
 
@@ -1615,21 +1680,23 @@ def validate_and_create(
         outline_content = (
             outline_path.read_text().strip() if outline_path.exists() else None
         )
-    agent_content = generate_task_agent(
-        runbook_name,
-        runbook_type=runbook_type,
-        plan_context=plan_context,
-        design_content=design_content,
-        outline_content=outline_content,
-        model=model,
-    )
-    agent_file = agents_dir / f"{task_agent_name}.md"
-    agent_file.write_text(agent_content)
-    print(f"✓ Created agent: {agent_file}")
-    created_agents.append(str(agent_file))
+    # Pure TDD runbooks use the 4-agent ping-pong model — no general task agent
+    if runbook_type != "tdd":
+        agent_content = generate_task_agent(
+            runbook_name,
+            runbook_type=runbook_type,
+            plan_context=plan_context,
+            design_content=design_content,
+            outline_content=outline_content,
+            model=model,
+        )
+        agent_file = agents_dir / f"{task_agent_name}.md"
+        agent_file.write_text(agent_content)
+        print(f"✓ Created agent: {agent_file}")
+        created_agents.append(str(agent_file))
 
     non_inline_count = sum(1 for t in phase_types.values() if t != "inline")
-    if non_inline_count > 1:
+    if runbook_type != "tdd" and non_inline_count > 1:
         corrector_content = generate_corrector_agent(
             runbook_name,
             design_content=design_content,
@@ -1640,6 +1707,17 @@ def validate_and_create(
         corrector_file.write_text(corrector_content)
         print(f"✓ Created agent: {corrector_file}")
         created_agents.append(str(corrector_file))
+
+    has_tdd_phase = any(t == "tdd" for t in phase_types.values())
+    if has_tdd_phase:
+        tdd_files = generate_tdd_agents(
+            runbook_name,
+            agents_dir,
+            design_content=design_content,
+            outline_content=outline_content,
+            plan_context=plan_context,
+        )
+        created_agents.extend(tdd_files)
 
     for phase_num, ptype in sorted(phase_types.items()):
         if ptype == "inline":

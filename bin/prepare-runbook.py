@@ -1296,6 +1296,7 @@ def generate_default_orchestrator(
     default_model=None,
     phase_agents=None,
     phase_types=None,
+    phase_preambles=None,
 ):
     """Generate default orchestrator instructions.
 
@@ -1310,6 +1311,7 @@ def generate_default_orchestrator(
         default_model: Optional fallback model from frontmatter
         phase_agents: Optional dict of phase_num -> agent_name
         phase_types: Optional dict of phase_num -> type_str
+        phase_preambles: Optional dict of phase_num -> preamble text for summaries
 
     Returns:
         Orchestrator plan content with phase boundary markers
@@ -1393,8 +1395,12 @@ def generate_default_orchestrator(
         max_turns = 30
 
         if exec_mode == "inline":
-            # Inline phases marked as Execution: inline for backward compatibility
-            content += f"Execution: inline (Phase {phase})\n"
+            # Inline phases: - INLINE | Phase N | —
+            marker = "PHASE_BOUNDARY" if is_phase_boundary else ""
+            content += f"- INLINE | Phase {phase} | —"
+            if marker:
+                content += f" | {marker}"
+            content += "\n"
         elif is_phase_boundary:
             content += f"- {file_stem}.md | Phase {phase} | {resolved_model} | {max_turns} | PHASE_BOUNDARY\n"
         else:
@@ -1416,6 +1422,22 @@ def generate_default_orchestrator(
         content += "\n## Phase Files\n\n"
         for p in all_phases:
             content += f"- Phase file: {phase_dir}/runbook-phase-{p}.md\n"
+
+    # Add phase summaries section
+    all_phases = sorted(set(item[0] for item in items))
+    if all_phases:
+        content += "\n## Phase Summaries\n"
+        for p in all_phases:
+            preamble = (phase_preambles or {}).get(p, "")
+            summary_title = f"Phase {p}"
+            if preamble:
+                first_line = preamble.strip().split("\n")[0]
+                summary_title = first_line
+            else:
+                summary_title = f"Phase {p}:"
+            content += f"\n### {summary_title}\n\n"
+            content += "- IN: (placeholder)\n"
+            content += "- OUT: (placeholder)\n"
 
     return content
 

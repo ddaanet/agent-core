@@ -1360,6 +1360,21 @@ def generate_cycle_file(cycle, runbook_path, default_model=None, phase_context="
     return "\n".join(header_lines)
 
 
+def split_cycle_content(content):
+    """Split cycle content into RED (test) and GREEN (impl) parts.
+
+    Returns (red_content, green_content). Splits on the "**GREEN Phase:**"
+    marker. If marker absent, returns (content, "") — caller treats as unsplit.
+    """
+    marker = "**GREEN Phase:**"
+    idx = content.find(marker)
+    if idx == -1:
+        return content, ""
+    red_part = content[:idx].rstrip()
+    green_part = content[idx:]
+    return red_part, green_part
+
+
 def generate_default_orchestrator(
     runbook_name,
     cycles=None,
@@ -1731,21 +1746,34 @@ def validate_and_create(
             return str(Path(phase_dir) / f"runbook-phase-{phase_num}.md")
         return str(runbook_path)
 
-    # Generate step files for TDD cycles
+    # Generate step files for TDD cycles (split into test + impl files)
     if cycles:
         for cycle in sorted(cycles, key=lambda c: (c["major"], c["minor"])):
-            step_file_name = f"step-{cycle['major']}-{cycle['minor']}.md"
-            step_path = steps_dir / step_file_name
             cycle_model = phase_models.get(cycle["major"], model)
             source_path = _source_for_phase(cycle["major"])
-            step_file_content = generate_cycle_file(
-                cycle,
-                source_path,
-                cycle_model,
-                phase_context=preambles.get(cycle["major"], ""),
+            pctx = preambles.get(cycle["major"], "")
+            red_content, green_content = split_cycle_content(cycle["content"])
+            base = f"step-{cycle['major']}-{cycle['minor']}"
+
+            # Write test file (RED phase content)
+            red_cycle = {**cycle, "content": red_content}
+            test_path = steps_dir / f"{base}-test.md"
+            test_path.write_text(
+                generate_cycle_file(
+                    red_cycle, source_path, cycle_model, phase_context=pctx
+                )
             )
-            step_path.write_text(step_file_content)
-            print(f"✓ Created step: {step_path}")
+            print(f"✓ Created step: {test_path}")
+
+            # Write impl file (GREEN phase content)
+            green_cycle = {**cycle, "content": green_content}
+            impl_path = steps_dir / f"{base}-impl.md"
+            impl_path.write_text(
+                generate_cycle_file(
+                    green_cycle, source_path, cycle_model, phase_context=pctx
+                )
+            )
+            print(f"✓ Created step: {impl_path}")
 
     # Generate step files for general steps
     if sections["steps"]:

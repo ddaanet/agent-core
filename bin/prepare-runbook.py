@@ -1018,6 +1018,32 @@ def generate_phase_agent(
     return result
 
 
+def generate_task_agent(
+    runbook_name,
+    runbook_type="general",
+    plan_context="",
+    model=None,
+) -> str:
+    """Compose single task agent for the entire runbook.
+
+    Uses artisan.md for general/mixed runbooks, test-driver.md for pure TDD.
+    Appends scope enforcement and clean tree footers.
+    """
+    baseline_type = "tdd" if runbook_type == "tdd" else "general"
+    name = f"{runbook_name}-task"
+    description = f"Execute steps for {runbook_name}"
+    model_line = f"model: {model}\n" if model is not None else ""
+    frontmatter = f'---\nname: {name}\ndescription: {description}\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+
+    result = frontmatter
+    result += read_baseline_agent(baseline_type)
+    if plan_context:
+        result += "\n---\n# Runbook-Specific Context\n\n" + plan_context
+    result += "\n\n---\n\n**Scope enforcement:** Execute ONLY the step file assigned by the orchestrator. Do not read or execute other step files.\n"
+    result += "\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
+    return result
+
+
 def extract_step_metadata(content, default_model=None):
     """Extract execution metadata from step/cycle content.
 
@@ -1477,45 +1503,29 @@ def validate_and_create(
     full_content = "".join(full_content_parts)
     phase_types = detect_phase_types(full_content)
 
-    # Determine total non-inline phases for naming
-    non_inline_phases = sorted(p for p, t in phase_types.items() if t != "inline")
-    total_non_inline = len(non_inline_phases)
-
-    # Generate per-phase agent files
+    # Generate single task agent for all non-inline phases
     plan_context = sections["common_context"] or ""
     preambles = phase_preambles or {}
     phase_agents: dict = {}
     created_agents = []
 
+    task_agent_name = f"{runbook_name}-task"
+    agent_content = generate_task_agent(
+        runbook_name,
+        runbook_type=runbook_type,
+        plan_context=plan_context,
+        model=model,
+    )
+    agent_file = agents_dir / f"{task_agent_name}.md"
+    agent_file.write_text(agent_content)
+    print(f"✓ Created agent: {agent_file}")
+    created_agents.append(str(agent_file))
+
     for phase_num, ptype in sorted(phase_types.items()):
         if ptype == "inline":
             phase_agents[phase_num] = "(orchestrator-direct)"
-            continue
-
-        # Resolve model for this phase
-        phase_model = phase_models.get(phase_num) or model
-
-        # For single non-inline phase, use no -pN suffix
-        if total_non_inline == 1:
-            agent_name = f"crew-{runbook_name}"
         else:
-            agent_name = f"crew-{runbook_name}-p{phase_num}"
-
-        phase_agents[phase_num] = agent_name
-
-        agent_content = generate_phase_agent(
-            runbook_name,
-            phase_num=phase_num,
-            phase_type=ptype,
-            plan_context=plan_context,
-            phase_context=preambles.get(phase_num, ""),
-            model=phase_model,
-            total_phases=total_non_inline,
-        )
-        agent_file = agents_dir / f"{agent_name}.md"
-        agent_file.write_text(agent_content)
-        print(f"✓ Created agent: {agent_file}")
-        created_agents.append(str(agent_file))
+            phase_agents[phase_num] = task_agent_name
 
     def _source_for_phase(phase_num: int) -> str:
         """Resolve provenance path to actual phase file or canonical runbook."""

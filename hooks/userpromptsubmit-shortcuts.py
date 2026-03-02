@@ -31,6 +31,11 @@ try:
 except ImportError:
     yaml = None  # type: ignore
 
+try:
+    from claudeutils.recall.topic_matcher import match_topics
+except ImportError:
+    match_topics = None  # type: ignore
+
 # Tier 1: Command shortcuts (exact match)
 COMMANDS = {
     "s": (
@@ -1020,6 +1025,22 @@ def main() -> None:
             "(subagent_type='claude-code-guide') for authoritative Claude Code documentation."
         )
         system_parts.append("Agent instructed to use claude-code-guide")
+
+    # Tier 2.75: Topic injection — ambient recall from memory-index keywords
+    if match_topics:
+        try:
+            project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "")
+            if project_dir:
+                project_path = Path(project_dir)
+                index_path = project_path / "agents" / "memory-index.md"
+                if index_path.exists():
+                    topic_result = match_topics(prompt, index_path, project_path)
+                    if topic_result.context:
+                        context_parts.append(topic_result.context)
+                    if topic_result.system_message:
+                        system_parts.append(topic_result.system_message)
+        except Exception:
+            pass  # Topic injection must never break the hook
 
     # Tier 3: Continuation parsing — combines with Tier 2.5 guards
     try:

@@ -1406,25 +1406,41 @@ def generate_default_orchestrator(
     Returns:
         Orchestrator plan content with phase boundary markers
     """
-    # Build unified item list: (phase, minor, file_stem, display, execution_mode)
+    # Build unified item list: (phase, minor, file_stem, display, execution_mode, role)
     # execution_mode: 'steps' for agent-delegated, 'inline' for orchestrator-direct
+    # role: 'TEST' or 'IMPLEMENT' for TDD cycles, None for general steps/inline
     # Also build lookup for max_turns extraction from content
     items = []
     max_turns_lookup = {}
     if cycles:
         for cycle in cycles:
-            file_stem = f"step-{cycle['major']}-{cycle['minor']}"
+            base_stem = f"step-{cycle['major']}-{cycle['minor']}"
+            metadata = extract_step_metadata(cycle.get("content", ""))
+            turns = metadata.get("max_turns", _DEFAULT_MAX_TURNS)
+            test_stem = f"{base_stem}-test"
+            impl_stem = f"{base_stem}-impl"
+            items.append(
+                (
+                    cycle["major"],
+                    cycle["minor"] - 0.5,
+                    test_stem,
+                    f"Cycle {cycle['number']} TEST",
+                    "steps",
+                    "TEST",
+                )
+            )
             items.append(
                 (
                     cycle["major"],
                     cycle["minor"],
-                    file_stem,
-                    f"Cycle {cycle['number']}",
+                    impl_stem,
+                    f"Cycle {cycle['number']} IMPLEMENT",
                     "steps",
+                    "IMPLEMENT",
                 )
             )
-            metadata = extract_step_metadata(cycle.get("content", ""))
-            max_turns_lookup[file_stem] = metadata.get("max_turns", _DEFAULT_MAX_TURNS)
+            max_turns_lookup[test_stem] = turns
+            max_turns_lookup[impl_stem] = turns
     if steps:
         step_phases = step_phases or {}
         for step_num in steps:
@@ -1432,7 +1448,7 @@ def generate_default_orchestrator(
             phase = step_phases.get(step_num, int(parts[0]) if parts else 1)
             minor = int(parts[1]) if len(parts) > 1 else 0
             file_stem = f"step-{step_num.replace('.', '-')}"
-            items.append((phase, minor, file_stem, f"Step {step_num}", "steps"))
+            items.append((phase, minor, file_stem, f"Step {step_num}", "steps", None))
             metadata = extract_step_metadata(
                 steps[step_num]
                 if isinstance(steps[step_num], str)
@@ -1448,6 +1464,7 @@ def generate_default_orchestrator(
                     f"phase-{phase_num}",
                     f"Phase {phase_num} (inline)",
                     "inline",
+                    None,
                 )
             )
 
@@ -1475,6 +1492,9 @@ def generate_default_orchestrator(
 **Corrector Agent:** {corrector_agent}
 **Type:** {runbook_type}
 """
+    if runbook_type == "tdd":
+        content += f"**Tester Agent:** {runbook_name}-tester\n"
+        content += f"**Implementer Agent:** {runbook_name}-implementer\n"
 
     if phase_agents is not None:
         all_phases = sorted({item[0] for item in items})
@@ -1489,7 +1509,7 @@ def generate_default_orchestrator(
 
     content += "\n## Steps\n\n"
 
-    for i, (phase, minor, file_stem, display, exec_mode) in enumerate(items):
+    for i, (phase, minor, file_stem, display, exec_mode, role) in enumerate(items):
         is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
         resolved_model = (phase_models or {}).get(phase, default_model)
         max_turns = max_turns_lookup.get(file_stem, _DEFAULT_MAX_TURNS)
@@ -1501,15 +1521,16 @@ def generate_default_orchestrator(
             if marker:
                 content += f" | {marker}"
             content += "\n"
-        elif is_phase_boundary:
-            content += f"- {file_stem}.md | Phase {phase} | {resolved_model} | {max_turns} | PHASE_BOUNDARY\n"
         else:
-            content += (
-                f"- {file_stem}.md | Phase {phase} | {resolved_model} | {max_turns}\n"
-            )
+            entry = f"- {file_stem}.md | Phase {phase} | {resolved_model} | {max_turns}"
+            if role:
+                entry += f" | {role}"
+            if is_phase_boundary:
+                entry += " | PHASE_BOUNDARY"
+            content += entry + "\n"
 
     if phase_models is not None or default_model is not None:
-        all_phases = sorted({phase for phase, _, _, _, _ in items})
+        all_phases = sorted({phase for phase, *_ in items})
         resolved = phase_models or {}
         content += "\n## Phase Models\n\n"
         for p in all_phases:

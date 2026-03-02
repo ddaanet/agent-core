@@ -58,6 +58,9 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 - Report errors explicitly (never suppress)
 """
 
+# Default max_turns budget per step when not specified in step content.
+_DEFAULT_MAX_TURNS = 30
+
 
 def parse_recall_artifact(artifact_path):
     """Parse recall artifact, extracting entries with optional phase tags.
@@ -1135,7 +1138,7 @@ def extract_step_metadata(content, default_model=None):
     if max_turns_match:
         metadata["max_turns"] = int(max_turns_match.group(1))
     else:
-        metadata["max_turns"] = 30
+        metadata["max_turns"] = _DEFAULT_MAX_TURNS
 
     return metadata
 
@@ -1341,7 +1344,7 @@ def generate_default_orchestrator(
                 )
             )
             metadata = extract_step_metadata(cycle.get("content", ""))
-            max_turns_lookup[file_stem] = metadata.get("max_turns", 30)
+            max_turns_lookup[file_stem] = metadata.get("max_turns", _DEFAULT_MAX_TURNS)
     if steps:
         step_phases = step_phases or {}
         for step_num in steps:
@@ -1355,7 +1358,7 @@ def generate_default_orchestrator(
                 if isinstance(steps[step_num], str)
                 else str(steps[step_num])
             )
-            max_turns_lookup[file_stem] = metadata.get("max_turns", 30)
+            max_turns_lookup[file_stem] = metadata.get("max_turns", _DEFAULT_MAX_TURNS)
     if inline_phases:
         for phase_num in sorted(inline_phases):
             items.append(
@@ -1369,12 +1372,12 @@ def generate_default_orchestrator(
             )
 
     if not items:
-        # Return header only if no items
-        content = f"# Orchestrator Plan: {runbook_name}\n\n"
-        content += "**Agent:** " + f"{runbook_name}-task\n"
-        content += "**Corrector Agent:** none\n"
-        content += "**Type:** general\n"
-        return content
+        return (
+            f"# Orchestrator Plan: {runbook_name}\n\n"
+            f"**Agent:** {runbook_name}-task\n"
+            "**Corrector Agent:** none\n"
+            "**Type:** general\n"
+        )
 
     items.sort(key=lambda x: (x[0], x[1]))
 
@@ -1409,7 +1412,7 @@ def generate_default_orchestrator(
     for i, (phase, minor, file_stem, display, exec_mode) in enumerate(items):
         is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
         resolved_model = (phase_models or {}).get(phase, default_model)
-        max_turns = max_turns_lookup.get(file_stem, 30)
+        max_turns = max_turns_lookup.get(file_stem, _DEFAULT_MAX_TURNS)
 
         if exec_mode == "inline":
             # Inline phases: - INLINE | Phase N | —
@@ -1445,14 +1448,7 @@ def generate_default_orchestrator(
     if all_phases:
         content += "\n## Phase Summaries\n"
         for p in all_phases:
-            preamble = (phase_preambles or {}).get(p, "")
-            summary_title = f"Phase {p}"
-            if preamble:
-                first_line = preamble.strip().split("\n")[0]
-                summary_title = first_line
-            else:
-                summary_title = f"Phase {p}:"
-            content += f"\n### {summary_title}\n\n"
+            content += f"\n### Phase {p}:\n\n"
             content += "- IN: (placeholder)\n"
             content += "- OUT: (placeholder)\n"
 

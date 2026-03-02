@@ -1314,18 +1314,6 @@ def generate_default_orchestrator(
     Returns:
         Orchestrator plan content with phase boundary markers
     """
-    if phase_agents:
-        header_text = "Execute steps using per-phase agents."
-    else:
-        header_text = f"Execute steps sequentially using crew-{runbook_name} agent."
-
-    content = f"""# Orchestrator Plan: {runbook_name}
-
-{header_text}
-
-Stop on error and escalate to sonnet for diagnostic/fix.
-"""
-
     # Build unified item list: (phase, minor, file_stem, display, execution_mode)
     # execution_mode: 'steps' for agent-delegated, 'inline' for orchestrator-direct
     items = []
@@ -1362,9 +1350,29 @@ Stop on error and escalate to sonnet for diagnostic/fix.
             )
 
     if not items:
+        # Return header only if no items
+        content = f"# Orchestrator Plan: {runbook_name}\n\n"
+        content += "**Agent:** " + f"{runbook_name}-task\n"
+        content += "**Corrector Agent:** none\n"
+        content += "**Type:** general\n"
         return content
 
     items.sort(key=lambda x: (x[0], x[1]))
+
+    # Determine runbook type: 'tdd' if cycles present, 'general' otherwise
+    runbook_type = "tdd" if cycles else "general"
+
+    # Detect number of unique phases for corrector agent field
+    unique_phases = len(set(item[0] for item in items))
+    corrector_agent = f"{runbook_name}-corrector" if unique_phases > 1 else "none"
+
+    # Build structured header
+    content = f"""# Orchestrator Plan: {runbook_name}
+
+**Agent:** {runbook_name}-task
+**Corrector Agent:** {corrector_agent}
+**Type:** {runbook_type}
+"""
 
     if phase_agents is not None:
         all_phases = sorted({item[0] for item in items})
@@ -1377,36 +1385,22 @@ Stop on error and escalate to sonnet for diagnostic/fix.
             content += f"| {p} | {agent} | {ptype} |\n"
         content += "\n"
 
-    content += "\n## Step Execution Order\n\n"
+    content += "\n## Steps\n\n"
 
     for i, (phase, minor, file_stem, display, exec_mode) in enumerate(items):
         is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
-        agent_line = ""
-        if phase_agents is not None:
-            agent_name = phase_agents.get(phase, f"crew-{runbook_name}-p{phase}")
-            agent_line = f"Agent: {agent_name}\n"
+        resolved_model = (phase_models or {}).get(phase, default_model)
+        max_turns = 30
+
         if exec_mode == "inline":
-            content += f"## {file_stem} ({display})\n"
-            if agent_line:
-                content += agent_line
-            content += "Execution: inline\n"
-            if is_phase_boundary:
-                content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
-            else:
-                content += "\n"
+            # Inline phases marked as Execution: inline for backward compatibility
+            content += f"Execution: inline (Phase {phase})\n"
         elif is_phase_boundary:
-            content += f"## {file_stem} ({display}) — PHASE_BOUNDARY\n"
-            if agent_line:
-                content += agent_line
-            content += f"Execution: steps/{file_stem}.md\n"
-            if phase_dir is not None:
-                content += f"Phase file: {phase_dir}/runbook-phase-{phase}.md\n"
-            content += f"[Last item of phase {phase}. Insert functional review checkpoint before Phase {phase + 1}.]\n\n"
+            content += f"- {file_stem}.md | Phase {phase} | {resolved_model} | {max_turns} | PHASE_BOUNDARY\n"
         else:
-            content += f"## {file_stem} ({display})\n"
-            if agent_line:
-                content += agent_line
-            content += f"Execution: steps/{file_stem}.md\n\n"
+            content += (
+                f"- {file_stem}.md | Phase {phase} | {resolved_model} | {max_turns}\n"
+            )
 
     if phase_models is not None or default_model is not None:
         all_phases = sorted({phase for phase, _, _, _, _ in items})
@@ -1415,6 +1409,13 @@ Stop on error and escalate to sonnet for diagnostic/fix.
         for p in all_phases:
             model = resolved.get(p, default_model)
             content += f"- Phase {p}: {model}\n"
+
+    # Add phase file paths if provided
+    if phase_dir is not None:
+        all_phases = sorted({item[0] for item in items})
+        content += "\n## Phase Files\n\n"
+        for p in all_phases:
+            content += f"- Phase file: {phase_dir}/runbook-phase-{p}.md\n"
 
     return content
 

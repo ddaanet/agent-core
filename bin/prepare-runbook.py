@@ -978,6 +978,8 @@ def read_baseline_agent(runbook_type="general"):
     """
     if runbook_type == "tdd":
         baseline_path = Path("agent-core/agents/test-driver.md")
+    elif runbook_type == "corrector":
+        baseline_path = Path("agent-core/agents/corrector.md")
     else:
         baseline_path = Path("agent-core/agents/artisan.md")
 
@@ -1063,6 +1065,42 @@ def generate_task_agent(
 
     result += "\n\n---\n\n**Scope enforcement:** Execute ONLY the step file assigned by the orchestrator. Do not read or execute other step files.\n"
     result += "\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
+    return result
+
+
+def generate_corrector_agent(
+    runbook_name,
+    design_content=None,
+    outline_content=None,
+    plan_context="",
+) -> str:
+    """Compose corrector agent for multi-phase runbooks.
+
+    Always uses corrector.md baseline and model: sonnet. Embeds same Plan
+    Context (design + outline) as task agent.
+    """
+    name = f"{runbook_name}-corrector"
+    description = f"Review phase checkpoint for {runbook_name}"
+    frontmatter = f'---\nname: {name}\ndescription: {description}\nmodel: sonnet\ncolor: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+
+    result = frontmatter
+    result += read_baseline_agent("corrector")
+
+    design_text = (
+        design_content if design_content is not None else "No design document found"
+    )
+    outline_text = (
+        outline_content if outline_content is not None else "No outline found"
+    )
+    plan_ctx_parts = [
+        f"## Design\n\n{design_text}",
+        f"## Runbook Outline\n\n{outline_text}",
+    ]
+    if plan_context:
+        plan_ctx_parts.append(f"## Common Context\n\n{plan_context}")
+    result += "\n---\n# Plan Context\n\n" + "\n\n".join(plan_ctx_parts)
+
+    result += "\n\n---\n\n**Scope enforcement:** Review ONLY the phase checkpoint described in your prompt. Do not proactively review other phases.\n"
     return result
 
 
@@ -1559,6 +1597,19 @@ def validate_and_create(
     agent_file.write_text(agent_content)
     print(f"✓ Created agent: {agent_file}")
     created_agents.append(str(agent_file))
+
+    non_inline_count = sum(1 for t in phase_types.values() if t != "inline")
+    if non_inline_count > 1:
+        corrector_content = generate_corrector_agent(
+            runbook_name,
+            design_content=design_content,
+            outline_content=outline_content,
+            plan_context=plan_context,
+        )
+        corrector_file = agents_dir / f"{runbook_name}-corrector.md"
+        corrector_file.write_text(corrector_content)
+        print(f"✓ Created agent: {corrector_file}")
+        created_agents.append(str(corrector_file))
 
     for phase_num, ptype in sorted(phase_types.items()):
         if ptype == "inline":

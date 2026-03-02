@@ -40,6 +40,8 @@ When you receive warnings, evaluate:
 2. **Complexity:** Simple extraction? New abstraction needed?
 3. **Impact:** Localized change? Cross-cutting concern?
 
+**Factorization before splitting:** Before splitting a module, check for duplicate code, unused helpers, repeated kwargs patterns. Extract shared logic first — the module may shrink below threshold without splitting. Splitting a sloppy file produces two sloppy files.
+
 **If common refactoring (single module, straightforward):**
 - Design refactoring approach
 - Choose execution tier (1: script, 2: steps, 3: runbook)
@@ -95,6 +97,16 @@ Determine handler (self vs opus) using escalation table.
 - Escalate to opus
 - Await opus design
 - Execute opus-designed approach
+
+### Step 2b: Deslop Pass
+
+Before any structural refactoring (splitting, extracting):
+- Remove slop: trivial docstrings, narration comments, premature abstractions, unnecessary guards
+- Factor duplication: extract shared code into helpers, eliminate copy-paste
+- Remove dead code: unused imports, functions, variables — don't preserve for reference
+- Token economy: reference file paths in reports, don't repeat file contents
+
+Only THEN proceed to structural changes. Deslop first reduces the need for splitting.
 
 ### Step 3: Execute Refactoring
 
@@ -183,6 +195,8 @@ git commit --amend --no-edit
 
 Do not provide summary, explanation, or commentary beyond the status line.
 
+**Resume support:** If interrupted mid-refactoring, the orchestrator may resume this agent (same agent ID). On resume: continue from current state, don't restart analysis. Fresh launch only if >15 messages exchanged (context near-full).
+
 ## Tool Usage Constraints
 
 - **Read:** Access file contents
@@ -197,45 +211,6 @@ Do not provide summary, explanation, or commentary beyond the status line.
 - Never suppress errors
 - Use project tmp/ for temporary files
 - Use specialized tools over bash for file operations
-
-## Example Execution
-
-**Input from orchestrator:**
-```
-Quality check warnings from Cycle 2.5:
-- src/auth/login.py:45: Function too complex (complexity 15)
-- src/auth/login.py:78: Function too long (52 lines)
-```
-
-**Refactor agent evaluation:**
-```
-Scope: Single module (src/auth/login.py)
-Complexity: Extract helper functions
-Impact: Localized to login.py
-
-Assessment: Common refactoring (handle with sonnet)
-Tier: 2 (simple steps - 3 extractions)
-```
-
-**Execution:**
-```
-Step 1: Extract validate_credentials() helper
-- Edit login.py lines 45-52 → new function
-- Verify: just precommit passes
-
-Step 2: Extract handle_login_success() helper
-- Edit login.py lines 78-95 → new function
-- Verify: just precommit passes
-
-Step 3: Simplify main login() function
-- Edit login.py to call helpers
-- Verify: just precommit passes
-```
-
-**Return:**
-```
-success
-```
 
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: orchestrate
-description: Execute prepared runbooks with weak orchestrator pattern
-allowed-tools: Task, Read, Write, Bash(git:*), Skill
+description: Execute prepared runbooks with plan-specific agents and mechanical verification gates
 user-invocable: true
 continuation:
   cooperative: true
@@ -10,291 +9,243 @@ continuation:
 
 # Execute Runbooks
 
-Execute prepared runbooks using the weak orchestrator pattern. This skill coordinates step-by-step execution through plan-specific agents, handling progress tracking, error escalation, and report management.
+Execute prepared runbooks through plan-specific agents. Sonnet orchestrator coordinates step dispatch, post-step verification, remediation, and phase boundary reviews. All common context (design, outline) lives in agent definitions — orchestrator provides file references only.
 
-**Prerequisites:** Runbook must be prepared with `/runbook` skill (artifacts created by `prepare-runbook.py`)
+**Prerequisites:** Runbook prepared with `/runbook` (artifacts created by `prepare-runbook.py`)
 
-## Execution Process
-
-### 1. Verify Runbook Preparation
-
-**Check for required artifacts:**
+## 1. Verify Runbook Preparation
 
 ```bash
-# Verify required artifacts
-ls -1 plans/<runbook-name>/orchestrator-plan.md
-ls -1 .claude/agents/crew-<runbook-name>*.md
-
-# Step files may be absent for all-inline runbooks
-ls -1 plans/<runbook-name>/steps/step-*.md 2>/dev/null || true
+ls -1 plans/<name>/orchestrator-plan.md
+ls -1 .claude/agents/<name>-*.md 2>/dev/null
+ls -1 plans/<name>/steps/step-*.md 2>/dev/null || true
 ```
 
 **Required artifacts:**
-- Orchestrator plan: `plans/<runbook-name>/orchestrator-plan.md`
-- Per-phase agents: `.claude/agents/crew-<runbook-name>[-p<N>].md` (one per non-inline phase; unused for all-inline runbooks)
-- Step files: `plans/<runbook-name>/steps/step-*.md` (may be absent for all-inline runbooks)
+- `plans/<name>/orchestrator-plan.md` — structured step list
+- `.claude/agents/<name>-task.md` — general plans (or `<name>-tester.md` + `<name>-implementer.md` for TDD)
+- `.claude/agents/<name>-corrector.md` — multi-phase plans only
+- `plans/<name>/steps/step-*.md` — absent only for all-inline runbooks
 
-**If orchestrator plan missing:** ERROR, stop execution.
+Missing orchestrator plan → STOP. Missing step files with only `INLINE` entries → valid all-inline runbook. Missing step files with step references → STOP.
 
-**If step files missing but orchestrator plan has only `Execution: inline` entries:** Valid — all-inline runbook, proceed.
+## 2. Read Orchestrator Plan
 
-**If step files missing and orchestrator plan references step files:** ERROR, stop execution.
+```
+Read plans/<name>/orchestrator-plan.md
+```
 
-### 2. Read Orchestrator Plan
+**Parse header fields:**
+- `**Agent:**` — task agent name (or `none` for TDD)
+- `**Corrector Agent:**` — corrector name (or `none` for single-phase)
+- `**Type:**` — `tdd` or `general`
+- `**Tester Agent:**` / `**Implementer Agent:**` — TDD only
 
-**Load orchestration instructions:**
+**Parse `## Steps` section:** Pipe-delimited entries:
+- General: `- step-N-M.md | Phase P | model | max_turns [| PHASE_BOUNDARY]`
+- TDD: `- step-N-M-test.md | Phase P | model | max_turns | TEST [| PHASE_BOUNDARY]`
+- TDD: `- step-N-M-impl.md | Phase P | model | max_turns | IMPLEMENT [| PHASE_BOUNDARY]`
+- Inline: `- INLINE | Phase P | —`
+
+**Execution mode:** STRICT SEQUENTIAL. One Task call per message. Steps modify shared state — parallel dispatch causes race conditions.
+
+## 3. Execute Steps
+
+For each entry in the `## Steps` list, branch by type:
+
+### 3.0 Inline Execution (D-6)
+
+Read the phase content from `plans/<name>/runbook-phase-P.md`. Execute edits directly — no Task dispatch.
+
+1. Read target files, apply edits (Read → Edit/Write)
+2. `just precommit` — fix failures, escalate if unfixable
+3. Phase boundary review: ≤5 net lines across ≤2 files → self-review via `git diff`; larger → delegate to corrector (Section 3.5)
+4. Commit inline phase changes
+
+### 3.1 General Step Dispatch (D-2)
+
+```
+Task tool:
+  subagent_type: [from **Agent:** header field]
+  prompt: "Execute step from: plans/<name>/steps/<step-file>"
+  model: [from step entry model field]
+  max_turns: [from step entry max_turns field]
+  description: "Step N-M: [step file name]"
+```
+
+Orchestrator provides file reference only. Agent definition caches design + outline — no inline content in prompt.
+
+After dispatch → Section 3.3 (verification).
+
+### 3.2 TDD Cycle Dispatch (D-5)
+
+Per TDD cycle (paired TEST + IMPLEMENT entries):
+
+**Step A — Dispatch tester:**
+```
+Task tool:
+  subagent_type: [from **Tester Agent:** header]
+  prompt: "Execute test spec from: plans/<name>/steps/<test-file>"
+  model: [from step entry]
+  max_turns: [from step entry]
+```
+Save agent ID for resume.
+
+**Step B — RED gate:**
+```bash
+agent-core/skills/orchestrate/scripts/verify-red.sh <test_file_path>
+```
+- Exit 0 (test fails) → RED confirmed, proceed
+- Exit 1 (test passes) → resume tester to fix, or escalate
+
+**Step C — Test corrector:**
+Dispatch `<name>-test-corrector` with changed files. Review test quality. If UNFIXABLE → STOP.
+
+**Step D — Dispatch implementer:**
+```
+Task tool:
+  subagent_type: [from **Implementer Agent:** header]
+  prompt: "Execute implementation from: plans/<name>/steps/<impl-file>"
+  model: [from step entry]
+  max_turns: [from step entry]
+```
+Save agent ID for resume.
+
+**Step E — GREEN gate:**
+```bash
+just test && agent-core/skills/orchestrate/scripts/verify-step.sh
+```
+- Both pass → proceed
+- Test failure → resume implementer to fix, or escalate
+- Dirty tree / precommit failure → remediate (Section 3.4)
+
+**Step F — Impl corrector:**
+Dispatch `<name>-impl-corrector` with changed files. Review implementation quality. If UNFIXABLE → STOP.
+
+**Agent resume across cycles:** Resume tester for subsequent TEST steps (preserves test context). Resume implementer for subsequent IMPLEMENT steps (preserves codebase context). Fresh agent if >15 messages. Correctors are never resumed — each review is independent.
+
+### 3.3 Post-Step Verification
 
 ```bash
-Read plans/<runbook-name>/orchestrator-plan.md
+agent-core/skills/orchestrate/scripts/verify-step.sh
 ```
 
-**Key information:**
-- Execution order (sequential vs parallel)
-- Error escalation rules
-- Progress tracking requirements
-- Report location patterns
+- Exit 0 (CLEAN) → proceed to phase boundary check (Section 3.5)
+- Exit 1 (DIRTY/SUBMODULE/PRECOMMIT) → remediate (Section 3.4)
 
-### 3. Execute Steps (Sequential, With Inline Handling)
+### 3.4 Post-Step Remediation (D-3)
 
-**For each item in the orchestrator plan:**
-
-**Check execution mode:** Read the orchestrator plan entry for the current item.
-- If `Execution: inline` → follow Section 3.0 (inline execution) below
-- If `Execution: steps/step-N-M.md` → follow Section 3.1 (agent delegation) below
-
-**3.0 Inline execution (orchestrator-direct):**
-
-The orchestrator reads the phase content from the runbook and executes edits directly — no Task agent dispatch.
-
-1. Read the runbook phase content. The orchestrator plan entry names the phase; locate the corresponding phase heading in the original runbook file (`plans/<runbook-name>/runbook.md`) or the phase file in a phase-grouped directory.
-2. Execute each instruction: Read target file → Edit/Write as specified
-3. After all instructions in the inline phase complete, run `just precommit` to validate
-   - If precommit fails: fix issues, re-run precommit, then proceed
-   - If unfixable: STOP and escalate to user
-4. **Phase boundary review:** Apply review-requirement proportionality (from `agent-core/fragments/review-requirement.md`):
-   - ≤5 net lines across ≤2 files, additive → self-review (`git diff`, verify correctness before commit)
-   - Larger → commit first, then delegate to corrector with standard checkpoint template
-5. Commit the inline phase changes (if not already committed in step 4)
-6. Proceed to next item
-
-**3.1 Invoke plan-specific agent with step file:**
-
+**Resume step agent** — it has context for fixing its own issues:
 ```
-Use Task tool with:
-- subagent_type: [from orchestrator plan "Agent:" field for this step]
-- prompt: "Execute step from: plans/<runbook-name>/steps/step-N.md
-
-CRITICAL: For session handoffs, use /handoff-haiku, NOT /handoff."
-- description: "Execute step N of runbook"
-- model: [from step file header "Execution Model" field]
+Task tool (resume):
+  resume: [saved agent ID]
+  prompt: "Your step left uncommitted changes or precommit failures. Fix and commit."
 ```
+Skip resume if agent exchanged >15 messages (context near-full).
 
-**CRITICAL — Model selection:** The orchestrator itself may run on haiku, but step agents use the model specified in each step file's **header metadata**. The `**Execution Model**` field appears in the step file header (lines before the `---` separator), placed there by `prepare-runbook.py`. Read the header section of each step file to extract the model — do NOT search the full body. Do NOT default all steps to haiku.
+**If resume fails or skipped** — delegate recovery to fresh sonnet agent:
+```
+Task tool:
+  subagent_type: "artisan"
+  model: sonnet
+  prompt: "[step file reference, git diff, git status, error output] Fix lint and commit issues."
+```
+Recovery is mechanical (lint-clean + git-clean). No design/outline context needed.
 
-**3.2 Check execution result:**
+**After any remediation** — append RCA pending task:
+`- [ ] **RCA: Step N dirty tree** — [brief description] | sonnet`
 
-**Success indicators:**
-- Agent returns completion message
-- Report file created at expected path
-- No error messages
+**If recovery fails** — escalate to user with full context (Section 4).
 
-**Failure indicators:**
-- Agent reports error
-- Missing report file
-- Unexpected results mentioned
+### 3.5 Phase Boundary
 
-**3.3 Post-step verification and phase boundary:**
+Read the phase field from the next step entry in the orchestrator plan (pipe-delimited format). If phase changes (or final step):
 
-<!-- DESIGN RULE: Every step must open with a tool call (Read/Bash/Glob).
-     Prose-only steps get skipped. See: plans/reflect-rca-prose-gates/outline.md -->
-
-After agent returns success:
 ```bash
-git status --porcelain
-```
-- If clean (no output): proceed to phase boundary check below
-- If ANY output: **STOP orchestration immediately**
-  - Report: "Step N left uncommitted changes: [file list]"
-  - Do NOT proceed regardless of whether changes look expected
-  - Do NOT clean up on behalf of the step
-  - Escalate to user
-
-**There are no exceptions.** Every step must leave a clean tree. If a step generates output files, the step itself must commit them. Report files, artifacts, and any other changes must be committed by the step agent before returning success.
-
-**Phase boundary check:**
-
-Read the next step file header (first 10 lines of `plans/<name>/steps/step-{N+1}.md`).
-
-Compare its `Phase:` field with the current step's phase.
-
-IF same phase: proceed to 3.4.
-
-IF phase changed (or no next step = final phase): delegate to corrector for checkpoint.
-
-Do NOT proceed to next step until checkpoint completes.
-
-**Checkpoint delegation:**
-1. Run precommit first: `just precommit` to ground "Changed files" in reality
-2. Gather context: design path, changed files (`git diff --name-only`), phase scope
-3. Delegate to corrector with structured template (see below)
-4. Read report: if UNFIXABLE issues, STOP and escalate to user
-5. If all fixed: commit checkpoint, continue to next phase
-
-**Checkpoint delegation template:**
-
-```
-Phase N Checkpoint
-
-**First:** Run `just dev`, fix any failures, commit.
-
-**Scope:**
-- IN: [list methods/features implemented in this phase]
-- OUT: [list methods/features for future phases — do NOT flag these]
-
-**Review (read changed files):**
-- Test quality: behavior-focused, meaningful assertions, edge cases
-- Implementation quality: clarity, patterns, appropriate abstractions
-- Integration: duplication across phase methods, pattern consistency
-- Design anchoring: verify implementation matches design decisions
-
-**Design reference:** plans/<name>/design.md
-**Review recall:** `Bash: claudeutils _recall resolve plans/<name>/recall-artifact.md` — if present, resolved content contains review-relevant entries: common review failures, quality anti-patterns, over-escalation patterns. If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md`, identify review-relevant entries, batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`.
-**Changed files:** [file list from git diff --name-only]
-
-Fix all issues. Write report to: plans/<name>/reports/checkpoint-N-review.md
-Return filepath or "UNFIXABLE: [description]"
+just precommit
+git diff --name-only
 ```
 
-**Template enforcement:**
-- **MUST provide structured IN/OUT scope** (bulleted lists, NOT prose-only)
-- **MUST run precommit first** to ensure changed files reflect actual state
-- **MUST include changed files list** from `git diff --name-only`
-- **MUST specify requirements** from design or phase objective
-- **Fail loudly if template fields empty:** If IN list is empty, OUT list is empty, Changed files is missing, or Requirements has no bullet items — STOP orchestration and report which field is incomplete before delegating to corrector
-
-**Rationale:** Prevents confabulating future-phase issues. Review validates current filesystem, not execution-time state — without explicit OUT scope, reviewer may flag unimplemented features from future phases as missing.
-
-**Final checkpoint lifecycle audit (D-7):**
-When the phase boundary is the final one (no next step), add to checkpoint delegation:
-- Audit stateful objects created during implementation (MERGE_HEAD, staged content, lock files, temporary files)
-- Verify every code path that exits success has cleared active state
-- Same methodology as cross-cutting exit code audit: trace all code paths, flag any that exit success with state still active
-- Add to review scope: `"Lifecycle audit: verify all stateful objects cleared on success paths"`
-
-**3.4 On success:**
-- Log step completion
-- Continue to next step
-
-**3.5 On failure:**
-- Read error report
-- Determine escalation level
-- Escalate according to orchestrator plan
-
-### 4. Error Escalation
-
-**Acceptance criteria:** Every escalation resolution must satisfy all three criteria defined in `agent-core/fragments/escalation-acceptance.md`: precommit passes, tree clean, output validates against step criteria.
-
-**Rollback:** When escalation fails (fix attempt causes new issues or acceptance criteria unmet), revert to last clean commit before the failed step. See `escalation-acceptance.md` for protocol.
-
-**Timeout:** Set `max_turns: 150` on all Task tool invocations for step agents. This catches spinning agents (high activity, no convergence) without false positives against calibration data (p99=73, max=129 from 938 clean observations). Duration timeout (~600s for hanging agents) requires Claude Code support and is deferred.
-
-**Escalation levels (from orchestrator metadata):**
-
-**Level 1: Haiku → Sonnet (Refactor Agent)**
-- Triggers: Quality check warnings from TDD cycles
-- Action: Delegate to refactor agent (sonnet) for evaluation and execution
-- Refactor agent evaluates severity and handles or escalates to opus
-- If refactor agent fixes: Resume execution
-- If refactor agent escalates: Route to opus or user as appropriate
-
-**Level 1b: Haiku → Sonnet (Diagnostic)**
-- Triggers: Unexpected file states, permission errors, script execution failures
-- Action: Delegate diagnostic and fix to sonnet task agent
-- If sonnet fixes: Resume execution
-- If sonnet cannot fix: Escalate to user
-
-**Level 2: Sonnet → User**
-- Triggers: Design decisions needed, architectural changes required, sonnet cannot resolve
-- Action: Stop execution, provide detailed context to user
-- Report: What failed, what was attempted, what's needed to proceed
-
-**Escalation prompt template:**
-
+**Delegate checkpoint to corrector:**
 ```
-Diagnose and fix the following error from step N:
+Task tool:
+  subagent_type: [from **Corrector Agent:** header]
+  prompt: |
+    Phase P Checkpoint
 
+    **First:** Run `just dev`, fix any failures, commit.
+
+    **Scope:**
+    - IN: [from Phase Summaries section]
+    - OUT: [from Phase Summaries section]
+
+    **Design reference:** plans/<name>/design.md
+    **Review recall:** `Bash: claudeutils _recall resolve plans/<name>/recall-artifact.md` — if present, resolved content contains review-relevant entries. If absent or resolve fails: Read `memory-index.md`, identify review-relevant entries, batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`.
+    **Changed files:** [git diff --name-only output]
+
+    Fix all issues. Write report to: plans/<name>/reports/checkpoint-P-review.md
+    Return filepath or "UNFIXABLE: [description]"
+```
+
+Read report. If UNFIXABLE → STOP and escalate. Otherwise commit checkpoint, continue.
+
+**Single-phase plans** (corrector = `none`): delegate to generic `corrector` with file references to design and outline (non-cached, read on demand).
+
+**Final checkpoint** adds lifecycle audit: verify all stateful objects (MERGE_HEAD, staged content, lock files) cleared on success paths.
+
+**Template enforcement:** IN/OUT scope lists must be non-empty. Changed files list must be present. Empty fields → STOP before delegating.
+
+## 4. Error Escalation (D-4)
+
+**2-level model:** Sonnet orchestrator handles execution-level issues (missing files, failed commands, dirty tree). Design-level issues escalate to user.
+
+**Escalation prompt:**
+```
+Diagnose and fix from step N:
 Error: [error message]
 Step: [step objective]
-Expected: [what should have happened]
-Observed: [what actually happened]
-
-Read error report at: [report-path]
-Read step definition at: [step-path]
-
-If fixable: Make necessary corrections and report success
-If not fixable: Explain why and what user input is needed
-
-Write diagnostic to: plans/<runbook-name>/reports/step-N-diagnostic.md
+Read step at: [step-path]
+Write diagnostic to: plans/<name>/reports/step-N-diagnostic.md
 Return: "fixed: [summary]" or "blocked: [what's needed]"
 ```
 
-### 5. Progress Tracking
+**Acceptance criteria:** Every resolution must pass precommit, leave clean tree, validate against step criteria.
 
-Log each step completion to stdout: "Step N: [name] - completed" or "Step N: [name] - failed: [error]"
+**Execution bounds:** `max_turns` from orchestrator plan step entry — prevents spinning agents. Duration timeout deferred (platform gap).
 
-**Detailed tracking:** Read `references/progress-tracking.md` for optional progress file format with timestamps and report references.
+## 5. Progress Tracking
 
-### 6. Completion
+Log each step: `Step N-M: [name] - completed` or `Step N-M: [name] - failed: [error]`
 
-**When all steps successful:**
+**Detailed tracking:** Read `references/progress-tracking.md` for optional progress file format.
 
-1. Delegate to corrector for quality review
-   - Write report to `plans/<name>/reports/review.md`
-2. If runbook frontmatter has `type: tdd`:
-   - Delegate to tdd-auditor for process analysis
-   - Write report to `plans/<name>/reports/tdd-process-review.md`
-3. Report overall success with report links
-4. **Deliverable review assessment:**
-   - If orchestration produced production artifacts (skills, agents, fragments, code): create pending task for deliverable review
-   - Task format: `- [ ] **Deliverable review: <plan-name>** — \`/deliverable-review plans/<plan>\` | opus | restart`
-   - Restart required: orchestration may produce new agents requiring session restart
-   - Do NOT run deliverable review inline — needs opus + cross-project context + restart
-5. **Lifecycle entry:** If `plans/<plan-name>/` exists, append to `plans/<plan-name>/lifecycle.md`:
+## 6. Completion
+
+```bash
+git diff --name-only $(git log --all --oneline | tail -1 | cut -d' ' -f1)..HEAD
+```
+
+1. **Final review:** If multi-phase, phase boundary correctors already ran. Single-phase: delegate to generic `corrector` with design reference and changed files. Report to `plans/<name>/reports/review.md`.
+2. **TDD audit:** If `**Type:** tdd`, delegate to `tdd-auditor`. Report to `plans/<name>/reports/tdd-process-review.md`.
+3. **Cleanup:** Delete plan-specific agents:
+   ```bash
+   rm -f .claude/agents/<name>-task.md .claude/agents/<name>-corrector.md
+   rm -f .claude/agents/<name>-tester.md .claude/agents/<name>-implementer.md
+   rm -f .claude/agents/<name>-test-corrector.md .claude/agents/<name>-impl-corrector.md
    ```
-   {YYYY-MM-DD} review-pending — /orchestrate
-   ```
-   Create the file if it doesn't exist. Date: today's ISO date.
-6. Default-exit: `/handoff --commit` → `/commit`
+4. **Deliverable review:** Create pending task:
+   `- [ ] **Deliverable review: <name>** — /deliverable-review plans/<name> | opus | restart`
+5. **Lifecycle entry:** Append `{YYYY-MM-DD} review-pending — /orchestrate` to `plans/<name>/lifecycle.md`.
 
-**When blocked:**
-- Report which step failed
-- Provide error context
-- List completed steps
-- Indicate what's needed to proceed
+## Continuation
 
-## Weak Orchestrator Pattern
+This skill is **cooperative** with the continuation passing system. After completion, check Skill args suffix for `[CONTINUATION: ...]` transport. No continuation → use default-exit from frontmatter.
 
-**Delegate, don't decide.** All decisions made during planning (/runbook). Execution is mechanical: invoke agent, check result, continue or escalate. Trust agent success reports. Never second-guess, validate, or modify steps during execution. Inline phases (Section 3.0) are orchestrator-executed by design; this principle applies to agent-delegated steps (Section 3.1).
-
-## Constraints
-
-- **Task** for plan-specific agents, **Read** for artifacts/reports, **Edit** for inline phases, **Bash** for git only
-- Sequential unless orchestrator plan explicitly allows parallel
-- Never skip steps, even if they seem unnecessary
-- Always escalate failures with full context
-
-## Common Scenarios
-
-**For scenario handling** (unexpected results, missing reports, repeated failures, agent hangs, context ceiling resume): Read `references/common-scenarios.md`.
-
-## Continuation Protocol
-
-This skill is **cooperative** with the continuation passing system. After orchestration completes, check Skill args suffix for `[CONTINUATION: ...]` transport. If no continuation, use default-exit from frontmatter.
-
-**Full protocol and examples:** Read `references/continuation.md`.
+**Full protocol:** Read `references/continuation.md`.
 
 ## References
 
-**Example Orchestrator Plan**: `plans/unification/orchestrator-plan.md`
-**Example Plan-Specific Agent**: `.claude/agents/unification-task.md`
-**Example Step Files**: `plans/unification/steps/step-2-*.md`
+- **Verification scripts:** `agent-core/skills/orchestrate/scripts/verify-step.sh`, `verify-red.sh`
+- **Common scenarios:** `references/common-scenarios.md`
+- **Progress tracking:** `references/progress-tracking.md`
+- **Continuation:** `references/continuation.md`

@@ -97,7 +97,7 @@ Show largest independent group only. Omit section if no parallelism detected.
 - `#execute` or `x`
 
 **Behavior:**
-Smart execute: resume in-progress task if exists, otherwise start first in-tree task. Invoke the task's backtick command — via Skill tool for `/skill` commands, or Bash for script commands. Do not reinterpret the command or implement the work directly. Skips blocked (`[!]`), failed (`[✗]`), and canceled (`[–]`) tasks. Worktree tasks require `wt` setup — `x` does not pick them up. Drive to completion, then stop.
+Smart execute: resume in-progress task if exists, otherwise start first in-tree task. Invoke the task's backtick command — via Skill tool for `/skill` commands, or Bash for script commands. Do not reinterpret the command or implement the work directly. Skips blocked (`[!]`), failed (`[†]`), and canceled (`[-]`) tasks. Worktree tasks require `wt` setup — `x` does not pick them up. Drive to completion, then stop.
 
 ### MODE 3: EXECUTE+COMMIT
 
@@ -187,8 +187,8 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 - `- [x]` = Completed task
 - `- [>]` = In-progress task (optional, or use bold/italics)
 - `- [!]` = Blocked (waiting on signal — see `task-failure-lifecycle.md`)
-- `- [✗]` = Failed (terminal, system-detected — requires user decision)
-- `- [–]` = Canceled (terminal, user-initiated)
+- `- [†]` = Failed (terminal, system-detected — requires user decision)
+- `- [-]` = Canceled (terminal, user-initiated)
 
 **Task metadata format:**
 

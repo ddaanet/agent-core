@@ -98,11 +98,24 @@ Assess work type alongside complexity — independent dimension (XP spike/story,
 | **investigation** | `plans/reports/`, `agents/decisions/` | Accuracy, completeness, grounding |
 | **ephemeral** | `tmp/` | None |
 
+#### Composite Task Decomposition
+
+**Before classifying:** If the input artifact contains multiple discrete work items (deliverable review findings, PR review comments, multi-FR implementation list), decompose into per-item classification:
+
+1. Enumerate all discrete items from the input artifact
+2. Produce a per-item behavioral code check (does this item add functions, change logic paths, or add conditional branches?)
+3. Classify each item individually — any item that is behavioral elevates to Moderate minimum for that item
+4. Route per-item: Simple items can batch, Moderate+ items get their own routing
+
+**Why:** Batch classification averages heterogeneous items. A behavioral code change gets masked by non-behavioral siblings in the same group.
+
+**Distinct from companion tasks** (below). Companion tasks handle explicit user bundling in session notes. Composite tasks handle implicit bundling by the task's nature — multiple items within a single input artifact.
+
 #### Classification Gate
 
 **Structural check (D+B anchor):** If classification is borderline Simple/Moderate, verify with `Glob` or `Grep` on affected files to confirm whether behavioral code changes are involved (new functions, changed logic paths).
 
-Produce this classification block before routing (visible output, not internal reasoning):
+Produce this classification block before routing (visible output, not internal reasoning — **per-item if composite**):
 - **Classification:** [Simple / Moderate / Complex / Defect]
 - **Implementation certainty:** [High / Moderate / Low] — is approach known?
 - **Requirement stability:** [High / Moderate / Low] — are FRs mechanism-specified?

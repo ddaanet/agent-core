@@ -612,6 +612,7 @@ def extract_sections(content):
     """
     sections = {
         "common_context": None,
+        "outline": None,
         "steps": {},
         "step_phases": {},
         "inline_phases": {},
@@ -686,6 +687,8 @@ def extract_sections(content):
             content_str = "\n".join(current_content).strip()
             if current_section == "common_context":
                 sections["common_context"] = content_str
+            elif current_section == "outline":
+                sections["outline"] = content_str
             elif current_section == "orchestrator":
                 sections["orchestrator"] = content_str
             elif current_section == "step":
@@ -708,6 +711,9 @@ def extract_sections(content):
             # Detect new section
             if line == "## Common Context":
                 current_section = "common_context"
+                current_content = [line]
+            elif line == "## Outline":
+                current_section = "outline"
                 current_content = [line]
             elif line.startswith("## Step "):
                 match = re.match(step_pattern, line)
@@ -1023,12 +1029,13 @@ def generate_task_agent(
     runbook_type="general",
     plan_context="",
     design_content=None,
+    outline_content=None,
     model=None,
 ) -> str:
     """Compose single task agent for the entire runbook.
 
     Uses artisan.md for general/mixed runbooks, test-driver.md for pure TDD.
-    Embeds design.md under # Plan Context / ## Design. Appends scope enforcement
+    Embeds design and outline under # Plan Context. Appends scope enforcement
     and clean tree footers.
     """
     baseline_type = "tdd" if runbook_type == "tdd" else "general"
@@ -1043,7 +1050,13 @@ def generate_task_agent(
     design_text = (
         design_content if design_content is not None else "No design document found"
     )
-    plan_ctx_parts = [f"## Design\n\n{design_text}"]
+    outline_text = (
+        outline_content if outline_content is not None else "No outline found"
+    )
+    plan_ctx_parts = [
+        f"## Design\n\n{design_text}",
+        f"## Runbook Outline\n\n{outline_text}",
+    ]
     if plan_context:
         plan_ctx_parts.append(f"## Common Context\n\n{plan_context}")
     result += "\n---\n# Plan Context\n\n" + "\n\n".join(plan_ctx_parts)
@@ -1519,13 +1532,27 @@ def validate_and_create(
     created_agents = []
 
     task_agent_name = f"{runbook_name}-task"
-    design_path = Path(runbook_path).parent / "design.md"
+    plan_dir = Path(runbook_path).parent
+    design_path = plan_dir / "design.md"
     design_content = design_path.read_text() if design_path.exists() else None
+    outline_section = sections.get("outline")
+    if outline_section:
+        # Strip the "## Outline" header line — content only
+        outline_lines = outline_section.splitlines()
+        outline_content = (
+            "\n".join(outline_lines[1:]).strip() if len(outline_lines) > 1 else ""
+        )
+    else:
+        outline_path = plan_dir / "outline.md"
+        outline_content = (
+            outline_path.read_text().strip() if outline_path.exists() else None
+        )
     agent_content = generate_task_agent(
         runbook_name,
         runbook_type=runbook_type,
         plan_context=plan_context,
         design_content=design_content,
+        outline_content=outline_content,
         model=model,
     )
     agent_file = agents_dir / f"{task_agent_name}.md"

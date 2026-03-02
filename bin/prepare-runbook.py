@@ -2,7 +2,7 @@
 """Prepare execution artifacts from runbook markdown files.
 
 Transforms a runbook markdown file (or phase-grouped directory) into:
-1. Per-phase agents (.claude/agents/crew-<runbook-name>[-p<N>].md)
+1. Plan-specific agents (.claude/agents/<name>-task.md, <name>-corrector.md)
 2. Step/Cycle files (plans/<runbook-name>/steps/)
 3. Orchestrator plan (plans/<runbook-name>/orchestrator-plan.md)
 
@@ -18,7 +18,8 @@ Usage:
 Example (File):
     prepare-runbook.py plans/foo/runbook.md
     # Creates:
-    #   .claude/agents/crew-foo.md (uses artisan.md baseline)
+    #   .claude/agents/foo-task.md (uses artisan.md baseline)
+    #   .claude/agents/foo-corrector.md (multi-phase plans only)
     #   plans/foo/steps/step-*.md
     #   plans/foo/orchestrator-plan.md
 
@@ -29,7 +30,7 @@ Example (Phase Directory):
 Example (TDD):
     prepare-runbook.py plans/tdd-test/runbook.md
     # Creates:
-    #   .claude/agents/crew-tdd-test.md (uses test-driver.md baseline)
+    #   .claude/agents/tdd-test-task.md (uses test-driver.md baseline)
     #   plans/tdd-test/steps/cycle-*.md
     #   plans/tdd-test/orchestrator-plan.md
 """
@@ -1026,6 +1027,25 @@ def generate_phase_agent(
     return result
 
 
+def _build_plan_context_section(
+    design_content=None, outline_content=None, plan_context=""
+) -> str:
+    """Assemble # Plan Context block for agent definitions."""
+    design_text = (
+        design_content if design_content is not None else "No design document found"
+    )
+    outline_text = (
+        outline_content if outline_content is not None else "No outline found"
+    )
+    parts = [
+        f"## Design\n\n{design_text}",
+        f"## Runbook Outline\n\n{outline_text}",
+    ]
+    if plan_context:
+        parts.append(f"## Common Context\n\n{plan_context}")
+    return "\n---\n# Plan Context\n\n" + "\n\n".join(parts)
+
+
 def generate_task_agent(
     runbook_name,
     runbook_type="general",
@@ -1044,24 +1064,11 @@ def generate_task_agent(
     name = f"{runbook_name}-task"
     description = f"Execute steps for {runbook_name}"
     model_line = f"model: {model}\n" if model is not None else ""
-    frontmatter = f'---\nname: {name}\ndescription: {description}\n{model_line}color: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+    frontmatter = f'---\nname: {name}\ndescription: {description}\n{model_line}color: blue\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
 
     result = frontmatter
     result += read_baseline_agent(baseline_type)
-
-    design_text = (
-        design_content if design_content is not None else "No design document found"
-    )
-    outline_text = (
-        outline_content if outline_content is not None else "No outline found"
-    )
-    plan_ctx_parts = [
-        f"## Design\n\n{design_text}",
-        f"## Runbook Outline\n\n{outline_text}",
-    ]
-    if plan_context:
-        plan_ctx_parts.append(f"## Common Context\n\n{plan_context}")
-    result += "\n---\n# Plan Context\n\n" + "\n\n".join(plan_ctx_parts)
+    result += _build_plan_context_section(design_content, outline_content, plan_context)
 
     result += "\n\n---\n\n**Scope enforcement:** Execute ONLY the step file assigned by the orchestrator. Do not read or execute other step files.\n"
     result += "\n**Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.\n"
@@ -1081,26 +1088,13 @@ def generate_corrector_agent(
     """
     name = f"{runbook_name}-corrector"
     description = f"Review phase checkpoint for {runbook_name}"
-    frontmatter = f'---\nname: {name}\ndescription: {description}\nmodel: sonnet\ncolor: cyan\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
+    frontmatter = f'---\nname: {name}\ndescription: {description}\nmodel: sonnet\ncolor: yellow\ntools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]\n---\n'
 
     result = frontmatter
     result += read_baseline_agent("corrector")
+    result += _build_plan_context_section(design_content, outline_content, plan_context)
 
-    design_text = (
-        design_content if design_content is not None else "No design document found"
-    )
-    outline_text = (
-        outline_content if outline_content is not None else "No outline found"
-    )
-    plan_ctx_parts = [
-        f"## Design\n\n{design_text}",
-        f"## Runbook Outline\n\n{outline_text}",
-    ]
-    if plan_context:
-        plan_ctx_parts.append(f"## Common Context\n\n{plan_context}")
-    result += "\n---\n# Plan Context\n\n" + "\n\n".join(plan_ctx_parts)
-
-    result += "\n\n---\n\n**Scope enforcement:** Review ONLY the phase checkpoint described in your prompt. Do not proactively review other phases.\n"
+    result += "\n\n---\n\n**Scope enforcement:** Review ONLY the phase checkpoint described in your prompt. Focus on changed files provided. Do NOT flag items explicitly listed as OUT of scope.\n"
     return result
 
 
@@ -1712,7 +1706,7 @@ def main() -> None:
         print(file=sys.stderr)
         print("Transforms runbook markdown into execution artifacts:", file=sys.stderr)
         print(
-            "  - Per-phase agents (.claude/agents/crew-<runbook-name>[-p<N>].md)",
+            "  - Plan-specific agents (.claude/agents/<name>-task.md, <name>-corrector.md)",
             file=sys.stderr,
         )
         print("  - Step/Cycle files (plans/<runbook-name>/steps/)", file=sys.stderr)

@@ -10,17 +10,20 @@ When executing runbooks via `/orchestrate`, the orchestrator coordinates but doe
 
 Match model cost to task complexity:
 
-- **Haiku:** Execution, implementation, simple edits, file operations
-- **Sonnet:** Default for most work, balanced capability
-- **Opus:** Architecture, complex design decisions only
-
-Never use opus for straightforward execution tasks.
+- **Sonnet:** Default for all execution tasks
+- **Opus:** Architecture, complex design decisions, prose artifacts (skills, fragments, agents)
 
 ### Pre-Delegation Checkpoint
 
 Before invoking Task tool, verify:
-- Model matches stated plan (haiku/sonnet/opus)
+- Model matches stated plan (sonnet/opus)
 - If changing model, state reason explicitly
+
+### File Reference Dispatch
+
+Dispatch with file reference: `"Execute step from: plans/<name>/steps/step-N.md"` — agent reads step file for full context. Do not inline step content in prompt.
+
+Plan-specific agents (`{name}-task`, `{name}-corrector`) embed design and outline context via agent definition. Prompt needs only the step file reference — Plan Context is baked into the agent definition.
 
 ### Quiet Execution Pattern
 

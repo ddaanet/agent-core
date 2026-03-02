@@ -1105,7 +1105,7 @@ def extract_step_metadata(content, default_model=None):
     in the step body content. Extracted model is normalized to
     lowercase and validated against known models.
 
-    Returns: dict with extracted metadata (model, report_path)
+    Returns: dict with extracted metadata (model, report_path, max_turns)
     """
     valid_models = {"haiku", "sonnet", "opus"}
     metadata = {}
@@ -1129,6 +1129,13 @@ def extract_step_metadata(content, default_model=None):
     report_match = re.search(r"\*\*Report Path\*\*:\s*`?([^`\n]+)`?", content)
     if report_match:
         metadata["report_path"] = report_match.group(1).strip()
+
+    # Extract Max Turns (case-insensitive)
+    max_turns_match = re.search(r"\*\*Max Turns\*\*:\s*(\d+)", content, re.IGNORECASE)
+    if max_turns_match:
+        metadata["max_turns"] = int(max_turns_match.group(1))
+    else:
+        metadata["max_turns"] = 30
 
     return metadata
 
@@ -1318,7 +1325,9 @@ def generate_default_orchestrator(
     """
     # Build unified item list: (phase, minor, file_stem, display, execution_mode)
     # execution_mode: 'steps' for agent-delegated, 'inline' for orchestrator-direct
+    # Also build lookup for max_turns extraction from content
     items = []
+    max_turns_lookup = {}
     if cycles:
         for cycle in cycles:
             file_stem = f"step-{cycle['major']}-{cycle['minor']}"
@@ -1331,6 +1340,8 @@ def generate_default_orchestrator(
                     "steps",
                 )
             )
+            metadata = extract_step_metadata(cycle.get("content", ""))
+            max_turns_lookup[file_stem] = metadata.get("max_turns", 30)
     if steps:
         step_phases = step_phases or {}
         for step_num in steps:
@@ -1339,6 +1350,12 @@ def generate_default_orchestrator(
             minor = int(parts[1]) if len(parts) > 1 else 0
             file_stem = f"step-{step_num.replace('.', '-')}"
             items.append((phase, minor, file_stem, f"Step {step_num}", "steps"))
+            metadata = extract_step_metadata(
+                steps[step_num]
+                if isinstance(steps[step_num], str)
+                else str(steps[step_num])
+            )
+            max_turns_lookup[file_stem] = metadata.get("max_turns", 30)
     if inline_phases:
         for phase_num in sorted(inline_phases):
             items.append(
@@ -1392,7 +1409,7 @@ def generate_default_orchestrator(
     for i, (phase, minor, file_stem, display, exec_mode) in enumerate(items):
         is_phase_boundary = (i + 1 == len(items)) or (items[i + 1][0] != phase)
         resolved_model = (phase_models or {}).get(phase, default_model)
-        max_turns = 30
+        max_turns = max_turns_lookup.get(file_stem, 30)
 
         if exec_mode == "inline":
             # Inline phases: - INLINE | Phase N | —

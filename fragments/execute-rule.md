@@ -73,7 +73,6 @@ Unscheduled Plans:
 After listing in-tree and worktree tasks, analyze for parallelizable groups:
 - No shared plan directory between tasks
 - No logical dependency (check Blockers/Gotchas section)
-- Compatible model tier (all sonnet, or all same)
 
 If a group of 2+ independent tasks exists, append:
 

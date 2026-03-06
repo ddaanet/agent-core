@@ -18,7 +18,7 @@ echo -n "/orchestrate {name}" | pbcopy
 
 **Step 3: Follow §Continuation**
 
-Default-exit invokes `/handoff --commit` → `/commit` — hands off session context (marks planning complete, adds orchestration as pending), then commits. Next pending task instructs: "Restart session, paste `/orchestrate {name}` from clipboard."
+Default-exit invokes `/handoff` → `/commit` — hands off session context (marks planning complete, adds orchestration as pending), then commits. Next pending task instructs: "Restart session, paste `/orchestrate {name}` from clipboard."
 
 **Why restart:** prepare-runbook.py creates a new agent in `.claude/agents/`. Claude Code discovers agents at session start.
 

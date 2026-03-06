@@ -244,7 +244,7 @@ Fix inline before promotion. If unfixable, fall through to Phase 1 expansion (li
 If outline contains `## Execution Model` section with dispatch protocol:
 
 1. Do not promote to runbook format, do not run prepare-runbook.py -- the outline IS the execution plan
-2. Commit outline, then tail-call `/handoff --commit`
+2. Commit outline, then tail-call `/handoff` → `/commit`
 3. Set task command in session.md: orchestrate from outline + recall artifact per Execution Model and Recall Injection sections
 
 **Otherwise -- promote outline to runbook:**

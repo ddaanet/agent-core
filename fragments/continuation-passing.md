@@ -21,7 +21,7 @@ Cooperative skills declare continuation support in YAML frontmatter. "Cooperativ
 ```yaml
 continuation:
   cooperative: true
-  default-exit: ["/handoff --commit", "/commit"]
+  default-exit: ["/handoff", "/commit"]
 ```
 
 - `cooperative: true` — Skill understands continuation protocol
@@ -54,7 +54,7 @@ As the **final action** of this skill:
 
 **Subsequent invocations** (skill → skill): Suffix in Skill args parameter:
 ```
-[CONTINUATION: /runbook, /orchestrate, /handoff --commit, /commit]
+[CONTINUATION: /runbook, /orchestrate, /handoff, /commit]
 ```
 
 Bracket-delimited, comma-separated entries. Each entry: `/skill optional-args`.
@@ -70,11 +70,11 @@ Continuation metadata must never reach sub-agents:
 
 | Skill | Default Exit | Notes |
 |-------|-------------|-------|
-| `/design` | `["/handoff --commit", "/commit"]` | Planning entry point |
-| `/runbook` | `["/handoff --commit", "/commit"]` | Runbook planning (unified) |
-| `/inline` | `["/handoff --commit", "/commit"]` | Inline execution lifecycle (Tier 1/2) |
-| `/orchestrate` | `["/handoff --commit", "/commit"]` | Runbook execution (Tier 3) |
-| `/handoff` | `["/commit"]` | Context preservation |
+| `/design` | `["/handoff", "/commit"]` | Planning entry point |
+| `/runbook` | `["/handoff", "/commit"]` | Runbook planning (unified) |
+| `/inline` | `["/handoff", "/commit"]` | Inline execution lifecycle (Tier 1/2) |
+| `/orchestrate` | `["/handoff", "/commit"]` | Runbook execution (Tier 3) |
+| `/handoff` | `[]` | Context preservation (terminal) |
 | `/worktree` | `[]` | Terminal skill (parallel task setup) |
 | `/commit` | `[]` | Terminal skill |
 
@@ -120,9 +120,9 @@ When a chain aborts, the remaining continuation is recorded in session.md:
 ## Blockers / Gotchas
 
 **Orphaned CPS continuation:**
-- Chain: `/design → /runbook → /orchestrate → /handoff --commit → /commit`
+- Chain: `/design → /runbook → /orchestrate → /handoff → /commit`
 - Failed at: `/orchestrate` (EXECUTION_ERROR, retryable: timeout)
-- Remaining: `/handoff --commit → /commit`
+- Remaining: `/handoff → /commit`
 - Resume: Fix orchestration issue, then `r` to resume from `/orchestrate`
 ```
 

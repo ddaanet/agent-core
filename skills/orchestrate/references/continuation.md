@@ -14,7 +14,7 @@ IF continuation present:
 5. Invoke next skill: `Skill(/skill args="args [CONTINUATION: remainder]")` where remainder = remaining entries (if any)
 
 IF no continuation present:
-- Use default-exit from frontmatter: `/handoff --commit` then `/commit`
+- Use default-exit from frontmatter: `/handoff` then `/commit`
 - Invoke first entry, pass remainder as continuation to that skill
 
 ## Examples
@@ -25,28 +25,28 @@ Incoming: `/orchestrate myplan [CONTINUATION: /commit]`
 - Peel first entry: `/commit`
 - No remainder, so invoke: `Skill(/commit)`
 
-Incoming: `/orchestrate myplan [CONTINUATION: /handoff --commit, /commit]`
+Incoming: `/orchestrate myplan [CONTINUATION: /handoff, /commit]`
 - Complete orchestration
 - Strip continuation from current context
-- Peel first: `/handoff --commit`
+- Peel first: `/handoff`
 - Remainder: `/commit`
-- Invoke: `Skill(/handoff args="--commit [CONTINUATION: /commit]")`
+- Invoke: `Skill(/handoff args="[CONTINUATION: /commit]")`
 
 Incoming: `/orchestrate myplan` (no continuation)
 - Complete orchestration
-- Use default-exit: `["/handoff --commit", "/commit"]`
-- Invoke: `Skill(/handoff args="--commit [CONTINUATION: /commit]")`
+- Use default-exit: `["/handoff", "/commit"]`
+- Invoke: `Skill(/handoff args="[CONTINUATION: /commit]")`
 
 ### Prepend (subroutine call)
 
-Incoming: `/orchestrate myplan [CONTINUATION: /handoff --commit, /commit]`
+Incoming: `/orchestrate myplan [CONTINUATION: /handoff, /commit]`
 - Complete orchestration
 - Need `/commit` checkpoint before chain resumes
-- Prepend: `[/commit, /handoff --commit, /commit]`
+- Prepend: `[/commit, /handoff, /commit]`
 - Peel first: `/commit`
-- Remainder: `/handoff --commit, /commit`
-- Invoke: `Skill(/commit args="[CONTINUATION: /handoff --commit, /commit]")`
-- After `/commit` completes, original chain resumes: `/handoff --commit` → `/commit`
+- Remainder: `/handoff, /commit`
+- Invoke: `Skill(/commit args="[CONTINUATION: /handoff, /commit]")`
+- After `/commit` completes, original chain resumes: `/handoff` → `/commit`
 
 ## Constraint
 

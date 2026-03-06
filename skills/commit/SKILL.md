@@ -1,7 +1,7 @@
 ---
 name: commit
 description: Create git commits for completed work with short, dense, structured messages. Use --context flag when you already know what changed from conversation.
-allowed-tools: Read, Skill, Bash(git add:*), Bash(git diff:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
+allowed-tools: Read, Edit, Skill, Bash(git add:*), Bash(git diff:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
 continuation:
   cooperative: true
@@ -126,6 +126,31 @@ Steps:
 5. Continue with parent commit
 
 One command per Bash call.
+
+### 1c. Settings triage
+
+**D+B anchor:**
+
+```
+Read(.claude/settings.local.json)
+```
+
+- **File absent** (Read returns error) → skip to step 2
+- **Content is `{}`** → skip to step 2
+- **Non-empty** → triage each permission entry below
+
+| Classification | Action | Examples |
+|---------------|--------|----------|
+| **Permanent** — recurring workflow feature | Edit `.claude/settings.json` to add entry, Edit `.claude/settings.local.json` to remove it | `pbcopy`, `open`, `osascript`, frequently-used WebFetch domains (`docs.claude.com`, `github.com`) |
+| **Session** — one-time grant, exploratory | Edit `.claude/settings.local.json` to remove it | One-off WebFetch domains, temporary Bash patterns used during investigation |
+| **Job-specific** — needed by active worktree or in-progress task | Keep in `.claude/settings.local.json` only if handoff context justifies retention | Worktree sandbox paths (managed by `_worktree` CLI) |
+
+After triage, `.claude/settings.local.json` should be empty `{}` or contain only job-justified entries. Stage modified settings files:
+```bash
+git add .claude/settings.local.json .claude/settings.json
+```
+
+**Classification signal:** If the entry already exists in `settings.json`, it was granted redundantly — remove from local, no promotion needed.
 
 ### 2. Draft commit message
 

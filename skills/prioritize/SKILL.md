@@ -27,7 +27,7 @@ Read `agents/session.md` Pending Tasks section. Extract each task with:
 - Plan directory (if any)
 - Notes and context
 
-Call `list_plans(Path('plans'))` for plan status of each task (`requirements`, `outlined`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`).
+Run `claudeutils _worktree ls` for plan statuses. Output includes per-plan status (`requirements`, `outlined`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`) and next actions.
 
 ### 2. Score Each Task
 
@@ -46,13 +46,18 @@ For each pending task, score five components on a Fibonacci scale. Consult `refe
 
 ### 3. Calculate Priority
 
-```
-CoD = Workflow_Friction + Decay_Pressure + Compound_Risk_Reduction
-Size = Marginal_Effort + Context_Recovery_Cost
-Priority = CoD / Size
+Construct a JSON array with one object per task containing the scored components, then pipe to the scoring script:
+
+```bash
+echo '<json>' | python3 plans/prototypes/score.py
 ```
 
-Round to one decimal place. For equal scores, prefer higher Compound Risk Reduction (defect fixes compound).
+**JSON input format** (per task):
+```json
+{"task": "Task Name", "wf": 5, "dp": 3, "crr": 5, "me": 2, "crc": 1, "modifiers": "sonnet"}
+```
+
+The script computes CoD, Size, Priority (rounded to 1 decimal), applies tiebreaking (CRR → Size → WF), and sorts descending.
 
 ### 4. Apply Scheduling Modifiers
 
@@ -67,13 +72,7 @@ After scoring, annotate each task with scheduling constraints (do not affect sco
 
 Produce two artifacts:
 
-**Priority Table:**
-
-```
-| Rank | Task | WF | DP | CRR | CoD | ME | CRC | Size | Priority | Modifiers |
-|------|------|----|----|-----|-----|----|-----|------|----------|-----------|
-| 1    | ...  | 8  | 2  | 5   | 15  | 2  | 1   | 3    | 5.0      | sonnet    |
-```
+**Priority Table:** Use the markdown table output from Step 3 (`plans/prototypes/score.py`). The script produces a ranked table with columns: Rank, Task, WF, DP, CRR, CoD, ME, CRC, Size, Priority, Modifiers.
 
 Column key: WF=Workflow Friction, DP=Decay Pressure, CRR=Compound Risk Reduction, ME=Marginal Effort, CRC=Context Recovery Cost.
 

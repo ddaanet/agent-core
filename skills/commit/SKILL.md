@@ -135,9 +135,9 @@ One command per Bash call.
 Read(.claude/settings.local.json)
 ```
 
-If absent or empty (`{}`): skip to step 2.
-
-If non-empty: triage each permission entry. For each entry, classify and act:
+- **File absent** (Read returns error) → skip to step 2
+- **Content is `{}`** → skip to step 2
+- **Non-empty** → triage each permission entry below
 
 | Classification | Action | Examples |
 |---------------|--------|----------|
@@ -145,7 +145,7 @@ If non-empty: triage each permission entry. For each entry, classify and act:
 | **Session** — one-time grant, exploratory | Edit `.claude/settings.local.json` to remove it | One-off WebFetch domains, temporary Bash patterns used during investigation |
 | **Job-specific** — needed by active worktree or in-progress task | Keep in `.claude/settings.local.json` only if handoff context justifies retention | Worktree sandbox paths (managed by `_worktree` CLI) |
 
-After triage, `.claude/settings.local.json` should be empty `{}` or contain only job-justified entries. Stage modified settings files (separate Bash calls per allowlist constraint):
+After triage, `.claude/settings.local.json` should be empty `{}` or contain only job-justified entries. Stage modified settings files:
 ```bash
 git add .claude/settings.local.json .claude/settings.json
 ```

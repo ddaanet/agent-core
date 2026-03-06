@@ -77,6 +77,10 @@ _DISCUSS_EXPANSION = (
     "Ground first: Read artifacts referenced in claims before assessing.\n"
     'Resolve topic-relevant recall: claudeutils _recall resolve "when <topic>" ...\n'
     "\n"
+    "Diverge before assessing: Generate 3+ alternative framings of the problem.\n"
+    "At least one must reframe the problem (different conceptual frame), "
+    "not just vary the solution within the current frame.\n"
+    "\n"
     "Form your assessment first, then stress-test it.\n"
     "Argue against your OWN position, not the proposal.\n"
     "\n"

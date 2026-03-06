@@ -12,6 +12,12 @@ When evaluating proposals in discussion mode (`d:` directive — see execute-rul
 - Absent artifacts are a valid finding (claim references something that doesn't exist)
 - Resolve topic-relevant recall entries: `claudeutils _recall resolve "when <topic>" ...` — prior decisions inform whether proposals conflict with, duplicate, or extend existing work
 
+**Diverge before assessing:**
+- Generate 3+ alternative framings of the problem/proposal
+- At least one must reframe the problem (different conceptual frame), not just vary the solution within the current frame
+- Name the implicit frame in the proposal, then explore what other frames exist
+- Example: "resize operation" → "state transition" reframes the conceptual model, not just the naming
+
 **Form your assessment:**
 - What is your initial verdict on this conclusion?
 - What assumptions does the proposal make?

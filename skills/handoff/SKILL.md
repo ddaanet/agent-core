@@ -66,7 +66,7 @@ Write session.md following this structure:
 
 **Allowed sections only.** NEVER create "Learnings", "Key Decisions", or other sections. Learnings go to learnings.md.
 
-**Carry-forward rule:** In-tree Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, mark blocked `[!]` with reason (see `task-failure-lifecycle.md`), mark failed `[✗]` with error summary, mark canceled `[–]` with reason, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items. Blocked/failed/canceled tasks persist across handoffs — do NOT trim them.
+**Carry-forward rule:** In-tree Tasks and Worktree Tasks are accumulated data. Read current sections, carry forward verbatim. Only mutate: mark completed `[x]`, mark blocked `[!]` with reason (see `task-failure-lifecycle.md`), mark failed `[†]` with error summary, mark canceled `[–]` with reason, append new tasks, update metadata changed this session. Do NOT rewrite, compress, or de-duplicate existing sub-items. Blocked/failed/canceled tasks persist across handoffs — do NOT trim them.
 
 **Task classification (D-9):** When creating new tasks, classify into the correct section:
 - **In-tree Tasks:** No plan directory, mechanical edits, no restart needed. Quick work done directly on current branch.

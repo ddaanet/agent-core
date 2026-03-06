@@ -263,12 +263,9 @@ See [fragments/claude-config-layout.md](../fragments/claude-config-layout.md) fo
   - Old learnings inline guidance (if migrated to separate file)
   - Root-level session.md references (if moved to agents/)
 
-- [ ] **4.5** (Optional) Add memory index reference (Tier 3)
+- [ ] **4.5** (Optional) Add memory index (Tier 3)
   For larger projects with many learnings/decisions, add a memory index file that maps topics to relevant files:
-  ```markdown
-  @agents/memory-index.md
-  ```
-  The memory-index.md file lists key topics with references to where they're documented (format: topic → file path + brief description). Enables quick context discovery without reading all files.
+  `agents/memory-index.md` — lists key topics with references to where they're documented (format: topic → file path + brief description). Loaded on-demand by `/recall` skill, not @-referenced from CLAUDE.md.
 
 ### Phase 5: Verification
 

@@ -13,6 +13,9 @@ allowed-tools:
   - Bash
   - Write
 user-invocable: true
+continuation:
+  cooperative: true
+  default-exit: ["/handoff", "/commit"]
 ---
 
 # Review Production Artifacts
@@ -158,6 +161,16 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
    - Unconditional `/design` routing — `/design` triage handles proportionality
    - The fix task scope is ALL findings in the report. Every finding resolves to a fix or a pending task — severity does not grant skip permission.
 3. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
+
+## Continuation
+
+After Phase 4 completes (report written, lifecycle updated, fix task created if needed):
+
+1. Read continuation from `additionalContext` or `[CONTINUATION: ...]` suffix
+2. If continuation present: peel first entry, tail-call with remainder
+3. If no continuation: default-exit — `/handoff` → `/commit`
+
+**CRITICAL:** Do NOT include continuation metadata in Task tool prompts.
 
 ## References
 

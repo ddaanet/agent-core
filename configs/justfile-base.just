@@ -45,14 +45,16 @@ dev: format check test
 # Run test suite with optional arguments
 [no-exit-message]
 test *ARGS:
-    #!/usr/bin/env bash -euo pipefail
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{ _bash-defs }}
     {{ _sync }}
     {{ _pytest }} {{ ARGS }}
 
 # Format code with ruff and docformatter
 format:
-    #!/usr/bin/env bash -euo pipefail
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{ _bash-defs }}
     {{ _sync }}
     tmpfile=$(mktemp tmp-fmt-XXXXXX)
@@ -78,7 +80,8 @@ format:
 # Check code style without modifying files
 [no-exit-message]
 check:
-    #!/usr/bin/env bash -euo pipefail
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{ _bash-defs }}
     {{ _sync }}
     show "# ruff check"
@@ -92,7 +95,8 @@ check:
 # Format, check with complexity disabled, test (lint recipe)
 [no-exit-message]
 lint: format
-    #!/usr/bin/env bash -euo pipefail
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{ _bash-defs }}
     {{ _sync }}
     show "# ruff check"
@@ -108,7 +112,8 @@ lint: format
 # Ruff auto-fix (safe fixes only)
 [no-exit-message]
 ruff-fix:
-    #!/usr/bin/env bash -euo pipefail
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{ _bash-defs }}
     {{ _sync }}
     show "# ruff check --fix"
@@ -118,7 +123,8 @@ ruff-fix:
 # Compile Python files (quick syntax validation)
 [no-exit-message]
 compile:
-    #!/usr/bin/env bash -euo pipefail
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{ _bash-defs }}
     {{ _sync }}
     show "# python -m compileall"
@@ -144,7 +150,8 @@ role-refactor: dev
 [no-exit-message]
 [private]
 _fail_if_claudecode:
-    #!/usr/bin/env bash -euo pipefail
+    #!/usr/bin/env bash
+    set -euo pipefail
     if [ "${CLAUDECODE:-}" != "" ]; then
         echo -e '{{ style("error") }}⛔️ Denied: Protected recipe{{ NORMAL }}'
         exit 1

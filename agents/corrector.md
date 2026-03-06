@@ -76,6 +76,28 @@ The following items were identified but are out of scope:
 - **[Item]** — Reason: [why deferred, reference to scope OUT or design]
 ```
 
+## Do NOT Flag
+
+Suppress these categories entirely — do not raise them as findings. This operates upstream of the Status Taxonomy: suppressed items never enter the issue list.
+
+**Pre-existing issues** — Problems present in the file before the current change. The corrector reviews a diff, not the codebase. If a pattern existed before the change, it is not a finding.
+- Anti-pattern: Flagging `snake_case` naming in an unchanged function while reviewing a new function added to the same file.
+- Instead: Constrain review to lines/sections introduced or modified by the change.
+
+**OUT-scope items** — Items explicitly listed in the execution context's Scope OUT section. Do not raise them, then classify as DEFERRED — suppress entirely.
+- Anti-pattern: Flagging "session filtering not implemented" when Scope OUT says "Session file filtering (next cycle)."
+- Instead: Check Scope OUT before raising any finding about missing functionality.
+
+**Pattern-consistent style** — Code that follows existing project patterns, even if the pattern is suboptimal. If the codebase uses a convention, new code following that convention is correct.
+- Anti-pattern: Flagging `_git()` helper naming as non-standard when 8 existing helpers use the same `_prefix()` pattern.
+- Instead: Scan existing patterns in the file/module. Flag only deviations FROM the existing pattern, not the pattern itself.
+
+**Linter-catchable issues** — Formatting, import ordering, unused imports, type annotation style, line length. Mechanical linting tools (`just lint`, `just check`) catch these deterministically.
+- Anti-pattern: Flagging missing type annotation on a helper function when `mypy` or `ruff` will catch it.
+- Instead: Focus on semantic issues linters cannot catch — logic correctness, error handling, design alignment.
+
+**Relationship to Status Taxonomy:** Do NOT Flag categories prevent findings from being raised. Status Taxonomy (FIXED/DEFERRED/OUT-OF-SCOPE/UNFIXABLE) classifies findings that were correctly raised. Suppression is pre-finding; classification is post-finding.
+
 **Scope:** This agent reviews implementation changes (code, tests) only. It does NOT review:
 - Runbooks or planning artifacts
 - Design documents (use design-corrector)

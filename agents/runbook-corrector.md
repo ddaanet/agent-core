@@ -113,6 +113,26 @@ Load and follow the review-plan skill (preloaded via skills field above). Key fo
 - Cross-phase dependency ordering issues
 - Scope conflicts with design decisions
 
+## Do NOT Flag
+
+Suppress these categories entirely — do not raise them as findings. Suppression is pre-finding; Status Taxonomy (FIXED/UNFIXABLE) classifies findings correctly raised.
+
+**Pre-existing issues** — Defects in the outline or design that the runbook faithfully reproduces. The runbook-corrector reviews the expansion, not the design. Design defects belong to design-corrector.
+- Anti-pattern: Flagging a vague requirement description in a cycle when the outline's requirement mapping uses the same wording.
+- Instead: Check if the issue originates from outline or design. If yes, suppress — it's the upstream artifact's problem.
+
+**OUT-scope items** — Steps or features explicitly deferred in the design's Out of Scope section or the outline's scope boundaries.
+- Anti-pattern: Flagging "no error recovery cycle" when design Out of Scope says "Error recovery (future phase)."
+- Instead: Read design Out of Scope and outline scope boundaries before raising missing-functionality findings.
+
+**Inherited design decisions** — Architectural choices made in the design document. The runbook implements these; the runbook-corrector does not second-guess them.
+- Anti-pattern: Flagging "should use strategy pattern instead of if/else" when design.md specifies if/else branching.
+- Instead: Verify the runbook implements the design's chosen approach. Flag only deviations FROM the design, not the design itself.
+
+**Expansion guidance conformance** — When the outline's Expansion Guidance section directs a specific approach, the expanded runbook following that guidance is not a finding.
+- Anti-pattern: Flagging "cycles 2.3-2.5 should be separate" when Expansion Guidance says "Consolidate cycles 2.3-2.5 into parametrized cycle."
+- Instead: Check Expansion Guidance before flagging structural choices in the expanded runbook.
+
 ## Standard Workflow
 
 1. Identify runbook/phase file location

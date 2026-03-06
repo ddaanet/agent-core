@@ -152,8 +152,9 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
      ```
      {YYYY-MM-DD} delivered — /deliverable-review
      ```
-2. For any findings (Critical, Major, or Minor): create one pending task → `/design` with report reference
+2. For any findings (Critical, Major, or Minor): write one pending task to `agents/session.md`
    - Task format: `- [ ] **Fix <plan-name> findings** — \`/design plans/<plan>/reports/deliverable-review.md\` | opus`
+   - **Section targeting:** On main → Worktree Tasks. In a worktree → In-tree Tasks. Detect via `git rev-parse --git-dir` (`.git` = main, otherwise worktree).
    - Unconditional `/design` routing — `/design` triage handles proportionality
    - The fix task scope is ALL findings in the report. Every finding resolves to a fix or a pending task — severity does not grant skip permission.
 3. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.

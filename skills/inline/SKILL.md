@@ -145,11 +145,13 @@ Read script output. On divergence message → surface inline. On match or no-cla
 
 ### 4c: Deliverable-Review Chain
 
-Final phase before continuation. State the pending task in standard session.md format:
+Final phase before continuation. Write the pending task directly to `agents/session.md`:
 
 `- [ ] **Deliverable review: <job>** — /deliverable-review plans/<job> | opus | restart`
 
-Handoff (invoked by default-exit in the Continuation section) captures this from conversation context and writes it to session.md.
+**Section targeting:** On main → Worktree Tasks. In a worktree → In-tree Tasks. Detect via `git rev-parse --git-dir` (`.git` = main, otherwise worktree).
+
+Write explicitly — do not rely on handoff to capture from conversation context.
 
 ## Delegation Protocol Summary
 

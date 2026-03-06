@@ -141,11 +141,11 @@ After user confirms at diagnostic checkpoint, choose exit path based on context 
    - **Slug format:** kebab-case description of deviation type (e.g., `orchestrator-dirty-tree`, `tool-misuse-grep`)
 2. Append learning to `agents/learnings.md`
 3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /codify to consolidate"
-4. Write pending tasks to session.md in task format:
+4. Write pending tasks to `agents/session.md` in task format:
    - Format: `- [ ] **Task Name** — \`command\` | model | restart?`
    - Assess model tier per task (opus for design/architecture, sonnet for implementation, haiku for mechanical)
    - Include restart flag if fix touches agents/skills/hooks/settings (format: `| restart`)
-   - Insert at estimated priority position in Pending Tasks section
+   - **Section targeting:** On main → Worktree Tasks. In a worktree → In-tree Tasks. Detect via `git rev-parse --git-dir` (`.git` = main, otherwise worktree).
 5. Stop and return control to user
 
 **RCA report template:** See `references/rca-template.md` for structure
@@ -161,11 +161,11 @@ After user confirms at diagnostic checkpoint, choose exit path based on context 
 1. Document partial findings (what we know so far)
 2. Append learning to `agents/learnings.md` if pattern identified
 3. After appending: check learnings.md line count — if ≥70 lines, note to user: "Consider running /codify to consolidate"
-4. Write pending tasks to session.md in task format:
+4. Write pending tasks to `agents/session.md` in task format:
    - Upstream doc fix (with path, model tier, restart flag if applicable — format: `| restart`)
    - RCA resumption (reference partial findings location)
    - Format: `- [ ] **Task Name** — \`command\` | model | restart?`
-   - Insert at estimated priority position in Pending Tasks section
+   - **Section targeting:** On main → Worktree Tasks. In a worktree → In-tree Tasks. Detect via `git rev-parse --git-dir` (`.git` = main, otherwise worktree).
 5. Stop and return control to user
 
 ### Output Artifacts

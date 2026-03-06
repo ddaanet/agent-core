@@ -152,8 +152,9 @@ Task tool:
 ```
 Recovery is mechanical (lint-clean + git-clean). No design/outline context needed.
 
-**After any remediation** — append RCA pending task:
+**After any remediation** — write RCA pending task to `agents/session.md`:
 `- [ ] **RCA: Step N dirty tree** — [brief description] | sonnet`
+**Section targeting:** On main → Worktree Tasks. In a worktree → In-tree Tasks. Detect via `git rev-parse --git-dir` (`.git` = main, otherwise worktree).
 
 **If recovery fails** — escalate to user with full context (Section 4).
 
@@ -210,7 +211,7 @@ Task tool:
   max_turns: 20
 ```
 
-The refactor agent applies deslop directives (factorization-before-splitting) and returns `success`, `escalated: [reason]`, or `error: [reason]`. On `escalated` → create pending task for opus-level refactoring. On `error` → log and continue (refactoring is advisory, not blocking).
+The refactor agent applies deslop directives (factorization-before-splitting) and returns `success`, `escalated: [reason]`, or `error: [reason]`. On `escalated` → write pending task to `agents/session.md` for opus-level refactoring (section targeting: main → Worktree Tasks, worktree → In-tree Tasks). On `error` → log and continue (refactoring is advisory, not blocking).
 
 ## 4. Error Escalation (D-4)
 
@@ -250,8 +251,9 @@ git diff --name-only $(git rev-list --max-parents=0 HEAD | head -1)..HEAD
    rm -f .claude/agents/<name>-tester.md .claude/agents/<name>-implementer.md
    rm -f .claude/agents/<name>-test-corrector.md .claude/agents/<name>-impl-corrector.md
    ```
-4. **Deliverable review:** Create pending task:
+4. **Deliverable review:** Write pending task to `agents/session.md`:
    `- [ ] **Deliverable review: <name>** — /deliverable-review plans/<name> | opus | restart`
+   **Section targeting:** On main → Worktree Tasks. In a worktree → In-tree Tasks. Detect via `git rev-parse --git-dir` (`.git` = main, otherwise worktree).
 5. **Lifecycle entry:** Append `{YYYY-MM-DD} review-pending — /orchestrate` to `plans/<name>/lifecycle.md`.
 
 ## Continuation

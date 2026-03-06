@@ -10,7 +10,7 @@ Extended task state model for session.md. Complements the base notation in `exec
 | `[>]` | In-progress | Currently executing |
 | `[x]` | Complete | Successfully finished |
 | `[!]` | Blocked | Waiting on external signal to unblock |
-| `[✗]` | Failed | System-detected terminal failure |
+| `[†]` | Failed | System-detected terminal failure |
 | `[–]` | Canceled | User-initiated abort |
 
 **Grounding:** State model adapted from Temporal WorkflowExecutionStatus (Running, Completed, Failed, Canceled, TimedOut). Blocked maps to Temporal's "waiting on signal" concept.
@@ -37,7 +37,7 @@ When a task transitions to blocked or failed, record the error inline:
   - Blocked: [reason] — [what needs to happen to unblock]
   - Error category: [from error-classification.md taxonomy]
 
-- [✗] **Task Name** — description | model
+- [†] **Task Name** — description | model
   - Failed: [error summary]
   - Error category: [category] | Retryable: [yes/no]
   - Report: [path to diagnostic report if available]

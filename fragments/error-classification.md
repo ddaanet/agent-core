@@ -35,7 +35,7 @@ Each failure is classified as retryable or non-retryable. This informs recovery 
 **Subsystem response varies:**
 - **Orchestration (Layer 2):** Retries retryable failures via Sonnet diagnostic before escalating. Non-retryable escalate immediately.
 - **CPS chains (Layer 4):** Records classification but aborts regardless (0 retries by default). Classification informs the recorded error context for manual resume.
-- **Task lifecycle (Layer 3):** Retryable → `[!]` blocked (waiting on fix). Non-retryable → `[✗]` failed (requires user decision).
+- **Task lifecycle (Layer 3):** Retryable → `[!]` blocked (waiting on fix). Non-retryable → `[†]` failed (requires user decision).
 
 ### Tier-Aware Classification
 

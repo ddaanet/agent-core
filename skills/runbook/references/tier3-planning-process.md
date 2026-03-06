@@ -99,10 +99,13 @@ Review the changed files list. File locations, existing patterns, and structural
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-5. **Validate and proceed:**
+5. **User review gate:**
    - Read review report
    - If critical issues remain: STOP and escalate to user
-   - Otherwise: proceed to phase-by-phase expansion
+   - Present corrected outline to user for approval
+   - If user requests changes: apply fixes, re-commit, return to step 4 (corrector review)
+   - Iterate until user approves
+   - On approval: proceed to Phase 0.85
 
 **Fallback for small runbooks:**
 - If outline has <= 3 phases and <= 10 total items -> generate entire runbook at once (skip phase-by-phase)

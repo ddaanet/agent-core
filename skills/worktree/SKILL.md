@@ -106,6 +106,16 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
    After resolving root cause, **retry:** `claudeutils _worktree merge <slug>` (same command, will resume from current state).
 
+## Mode D: Merge + Remove
+
+Used when the user invokes `wt merge rm <slug>`. Chains Mode C (merge ceremony) with worktree removal in a single operation.
+
+1. **Execute Mode C** (merge ceremony) in full. If merge fails at any step, stop — do not proceed to removal.
+
+2. **On successful merge (exit 0):** Invoke `claudeutils _worktree rm <slug>` with `dangerouslyDisableSandbox: true` to remove the worktree and branch.
+
+3. **Output:** "Merged and removed <slug>."
+
 ## Diff Baseline Rule
 
 When diffing branches (for inspection, validation, or user questions — NOT a required pre-merge step):
@@ -126,7 +136,7 @@ When diffing branches (for inspection, validation, or user questions — NOT a r
 
 - **Session.md markers are automated:** `new "<task name>"` adds the `→ \`slug\`` marker inline to the task in Worktree Tasks. `rm` removes the marker from the task (task stays in Worktree Tasks throughout — no section moves). No manual session.md editing required.
 
-- **Cleanup is user-initiated:** After merge, worktree is preserved. Remove when ready via `wt-rm <slug>`.
+- **Cleanup is user-initiated:** After merge, worktree is preserved. Remove when ready via `wt-rm <slug>`, or use `wt merge rm <slug>` to chain both operations.
 
 - **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
 

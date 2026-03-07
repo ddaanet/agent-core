@@ -59,16 +59,40 @@ echo '<json>' | python3 plans/prototypes/score.py
 
 The script computes CoD, Size, Priority (rounded to 1 decimal), applies tiebreaking (CRR → Size → WF), and sorts descending.
 
-### 4. Apply Scheduling Modifiers
+### 4. Consolidation Pass
 
-After scoring, annotate each task with scheduling constraints (do not affect score):
+After scoring, reduce the task list by finding absorptions, merges, and thematic clusters. Multiple passes until no further reductions found.
 
-- **Model tier cohort:** Group opus tasks together, sonnet tasks together (amortize session setup)
+**Absorption** — task is a subset of another:
+- Task scope fully covered by a parent task's plan/outline (check sub-problems, FRs, scope-IN lists)
+- Task targets the same CLI command or subsystem as another task (e.g., two tasks both modify `_worktree rm`)
+- Parent task's completion would make the child task moot (e.g., removing a system eliminates tasks that improve it)
+
+**Merge** — separate tasks with overlapping scope:
+- Same problem space, different angles (e.g., PreToolUse + PostToolUse hooks for the same concern)
+- Same subsystem, different features that share one design session (e.g., three worktree CLI behavior changes)
+- Same methodology applied to different targets, batchable as one sprint (e.g., multiple audits)
+
+**Thematic cluster** — independent but parallelizable tasks that share infrastructure:
+- Same hook API, same testing pattern, same registration mechanism
+- Same skill transition layer (all gates, all hooks)
+- Low-priority research tasks with no plans → umbrella task
+
+**Stale check:**
+- Plan status `delivered` but task still `[ ]` → confirm completion or drop
+- Task references removed infrastructure → mark moot
+
+Present consolidated task list with composition notes showing what each merged task contains.
+
+### 5. Apply Scheduling Modifiers
+
+After consolidation, annotate each task with scheduling constraints (do not affect score):
+
 - **Restart cohort:** Tasks requiring restart should be batched adjacently
 - **Self-referential flag:** Tasks modifying their own execution path need manual verification
 - **Parallelizability:** Tasks with no shared plan directory, no shared target files, no dependency can run in concurrent worktrees
 
-### 5. Generate Output
+### 6. Generate Output
 
 Produce two artifacts:
 
@@ -82,19 +106,18 @@ Identify groups of 2+ tasks that can execute concurrently:
 - No shared plan directory
 - No shared target files
 - No logical dependency
-- Compatible model tier
 
 ```
-Parallel batch (sonnet, no restart):
+Parallel batch (no restart):
 - Task A (priority 3.2)
 - Task B (priority 2.8)
 
-Parallel batch (opus):
+Parallel batch:
 - Task C (priority 2.5)
 - Task D (priority 2.0)
 ```
 
-### 6. Write Report
+### 7. Write Report
 
 Write the scored output to `plans/reports/prioritization-<date>.md` where `<date>` is YYYY-MM-DD.
 

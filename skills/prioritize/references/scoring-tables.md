@@ -110,12 +110,6 @@ Capped at 5 — recovery cost rarely warrants an 8; the highest practical cost i
 
 These do not affect priority score but constrain batching and ordering.
 
-### Model Tier Cohort
-
-Tasks requiring the same model tier batch together to amortize session setup cost (especially opus).
-
-**Detection:** Read model annotation from session.md task metadata. Default is sonnet if omitted.
-
 ### Restart Cohort
 
 Tasks requiring restart batch adjacently to minimize restart count.

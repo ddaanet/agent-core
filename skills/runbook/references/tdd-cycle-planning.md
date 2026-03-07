@@ -12,6 +12,10 @@ X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
 ## 2. Generate RED Specifications (prose format)
 
 ```markdown
+**Bootstrap:** [Create/Add to module with stub returning default]. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** [test function name]
@@ -20,8 +24,6 @@ X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
 - [Specific assertion 2]
 - [Expected values/behaviors]
 
-**Bootstrap:** [Create/Add to module with stub returning default]. Do not commit.
-
 **Expected failure:** `AssertionError` — [specific behavioral mismatch]
 
 **Why it fails:** [Stub returns default, test expects real behavior]
@@ -29,15 +31,18 @@ X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
 **Verify RED:** `pytest [file]::[test_function] -v`
 ```
 
-**Bootstrap Pattern (mandatory for TDD RED):**
+**Bootstrap Pattern (mandatory for TDD cycles):**
 
-When the function/module under test does not yet exist, the RED phase includes a **Bootstrap** step: create the module with a stub implementation (return `None`, `""`, `[]`, or no-op) so the test can import and execute. The test then fails on a **behavioral assertion** — not `ImportError`.
+When the function/module under test does not yet exist, the cycle includes a **Bootstrap** section — a separate step before RED, dispatched to a distinct agent invocation. Bootstrap creates the module with a stub implementation (return `None`, `""`, `[]`, or no-op) so the test can import and execute. The RED agent then fails on a **behavioral assertion** — not `ImportError`.
 
-- Bootstrap stubs are uncommitted scaffolding — the GREEN phase replaces them
+- Bootstrap is a **separate step file** — not embedded in the RED step. The bootstrap agent creates stubs and does NOT commit
 - Expected failure must be `AssertionError` against a specific assertion, never `ImportError` or `AttributeError`
 - This proves assertion strength: a trivial implementation would fail the same way
+- The GREEN phase replaces stubs with real implementation
 
 **When the module already exists** (subsequent cycles in the same phase): Bootstrap adds stub function signatures to the existing module. Use `Add to <module>` instead of `Create <module>`.
+
+**When Bootstrap is not needed:** Cycles extending existing function behavior (e.g., adding amend support to an existing pipeline) skip Bootstrap — the function already exists and the test fails on behavioral assertion naturally. CLI wiring cycles (command registration) also skip Bootstrap.
 
 **Prose Test Description Rules:**
 

@@ -158,6 +158,32 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 
 **Protocol:** Read `references/discussion-protocol.md` for the full iterative discussion process (open outline, apply deltas, re-review, convergence guidance).
 
+### Multi-Sub-Problem Sufficiency Gate
+
+`Read plans/<job>/outline.md` — load the outline to ground sufficiency assessment.
+
+When an outline decomposes the job into individually-scoped sub-problems (each with readiness level and pipeline routing), the outline IS the design artifact. Do not generate a single `design.md`.
+
+**Detection:** Outline contains a sub-problems section where each entry specifies: scope (what/how), readiness level, pipeline routing, dependencies, and file sets.
+
+**Multi-sub-problem sufficiency criteria (all must hold):**
+- Each sub-problem has concrete scope (what/how specified, not "explore")
+- Dependency graph is complete (edges and absent edges enumerated)
+- Completeness check traces all FRs/NFRs/constraints to sub-problems
+- Scope boundaries are explicit (IN/OUT enumerated)
+- Each sub-problem has a readiness level and pipeline routing
+- Tear points identified and justified where dependency edges are broken
+
+**If sufficient** — present assessment to user. On confirmation:
+- The outline is the terminal design artifact for this job
+- Individual sub-problems enter the pipeline via their readiness-specified route (from the readiness summary)
+- The caller (session task management) dispatches sub-problems as independent pending tasks
+- Follow §Continuation (no prepend — dispatch is the caller's responsibility)
+
+**If insufficient** — identify which criteria failed. Resume from A.5 (revise outline) or present gaps for discussion.
+
+---
+
 ### Outline Sufficiency Gate
 
 `Read plans/<job>/outline.md` — load the outline to ground sufficiency assessment.

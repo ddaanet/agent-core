@@ -143,7 +143,7 @@ Include review-relevant entries in corrector prompt — rationale format for son
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 
 **Planning (before execution):**
-- **TDD work (~4-10 cycles):** Plan cycle descriptions (lightweight — no full runbook format). Per-cycle sequencing: one RED, one GREEN, verify, then next cycle.
+- **TDD work (~4-10 cycles):** Plan cycle descriptions (lightweight — no full runbook format). Per-cycle sequencing: one RED, one GREEN, verify, then next cycle. Follow RED/GREEN formats and Bootstrap pattern from `references/tdd-cycle-planning.md`.
 - **General work (6-15 files):** Single agent for cohesive work; break into 2-4 components only if logically distinct.
 
 **Sequence:** After planning, follow §Continuation (prepends `/inline plans/<job> execute`).

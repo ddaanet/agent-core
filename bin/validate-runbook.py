@@ -289,6 +289,18 @@ def check_red_plausibility(content: str, path: str) -> tuple[list[str], list[str
                             f"Cycle {cycle_id}: RED expects `{failure_text}` but "
                             f"`{name}` already created in Cycle {creating_cycle} GREEN"
                         )
+                    else:
+                        # First-cycle ImportError: structural RED, not behavioral.
+                        # Should use Bootstrap + AssertionError instead.
+                        has_bootstrap = bool(
+                            re.search(r"\*\*Bootstrap:\*\*", cycle_content)
+                        )
+                        if not has_bootstrap:
+                            violations.append(
+                                f"Cycle {cycle_id}: RED expects `{failure_text}` "
+                                f"(structural). Add Bootstrap step with stub, "
+                                f"expect behavioral AssertionError instead"
+                            )
             elif non_import_err_pattern.search(failure_text):
                 # Non-import error: ambiguous when a created name appears in the failure text
                 error_type = non_import_err_pattern.search(failure_text).group(1)

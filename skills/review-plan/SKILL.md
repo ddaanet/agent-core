@@ -228,6 +228,7 @@ Five structural axes that cause execution failures. Apply regardless of phase ty
 
 **11.1 Vacuity**
 - **TDD:** Cycles where RED can pass with `assert callable(X)` or `import X`
+- **TDD:** Cycles where RED expects `ImportError` or `AttributeError` instead of behavioral `AssertionError` — strong assertions never execute because import fails first. Fix: add Bootstrap step creating stub, expect behavioral failure
 - **TDD:** Integration wiring items where called function already tested
 - **General:**
   - Scaffolding-only steps (file creation, directory setup) without functional outcome

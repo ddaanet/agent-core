@@ -20,12 +20,24 @@ X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
 - [Specific assertion 2]
 - [Expected values/behaviors]
 
-**Expected failure:** [Error type or pattern]
+**Bootstrap:** [Create/Add to module with stub returning default]. Do not commit.
 
-**Why it fails:** [Missing implementation]
+**Expected failure:** `AssertionError` — [specific behavioral mismatch]
+
+**Why it fails:** [Stub returns default, test expects real behavior]
 
 **Verify RED:** `pytest [file]::[test_function] -v`
 ```
+
+**Bootstrap Pattern (mandatory for TDD RED):**
+
+When the function/module under test does not yet exist, the RED phase includes a **Bootstrap** step: create the module with a stub implementation (return `None`, `""`, `[]`, or no-op) so the test can import and execute. The test then fails on a **behavioral assertion** — not `ImportError`.
+
+- Bootstrap stubs are uncommitted scaffolding — the GREEN phase replaces them
+- Expected failure must be `AssertionError` against a specific assertion, never `ImportError` or `AttributeError`
+- This proves assertion strength: a trivial implementation would fail the same way
+
+**When the module already exists** (subsequent cycles in the same phase): Bootstrap adds stub function signatures to the existing module. Use `Add to <module>` instead of `Create <module>`.
 
 **Prose Test Description Rules:**
 

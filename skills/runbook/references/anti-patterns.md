@@ -10,7 +10,8 @@ Common mistakes in runbook creation and how to fix them.
 |--------------|-------------|--------------|
 | **Setup-only cycles** | `Cycle 1.1: Create test fixture` (no test, just fixture) | `Cycle 1.1: Test fixture works correctly` - RED: Fixture doesn't exist, GREEN: Create fixture, Verify: Fixture behaves as expected |
 | **God cycles** | `Cycle 2.1: Implement entire auth system` - Tests login + logout + token refresh + password reset + 2FA | Split: `2.1: Basic login`, `2.2: Logout`, `2.3: Token refresh`, `2.4: Password reset`, `2.5: 2FA` |
-| **Unclear RED** | `Expected failure: Something will fail` | `Expected failure: ModuleNotFoundError: No module named 'auth'` + Why: Auth module not created yet |
+| **Unclear RED** | `Expected failure: Something will fail` | Bootstrap stub, then: `Expected failure: AssertionError — authenticate() returns None, test expects User object` + Why: Stub returns default |
+| **ImportError-as-RED** | `Expected failure: ImportError — module doesn't exist` (structural, not behavioral) | Add Bootstrap step creating stub module/function, then expect `AssertionError` on behavioral assertion. Proves test catches trivial implementations |
 | **Missing regression** | `Verify GREEN: pytest tests/test_new.py` (stops here) | `Verify GREEN: pytest tests/test_new.py` (must pass) + `Verify no regression: pytest tests/` (all existing tests pass) |
 | **Coupled cycles** | `3.1: Modify shared state`, `3.2: Test that state was modified` (implicit dependency) | `3.1: Test state modification [sets up state]`, `3.2: Test state query [DEPENDS: 3.1]` - Explicit dependency, clear order |
 | **Presentation tests** | `Cycle 1.1: Test help text contains "recursively"` - RED: Word not in help, GREEN: Add word to help | Skip cycle entirely. Help text is presentation, not behavior. Test that `--recursive` flag works, not that help mentions it. |

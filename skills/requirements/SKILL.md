@@ -149,13 +149,11 @@ questions: [
 ]
 ```
 
-### 5. Present Draft
+### 5. User Validation
 
-Show user the structured requirements:
-- Display artifact path
-- Summarize sections populated
-- Note Open Questions if any
-- Ask: "Does this capture your requirements accurately?"
+Invoke `/proof plans/<job>/requirements.md` — structured reword-accumulate-sync loop on the requirements draft. Present artifact path, summarize sections populated, note Open Questions.
+
+/proof handles the iterative validation loop. No corrector dispatch for requirements (user-validated directly). On terminal action "apply", accumulated decisions are applied to the artifact.
 
 ### 6. Write Artifact
 

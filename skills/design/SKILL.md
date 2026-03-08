@@ -139,7 +139,7 @@ Produce this classification block before routing (visible output, not internal r
   5. Follow §Continuation
   Skip design — all other operational rules (skills, project tooling, communication) remain in effect.
 - **Moderate →** Skip design. Follow §Continuation (prepends `/runbook plans/<job>`).
-- **Complex →** Read `references/write-outline.md` for Phase A (research + outline) and Phase B (discussion + outline sufficiency gate). *(Verb-oriented name: action the agent takes, not the artifact produced.)*
+- **Complex →** Read `references/write-outline.md` for Phase A (research + outline) and Phase B (user validation + outline sufficiency gate). *(Verb-oriented name: action the agent takes, not the artifact produced.)*
 - **Defect →** Route to structured-bugfix workflow: reproduce → root-cause → fix → verify. Skip design — the investigation structure replaces architectural design.
 
 **Companion tasks:** If session notes bundle additional work into this /design invocation ("address X during /design"), enumerate all bundled tasks before processing any:
@@ -151,6 +151,26 @@ Produce this classification block before routing (visible output, not internal r
 The enumeration is the structural anchor — forces explicit acknowledgment of each task rather than silently merging them into the primary task's classification.
 
 **Session state check:** If session has significant pending work (>5 tasks), suggest `/shelve` before proceeding.
+
+## Author-Corrector Coupling
+
+When a design modifies an "author" skill (a skill whose output is reviewed by a corrector), check coupled dependencies before completing the design:
+
+1. Identify the corrector from the transformation table (T1-T6.5 in `agents/decisions/pipeline-contracts.md`)
+2. Check: does the corrector's review criteria need corresponding update?
+3. Check: does any mechanical validator need update?
+4. Include corrector/validator updates in the same design scope
+
+**Dependency mapping:**
+
+| Author Skill/Artifact | Corrector | Validator |
+|----------------------|-----------|-----------|
+| /design (outline format) | outline-corrector | -- |
+| /runbook (tdd-cycle-planning.md) | runbook-corrector (/review-plan) | validate-runbook.py |
+| /runbook (general-patterns.md) | runbook-corrector (/review-plan) | validate-runbook.py |
+| /requirements (standard format) | -- (user-reviewed) | -- |
+
+**Visible output (mandatory):** "Author change: X. Coupled corrector: Y. Update needed: yes/no." This block forces awareness of coupling — designers check the table, not silently skip it.
 
 ## Continuation
 

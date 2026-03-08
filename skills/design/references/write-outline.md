@@ -154,9 +154,13 @@ Return only the filepath on success (with ESCALATION note if unfixable issues), 
 
 ---
 
-### Phase B: Iterative Discussion
+### Phase B: User Validation
 
-**Protocol:** Read `references/discussion-protocol.md` for the full iterative discussion process (open outline, apply deltas, re-review, convergence guidance).
+**Protocol:** Invoke `/proof plans/<job>/outline.md` — structured reword-accumulate-sync loop on the outline. On terminal action "apply", /proof dispatches outline-corrector automatically and presents findings before returning control.
+
+**Convergence guidance:** If after 3 rounds the outline is not converging, ask user whether to proceed with current state or restart with different constraints.
+
+**Termination:** If user feedback fundamentally changes the approach (not refining it), restart Phase A with updated understanding. Phase B is for convergence, not exploration of new directions.
 
 ### Outline Sufficiency Gate
 

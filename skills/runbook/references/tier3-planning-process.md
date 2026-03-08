@@ -99,12 +99,11 @@ Review the changed files list. File locations, existing patterns, and structural
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-5. **User review gate:**
-   - Read review report
+5. **User validation:**
+   - Read review report from corrector
    - If critical issues remain: STOP and escalate to user
-   - Present corrected outline to user for approval
-   - If user requests changes: apply fixes, re-commit, return to step 4 (corrector review)
-   - Iterate until user approves
+   - Invoke `/proof plans/<job>/runbook-outline.md` — structured reword-accumulate-sync loop
+   - On terminal action "apply", /proof dispatches runbook-outline-corrector automatically and presents findings
    - On approval: proceed to Phase 0.85
 
 **Fallback for small runbooks:**
@@ -433,6 +432,22 @@ Delegate to `runbook-corrector` (fix-all mode) for cross-phase consistency:
 - If all fixed: proceed to Phase 3.5
 
 **Note:** Individual phase reviews already happened in Phase 1. This review checks holistic consistency only.
+
+---
+
+## Phase 3.25: User Validation (Post-Expansion)
+
+**Objective:** Detect systemic and novel defect classes that correctors cannot catch — defect classes not yet in corrector rules.
+
+**Actions:**
+
+1. Invoke `/proof plans/<job>/runbook-phase-*.md` — present expanded phase content for structured user review
+2. On terminal action "apply", /proof dispatches runbook-corrector automatically
+3. Present corrector findings before proceeding
+
+**Evidence for this gate:** The wrong-RED/bootstrap defect class passed all correctors and was detectable only by human review at the expansion point. Post-expansion is the earliest point where systemic defects become concrete enough for human detection.
+
+**When to skip:** Phase files are unchanged from corrector-reviewed state (no accumulated decisions to apply). The /proof loop itself handles this — if user has no feedback, "proceed" with empty decision list skips corrector dispatch.
 
 ---
 

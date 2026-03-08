@@ -55,6 +55,12 @@ The design-corrector applies all fixes (critical, major, minor) directly. This s
 
 **Re-review if needed:** If user manually addresses UNFIXABLE issues, re-delegate to design-corrector for verification.
 
+#### C.4.5. User Validation
+
+Invoke `/proof plans/<job-name>/design.md` — structured validation loop on the completed design before routing to execution or /runbook. On terminal action "apply", /proof dispatches design-corrector automatically.
+
+This is the user's first review of the full design document. The corrector review (C.3) checked mechanical quality; /proof validates design decisions and completeness with the user.
+
 #### C.5. Execution Readiness and Handoff
 
 `Read plans/<job>/design.md` — load the design to ground execution-readiness assessment.

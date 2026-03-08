@@ -892,9 +892,11 @@ def assemble_phase_files(directory):
         return None, None
 
     # Read and validate each phase file
-    # Detect runbook type from first phase file (Step = general, Cycle = TDD)
+    # Detect runbook type by scanning all phase files for Cycle/Step headers.
+    # Mixed runbooks (general + TDD phases) need has_any_cycles for Common Context injection.
     assembled_parts = []
     is_tdd = False
+    has_any_cycles = False
 
     for i, phase_file in enumerate(phase_files):
         content = phase_file.read_text()
@@ -902,18 +904,22 @@ def assemble_phase_files(directory):
             print(f"ERROR: Empty phase file: {phase_file}", file=sys.stderr)
             return None, None
 
-        # Detect runbook type from first file
+        stripped_content = strip_fenced_blocks(content)
+        file_has_cycles = bool(
+            re.search(r"^##+ Cycle\s+\d+\.\d+:", stripped_content, re.MULTILINE)
+        )
+        file_has_steps = bool(
+            re.search(r"^##+ Step\s+\d+\.\d+:", stripped_content, re.MULTILINE)
+        )
+
+        if file_has_cycles:
+            has_any_cycles = True
+
+        # First file determines is_tdd for frontmatter generation
         if i == 0:
-            stripped_content = strip_fenced_blocks(content)
-            has_cycles = bool(
-                re.search(r"^##+ Cycle\s+\d+\.\d+:", stripped_content, re.MULTILINE)
-            )
-            has_steps = bool(
-                re.search(r"^##+ Step\s+\d+\.\d+:", stripped_content, re.MULTILINE)
-            )
-            if has_cycles:
+            if file_has_cycles:
                 is_tdd = True
-            elif not has_steps:
+            elif not file_has_steps:
                 print(
                     f"ERROR: Phase file missing Step or Cycle headers: {phase_file}",
                     file=sys.stderr,
@@ -940,10 +946,10 @@ def assemble_phase_files(directory):
     else:
         frontmatter = ""  # General runbooks derive frontmatter from assembled content
 
-    # Inject default Common Context for TDD runbooks assembled from phase files
-    # when phases don't include one. Provides standard stop/error conditions
-    # that validate_cycle_structure requires.
-    if is_tdd and "## Common Context" not in assembled_body:
+    # Inject default Common Context when any phase has TDD cycles and phases
+    # don't include one. Handles mixed runbooks (general first, TDD later).
+    # Provides standard stop/error conditions that validate_cycle_structure requires.
+    if has_any_cycles and "## Common Context" not in assembled_body:
         assembled_body = DEFAULT_TDD_COMMON_CONTEXT + "\n" + assembled_body
 
     assembled_content = frontmatter + assembled_body
@@ -1327,18 +1333,38 @@ def generate_cycle_file(cycle, runbook_path, default_model=None, phase_context="
 
 
 def split_cycle_content(content):
-    """Split cycle content into RED (test) and GREEN (impl) parts.
+    """Split cycle content into Bootstrap, RED (test), and GREEN (impl) parts.
 
-    Returns (red_content, green_content). Splits on the "**GREEN Phase:**"
-    marker. If marker absent, returns (content, "") — caller treats as unsplit.
+    Returns (bootstrap_content, red_content, green_content).
+    - Bootstrap detected by "**Bootstrap:**" marker followed by "---" separator.
+    - RED/GREEN split on "**GREEN Phase:**" marker.
+    - When no Bootstrap marker, bootstrap_content is "".
+    - When no GREEN marker, green_content is "".
     """
-    marker = "**GREEN Phase:**"
-    idx = content.find(marker)
-    if idx == -1:
-        return content, ""
-    red_part = content[:idx].rstrip()
-    green_part = content[idx:]
-    return red_part, green_part
+    bootstrap_part = ""
+    remainder = content
+
+    # Detect Bootstrap section: **Bootstrap:** marker followed by --- separator.
+    # Cycle content may include the ## Cycle header before the Bootstrap marker.
+    bootstrap_marker = "**Bootstrap:**"
+    bootstrap_idx = content.find(bootstrap_marker)
+    if bootstrap_idx != -1:
+        # Find --- separator between Bootstrap and RED
+        separator_pattern = re.search(r"\n---\s*\n", content[bootstrap_idx:])
+        if separator_pattern:
+            abs_sep_start = bootstrap_idx + separator_pattern.start()
+            abs_sep_end = bootstrap_idx + separator_pattern.end()
+            bootstrap_part = content[bootstrap_idx:abs_sep_start].rstrip()
+            remainder = content[abs_sep_end:]
+
+    # Split remainder into RED and GREEN
+    green_marker = "**GREEN Phase:**"
+    green_idx = remainder.find(green_marker)
+    if green_idx == -1:
+        return bootstrap_part, remainder, ""
+    red_part = remainder[:green_idx].rstrip()
+    green_part = remainder[green_idx:]
+    return bootstrap_part, red_part, green_part
 
 
 def generate_default_orchestrator(
@@ -1383,6 +1409,23 @@ def generate_default_orchestrator(
             base_stem = f"step-{cycle['major']}-{cycle['minor']}"
             metadata = extract_step_metadata(cycle.get("content", ""))
             turns = metadata.get("max_turns", _DEFAULT_MAX_TURNS)
+
+            # Check for Bootstrap content in cycle
+            bootstrap_content, _, _ = split_cycle_content(cycle.get("content", ""))
+            if bootstrap_content:
+                bootstrap_stem = f"{base_stem}-bootstrap"
+                items.append(
+                    (
+                        cycle["major"],
+                        cycle["minor"] - 1.0,
+                        bootstrap_stem,
+                        f"Cycle {cycle['number']} BOOTSTRAP",
+                        "steps",
+                        "BOOTSTRAP",
+                    )
+                )
+                max_turns_lookup[bootstrap_stem] = turns
+
             test_stem = f"{base_stem}-test"
             impl_stem = f"{base_stem}-impl"
             items.append(
@@ -1750,8 +1793,21 @@ def validate_and_create(
             cycle_model = phase_models.get(cycle["major"], model)
             source_path = _source_for_phase(cycle["major"])
             pctx = preambles.get(cycle["major"], "")
-            red_content, green_content = split_cycle_content(cycle["content"])
+            bootstrap_content, red_content, green_content = split_cycle_content(
+                cycle["content"]
+            )
             base = f"step-{cycle['major']}-{cycle['minor']}"
+
+            # Write bootstrap file if Bootstrap section present
+            if bootstrap_content:
+                bootstrap_cycle = {**cycle, "content": bootstrap_content}
+                bootstrap_path = steps_dir / f"{base}-bootstrap.md"
+                bootstrap_path.write_text(
+                    generate_cycle_file(
+                        bootstrap_cycle, source_path, cycle_model, phase_context=pctx
+                    )
+                )
+                print(f"✓ Created step: {bootstrap_path}")
 
             # Write test file (RED phase content)
             red_cycle = {**cycle, "content": red_content}

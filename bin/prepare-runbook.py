@@ -1356,6 +1356,13 @@ def split_cycle_content(content):
             abs_sep_end = bootstrap_idx + separator_pattern.end()
             bootstrap_part = content[bootstrap_idx:abs_sep_start].rstrip()
             remainder = content[abs_sep_end:]
+        else:
+            print(
+                "WARNING: **Bootstrap:** marker found but no '---' separator. "
+                "Bootstrap content will be included in RED phase. "
+                "Add a '---' line between Bootstrap and RED Phase sections.",
+                file=sys.stderr,
+            )
 
     # Split remainder into RED and GREEN
     green_marker = "**GREEN Phase:**"

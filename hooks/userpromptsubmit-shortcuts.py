@@ -81,8 +81,9 @@ _DISCUSS_EXPANSION = (
     "At least one must reframe the problem (different conceptual frame), "
     "not just vary the solution within the current frame.\n"
     "\n"
-    "Form your assessment first, then stress-test it.\n"
-    "Argue against your OWN position, not the proposal.\n"
+    "Form your assessment first, then research your own claims.\n"
+    "Before asserting feasibility/infeasibility: search (web, codebase) for evidence.\n"
+    "Flag ungrounded claims explicitly.\n"
     "\n"
     "State verdict explicitly: agree or disagree with reasons.\n"
     "Agreement with specific reasons is substantive. "
@@ -150,7 +151,7 @@ def _nonblank(text: str) -> int:
 
 
 # Tier 2: systemMessage summaries — behavioral outline + non-blank line count
-_DISCUSS_SYS = f"discuss: assess, stress-test, state verdict. ({_nonblank(_DISCUSS_EXPANSION)} lines)"
+_DISCUSS_SYS = f"discuss: assess, research claims, state verdict. ({_nonblank(_DISCUSS_EXPANSION)} lines)"
 _PENDING_SYS = (
     f"pending: capture task, model, no-execute. ({_nonblank(_PENDING_EXPANSION)} lines)"
 )

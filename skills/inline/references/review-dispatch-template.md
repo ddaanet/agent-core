@@ -28,6 +28,7 @@ If absent: Read agents/memory-index.md, identify review-relevant entries, batch-
 
 **Review criteria:**
 - Implementation matches design decisions
+- Scope completeness: every Scope IN item has a corresponding deliverable (not just components/decisions — standalone scope items too)
 - Test quality (if behavioral code): behavior-focused, meaningful assertions
 - Code quality: clarity, patterns, no duplication
 - Integration: consistency with existing patterns
@@ -43,6 +44,7 @@ Return filepath on success, or "UNFIXABLE: [description]" on failure.
 - **Design context:** Always `outline.md` or `design.md` — never `requirements.md`. Requirements are upstream abstractions; design/outline contains the implementation-level decisions the reviewer needs.
 - **Recall artifact:** Reference the file path. Reviewer resolves entries itself — do not pre-resolve and paste content into the prompt. Token economy: reference, never repeat.
 - **Scope IN/OUT:** From design or outline, not invented. Prevents reviewer from flagging work explicitly deferred.
+- **Scope completeness:** Reviewer must mechanically diff every Scope IN item against deliverables. Design scope items that aren't mapped to named components are the gap — component+decision validation alone misses standalone scope items (e.g., planstate specified in Scope IN but not part of any C1-C4 component).
 - **Constraint:** This template is for implementation changes only. Planning artifacts (runbooks, outlines, designs) route to runbook-corrector per pipeline contracts.
 
 ## Example: Skill Creation Task
@@ -61,7 +63,7 @@ Review implementation changes against design specification.
 - FR-8: Deliverable-review chain via handoff continuation
 
 **Scope:**
-- IN: SKILL.md (~1500 words), references/corrector-template.md
+- IN: SKILL.md (~1500 words), references/review-dispatch-template.md
 - OUT: /design modifications (FR-1, FR-9), /runbook modifications (FR-10), pipeline contracts, memory-index
 
 **Design reference:** plans/inline-execute/outline.md
@@ -70,6 +72,7 @@ Review implementation changes against design specification.
 
 **Review criteria:**
 - Implementation matches design decisions
+- Scope completeness: every Scope IN item has a corresponding deliverable
 - Skill structure follows D+B convention (tool call anchors per phase)
 - Continuation protocol correctly implemented
 - Delegation protocol complete and accurate

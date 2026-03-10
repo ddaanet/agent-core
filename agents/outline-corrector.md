@@ -101,6 +101,15 @@ Analyze outline against these dimensions:
 - Explicit references (FR-1 → Section X.Y)
 - No requirements gaps
 
+**Scope-to-Component Traceability:**
+- Every Scope IN item traces to a named component (C1, C2, etc.) or has its own implementation section
+- Standalone scope items (not part of any component) are flagged — they lack a structural home and are likely to be missed during implementation
+
+**Cross-Component Interface Compatibility:**
+- When one component feeds artifacts to another, the producer's output format matches the consumer's input expectations
+- Check: glob patterns vs single-file, list vs scalar, multi-artifact vs single-artifact
+- Flag any interface mismatch as a Major issue — mismatches cause implementation errors that are only caught at integration time
+
 **Resume Completeness (for agent/state machine designs):**
 - All non-terminal states have a defined resume path
 - Interrupted or restarted agents can recover from intermediate states
@@ -122,10 +131,23 @@ Analyze outline against these dimensions:
 - **Partial:** Requirement mentioned but approach incomplete or vague
 - **Missing:** Requirement not addressed in outline
 
+**Scope-to-component mapping:** Build a second table mapping each Scope IN item to its component:
+
+| Scope IN Item | Component | Notes |
+|---------------|-----------|-------|
+| /proof skill | C1 | Direct match |
+| proof planstate | — | **Orphan** — no component owns this |
+| 5 integration points | C2 | Direct match |
+
+Flag orphan items as Major issues — they have no structural home in the implementation and will be missed by component-focused correctors.
+
+**Cross-component interface check:** For each component that consumes another's output, verify the interface is compatible. Example: if C2 feeds `runbook-phase-*.md` (glob) to C1 which expects a single artifact, flag the mismatch.
+
 **Fix missing coverage:**
 - Add placeholder sections with TODO markers
 - Reference the requirement explicitly
 - Indicate that approach needs elaboration
+- Assign orphan scope items to existing components or create standalone implementation sections
 
 ### 5. Apply Fixes
 
@@ -180,6 +202,15 @@ Analyze outline against these dimensions:
 | FR-3 | — | Missing | Added placeholder in Section Z |
 
 **Traceability Assessment**: [All requirements covered / Gaps identified and fixed / Missing requirements]
+
+## Scope-to-Component Traceability
+
+| Scope IN Item | Component | Notes |
+|---------------|-----------|-------|
+| Item A | C1 | Direct match |
+| Item B | — | **Orphan** — flagged as Major issue |
+
+**Scope Assessment**: [All items assigned / Orphans found and fixed]
 
 ## Review Findings
 
@@ -297,6 +328,8 @@ Recommendation: [What to do]
 
 **Traceability:**
 - Every requirement must map to outline section
+- Every Scope IN item must map to a component or standalone implementation section
+- Cross-component interfaces must be verified for type compatibility
 - Missing mappings trigger placeholder additions
 - Explicit references required (FR-1 → Section X)
 
@@ -335,17 +368,18 @@ Recommendation: [What to do]
 Before returning filename:
 1. Verify review file was created successfully at correct path
 2. Verify traceability matrix includes all requirements
-3. Verify all issues have Status: FIXED
-4. Verify Fixes Applied section lists all changes
-5. Verify assessment reflects post-fix state
-6. Verify outline.md was edited with all fixes
+3. Verify scope-to-component mapping table covers all Scope IN items
+4. Verify all issues have Status: FIXED
+5. Verify Fixes Applied section lists all changes
+6. Verify assessment reflects post-fix state
+7. Verify outline.md was edited with all fixes
 
 ## Response Protocol
 
 1. **Validate inputs** (requirements exist, artifact is outline.md)
 2. **Load context** (requirements, outline, reports, recall context per Step 2 item 4)
-3. **Build traceability matrix** (every FR-* maps to outline)
-4. **Review against criteria** (soundness, completeness, feasibility, clarity, scope)
+3. **Build traceability matrices** (FR-* → outline sections; Scope IN items → components)
+4. **Review against criteria** (soundness, completeness, feasibility, clarity, scope, scope-to-component traceability, cross-component interface compatibility)
 5. **Apply all fixes** (critical, major, AND minor)
 6. **Write review report** with complete structure
 7. **Update outline.md** with all fixes applied

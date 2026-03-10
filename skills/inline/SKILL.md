@@ -119,7 +119,11 @@ After each delegated step. Dirty tree or lint failure → diagnose before contin
 
 ## Phase 4: Post-Work
 
-### 4a: Corrector Dispatch
+### 4a: Corrector Gate (D+B anchor)
+
+**Both paths require a tool call on `plans/<job>/reports/`. Neither is skippable.**
+
+#### Path A: Corrector Dispatch (default)
 
 Read `references/corrector-template.md` for the full dispatch template and field rules.
 
@@ -133,7 +137,27 @@ Corrector reviews implementation changes only. Planning artifacts → runbook-co
 
 If recall artifact absent: lightweight recall fallback (template details in reference file).
 
-**Handle result:** Read the review report. If UNFIXABLE issues present → STOP, surface to user with report path. Do not proceed to 4b until all issues are resolved or accepted.
+**Structural proof (D+B anchor):** After corrector completes, verify report exists:
+
+```
+Read(plans/<job>/reports/review.md)
+```
+
+This Read proves corrector produced output. Without it, Phase 4b cannot proceed.
+
+**Handle result:** If UNFIXABLE issues present → STOP, surface to user with report path. Do not proceed to 4b until all issues are resolved or accepted.
+
+#### Path B: Corrector Skip (gated escape hatch)
+
+When corrector is genuinely unnecessary (trivial session.md-only edits, plan artifact cleanup), skip is permitted — but requires an auditable artifact:
+
+```
+Write(plans/<job>/reports/review-skip.md)
+```
+
+Content must include: what was changed, why corrector adds no value for this specific change, what verification was performed instead. The justification must be specific enough to survive deliverable-review scrutiny.
+
+**Skip is not confidence-gated.** "Scope is small" or "well-tested" are not valid skip justifications — corrector exists precisely to catch issues confidence misses.
 
 ### 4b: Triage Feedback
 

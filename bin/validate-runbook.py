@@ -346,6 +346,39 @@ def cmd_red_plausibility(args: argparse.Namespace) -> None:
         sys.exit(0)
 
 
+VERIFY_PATH_PATTERN = re.compile(r"\*\*Verify (?:GREEN|RED):\*\*\s*`([^`]+)`")
+SPECIFIC_PYTEST_PATH = re.compile(r"pytest\s+\S*(?:tests/|::|\.py)")
+
+
+def check_verify_green_paths(content: str, path: str) -> list[str]:
+    """Check that Verify GREEN/RED lines use universal recipes, not specific
+    paths."""
+    violations = []
+    for m in VERIFY_PATH_PATTERN.finditer(content):
+        command = m.group(1).strip()
+        if SPECIFIC_PYTEST_PATH.search(command):
+            violations.append(
+                f"Verify line contains specific pytest path: `{command}` — "
+                f"use `just green` instead"
+            )
+    return violations
+
+
+def cmd_verify_green_paths(args: argparse.Namespace) -> None:
+    path = args.path
+    if args.skip_verify_green_paths:
+        write_report("verify-green-paths", path, [], skipped=True)
+        sys.exit(0)
+    p = Path(path)
+    if p.is_dir():
+        content, _ = assemble_phase_files(path)
+    else:
+        content = p.read_text()
+    violations = check_verify_green_paths(content, path)
+    write_report("verify-green-paths", path, violations)
+    sys.exit(1 if violations else 0)
+
+
 def main() -> None:
     """Entry point for validate-runbook CLI."""
     parser = argparse.ArgumentParser(prog="validate-runbook")
@@ -355,6 +388,7 @@ def main() -> None:
         ("lifecycle", cmd_lifecycle, "skip_lifecycle"),
         ("test-counts", cmd_test_counts, "skip_test_counts"),
         ("red-plausibility", cmd_red_plausibility, "skip_red_plausibility"),
+        ("verify-green-paths", cmd_verify_green_paths, "skip_verify_green_paths"),
     ]:
         p = sub.add_parser(name)
         p.add_argument("path")

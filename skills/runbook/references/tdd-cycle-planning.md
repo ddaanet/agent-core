@@ -44,6 +44,8 @@ When the function/module under test does not yet exist, the cycle includes a **B
 
 **When Bootstrap is not needed:** Cycles extending existing function behavior (e.g., adding amend support to an existing pipeline) skip Bootstrap — the function already exists and the test fails on behavioral assertion naturally. CLI wiring cycles (command registration) also skip Bootstrap.
 
+**Omit the Bootstrap section entirely when not needed.** Do not include absence statements like `**Bootstrap:** Not needed` or `**Bootstrap:** None`. These are vacuous — no gate requires them, and they add noise that correctors must filter.
+
 **Prose Test Description Rules:**
 
 RED phase uses **prose descriptions**, not full code blocks. Saves planning tokens while providing enough specificity for haiku.
@@ -75,9 +77,7 @@ RED phase uses **prose descriptions**, not full code blocks. Saves planning toke
   Action: [what to add/modify -- describe, don't write code]
   Location hint: [where in file]
 
-**Verify lint:** `just lint`
-**Verify GREEN:** [Test command]
-**Verify no regression:** [Full test suite]
+**Verify GREEN:** `just green`
 ```
 
 **CRITICAL -- No prescriptive code:** GREEN phases describe BEHAVIOR and provide HINTS. Do NOT include complete function implementations or code blocks that can be copied verbatim.

@@ -95,6 +95,14 @@ Recall supplements, does not replace, the review criteria below.
 
 Hints for sequencing are acceptable; prescriptive code blocks are violations. See `references/review-examples.md` Section 3 for examples.
 
+### 3.5. Over-Specific Verify GREEN Paths — TDD phases only
+
+**Violation:** `**Verify GREEN:**` line contains specific pytest paths (e.g., `pytest tests/test_foo.py::TestBar::test_baz -v`). These accumulate staleness — test class renames, file moves, and refactors invalidate them. Executors derive correct paths from context.
+
+**Correct pattern:** `**Verify GREEN:** just green` (universal recipe). The `just green` recipe handles format, lint, and test in one command.
+
+**Check:** Scan all `**Verify GREEN:**` and `**Verify RED:**` lines. Flag any containing specific file paths (`tests/...`) or test function selectors (`::`). `just green`, `just lint`, and `just test` are acceptable.
+
 ### 4. Test Specifications — TDD phases only
 
 **Must have:** Specific test name, expected failure message, file location, why it will fail. See `references/review-examples.md` Section 4 for good example.
@@ -230,6 +238,8 @@ Five structural axes that cause execution failures. Apply regardless of phase ty
 - **TDD:** Cycles where RED can pass with `assert callable(X)` or `import X`
 - **TDD:** Cycles where RED expects `ImportError` or `AttributeError` instead of behavioral `AssertionError` — strong assertions never execute because import fails first. Fix: add Bootstrap step creating stub, expect behavioral failure
 - **TDD:** Integration wiring items where called function already tested
+- **TDD:** Vacuous Bootstrap absence statements (`**Bootstrap:** Not needed`, `**Bootstrap:** None`, or similar). When Bootstrap is not needed, the section must be omitted entirely — absence statements add noise without gating value. Fix: remove the line
+- **TDD:** Cycles whose assertions are a strict subset of another cycle's assertions (redundant coverage). Fix: merge into the stronger cycle or drop
 - **General:**
   - Scaffolding-only steps (file creation, directory setup) without functional outcome
   - Step N+1 produces outcome achievable by extending step N alone — merge

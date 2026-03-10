@@ -135,10 +135,9 @@ Produce this classification block before routing (visible output, not internal r
   1. Recall: `claudeutils _recall resolve "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
   2. Explore: if affected files not already known, `Glob`/`Grep` to identify targets
   3. Execute: check for applicable skills and project recipes first, then implement directly
-  4. Update session.md with what was done
-  5. Follow §Continuation
+  4. Follow §Continuation (prepends `/inline plans/<job> execute`)
   Skip design — all other operational rules (skills, project tooling, communication) remain in effect.
-- **Moderate →** Skip design. Follow §Continuation (prepends `/runbook plans/<job>`).
+- **Moderate →** Skip design. If artifact destination is `agentic-prose` → follow §Continuation (prepends `/inline plans/<job> execute`). Otherwise → follow §Continuation (prepends `/runbook plans/<job>`).
 - **Complex →** Read `references/write-outline.md` for Phase A (research + outline) and Phase B (user validation + outline sufficiency gate). *(Verb-oriented name: action the agent takes, not the artifact produced.)*
 - **Defect →** Route to structured-bugfix workflow: reproduce → root-cause → fix → verify. Skip design — the investigation structure replaces architectural design.
 
@@ -178,9 +177,9 @@ As the **final action** of this skill:
 
 1. Read continuation from `additionalContext` (first skill in chain) or from `[CONTINUATION: ...]` suffix in Skill args (chained skills)
 2. Prepend entries based on routing outcome:
-   - Moderate: prepend `/runbook plans/<job>`
-   - Execution-ready (B gate or C.5): prepend `/inline plans/<job> execute`
-   - Not execution-ready / Simple: no prepend
+   - Moderate (non-prose): prepend `/runbook plans/<job>`
+   - Simple, Moderate (agentic-prose), or execution-ready (B gate or C.5): prepend `/inline plans/<job> execute`
+   - Not execution-ready: no prepend
 3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
 4. If no continuation: default-exit — `/handoff` → `/commit`
 

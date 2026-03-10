@@ -119,45 +119,55 @@ After each delegated step. Dirty tree or lint failure → diagnose before contin
 
 ## Phase 4: Post-Work
 
-### 4a: Corrector Gate (D+B anchor)
+### 4a: Review Gate (D+B anchor)
 
 **Both paths require a tool call on `plans/<job>/reports/`. Neither is skippable.**
 
-#### Path A: Corrector Dispatch (default)
+#### Path A: Review Dispatch (default)
 
-Read `references/corrector-template.md` for the full dispatch template and field rules.
+Route changed files to the appropriate reviewer per `agent-core/fragments/review-requirement.md` routing table.
 
-Delegate to corrector agent (Task, `subagent_type: "corrector"`) with:
-- **Scope:** uncommitted changes (`git diff --name-only $BASELINE`) — implementation only
+**Dispatch process:**
+1. List changed files: `git diff --name-only $BASELINE`
+2. Group by artifact type (code/tests/plans, skill definitions, agent definitions, design documents)
+3. Look up reviewer per group from routing table
+4. Dispatch each group to its reviewer using `references/review-dispatch-template.md` for prompt structure
+
+**Two dispatch patterns:**
+- **Fix-capable reviewers** (corrector, agent-creator, design-corrector): Delegate, read report, grep UNFIXABLE. Agent applies fixes directly.
+- **Report-only reviewers** (skill-reviewer): Delegate, read report, apply fixes in calling session. Agent has Read/Grep/Glob only.
+
+**Common fields per dispatch:**
+- **Scope:** uncommitted changes for this artifact group — implementation only
 - **Design context:** `plans/<job>/outline.md` or `design.md`
-- **Recall context:** review-relevant entries from `plans/<job>/recall-artifact.md`
-- **Report:** `plans/<job>/reports/review.md`
+- **Recall artifact:** `plans/<job>/recall-artifact.md` (reviewer resolves entries)
+- **Report:** `plans/<job>/reports/review.md` (or `review-<type>.md` when multiple groups)
 
-Corrector reviews implementation changes only. Planning artifacts → runbook-corrector.
+Planning artifacts → runbook-corrector (not this gate).
 
 If recall artifact absent: lightweight recall fallback (template details in reference file).
 
-**Structural proof (D+B anchor):** After corrector completes, verify report exists:
+**Structural proof (D+B anchor):** After review completes, verify report exists:
 
 ```
 Read(plans/<job>/reports/review.md)
 ```
 
-This Read proves corrector produced output. Without it, Phase 4b cannot proceed.
+This Read proves reviewer produced output. Without it, Phase 4b cannot proceed.
 
-**Handle result:** If UNFIXABLE issues present → STOP, surface to user with report path. Do not proceed to 4b until all issues are resolved or accepted.
+**Handle result:** Read each review report. If UNFIXABLE issues present → STOP, surface to user with report path. Do not proceed to 4b until all issues are resolved or accepted.
 
-#### Path B: Corrector Skip (gated escape hatch)
+#### Path B: Review Skip (gated escape hatch)
 
-When corrector is genuinely unnecessary (trivial session.md-only edits, plan artifact cleanup), skip is permitted — but requires an auditable artifact:
+When review is genuinely unnecessary (trivial session.md-only edits, plan artifact cleanup), skip is permitted — but requires an auditable artifact:
 
 ```
 Write(plans/<job>/reports/review-skip.md)
 ```
 
-Content must include: what was changed, why corrector adds no value for this specific change, what verification was performed instead. The justification must be specific enough to survive deliverable-review scrutiny.
+Content must include: what was changed, why review adds no value for this specific change, what verification was performed instead. The justification must be specific enough to survive deliverable-review scrutiny.
 
-**Skip is not confidence-gated.** "Scope is small" or "well-tested" are not valid skip justifications — corrector exists precisely to catch issues confidence misses.
+**Skip is not confidence-gated.** "Scope is small" or "well-tested" are not valid skip justifications — review exists precisely to catch issues confidence misses.
 
 ### 4b: Triage Feedback
 

@@ -28,7 +28,15 @@ Runs inline (no `context: fork`) — shares the hosting skill's context window, 
 
 ### Entry
 
-Read the artifact under review. Present a concise summary: key decisions, scope boundaries, structure. Then enter the loop — wait for user feedback.
+**Planstate (D+B anchor):** Write review-pending state to lifecycle:
+
+```bash
+echo "$(date +%Y-%m-%d) review-pending — /proof <artifact>" >> plans/<job>/lifecycle.md
+```
+
+**Read the artifact under review.** If the artifact path contains a glob pattern (e.g., `runbook-phase-*.md`), expand via Glob and read all matching files — present as a single composite review target. A runbook is one artifact composed of multiple phase files; /proof treats the collection as a unit.
+
+Present a concise summary: key decisions, scope boundaries, structure. Then enter the loop — wait for user feedback.
 
 ### Reword
 
@@ -61,7 +69,8 @@ Loop continues until user issues a terminal action:
 1. Apply all accumulated decisions to the artifact
 2. If artifact is a planning artifact: dispatch lifecycle-appropriate corrector (see Corrector Dispatch below)
 3. Present corrector findings before returning control to hosting skill (gate, not pass-through)
-4. Return control to hosting skill
+4. Update planstate: `echo "$(date +%Y-%m-%d) reviewed — /proof <artifact>" >> plans/<job>/lifecycle.md`
+5. Return control to hosting skill
 
 **"learn":**
 Capture insight to `agents/learnings.md`. Resume loop (not terminal unless user also says proceed).
@@ -78,7 +87,7 @@ When terminal action is "apply" and artifact is a planning artifact, dispatch th
 | outline.md | outline-corrector | outline-corrector |
 | design.md | design-corrector | design-corrector |
 | runbook-outline.md | runbook-outline-corrector | runbook-outline-corrector |
-| runbook-phase-*.md | runbook-corrector (/review-plan) | corrector |
+| runbook-phase-*.md | runbook-corrector (/review-plan) | runbook-corrector |
 | requirements.md | -- (user-validated directly) | -- |
 
 **Corrector prompt includes:**
@@ -96,23 +105,7 @@ When terminal action is "apply" and artifact is a planning artifact, dispatch th
 
 ## Author-Corrector Coupling
 
-When /proof's hosting skill is /design and the design modifies an "author" skill (a skill whose output is reviewed by a corrector), check coupled dependencies:
-
-1. Identify the corrector from the transformation table (T1-T6.5 in `agents/decisions/pipeline-contracts.md`)
-2. Check: does the corrector's review criteria need corresponding update?
-3. Check: does any mechanical validator need update?
-4. Include corrector/validator updates in the same design scope
-
-**Dependency mapping:**
-
-| Author Skill/Artifact | Corrector | Validator |
-|----------------------|-----------|-----------|
-| /design (outline format) | outline-corrector | -- |
-| /runbook (tdd-cycle-planning.md) | runbook-corrector (/review-plan) | validate-runbook.py |
-| /runbook (general-patterns.md) | runbook-corrector (/review-plan) | validate-runbook.py |
-| /requirements (standard format) | -- (user-reviewed) | -- |
-
-Produce visible output: "Author change: X. Coupled corrector: Y. Update needed: yes/no."
+When /proof's hosting skill is /design and the design modifies an "author" skill (a skill whose output is reviewed by a corrector), check coupled dependencies using the Author-Corrector Coupling section in `/design` SKILL.md (dependency mapping table and visible output requirement). Source of truth: T1-T6.5 in `agents/decisions/pipeline-contracts.md`.
 
 ## Layered Defect Model
 

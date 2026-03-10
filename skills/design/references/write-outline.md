@@ -180,20 +180,22 @@ After user validates the outline, assess whether it already contains enough spec
 **Execution routing (work-type-aware):**
 
 ```
-IF all prose edits, no implementation loops → direct execution
-ELSE IF work type = Investigation → direct execution
-ELSE IF work type = Exploration AND design resolved all questions → direct execution
+IF all prose edits, no implementation loops → INLINE (hard gate — file count irrelevant)
+ELSE IF work type = Investigation → inline (criteria below)
+ELSE IF work type = Exploration AND design resolved all questions → inline (criteria below)
 ELSE (work type = Production AND behavioral code) → /runbook
 ```
 
-**Direct execution criteria (all must hold for prose/investigation/exploration paths):**
+**Prose path rationale:** Prose edits are commutative — editing file A before or after file B produces the same result. Multi-file prose does not constitute cross-file coordination. Coordination complexity arises from runtime ordering dependencies (test↔implementation, build↔verify), not from editing multiple files.
+
+**Inline criteria (non-prose paths only — prose path bypasses these):**
 - All decisions pre-resolved (no open questions requiring feedback)
 - Insertion points or edit targets are identified (line-level or section-level)
-- No cross-file coordination requiring sequencing
+- No runtime ordering dependencies between files
 - No implementation loops (no test/build feedback required)
 - Scope fits inline capacity (single session, single model)
 
-Direct execution bypasses `/runbook` — this gate must assess both coordination complexity and capacity.
+Inline execution bypasses `/runbook` — this gate assesses coordination complexity and capacity. For prose, the first routing branch already decided.
 
 **If execution-ready** — offer direct execution. On confirmation, follow §Continuation (prepends `/inline plans/<job> execute`).
 

@@ -1,10 +1,10 @@
-# Corrector Dispatch Template
+# Review Dispatch Template
 
-Standard template for corrector delegation from /inline Phase 4a. Single pattern replacing 3+ ad-hoc corrector invocations across /design and /runbook.
+Prompt template for reviewer delegation from /inline Phase 4a. Reviewer selection happens upstream (Phase 4a routing logic) — this template structures the prompt for the selected reviewer.
 
 ## Template
 
-Delegate to corrector agent (Task tool, `subagent_type: "corrector"`):
+Delegate to selected reviewer agent (Task tool, `subagent_type` per routing table):
 
 ```
 Review implementation changes against design specification.
@@ -22,11 +22,9 @@ Review implementation changes against design specification.
 
 **Design reference:** plans/<job>/outline.md (or design.md if present)
 
-**Recall context:**
-<resolved entries from recall-artifact.md relevant to review — failure modes, quality anti-patterns>
-
-If no recall artifact: do lightweight recall — Read agents/memory-index.md,
-identify review-relevant entries, batch-resolve via claudeutils _recall resolve.
+**Recall artifact:** plans/<job>/recall-artifact.md
+Read this file. Batch-resolve all entries via `claudeutils _recall resolve`.
+If absent: Read agents/memory-index.md, identify review-relevant entries, batch-resolve.
 
 **Review criteria:**
 - Implementation matches design decisions
@@ -42,27 +40,10 @@ Return filepath on success, or "UNFIXABLE: [description]" on failure.
 ## Field Rules
 
 - **Baseline:** `$BASELINE` captured at /inline Phase 1 (`git rev-parse HEAD` before edits). When `/inline execute` follows /design, baseline excludes design-phase artifacts — only execution edits are uncommitted.
-- **Design context:** Always `outline.md` or `design.md` — never `requirements.md`. Requirements are upstream abstractions; design/outline contains the implementation-level decisions corrector needs.
-- **Recall context:** Curate from plan recall-artifact. Include entries about review failure modes, quality anti-patterns, over-escalation patterns. Use `plans/<job>/corrector-recall-artifact.md` if prepared during Phase 3 delegation.
-- **Scope IN/OUT:** From design or outline, not invented. Prevents corrector from flagging work explicitly deferred.
-- **Constraint:** Corrector reviews implementation changes only. Planning artifacts (runbooks, outlines, designs) route to runbook-corrector per pipeline contracts.
-
-## Lightweight Recall Fallback
-
-When `plans/<job>/recall-artifact.md` is absent (e.g., cold-start task with no prior design phase):
-
-1. Read `agents/memory-index.md`
-2. Identify review-relevant entries: quality patterns, failure modes, corrector-specific decisions
-3. Batch-resolve:
-   ```bash
-   claudeutils _recall resolve \
-     "when concluding reviews" \
-     "when corrector rejects planning artifacts" \
-     "when recall-artifact is absent during review" \
-     "when batch changes span multiple artifact types" \
-     "when routing implementation findings"
-   ```
-4. Include resolved content in corrector prompt under **Recall context**
+- **Design context:** Always `outline.md` or `design.md` — never `requirements.md`. Requirements are upstream abstractions; design/outline contains the implementation-level decisions the reviewer needs.
+- **Recall artifact:** Reference the file path. Reviewer resolves entries itself — do not pre-resolve and paste content into the prompt. Token economy: reference, never repeat.
+- **Scope IN/OUT:** From design or outline, not invented. Prevents reviewer from flagging work explicitly deferred.
+- **Constraint:** This template is for implementation changes only. Planning artifacts (runbooks, outlines, designs) route to runbook-corrector per pipeline contracts.
 
 ## Example: Skill Creation Task
 
@@ -85,8 +66,7 @@ Review implementation changes against design specification.
 
 **Design reference:** plans/inline-execute/outline.md
 
-**Recall context:**
-[resolved entries from corrector-recall-artifact.md — quality patterns, failure modes]
+**Recall artifact:** plans/inline-execute/recall-artifact.md
 
 **Review criteria:**
 - Implementation matches design decisions

@@ -416,9 +416,8 @@ def get_cache_path(paths: list[str], project_dir: str) -> Path:
     hash_input = "".join(sorted_paths) + project_dir
     hash_digest = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()[:16]
 
-    # Use TMPDIR from environment, fall back to /tmp/claude
-    tmp_dir = os.environ.get("TMPDIR", "/tmp/claude")
-    cache_dir = Path(tmp_dir)
+    # Use project-local tmp/ per tmp-directory convention
+    cache_dir = Path(project_dir) / "tmp"
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     return cache_dir / f"continuation-registry-{hash_digest}.json"

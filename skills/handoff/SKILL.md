@@ -81,6 +81,7 @@ Write session.md following this structure:
 - `ready` → `/orchestrate {name}`
 - `review-pending` → `/deliverable-review plans/{name}`
 - Unmapped statuses (`rework`, `reviewed`, `delivered`) → preserve existing command
+- **Note override:** If existing command differs from derived AND task Note explains routing (e.g. "Route to /inline not /runbook"), preserve existing command
 
 Non-plan tasks keep their static command. This prevents stale commands from persisting across handoffs.
 

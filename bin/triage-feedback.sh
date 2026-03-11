@@ -52,11 +52,20 @@ if [[ -f "$classification_file" ]]; then
     fi
 fi
 
+# Check review artifact existence (defense-in-depth for corrector gate)
+review_artifact="none"
+if [[ -f "$reports_dir/review.md" ]]; then
+    review_artifact="review"
+elif [[ -f "$reports_dir/review-skip.md" ]]; then
+    review_artifact="skip"
+fi
+
 # Output structure
 echo "## Evidence"
 echo "- Files changed: $files_changed"
 echo "- Reports: $reports_count"
 echo "- Behavioral code: $behavioral_code"
+echo "- Review artifact: $review_artifact"
 echo ""
 echo "## Verdict"
 echo "$verdict"
@@ -64,6 +73,11 @@ echo "$verdict"
 if [[ "$verdict" == "underclassified" ]] || [[ "$verdict" == "overclassified" ]]; then
     echo ""
     echo "Triage: predicted $classification, evidence suggests $verdict (files=$files_changed, reports=$reports_count, code=$behavioral_code)"
+fi
+
+if [[ "$review_artifact" == "none" ]]; then
+    echo ""
+    echo "WARNING: No corrector report — review gate may have been bypassed"
 fi
 
 # Append to triage-feedback-log.md (only if verdict is not no-classification)

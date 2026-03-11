@@ -12,6 +12,10 @@ X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
 ## 2. Generate RED Specifications (prose format)
 
 ```markdown
+**Bootstrap:** [Create/Add to module with stub returning default]. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** [test function name]
@@ -20,12 +24,27 @@ X.Y format (1.1, 1.2, ..., 2.1, 2.2, ...)
 - [Specific assertion 2]
 - [Expected values/behaviors]
 
-**Expected failure:** [Error type or pattern]
+**Expected failure:** `AssertionError` — [specific behavioral mismatch]
 
-**Why it fails:** [Missing implementation]
+**Why it fails:** [Stub returns default, test expects real behavior]
 
 **Verify RED:** `pytest [file]::[test_function] -v`
 ```
+
+**Bootstrap Pattern (mandatory for TDD cycles):**
+
+When the function/module under test does not yet exist, the cycle includes a **Bootstrap** section — a separate step before RED, dispatched to a distinct agent invocation. Bootstrap creates the module with a stub implementation (return `None`, `""`, `[]`, or no-op) so the test can import and execute. The RED agent then fails on a **behavioral assertion** — not `ImportError`.
+
+- Bootstrap is a **separate step file** — not embedded in the RED step. The bootstrap agent creates stubs and does NOT commit
+- Expected failure must be `AssertionError` against a specific assertion, never `ImportError` or `AttributeError`
+- This proves assertion strength: a trivial implementation would fail the same way
+- The GREEN phase replaces stubs with real implementation
+
+**When the module already exists** (subsequent cycles in the same phase): Bootstrap adds stub function signatures to the existing module. Use `Add to <module>` instead of `Create <module>`.
+
+**When Bootstrap is not needed:** Cycles extending existing function behavior (e.g., adding amend support to an existing pipeline) skip Bootstrap — the function already exists and the test fails on behavioral assertion naturally. CLI wiring cycles (command registration) also skip Bootstrap.
+
+**Omit the Bootstrap section entirely when not needed.** Do not include absence statements like `**Bootstrap:** Not needed` or `**Bootstrap:** None`. These are vacuous — no gate requires them, and they add noise that correctors must filter.
 
 **Prose Test Description Rules:**
 
@@ -58,9 +77,7 @@ RED phase uses **prose descriptions**, not full code blocks. Saves planning toke
   Action: [what to add/modify -- describe, don't write code]
   Location hint: [where in file]
 
-**Verify lint:** `just lint`
-**Verify GREEN:** [Test command]
-**Verify no regression:** [Full test suite]
+**Verify GREEN:** `just green`
 ```
 
 **CRITICAL -- No prescriptive code:** GREEN phases describe BEHAVIOR and provide HINTS. Do NOT include complete function implementations or code blocks that can be copied verbatim.

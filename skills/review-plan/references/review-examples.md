@@ -62,12 +62,11 @@ def compose(fragments, output):
 
 **Good example:**
 ```markdown
-**Expected failure:**
-```
-ImportError: cannot import name 'compose' from 'claudeutils.compose'
-```
+**Bootstrap:** Create `claudeutils/compose.py` with stub: `def compose(fragments, output): return None`. Do not commit.
 
-**Why it fails**: Function doesn't exist yet
+**Expected failure:** `AssertionError` — `compose(fragments, output)` returns `None`, test expects composed content containing all fragments
+
+**Why it fails:** Stub returns `None`, test asserts on composed output content
 ```
 
 ## 5. Weak RED Phase Assertions (CRITICAL) — TDD

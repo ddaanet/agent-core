@@ -219,6 +219,8 @@ Task commands must include a plan path argument (e.g., `/design plans/foo/requir
 
 Applies to: `p:` directive (must create plan artifact before or during handoff), `/handoff` (must not write tasks without plan backing).
 
+**Discussion conclusions must survive session boundaries.** When `d:` mode decisions or agreed refinements produce pending work, capture conclusions as task notes in session.md. The handoff is the recovery mechanism — if it's not in session.md, it doesn't survive. `task-context.sh` recovers the introducing commit, but only if the handoff captured the context.
+
 **Worktree Tasks section:**
 
 Tasks pre-classified as needing worktree isolation. Classification is static — set at creation by handoff or `p:` directive. No move semantics between sections.

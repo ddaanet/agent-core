@@ -69,3 +69,9 @@ Two distinct artifact models: pipeline recall (grouped entries with relevance no
 **Anti-pattern:** Splitting post-step verification into separate tool calls. First check (git status) returns clean → exit momentum suppresses second check (just lint). The sub-agent "already linted" rationalization makes the skip feel safe.
 
 **Correct pattern:** Single compound command (`git status --porcelain && just lint`). Compound commands can't be partially executed — both run or neither.
+
+### Recall Content In Delegation Prompts
+
+**Reference recall artifact file paths. Do not inline resolved recall content in delegation prompts.** Caller pre-resolving entries and pasting content into the reviewer's prompt is token-wasteful (content duplicated across parent and child context) and potentially stale.
+
+**Correct pattern:** Pass the recall artifact path. Reviewer resolves entries itself via `claudeutils _recall resolve`. Same principle as sub-agent recall: parent curates artifact, child resolves.

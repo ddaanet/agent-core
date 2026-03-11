@@ -128,7 +128,6 @@ isolated context, spawned via the Task tool. Each skill lives in
 | Skill | Purpose |
 |-------|---------|
 | `/reflect` | Root cause analysis of agent behavior deviations |
-| `/opus-design-question` | Delegates architectural decisions to Opus |
 | `/worktree` | Git worktree lifecycle for parallel task execution |
 | `/release-prep` | Pre-release validation and documentation updates |
 | `/token-efficient-bash` | `set -xeuo pipefail` pattern for 40-60% token reduction |

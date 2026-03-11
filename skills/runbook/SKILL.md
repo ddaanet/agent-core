@@ -168,7 +168,7 @@ When design specifies explicit classifications (tables, rules, decision lists):
 When delegated agent escalates "ambiguity" or "design gap":
 1. **Verify against design source** — Re-read the design document section
 2. **If design provides explicit rules:** Resolve using those rules, do not accept the escalation
-3. **If genuinely ambiguous:** Use `/opus-design-question` or ask user
+3. **If genuinely ambiguous:** Resolve using architectural principles from design context, or ask user
 4. **Re-delegate with clarification** if agent misread design
 
 ### Tier 3: Full Runbook

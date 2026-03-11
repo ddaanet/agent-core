@@ -24,7 +24,7 @@ Standard (Sonnet)
 
 - Review conversation for completed tasks, pending/remaining tasks, blockers
 - If reviewing a handoff-haiku session, process Session Notes for learnings
-- **Uncommitted prior handoff:** Read `agents/session.md`. If it contains a `# Session Handoff:` header with a date different from today, prior uncommitted handoff content exists — preserve as base state in Step 2
+- **Uncommitted prior handoff:** Check `git diff --name-only HEAD -- agents/session.md`. Non-empty → prior uncommitted handoff exists → merge incrementally in Step 2 (Edit, append Completed, mutate tasks). Empty → clean session.md → fresh write (Write)
 
 ### 2. Update session.md
 

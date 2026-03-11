@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Log magic-query invocations for organic needs analysis.
+# Appends JSON line to ~/.claude/magic-query-log.jsonl
+set -euo pipefail
+
+query="${1:?Usage: magic-query-log QUERY}"
+log_file="$HOME/.claude/magic-query-log.jsonl"
+
+mkdir -p "$(dirname "$log_file")"
+
+timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+if command -v jq >/dev/null 2>&1; then
+  jq -Rn --arg q "$query" --arg t "$timestamp" '{"timestamp":$t,"query":$q}' >> "$log_file"
+else
+  # Fallback: escape backslash, double-quote, tabs, carriage returns, collapse newlines
+  escaped=$(printf '%s' "$query" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\r/\\r/g' | tr '\n' ' ')
+  printf '{"timestamp":"%s","query":"%s"}\n' "$timestamp" "$escaped" >> "$log_file"
+fi

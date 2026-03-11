@@ -211,6 +211,14 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 - Model: `haiku`, `sonnet`, or `opus` (default: sonnet if omitted)
 - Restart: Optional flag — only include if restart needed (omit = no restart)
 
+**Plan-backed tasks (mandatory):**
+
+Every pending task must reference a plan directory (`plans/<slug>/`) containing at least one artifact: requirements.md, problem.md, brief.md, or design.md. Inline-described tasks are forbidden — inline descriptions lack context, references, and produce results that miss unstated requirements.
+
+Task commands must include a plan path argument (e.g., `/design plans/foo/requirements.md`, not bare `/design`). The plan path is the validator's primary extraction source.
+
+Applies to: `p:` directive (must create plan artifact before or during handoff), `/handoff` (must not write tasks without plan backing).
+
 **Worktree Tasks section:**
 
 Tasks pre-classified as needing worktree isolation. Classification is static — set at creation by handoff or `p:` directive. No move semantics between sections.

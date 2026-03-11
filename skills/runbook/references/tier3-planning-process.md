@@ -77,7 +77,7 @@ Review the changed files list. File locations, existing patterns, and structural
    - **Pattern batching** -- when N items share identical operation structure with different data (e.g., N fragment demotions each following "remove @-ref, verify skill coverage, shrink stub"), collapse into a single inline item with a variation table. Do not create N separate items.
 
 2. **Verify outline quality:**
-   - **All implementation choices resolved** -- No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each item commits to one approach. If uncertain, use `/opus-design-question`.
+   - **All implementation choices resolved** -- No "choose between" / "decide" / "determine" / "select approach" / "evaluate which" language. Each item commits to one approach. If uncertain, resolve using architectural principles from loaded context.
    - **Inter-item dependencies declared** -- If item N.M depends on item N.K, declare `Depends on: [Cycle|Step] N.K`.
    - **Code fix items enumerate affected sites** -- For items fixing code: list all affected call sites (file:function or file:line).
    - **Later items reference post-phase state** -- Items in Phase N+1 that modify files changed in Phase N must note expected state.

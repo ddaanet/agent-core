@@ -27,7 +27,7 @@ Produce dense design documents that guide implementation by downstream agents (S
 
 **Requirements-clarity gate (D+B anchor):** Before any artifact reading or triage, assess requirements completeness. Produce this assessment block (visible output, not internal reasoning):
 
-- **Requirements source:** [requirements.md / user request / problem.md / brief.md]
+- **Requirements source:** [requirements.md / user request / brief.md]
 - **Completeness:** [Each FR has concrete mechanism: Y/N] [Each NFR has measurable criterion: Y/N]
 - **Routing:** [Proceed to triage / Route to `/requirements`]
 

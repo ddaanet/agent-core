@@ -32,4 +32,4 @@ Open questions: Should rate limits vary by endpoint? Should admin users be exemp
 Scope: API gateway only. Dashboard/monitoring out of scope.
 ```
 
-**Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message.
+**Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed brief.md), compress A+B by presenting outline and asking for validation in a single message.

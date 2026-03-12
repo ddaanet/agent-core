@@ -85,7 +85,7 @@ Based on RCA findings, classify the structural root cause:
 | **Rule gap** | Rule is genuinely missing or ambiguous | Create or clarify rule — only after ruling out structural fixes above |
 | **Systemic** | Pattern recurs across sessions | Combine structural fix with memory index entry |
 
-**Multiple classifications possible.** Example: Well-specified problem.md creates execution pressure (directive conflict) at an unanchored triage gate (unanchored gate) where prior identical instance wasn't loaded (insufficient context). Address all layers.
+**Multiple classifications possible.** Example: Well-specified brief.md creates execution pressure (directive conflict) at an unanchored triage gate (unanchored gate) where prior identical instance wasn't loaded (insufficient context). Address all layers.
 
 **Anti-pattern: Language strengthening.** Adding "no exceptions," "MUST," or scenario-specific warnings to rules the agent already saw and rationalized past. If the rule was clear and the agent overrode it, clarity was not the problem — the environment allowed the override. Fix the environment, not the prose. Language strengthening is never the correct fix for behavioral deviation.
 

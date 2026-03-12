@@ -202,7 +202,7 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 **Examples:**
 ```markdown
 - [ ] **Implement ambient awareness** — `/runbook plans/ambient-awareness/design.md` | sonnet
-- [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/problem.md` | opus | restart
+- [ ] **Design runbook identifiers** — `/design plans/runbook-identifiers/brief.md` | opus | restart
 ```
 
 **Field rules:**
@@ -213,7 +213,7 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 
 **Plan-backed tasks (mandatory):**
 
-Every pending task must reference a plan directory (`plans/<slug>/`) containing at least one artifact: requirements.md, problem.md, brief.md, or design.md. Inline-described tasks are forbidden — inline descriptions lack context, references, and produce results that miss unstated requirements.
+Every pending task must reference a plan directory (`plans/<slug>/`) containing at least one artifact: requirements.md, brief.md, or design.md. Inline-described tasks are forbidden — inline descriptions lack context, references, and produce results that miss unstated requirements.
 
 Task commands must include a plan path argument (e.g., `/design plans/foo/requirements.md`, not bare `/design`). The plan path is the validator's primary extraction source.
 

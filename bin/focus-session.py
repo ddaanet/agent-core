@@ -180,7 +180,7 @@ def create_focused_session(task_markdown: str, plan_refs: list[str]) -> str:
                 "rca.md",
                 "requirements.md",
                 "design.md",
-                "problem.md",
+                "brief.md",
                 "runbook-outline.md",
                 "runbook.md",
                 "outline.md",

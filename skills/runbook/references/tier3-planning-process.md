@@ -19,10 +19,11 @@ If design document includes "Requirements" section:
 - Note scope boundaries (in/out of scope)
 - Carry requirements context into runbook Common Context
 
-1. **Discover relevant prior knowledge (D+B anchor — mandatory tool call on both paths):**
-   - **Relevant entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve entries related to the task domain. Read `memory-index.md` first if triggers not known from context.
-   - **No relevant entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
-   - Factor known constraints into step design and model selection
+1. **Implementation recall (D+B anchor — tool call required):**
+   1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it.
+   2. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
+   3. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
+   4. Factor known constraints into step design and model selection.
 
 2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
    - If artifact exists (design stage may have generated it via Pass 1): augment with implementation and testing learnings
@@ -44,9 +45,9 @@ If design document includes "Requirements" section:
 4. **Post-explore recall gate:**
    Step 3's Glob/Grep verification discovers actual file locations and module structures — may reveal domains not anticipated during step 1 recall. Re-scan memory-index (already in context) for entries relevant to discovered areas.
 
-   **Gate anchor (mandatory tool call on both paths):**
+   **Gate anchor (D+B — tool call required):**
    - **New entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve into context, augment recall artifact with new entry keys
-   - **No new entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
+   - **No new entries:** `claudeutils _recall resolve null` — proves gate was reached
 
 ---
 

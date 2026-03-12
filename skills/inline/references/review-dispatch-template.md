@@ -22,9 +22,11 @@ Review implementation changes against design specification.
 
 **Design reference:** plans/<job>/outline.md (or design.md if present)
 
-**Recall artifact:** plans/<job>/recall-artifact.md
-Read this file. Batch-resolve all entries via `claudeutils _recall resolve`.
-If absent: Read agents/memory-index.md, identify review-relevant entries, batch-resolve.
+**Recall context:**
+1. Read agents/memory-index.md (skip if already in context). Select review-relevant triggers.
+2. If plans/<job>/recall-artifact.md exists: also read it — pre-curated entries supplement selection.
+3. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
+4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
 
 **Review criteria:**
 - Implementation matches design decisions

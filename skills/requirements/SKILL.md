@@ -103,9 +103,9 @@ Quick scan to ground requirements (runs after extraction, so scan is targeted):
 
 Discovery via Glob/Grep may surface domains not anticipated during the initial recall pass. Re-scan memory-index (already in context from recall pass) for entries relevant to areas discovered during codebase exploration.
 
-**Gate anchor (mandatory tool call on both paths):**
+**Gate anchor (D+B — tool call required):**
 - **New entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve into context, update recall artifact with new entry keys
-- **No new entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
+- **No new entries:** `claudeutils _recall resolve null` — proves gate was reached
 
 ### 3. Structure Requirements
 

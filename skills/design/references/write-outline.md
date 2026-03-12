@@ -83,9 +83,9 @@ For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify r
 
 Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-scan memory-index (already in context from A.1) for entries relevant to domains discovered during exploration.
 
-**Gate anchor (mandatory tool call on both paths):**
+**Gate anchor (D+B — tool call required):**
 - **New entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
-- **No new entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
+- **No new entries:** `claudeutils _recall resolve null` — proves gate was reached
 
 #### A.3-4. Research
 

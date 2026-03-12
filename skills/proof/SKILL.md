@@ -5,16 +5,16 @@ description: >-
   validation. Invoked by hosting skills (/design, /runbook, /requirements) at
   review integration points. Triggers on "proof", "validate artifact",
   "review loop", or when a hosting skill reaches a review stage. Replaces
-  ad-hoc single-turn validation with reword-accumulate-sync protocol.
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion, Skill
+  ad-hoc single-turn validation with item-by-item review protocol.
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 user-invocable: true
 ---
 
 # Proof — Structured Artifact Validation
 
-Structured review loop for planning artifacts. Replaces single-turn "does this look right?" with iterative reword-validate-accumulate protocol. Invoked inline by hosting skills (/design, /runbook, /requirements) at review integration points.
+Item-by-item review loop for planning artifacts. Presents discrete items with per-item verdicts, accumulates decisions, applies as batch. Replaces single-turn "does this look right?" with forced-verdict iteration grounded in Fagan inspection (per-item detection, reader-paraphrase) and cognitive load research (segmentation, forced verdict).
 
-**Why a skill, not a reference file:** Structure requires enforcement. Enforcement requires gates. Gates require tool calls (codified in "When Anchoring Gates With Tool Calls"). The Skill tool invocation is the gate — forces protocol steps into attention focus. The previous 21-line `discussion-protocol.md` reference file failed to enforce (Bootstrap session evidence).
+**Why a skill, not a reference file:** Structure requires enforcement. Enforcement requires gates. Gates require tool calls. The Skill tool invocation is the gate — forces protocol steps into attention focus.
 
 ## Invocation
 
@@ -24,7 +24,7 @@ Structured review loop for planning artifacts. Replaces single-turn "does this l
 
 Runs inline (no `context: fork`) — shares the hosting skill's context window, sees all loaded artifacts and discussion history. The hosting skill invokes `/proof` via the Skill tool at its review stage.
 
-## Loop Mechanics
+## Item Review Loop
 
 ### Entry
 
@@ -34,53 +34,87 @@ Runs inline (no `context: fork`) — shares the hosting skill's context window, 
 echo "$(date +%Y-%m-%d) review-pending — /proof <artifact>" >> plans/<job>/lifecycle.md
 ```
 
-**Read the artifact under review.** If the artifact path contains a glob pattern (e.g., `runbook-phase-*.md`), expand via Glob and read all matching files — present as a single composite review target. A runbook is one artifact composed of multiple phase files; /proof treats the collection as a unit.
+**Read the artifact under review.** If the artifact path contains a glob pattern (e.g., `runbook-phase-*.md`), expand via Glob and read all matching files — present as a single composite review target.
 
-Present a concise summary: key decisions, scope boundaries, structure. Then enter the loop — wait for user feedback.
+**Detect items.** Parse artifact structure to identify reviewable items. See `references/item-review.md` for granularity detection table and splitting indicators. When artifact has no detectable sub-items, it is one item — the loop runs once.
 
-### Reword
+### Orientation
 
-Restate user feedback as an understanding statement:
+Before item iteration, present:
 
-> "Understanding: [restatement]. Correct?"
+- **Preamble:** Artifact under review, total item count, detected granularity
+- **Item list:** Numbered list with per-item title + agent-generated one-line summary
+- **Checkpoint:** Wait for user response before first item. User may: reorder items, skip sections, adjust scope, or proceed as-is
 
-Wait for user confirmation or correction before proceeding. Do not apply changes based on unvalidated interpretation. This step catches misunderstandings before they compound.
+### Item Iteration
 
-### Accumulate
-
-Each validated round adds to a running decision list (in-memory, not file):
+Present items in document order. Each item:
 
 ```
-- D-1: [validated understanding] -> [artifact impact]
-- D-2: [validated understanding] -> [artifact impact]
+**Item N of M: [item title]**
+
+[item content — plain text, not blockquote]
+
+Recall: [domain-relevant context if any, or omitted if none]
+
+Verdict? (a)pprove (r)evise (k)ill (s)kip
 ```
 
-Track: decision number, the validated understanding, which artifact section is affected.
+**Per-item recall (FR-3):** Before presenting each item, resolve domain-relevant recall entries for that item's topic. Null recall is silent — no "no relevant context found" noise.
 
-### Sync
+**Verdicts** — 4 explicit, uniform across all artifact types:
+- **approve** (a) — item correct, no changes
+- **revise** (r) — user states fix, recorded for batch-apply
+- **kill** (k) — item removed; sub-action prompt for planning artifacts: "Delete only, or absorb into another artifact?" If absorb: user names target, content transfer recorded in verdict list
+- **skip** (s) — explicit deferral, item persists unchanged
 
-On user request ("sync", "resync", "show decisions"), output the full accumulated decision list with artifact impacts. Useful after multiple rounds to verify accumulated state.
+**Non-verdict input is implicit discussion.** Any response that isn't a recognized verdict shortcut enters the discussion sub-loop for that item. The conversational medium makes explicit "discuss" actions unnecessary.
+
+### Discussion Sub-Loop
+
+When user provides non-verdict input on an item, enter discussion scoped to that item:
+
+**Reword:** Restate user feedback as understanding statement: "Understanding: [restatement]. Correct?" Wait for confirmation before proceeding.
+
+**Accumulate:** Each validated round adds to a per-item decision list (in-memory). Returns to verdict prompt with accumulated understanding when discussion concludes.
+
+**Sync:** On user request ("sync", "show decisions"), output the full accumulated verdict list across all items.
+
+### Iteration Guards
+
+**No direct edits during iteration.** Refuse execution-oriented requests (file edits, skill chains to /runbook, /deliverable-review, /codify, external plugins). This gate prevents bare-directive bypass of the review workflow.
+
+**Normal loop actions** available throughout iteration, resume review after:
+- **learn** — capture insight to `agents/learnings.md`
+- **pending** — capture task for handoff (`p:` semantics)
+- **brief** — transfer context to worktree
 
 ### Terminal Actions
 
-Loop continues until user issues a terminal action:
+**"apply":**
+1. Display full verdict summary: N approved, N revised, N killed, N skipped (unchanged), cross-item outputs (learnings, pending tasks, artifacts)
+2. User confirms
+3. Apply all verdicts as batch edits to artifact (revise edits, kill deletions, absorb transfers)
+4. Dispatch lifecycle-appropriate corrector (see Corrector Dispatch below)
+5. Present corrector findings
+6. Update planstate: `echo "$(date +%Y-%m-%d) reviewed — /proof <artifact>" >> plans/<job>/lifecycle.md`
+7. Return control to hosting skill
 
-**"proceed" / "apply":**
-1. Apply all accumulated decisions to the artifact
-2. If artifact is a planning artifact: dispatch lifecycle-appropriate corrector (see Corrector Dispatch below)
-3. Present corrector findings before returning control to hosting skill (gate, not pass-through)
-4. Update planstate: `echo "$(date +%Y-%m-%d) reviewed — /proof <artifact>" >> plans/<job>/lifecycle.md`
-5. Return control to hosting skill
+**Skip semantics:** Explicit deferral — affirmative decision to accept as-is without evaluation, not silent omission. Non-blocking — does not prevent apply. Listed prominently in summary with distinct count.
 
-**"learn":**
-Capture insight to `agents/learnings.md`. Resume loop (not terminal unless user also says proceed).
+**"discard":** Abandon all verdicts. Artifact unchanged. Update planstate: `echo "$(date +%Y-%m-%d) review-abandoned — /proof <artifact>" >> plans/<job>/lifecycle.md`
 
-**"suspend":**
-Prepend `/design plans/<skill-fix>` to current continuation (existing continuation-prepend mechanism). Route to /design for skill update before resuming current work.
+**Skip corrector when:** Accumulated verdict list has no revise/kill verdicts (all approved/skipped — no artifact changes to review).
+
+### Loop Actions
+
+Available during and after item iteration (non-terminal — resume review after):
+
+**"revisit":** Change verdict for a previously-reviewed item. Identification is flexible — by number, title, or content. Re-enter verdict prompt. Returns to post-iteration state (not back into the linear sequence).
 
 ## Corrector Dispatch
 
-When terminal action is "apply" and artifact is a planning artifact, dispatch the lifecycle-appropriate corrector as a sub-agent (Task tool, clean context). This makes corrector dispatch lifecycle-driven: artifact type + "edits applied" -> corrector fires. The user does not say "run correctors."
+When terminal action is "apply" and verdicts include revise or kill, dispatch the lifecycle-appropriate corrector as a sub-agent (Task tool, clean context). Corrector dispatch is lifecycle-driven: artifact type + "edits applied" → corrector fires.
 
 | Artifact Pattern | Corrector | subagent_type |
 |-----------------|-----------|---------------|
@@ -92,16 +126,14 @@ When terminal action is "apply" and artifact is a planning artifact, dispatch th
 
 **Corrector prompt includes:**
 - Artifact path under review
-- Accumulated decisions (context on what changed)
+- Accumulated verdict list (context on what changed)
 - Review-relevant entries from `plans/<job>/recall-artifact.md` if present
 - Report path: `plans/<job>/reports/<artifact-stem>-proof-review.md`
 
 **Handle corrector result:**
 - Read review report from returned filepath
-- If UNFIXABLE issues: present to user, re-enter loop for resolution
+- If UNFIXABLE issues: present findings to user, enter scoped discussion on corrector findings (not full re-iteration of original items)
 - If all fixed: return control to hosting skill
-
-**Skip corrector when:** Artifact is requirements.md (user-validated directly via AskUserQuestion), accumulated decision list is empty (no changes to apply — "proceed" with no feedback), or accumulated decisions are documentation-only (no structural changes to the artifact).
 
 ## Author-Corrector Coupling
 
@@ -128,7 +160,8 @@ Invoked at 5 points across 3 hosting skills:
 
 ## Anti-Patterns
 
-- **Single-turn validation:** "Does this look right?" -> "yes" -> proceed. No reword, no accumulation. Misses misunderstandings.
-- **File-edit-centric loop:** Apply changes inline during discussion without accumulation. Loses track of decisions vs changes.
-- **Skipping corrector after apply:** Decisions applied but no corrector review. Planning artifacts need lifecycle-appropriate review after modification.
-- **Reference file instead of skill:** A reference file cannot enforce protocol steps. The Skill tool invocation is the structural gate.
+- **Single-turn validation:** "Does this look right?" → "yes" → proceed. No reword, no accumulation. Misses misunderstandings.
+- **Immediate edits during iteration:** Applying file edits inline during review instead of accumulating verdicts. Loses track of decisions, prevents batch-apply atomicity.
+- **Skipping corrector after apply:** Verdicts applied but no corrector review. Planning artifacts need lifecycle-appropriate review after modification.
+- **Silent skipping:** Advancing past an item without an explicit verdict. Every item gets a disposition — skip is the explicit "defer" action, not silence.
+- **Random-access navigation:** Jumping to arbitrary items during iteration. Linear presentation prevents skip-ahead bias. Revisit is post-completion only.

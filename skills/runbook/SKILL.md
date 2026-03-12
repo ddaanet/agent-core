@@ -116,11 +116,12 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 - Single session, single model
 - No parallelization benefit
 
-**Recall context (D+B anchor — mandatory tool call on both paths):**
+**Implementation recall (D+B anchor — tool call required):**
 
-- **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve entries via `claudeutils _recall resolve "when <trigger>" ...`
-- **No artifact** (moderate path skipped design): Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve via `claudeutils _recall resolve "when <trigger>" "how <trigger>" ...`
-- **No artifact AND no relevant entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
+1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it. Upstream triage recall (from /design) uses different triggers and does not satisfy this gate.
+2. If `plans/<job>/recall-artifact.md` exists: also read it — pre-curated entries supplement memory-index selection.
+3. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
+4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
 
 Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
 
@@ -134,11 +135,12 @@ Include review-relevant entries in corrector prompt — rationale format for son
 - Components are sequential (no parallelization benefit)
 - No model switching needed
 
-**Recall context (D+B anchor — mandatory tool call on both paths):**
+**Implementation recall (D+B anchor — tool call required):**
 
-- **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve entries via `claudeutils _recall resolve "when <trigger>" ...`
-- **No artifact** (moderate path skipped design): Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve via `claudeutils _recall resolve "when <trigger>" "how <trigger>" ...`
-- **No artifact AND no relevant entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
+1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it. Upstream triage recall (from /design) uses different triggers and does not satisfy this gate.
+2. If `plans/<job>/recall-artifact.md` exists: also read it — pre-curated entries supplement memory-index selection.
+3. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
+4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
 
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 

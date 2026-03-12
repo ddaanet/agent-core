@@ -65,17 +65,15 @@ agent-core/bin/task-context.sh '<task-name>'
 
 Read `plans/<job>/brief.md` if present (cross-tree context from other sessions). In worktrees: `git show main:plans/<job>/brief.md 2>/dev/null`.
 
-### 2.3 Recall (D+B anchor — mandatory tool call on both paths)
+### 2.3 Recall (D+B anchor — tool call required)
 
-- **Artifact exists:** Read `plans/<job>/recall-artifact.md`. Batch-resolve design-related entries:
-  ```bash
-  claudeutils _recall resolve "<entry-1>" "<entry-2>" ...
-  ```
-- **No artifact:** Lightweight recall — Read `agents/memory-index.md`, identify domain-relevant entries, batch-resolve:
-  ```bash
-  claudeutils _recall resolve "when <domain-keyword-1>" "when <domain-keyword-2>" ...
-  ```
-- **No artifact AND no relevant entries:** `claudeutils _recall resolve null` — no-op, proves gate was reached
+1. Read `agents/memory-index.md` (skip if already in context). Select execution-domain triggers — patterns for implementing this, not classifying it.
+2. If `plans/<job>/recall-artifact.md` exists: also read it — pre-curated entries supplement memory-index selection.
+3. Batch-resolve:
+   ```bash
+   claudeutils _recall resolve "when <trigger-1>" "when <trigger-2>" ...
+   ```
+4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
 
 ### 2.4 Reference Loading
 

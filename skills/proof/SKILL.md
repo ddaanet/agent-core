@@ -100,7 +100,7 @@ When user provides non-verdict input on an item, enter discussion scoped to that
 6. Update planstate: `echo "$(date +%Y-%m-%d) reviewed — /proof <artifact>" >> plans/<job>/lifecycle.md`
 7. Return control to hosting skill
 
-**Skip semantics:** Explicit deferral — affirmative decision to accept as-is without evaluation, not silent omission. Non-blocking — does not prevent apply. Listed prominently in summary with distinct count.
+**Skip semantics:** Explicit deferral — affirmative decision to accept as-is without evaluation, not silent omission. Non-blocking — does not prevent apply. Listed prominently in summary with distinct count. No tracking obligation — skipped items do not carry forward as open items or generate pending tasks.
 
 **"discard":** Abandon all verdicts. Artifact unchanged. Update planstate: `echo "$(date +%Y-%m-%d) review-abandoned — /proof <artifact>" >> plans/<job>/lifecycle.md`
 

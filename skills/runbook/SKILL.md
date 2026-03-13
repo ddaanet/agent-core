@@ -119,9 +119,9 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Implementation recall (D+B anchor — tool call required):**
 
 1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it. Upstream triage recall (from /design) uses different triggers and does not satisfy this gate.
-2. If `plans/<job>/recall-artifact.md` exists: also read it — pre-curated entries supplement memory-index selection.
-3. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
-4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
+2. If `plans/<job>/recall-artifact.md` exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
+4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
 
 Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
 
@@ -138,9 +138,9 @@ Include review-relevant entries in corrector prompt — rationale format for son
 **Implementation recall (D+B anchor — tool call required):**
 
 1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it. Upstream triage recall (from /design) uses different triggers and does not satisfy this gate.
-2. If `plans/<job>/recall-artifact.md` exists: also read it — pre-curated entries supplement memory-index selection.
-3. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
-4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
+2. If `plans/<job>/recall-artifact.md` exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
+4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
 
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 

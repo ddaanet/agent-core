@@ -43,7 +43,7 @@ Verdicts accumulate in-memory during iteration. The verdict list is the structur
 
 **Revise detail:** Capture the user's stated fix verbatim — this is the edit specification for batch-apply. The discussion sub-loop may refine the fix before the verdict is recorded.
 
-**Kill sub-actions (planning artifacts only):** After `k` verdict, prompt: "Delete only, or absorb into another artifact?" If absorb: user names the target artifact, and the transfer is recorded in the verdict list. Both deletion and transfer execute during batch-apply.
+**Kill sub-actions (planning artifacts only):** Per verdict semantics in SKILL.md.
 
 ## Batch-Apply Execution
 

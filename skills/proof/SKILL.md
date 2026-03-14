@@ -171,7 +171,7 @@ When terminal action is "apply" and verdicts include revise or kill, dispatch th
 | outline.md | outline-corrector | outline-corrector |
 | design.md | design-corrector | design-corrector |
 | runbook-outline.md | runbook-outline-corrector | runbook-outline-corrector |
-| runbook-phase-*.md | runbook-corrector (/review-plan) | runbook-corrector |
+| runbook-phase-*.md | runbook-corrector | runbook-corrector |
 | requirements.md | -- (user-validated directly) | -- |
 
 **Corrector prompt includes:**
@@ -187,7 +187,7 @@ When terminal action is "apply" and verdicts include revise or kill, dispatch th
 
 ## Author-Corrector Coupling
 
-When /proof's hosting skill is /design and the design modifies an "author" skill (a skill whose output is reviewed by a corrector), check coupled dependencies using the Author-Corrector Coupling section in `/design` SKILL.md (dependency mapping table and visible output requirement). Source of truth: T1-T6.5 in `agents/decisions/pipeline-contracts.md`.
+When /proof's hosting skill is /design and the design modifies an "author" skill (a skill whose output is reviewed by a corrector), check coupled dependencies via T1-T6.5 in `agents/decisions/pipeline-contracts.md` (dependency mapping table and visible output requirement).
 
 ## Layered Defect Model
 

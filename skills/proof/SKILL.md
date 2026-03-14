@@ -26,6 +26,50 @@ Runs inline (no `context: fork`) — shares the hosting skill's context window, 
 
 ## Loop Mechanics
 
+### State Output (D+B anchor)
+
+Emit a state line at every transition point. The act of generating the state line forces the agent to know which state it's in and what actions are available — protocol adherence becomes a side effect of producing the output.
+
+**Format:**
+
+```
+[proof: <state> <artifact> | decisions: <N> | actions: <action-list>]
+```
+
+- **State:** `reviewing`, `applying`, `complete`
+- **Artifact:** filename under review (e.g., `outline.md`)
+- **Decisions:** count of accumulated decisions
+- **Actions:** available user actions at this point
+
+**Emission rules:**
+
+| Transition | State | Actions shown |
+|-----------|-------|---------------|
+| Entry (after summary) | `reviewing` | Full: `feedback, proceed, learn, suspend, sync` |
+| After accumulate | `reviewing` | Compact: omit actions (user has seen them) |
+| After sync | `reviewing` | Compact |
+| Terminal apply | `applying N decisions` | None |
+| Terminal no-change | `complete — no changes` | None |
+
+**Example (entry):**
+
+```
+[proof: reviewing outline.md | decisions: 0 | actions: feedback, proceed, learn, suspend, sync]
+```
+
+**Example (after 2 decisions accumulated):**
+
+```
+[proof: reviewing outline.md | decisions: 2]
+```
+
+**Example (terminal):** Self-contained sentence form — no pipe-separated segments:
+
+```
+[proof: applying 3 decisions to outline.md]
+[proof: complete — no changes to outline.md]
+```
+
 ### Entry
 
 **Planstate (D+B anchor):** Write review-pending state to lifecycle:
@@ -36,7 +80,15 @@ echo "$(date +%Y-%m-%d) review-pending — /proof <artifact>" >> plans/<job>/lif
 
 **Read the artifact under review.** If the artifact path contains a glob pattern (e.g., `runbook-phase-*.md`), expand via Glob and read all matching files — present as a single composite review target. A runbook is one artifact composed of multiple phase files; /proof treats the collection as a unit.
 
-Present a concise summary: key decisions, scope boundaries, structure. Then enter the loop — wait for user feedback.
+Present a concise summary: key decisions, scope boundaries, structure.
+
+**Emit state line (D+B anchor):** Full format with all available actions. This is the user's first view of the proof protocol — show the complete action menu.
+
+```
+[proof: reviewing <artifact> | decisions: 0 | actions: feedback, proceed, learn, suspend, sync]
+```
+
+Then enter the loop — wait for user feedback.
 
 ### Reword
 
@@ -57,20 +109,33 @@ Each validated round adds to a running decision list (in-memory, not file):
 
 Track: decision number, the validated understanding, which artifact section is affected.
 
+**Emit state line** after recording the decision:
+
+```
+[proof: reviewing <artifact> | decisions: <N>]
+```
+
 ### Sync
 
 On user request ("sync", "resync", "show decisions"), output the full accumulated decision list with artifact impacts. Useful after multiple rounds to verify accumulated state.
+
+**Emit state line** after showing decisions:
+
+```
+[proof: reviewing <artifact> | decisions: <N>]
+```
 
 ### Terminal Actions
 
 Loop continues until user issues a terminal action:
 
 **"proceed" / "apply":**
-1. Apply all accumulated decisions to the artifact
-2. If artifact is a planning artifact: dispatch lifecycle-appropriate corrector (see Corrector Dispatch below)
-3. Present corrector findings before returning control to hosting skill (gate, not pass-through)
-4. Update planstate: `echo "$(date +%Y-%m-%d) reviewed — /proof <artifact>" >> plans/<job>/lifecycle.md`
-5. Return control to hosting skill
+1. **Emit state line:** `[proof: applying <N> decisions to <artifact>]` (or `[proof: complete — no changes to <artifact>]` if decision list is empty)
+2. Apply all accumulated decisions to the artifact
+3. If artifact is a planning artifact: dispatch lifecycle-appropriate corrector (see Corrector Dispatch below)
+4. Present corrector findings before returning control to hosting skill (gate, not pass-through)
+5. Update planstate: `echo "$(date +%Y-%m-%d) reviewed — /proof <artifact>" >> plans/<job>/lifecycle.md`
+6. Return control to hosting skill
 
 **"learn":**
 Capture insight to `agents/learnings.md`. Resume loop (not terminal unless user also says proceed).
@@ -128,7 +193,7 @@ Invoked at 5 points across 3 hosting skills:
 
 ## Anti-Patterns
 
-- **Single-turn validation:** "Does this look right?" -> "yes" -> proceed. No reword, no accumulation. Misses misunderstandings.
+- **Single-turn validation:** "Does this look right?" -> "yes" -> proceed. No reword, no accumulation, no state output. The state line forces the agent into the protocol — without it, the agent frames entry as a binary question. Misses misunderstandings.
 - **File-edit-centric loop:** Apply changes inline during discussion without accumulation. Loses track of decisions vs changes.
 - **Skipping corrector after apply:** Decisions applied but no corrector review. Planning artifacts need lifecycle-appropriate review after modification.
 - **Reference file instead of skill:** A reference file cannot enforce protocol steps. The Skill tool invocation is the structural gate.

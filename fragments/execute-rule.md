@@ -177,6 +177,7 @@ Shortcuts are mechanical expansions — invoke the expansion directly. Do not pr
 | Shortcut | Semantics |
 |----------|-----------|
 | `d: <text>` | Discussion mode — analyze, don't execute |
+| `bd: <text>` | Brainstorm divergence — generate 3+ framings (one must reframe problem, not vary solution) then `d:` core protocol |
 | `p: <text>` | Pending task — assess model, defer write to handoff |
 | `learn: <text>` | Add to session learnings (agents/learnings.md) |
 | `q: <text>` | Quick question — terse response, no ceremony |

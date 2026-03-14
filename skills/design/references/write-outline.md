@@ -118,6 +118,7 @@ The outline resolves the architectural uncertainty that justified "complex" clas
 - No open questions remain
 - Scope boundaries explicit (IN/OUT enumerated)
 - No cross-file coordination requiring sequencing
+- ≤3 decisions AND no risks section (ungrounded threshold — adjust with evidence)
 
 **If met:** Skip A.6. Proceed to Phase B with sufficiency assessment.
 

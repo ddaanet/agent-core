@@ -26,6 +26,50 @@ Runs inline (no `context: fork`) — shares the hosting skill's context window, 
 
 ## Item Review Loop
 
+### State Output (D+B anchor)
+
+Emit a state line at every transition point. The act of generating the state line forces the agent to know which state it's in and what actions are available — protocol adherence becomes a side effect of producing the output.
+
+**Format:**
+
+```
+[proof: <state> <artifact> | decisions: <N> | actions: <action-list>]
+```
+
+- **State:** `reviewing`, `applying`, `complete`
+- **Artifact:** filename under review (e.g., `outline.md`)
+- **Decisions:** count of accumulated decisions
+- **Actions:** available user actions at this point
+
+**Emission rules:**
+
+| Transition | State | Actions shown |
+|-----------|-------|---------------|
+| Entry (after summary) | `reviewing` | Full: `feedback, proceed, learn, suspend, sync` |
+| After accumulate | `reviewing` | Compact: omit actions (user has seen them) |
+| After sync | `reviewing` | Compact |
+| Terminal apply | `applying N decisions` | None |
+| Terminal no-change | `complete — no changes` | None |
+
+**Example (entry):**
+
+```
+[proof: reviewing outline.md | decisions: 0 | actions: feedback, proceed, learn, suspend, sync]
+```
+
+**Example (after 2 decisions accumulated):**
+
+```
+[proof: reviewing outline.md | decisions: 2]
+```
+
+**Example (terminal):** Self-contained sentence form — no pipe-separated segments:
+
+```
+[proof: applying 3 decisions to outline.md]
+[proof: complete — no changes to outline.md]
+```
+
 ### Entry
 
 **Planstate (D+B anchor):** Write review-pending state to lifecycle:
@@ -88,6 +132,12 @@ When user provides non-verdict input on an item, enter discussion scoped to that
 - **learn** — capture insight to `agents/learnings.md`
 - **pending** — capture task for handoff (`p:` semantics)
 - **brief** — transfer context to worktree
+
+**Emit state line** after showing decisions:
+
+```
+[proof: reviewing <artifact> | decisions: <N>]
+```
 
 ### Terminal Actions
 

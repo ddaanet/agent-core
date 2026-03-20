@@ -138,7 +138,19 @@ Produce this classification block before routing (visible output, not internal r
   3. Execute: check for applicable skills and project recipes first, then implement directly
   4. Follow §Continuation (prepends `/inline plans/<job> execute`)
   Skip design — all other operational rules (skills, project tooling, communication) remain in effect.
-- **Moderate →** Skip design. If artifact destination is `agentic-prose` → follow §Continuation (prepends `/inline plans/<job> execute`). Otherwise → follow §Continuation (prepends `/runbook plans/<job>`).
+- **Moderate →** Read affected files to ground brief against actual codebase state, then generate execution artifact:
+
+  **Agentic-prose path** (artifact destination = `agentic-prose`):
+  1. **Code reading:** Read affected files enumerated in the brief. Resolve gaps between brief assumptions and actual codebase state.
+  2. **Generate** `plans/<job>/inline-plan.md` using format from `references/write-inline-plan.md`
+  3. **Proof:** Invoke `/proof plans/<job>/inline-plan.md` (no corrector — scope completeness is domain knowledge, not structural checking)
+  4. **Route (after /proof approval):** follow §Continuation (prepends `/inline plans/<job> execute`)
+
+  **Non-prose path** (all other artifact destinations):
+  1. **Code reading:** Read affected files enumerated in the brief. Resolve gaps between brief assumptions and actual codebase state.
+  2. **Generate** `plans/<job>/outline.md` using lightweight format (scope, per-file changes, dependencies, IN/OUT boundaries)
+  3. **Proof:** Invoke `/proof plans/<job>/outline.md` (outline-corrector dispatched by /proof on revise/kill)
+  4. **Route (after /proof approval):** follow §Continuation (prepends `/runbook plans/<job>`)
 - **Complex →** Read `references/write-outline.md` for Phase A (research + outline) and Phase B (user validation + outline sufficiency gate). *(Verb-oriented name: action the agent takes, not the artifact produced.)*
 - **Defect →** Route to structured-bugfix workflow: reproduce → root-cause → fix → verify. Skip design — the investigation structure replaces architectural design.
 

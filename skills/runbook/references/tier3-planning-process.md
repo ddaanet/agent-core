@@ -100,12 +100,10 @@ Review the changed files list. File locations, existing patterns, and structural
    - Agent fixes all issues (critical, major, minor)
    - Agent returns review report path
 
-5. **User validation:**
+5. **Review outcome:**
    - Read review report from corrector
    - If critical issues remain: STOP and escalate to user
-   - Invoke `/proof plans/<job>/runbook-outline.md` — structured reword-accumulate-sync loop
-   - On terminal action "apply", /proof dispatches runbook-outline-corrector automatically and presents findings
-   - On approval: proceed to Phase 0.85
+   - If all fixed: proceed to Phase 0.85
 
 **Fallback for small runbooks:**
 - If outline has <= 3 phases and <= 10 total items -> generate entire runbook at once (skip phase-by-phase)
@@ -178,6 +176,13 @@ Review the changed files list. File locations, existing patterns, and structural
 - Sequential additions to same structure -> merged single item
 
 **Small outlines (<= 10 items):** Agent still runs but reports "no consolidation candidates" rather than skipping -- maintains mandatory gate while avoiding wasted effort.
+
+---
+
+## Phase 0.87: Pre-Expansion User Validation
+
+1. Invoke `/proof plans/<job>/runbook-outline.md` — user validates post-simplification outline before expansion
+2. On approval: proceed to Phase 0.9 complexity check
 
 ---
 

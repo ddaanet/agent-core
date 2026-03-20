@@ -173,6 +173,7 @@ When terminal action is "apply" and verdicts include revise or kill, dispatch th
 | runbook-outline.md | runbook-outline-corrector | runbook-outline-corrector |
 | runbook-phase-*.md | runbook-corrector | runbook-corrector |
 | requirements.md | -- (user-validated directly) | -- |
+| inline-plan.md | -- (no corrector) | -- |
 
 **Corrector prompt includes:**
 - Artifact path under review
@@ -198,14 +199,17 @@ Evidence: wrong-RED/bootstrap defect passed all correctors, detectable only by h
 
 ## Integration Points
 
-Invoked at 5 points across 3 hosting skills:
+Invoked at 8 points across 3 hosting skills:
 
 | Hosting Skill | Stage | Artifact | Defect Layer |
 |---------------|-------|----------|-------------|
 | /requirements | Step 5 | requirements.md | Prevention |
+| /design | Moderate agentic-prose (Post-code-reading) | inline-plan.md | Moderate scope validation |
+| /design | Moderate non-prose (Post-code-reading) | outline.md | Moderate scope validation |
 | /design | Phase B (Post-outline) | outline.md | Approach validation |
 | /design | Phase C.4.5 (Post-design review) | design.md | Design validation |
-| /runbook | Phase 0.75 step 5 | runbook-outline.md | Structural validation |
+| /runbook | Tier 2 (Post-outline-corrector) | runbook-outline.md | Tier 2 scope validation |
+| /runbook | Phase 0.87 (Post-simplification, unconditional) | runbook-outline.md | Pre-expansion validation |
 | /runbook | Post-Phase 3 (Post-holistic review) | runbook-phase-*.md | Systemic detection |
 
 ## Anti-Patterns

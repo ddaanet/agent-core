@@ -9,8 +9,8 @@ requires:
   - Design document from /design
   - CLAUDE.md for project conventions (if exists)
 outputs:
-  - Execution runbook at plans/<job-name>/runbook.md
-  - Ready for prepare-runbook.py processing
+  - Tier 2: Approved runbook outline at plans/<job-name>/runbook-outline.md
+  - Tier 3: Execution runbook at plans/<job-name>/runbook.md, ready for prepare-runbook.py
 user-invocable: true
 continuation:
   cooperative: true
@@ -72,7 +72,7 @@ This override applies to Tier 2 delegation (model parameter), Tier 3 step assign
 
 ---
 
-## Three-Tier Assessment
+## Two-Tier Assessment
 
 **Evaluate implementation complexity before proceeding. Assessment runs first, before any other work.**
 
@@ -90,7 +90,7 @@ Analyze the task and produce explicit assessment output:
 - Model requirements: single / multiple
 - Session span: single / multi
 
-**Tier: [1/2/3] — [Direct Implementation / Lightweight Delegation / Full Runbook]**
+**Tier: [2/3] — [Lightweight Delegation / Full Runbook]**
 **Rationale:** [1-2 sentences]
 ```
 
@@ -103,29 +103,9 @@ Analyze the task and produce explicit assessment output:
 | Agentic-prose (`agent-core/skills/`, `agent-core/fragments/`, `agents/`) | Skill files + behavior verification | Prose review cycles |
 | Investigation (`plans/reports/`) | Report files only | General steps |
 
-A single-file prototype assessed against exploration conventions → Tier 1. Same script assessed against production conventions → inflated count from test mirrors, lint setup, module structure.
+A single-file prototype assessed against exploration conventions → minimal scope (Tier 2 may suffice). Same script assessed against production conventions → inflated count from test mirrors, lint setup, module structure.
 
 When uncertain between tiers, prefer the lower tier (less overhead). Ask user only if genuinely ambiguous.
-
-### Tier 1: Direct Implementation
-
-**Criteria:**
-- Design complete (no open decisions)
-- All edits straightforward (<100 lines each)
-- Total scope: <6 files *(ungrounded threshold — needs empirical calibration, see `agents/decisions/execution-strategy.md`)*
-- Single session, single model
-- No parallelization benefit
-
-**Implementation recall (D+B anchor — tool call required):**
-
-1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it. Upstream triage recall (from /design) uses different triggers and does not satisfy this gate.
-2. If `plans/<job>/recall-artifact.md` exists: also read it — pre-curated entries supplement memory-index selection.
-3. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
-4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
-
-Include review-relevant entries in corrector prompt — rationale format for sonnet/opus reviewers.
-
-**Sequence:** Follow §Continuation (prepends `/inline plans/<job> execute`).
 
 ### Tier 2: Lightweight Delegation
 
@@ -144,15 +124,29 @@ Include review-relevant entries in corrector prompt — rationale format for son
 
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 
-**Planning (before execution):**
-- **TDD work (~4-10 cycles):** Plan cycle descriptions (lightweight — no full runbook format). Per-cycle sequencing: one RED, one GREEN, verify, then next cycle. Follow RED/GREEN formats and Bootstrap pattern from `references/tdd-cycle-planning.md`.
-- **General work (6-15 files):** Single agent for cohesive work; break into 2-4 components only if logically distinct.
+**Prerequisites check (D+B anchor):** Check plan directory for design-stage artifact: `outline.md`, `inline-plan.md`, or `design.md`. Absent → STOP. `/runbook` without prior `/design` gating is an error — scope was not user-validated.
 
-**Consolidation self-check (after planning cycles):** Review planned cycles/steps for redundant coverage. Identify any cycle whose assertions are a subset of another's — merge or drop the weaker cycle. This check substitutes for the outline-corrector and runbook-simplifier gates that Tier 3 has.
+**Generate runbook outline:**
 
-**Output channel:** Write plan directly to `plans/<job>/runbook.md`. Reference the file path in conversation. Do not output plan content to conversation — token economy violation.
+1. Write `plans/<job>/runbook-outline.md` using Tier 2 outline format (below)
+2. **Review:** Delegate to `runbook-outline-corrector` (fix-all mode). Specify Tier 2 format in prompt — no requirements mapping table required.
+3. **Proof:** Invoke `/proof plans/<job>/runbook-outline.md`
+4. **After /proof approval:** follow §Continuation (prepends `/inline plans/<job> execute`)
 
-**Sequence:** After planning, follow §Continuation (prepends `/inline plans/<job> execute`).
+**Tier 2 outline format:**
+
+```markdown
+## Phase N: [title] (type: [tdd|general|inline])
+- Item N.1: [target file] — [concrete action]
+- Item N.2: [target file] — [concrete action]
+  Depends on: Item N.1
+```
+
+No requirements mapping table (scope too small for traceability). Type tags required. Per-item: concrete action + target file. Dependencies noted where relevant.
+
+**Execution:** `/inline` executes from the approved `runbook-outline.md`. No `runbook.md` generated.
+
+**Sequence:** Follow §Continuation (prepends `/inline plans/<job> execute`).
 
 **Design constraints are non-negotiable:**
 
@@ -193,7 +187,7 @@ As the **final action** of this skill:
 
 1. Read continuation from `additionalContext` (first skill in chain) or from `[CONTINUATION: ...]` suffix in Skill args (chained skills)
 2. Prepend entries based on tier:
-   - Tier 1/2: prepend `/inline plans/<job> execute`
+   - Tier 2: prepend `/inline plans/<job> execute`
    - Tier 3: no prepend (Phase 4 prepares artifacts; orchestration requires session restart)
 3. If continuation present: peel first entry from (possibly modified) continuation, tail-call with remainder
 4. If no continuation: default-exit — `/handoff` → `/commit`

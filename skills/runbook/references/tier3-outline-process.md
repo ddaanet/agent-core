@@ -7,6 +7,7 @@
 - Phase 0.75: Generate runbook outline with quality verification and corrector review
 - Phase 0.85: Consolidation gate — merge trivial phases with adjacent complexity
 - Phase 0.86: Simplification pass — delegate to `runbook-simplifier`
+- Phase 0.87: Pre-expansion user validation via `/proof`
 - Phase 0.9: Complexity check with callback mechanism
 - Phase 0.95: Outline sufficiency check (lightweight orchestration exit if `## Execution Model` present)
 - Phase 1: Phase-by-phase expansion with per-phase type-aware review

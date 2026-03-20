@@ -144,7 +144,11 @@ Delete completed tasks only if BOTH: (1) completed before this conversation, AND
 
 Do NOT delete tasks completed in the current conversation, even if just committed.
 
-### 7. Display STATUS
+### 7. Precommit Gate
+
+Run `just precommit` after all writes (session.md, learnings.md, plan-archive.md). On failure: output the precommit result, STOP — fix issues and retry. On success: continue to STATUS display.
+
+### 8. Display STATUS
 
 Display STATUS per execute-rule.md MODE 1.
 

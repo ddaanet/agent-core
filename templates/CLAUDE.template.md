@@ -1,6 +1,6 @@
 # Agent Instructions
 
-@agent-core/fragments/workflows-terminology.md
+@agents/rules/workflows-terminology.md
 
 ---
 
@@ -26,25 +26,25 @@
 
 ## Communication Rules
 
-@agent-core/fragments/communication.md
+@agents/rules/communication.md
 
-@agent-core/fragments/token-economy.md
+@agents/rules/token-economy.md
 
-@agent-core/fragments/commit-skill-usage.md
+@agents/rules/commit-skill-usage.md
 
-@agent-core/fragments/no-estimates.md
+@agents/rules/no-estimates.md
 
 <!-- CUSTOMIZE: Add project-specific communication rules if needed -->
 
-@agent-core/fragments/error-handling.md
+@agents/rules/error-handling.md
 
-@agent-core/fragments/bash-strict-mode.md
+@agents/rules/bash-strict-mode.md
 
-@agent-core/fragments/tmp-directory.md
+@agents/rules/tmp-directory.md
 
 ## Session Management
 
-@agent-core/fragments/execute-rule.md
+@agents/rules/execute-rule.md
 
 <!-- CUSTOMIZE: Add project-specific structure rules if needed -->
 <!-- Example:
@@ -56,9 +56,9 @@
 - `docs/` - Documentation
 -->
 
-@agent-core/fragments/execution-routing.md
+@agents/rules/execution-routing.md
 
-@agent-core/fragments/delegation.md
+@agents/rules/delegation.md
 
 <!-- CUSTOMIZE: Add project-specific delegation or routing rules if needed -->
 <!-- Example:
@@ -75,4 +75,4 @@
 **Usage:** Invoke the skill before beginning skill work to load context and patterns.
 -->
 
-@agent-core/fragments/tool-batching.md
+@agents/rules/tool-batching.md

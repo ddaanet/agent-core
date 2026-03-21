@@ -19,7 +19,7 @@
           },
           {
             "type": "command",
-            "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/pretooluse-recipe-redirect.py"
+            "command": "$CLAUDE_PLUGIN_ROOT/hooks/pretooluse-recipe-redirect.py"
           }
         ]
       },
@@ -58,7 +58,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-shortcuts.py",
+            "command": "$CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-shortcuts.py",
             "timeout": 5
           }
         ]

@@ -52,6 +52,7 @@ Two categories of sync targets:
 **Portable justfile:**
 - Source: `$CLAUDE_PLUGIN_ROOT/just/portable.just`
 - Destination: `portable.just` in project root
+- **Guard:** If source does not exist (plugin version predates justfile modularization), skip this sync target and note it in the summary as "portable.just: not yet available in this plugin version".
 
 ### 4. Per-file sync with conflict detection
 

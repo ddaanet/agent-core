@@ -1,7 +1,7 @@
 ---
 name: init
 description: Set up the edify agent framework in a new project. Scaffolds CLAUDE.md, copies instruction fragments, creates agents/ directory structure, and writes version marker. Idempotent — safe to re-run.
-allowed-tools: Read, Write, Edit, Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(find:*), Glob, Grep
+allowed-tools: Read, Write, Edit, Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(find:*), Bash(python3:*), Bash(sha256sum:*), Glob, Grep
 user-invocable: true
 ---
 
@@ -88,28 +88,25 @@ Record the list of copied files and skipped files for the summary.
 
 ### 6. Write .edify.yaml
 
-If `.edify.yaml` does not exist in the project root, create it:
+If `.edify.yaml` already exists, do NOT overwrite it. Report that it was skipped.
+
+If `.edify.yaml` does not exist, create it in a single write:
+
+1. Compute SHA-256 hashes for each fragment file that was **copied** in Step 4 (not skipped — skipped files are treated as potential user edits)
+2. Write `.edify.yaml` with the version, policy, and computed hashes in one operation:
 
 ```yaml
 # Edify plugin version tracking
 # Run /edify:update when plugin updates to sync fragments
 version: "<plugin version from Step 1>"
 sync_policy: nag
-synced_hashes: {}
-```
-
-If `.edify.yaml` already exists, do NOT overwrite it. Report that it was skipped.
-
-After initial creation, compute content hashes (SHA-256) for each fragment file that was copied in Step 4 and populate the `synced_hashes` map. Format:
-
-```yaml
 synced_hashes:
   agents/rules/communication.md: "<sha256>"
   agents/rules/execute-rule.md: "<sha256>"
   # ... one entry per copied fragment
 ```
 
-Fragments that were skipped (already existed) do NOT get hash entries — they are treated as potential user edits per the conflict policy.
+Fragments that were skipped (already existed) do NOT get hash entries.
 
 ### 7. Summary
 

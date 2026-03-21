@@ -133,6 +133,7 @@ precommit:
     report "validate planstate" claudeutils validate planstate
     report "validate session-structure" claudeutils validate session-structure
     run-checks
+    report "version consistency" python3 agent-core/bin/check-version-consistency.py
     run-pytest
     run-line-limits
     report-end-safe "Precommit"

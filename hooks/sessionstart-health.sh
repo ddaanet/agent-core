@@ -18,7 +18,7 @@ else
 fi
 
 # Health check 2 — Learnings health
-learnings_status=$(python3 "$CLAUDE_PROJECT_DIR/agent-core/bin/learning-ages.py" \
+learnings_status=$(python3 "$CLAUDE_PLUGIN_ROOT/bin/learning-ages.py" \
   "$CLAUDE_PROJECT_DIR/agents/learnings.md" --summary 2>/dev/null \
   || echo "⚠️ Learnings status unavailable")
 

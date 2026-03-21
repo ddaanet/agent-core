@@ -177,6 +177,8 @@ When delegated agent escalates "ambiguity" or "design gap":
 - >15 files or complex coordination *(file threshold ungrounded — needs calibration)*
 - >10 TDD cycles with cross-component dependencies *(cycle threshold ungrounded — needs calibration)*
 
+**Prerequisites check (D+B anchor):** Check plan directory for design-stage artifact: `outline.md`, `inline-plan.md`, or `design.md`. Absent → STOP. `/runbook` without prior `/design` gating is an error — scope was not user-validated.
+
 **Sequence:** Read `references/tier3-outline-process.md` for the planning process overview and outline generation (Phases 0.5-0.95). *(Verb-oriented name: action the agent takes, not the plan artifact produced.)*
 
 ---

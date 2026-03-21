@@ -142,7 +142,7 @@ Produce this classification block before routing (visible output, not internal r
 
   **Agentic-prose path** (artifact destination = `agentic-prose`):
   1. **Code reading:** Read affected files enumerated in the brief. Resolve gaps between brief assumptions and actual codebase state.
-  2. **Generate** `plans/<job>/inline-plan.md` using format from `references/write-inline-plan.md`
+  2. Read `references/write-inline-plan.md`. **Generate** `plans/<job>/inline-plan.md` using that format.
   3. **Proof:** Invoke `/proof plans/<job>/inline-plan.md` (no corrector — scope completeness is domain knowledge, not structural checking)
   4. **Route (after /proof approval):** follow §Continuation (prepends `/inline plans/<job> execute`)
 

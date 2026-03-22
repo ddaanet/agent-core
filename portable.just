@@ -168,7 +168,7 @@ format:
     }
     ruff check -q --fix-only --diff | patch-and-print >> "$tmpfile" || true
     ruff format -q --diff | patch-and-print >> "$tmpfile" || true
-    docformatter --diff src tests | patch-and-print -RCp1 >> "$tmpfile" || true
+    docformatter --diff src tests | patch-and-print -Rp1 >> "$tmpfile" || true
     modified=$(sort --unique < "$tmpfile")
     if [ -n "$modified" ] ; then
         bold=$'\033[1m'; nobold=$'\033[22m'

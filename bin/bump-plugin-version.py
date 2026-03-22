@@ -52,6 +52,7 @@ def main() -> None:
                 "Warning: EDIFY_VERSION pattern not found in sessionstart-health.sh",
                 file=sys.stderr,
             )
+            sys.exit(1)
 
 
 if __name__ == "__main__":

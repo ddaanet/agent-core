@@ -38,6 +38,8 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
         if [ -d "$VENV_DIR" ] && [ -f "$VENV_DIR/bin/pip" ]; then
             "$VENV_DIR/bin/pip" install --quiet "claudeutils==$EDIFY_VERSION" > /dev/null 2>&1 \
                 || setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip install error"
+        elif [ -d "$VENV_DIR" ]; then
+            setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip not available in venv (ensurepip missing?)"
         fi
     else
         setup_warnings="$setup_warnings\n⚠️ CLI install failed: neither uv nor python3 found"

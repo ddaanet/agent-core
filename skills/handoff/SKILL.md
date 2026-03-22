@@ -1,7 +1,7 @@
 ---
 name: handoff
 description: Save session state for the next agent. Triggers on "handoff", "h", "hc", session update, or agent switch requests. Writes session.md with completed tasks, pending work, blockers, and learnings. Not for Haiku orchestrators — use /handoff-haiku instead.
-allowed-tools: Read, Write, Edit, Bash(wc:*), Task, Skill
+allowed-tools: Read, Write, Edit, Bash(just:*,wc:*,git:*), Task, Skill
 user-invocable: true
 continuation:
   cooperative: true

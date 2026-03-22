@@ -85,11 +85,6 @@
 - Discovery: Requires restart after creation
 - Usage: Auto-selected by `/orchestrate` when plan name matches
 
-**Symlinks in .claude/:**
-- `.claude/agents/`, `.claude/skills/`, `.claude/hooks/` can contain symlinks to agent-core/
-- Tracked in git (symlinks are portable across Unix systems)
-- Recreate with: `just sync-to-parent` in agent-core/ directory (requires `dangerouslyDisableSandbox: true`)
-
 ### Bash Working Directory
 
 **Main interactive agent:**

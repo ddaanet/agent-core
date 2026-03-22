@@ -28,13 +28,6 @@ When a command is in `permissions.allow`, invoke it with the **exact prefix** th
 - Requires `dangerouslyDisableSandbox: true` (writes to `.claude/agents/`)
 - Do NOT use: `python3 agent-core/bin/prepare-runbook.py` (breaks permission match)
 
-### just sync-to-parent
-
-- Recipe: `just sync-to-parent` (in agent-core/ directory)
-- Invocation: `just sync-to-parent` (no arguments)
-- Requires `dangerouslyDisableSandbox: true` (creates/updates symlinks in `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`)
-- Fails in sandbox with: "Operation not permitted"
-
 ### Worktree Operations
 
 **All mutation commands require bypass:** `claudeutils _worktree new`, `merge`, and `rm` write `.claude/settings.local.json` (sandbox allowlist management) and perform operations outside the project root. Always invoke with `dangerouslyDisableSandbox: true`.

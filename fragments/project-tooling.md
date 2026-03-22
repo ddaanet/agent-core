@@ -9,13 +9,10 @@
 **Why:** Project recipes encode institutional knowledge — correct paths, ordering, side effects, edge cases. Ad-hoc commands bypass all of this, even when functionally equivalent.
 
 **Check:** Run `just --list` (or equivalent) before writing manual commands for common operations like:
-- Symlink management → `just sync-to-parent` (requires `dangerouslyDisableSandbox: true`)
 - Code formatting → `just format`
 - Linting → `just lint`
 - Testing → `just test`
 - Pre-commit validation → `just precommit`
-
-**Anti-pattern:** Using `ln -sf` to create symlinks in `.claude/` when `just sync-to-parent` exists.
 
 ### Precommit Cost
 

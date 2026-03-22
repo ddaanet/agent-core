@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/posttooluse-autoformat.sh"
+            "command": "$CLAUDE_PLUGIN_ROOT/hooks/posttooluse-autoformat.sh"
           }
         ]
       }
@@ -70,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/sessionstart-health.sh"
+            "command": "$CLAUDE_PLUGIN_ROOT/hooks/sessionstart-health.sh"
           }
         ]
       }
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/stop-health-fallback.sh"
+            "command": "$CLAUDE_PLUGIN_ROOT/hooks/stop-health-fallback.sh"
           }
         ]
       }

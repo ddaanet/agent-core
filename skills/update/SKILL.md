@@ -1,7 +1,7 @@
 ---
 name: update
 description: Sync edify fragments and portable justfile to match the current plugin version. Detects user-edited files and warns instead of overwriting. Use --force to overwrite conflicts.
-allowed-tools: Read, Write, Edit, Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(find:*), Bash(python3:*), Bash(sha256sum:*), Glob, Grep
+allowed-tools: Read, Write, Edit, Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(sha256sum:*), Glob, Grep
 user-invocable: true
 ---
 
@@ -50,7 +50,7 @@ Two categories of sync targets:
 - Destination: `agents/rules/<filename>`
 
 **Portable justfile:**
-- Source: `$CLAUDE_PLUGIN_ROOT/just/portable.just`
+- Source: `$CLAUDE_PLUGIN_ROOT/portable.just`
 - Destination: `portable.just` in project root
 - **Guard:** If source does not exist (plugin version predates justfile modularization), skip this sync target and note it in the summary as "portable.just: not yet available in this plugin version".
 

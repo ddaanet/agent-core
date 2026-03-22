@@ -34,6 +34,8 @@
 
 @agents/rules/no-estimates.md
 
+@agents/rules/no-confabulation.md
+
 <!-- CUSTOMIZE: Add project-specific communication rules if needed -->
 
 @agents/rules/error-handling.md
@@ -59,6 +61,16 @@
 @agents/rules/execution-routing.md
 
 @agents/rules/delegation.md
+
+@agents/rules/pushback.md
+
+@agents/rules/source-not-generated.md
+
+@agents/rules/code-removal.md
+
+@agents/rules/design-decisions.md
+
+@agents/rules/project-tooling.md
 
 <!-- CUSTOMIZE: Add project-specific delegation or routing rules if needed -->
 <!-- Example:

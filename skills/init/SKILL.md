@@ -1,7 +1,7 @@
 ---
 name: init
 description: Set up the edify agent framework in a new project. Scaffolds CLAUDE.md, copies instruction fragments, creates agents/ directory structure, and writes version marker. Idempotent — safe to re-run.
-allowed-tools: Read, Write, Edit, Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(find:*), Bash(python3:*), Bash(sha256sum:*), Glob, Grep
+allowed-tools: Read, Write, Edit, Bash(ls:*), Bash(mkdir:*), Bash(cp:*), Bash(sha256sum:*), Glob, Grep
 user-invocable: true
 ---
 
@@ -92,7 +92,7 @@ If `.edify.yaml` already exists, do NOT overwrite it. Report that it was skipped
 
 If `.edify.yaml` does not exist, create it in a single write:
 
-1. Compute SHA-256 hashes for each fragment file that was **copied** in Step 4 (not skipped — skipped files are treated as potential user edits)
+1. Compute SHA-256 hashes using `sha256sum` for each fragment file that was **copied** in Step 4 (not skipped — skipped files are treated as potential user edits)
 2. Write `.edify.yaml` with the version, policy, and computed hashes in one operation:
 
 ```yaml

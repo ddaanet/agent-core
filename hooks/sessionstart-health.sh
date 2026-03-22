@@ -30,15 +30,22 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
             uv pip install --quiet --python "$VENV_DIR/bin/python" "claudeutils==$EDIFY_VERSION" > /dev/null 2>&1 \
                 || setup_warnings="$setup_warnings\n⚠️ CLI install failed: uv pip install error"
         fi
-    elif command -v pip > /dev/null 2>&1; then
-        mkdir -p "$VENV_DIR/lib"
-        pip install --quiet --target "$VENV_DIR/lib" "claudeutils==$EDIFY_VERSION" > /dev/null 2>&1 \
-            || setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip install error"
+    elif command -v python3 > /dev/null 2>&1; then
+        if [ ! -d "$VENV_DIR" ]; then
+            python3 -m venv "$VENV_DIR" > /dev/null 2>&1 \
+                || setup_warnings="$setup_warnings\n⚠️ CLI install failed: could not create venv"
+        fi
+        if [ -d "$VENV_DIR" ] && [ -f "$VENV_DIR/bin/pip" ]; then
+            "$VENV_DIR/bin/pip" install --quiet "claudeutils==$EDIFY_VERSION" > /dev/null 2>&1 \
+                || setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip install error"
+        fi
     else
-        setup_warnings="$setup_warnings\n⚠️ CLI install failed: uv not found"
+        setup_warnings="$setup_warnings\n⚠️ CLI install failed: neither uv nor python3 found"
     fi
 
-    # 3. Write version provenance to .edify.yaml (FR-10)
+    # 3. Staleness check (FR-5)
+    # .edify.yaml version is written by /edify:init (creation) and /edify:update (sync).
+    # Hook only reads and compares — writing here would defeat the staleness nag.
     PLUGIN_VERSION=""
     PLUGIN_JSON="$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json"
     if [ -f "$PLUGIN_JSON" ]; then
@@ -48,38 +55,10 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     if [ -n "$PLUGIN_VERSION" ] && [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then
         EDIFY_YAML="$CLAUDE_PROJECT_DIR/.edify.yaml"
         if [ -f "$EDIFY_YAML" ]; then
-            # Update existing .edify.yaml version field
-            python3 - "$EDIFY_YAML" "$PLUGIN_VERSION" 2>/dev/null <<'PYEOF' \
-                || setup_warnings="$setup_warnings\n⚠️ Version write failed"
-import sys
-import re
-
-yaml_file = sys.argv[1]
-new_version = sys.argv[2]
-
-with open(yaml_file, 'r') as f:
-    content = f.read()
-
-# Replace version line
-updated = re.sub(r'^version:.*$', f'version: "{new_version}"', content, flags=re.MULTILINE)
-
-with open(yaml_file, 'w') as f:
-    f.write(updated)
-PYEOF
-        else
-            # Create .edify.yaml (first run scenario)
-            cat > "$EDIFY_YAML" <<YAMLEOF || setup_warnings="$setup_warnings\n⚠️ Version write failed"
-# Edify plugin version marker
-# Written by sessionstart-health.sh on session start, updated by /edify:update
-version: "$PLUGIN_VERSION"
-sync_policy: nag  # nag | auto-with-report (future)
-YAMLEOF
-        fi
-
-        # 4. Compare versions and nag if stale (FR-5)
-        YAML_VERSION=$(python3 -c "import re; content=open('$EDIFY_YAML').read(); m=re.search(r'^version:\s*[\"\\x27]?([^\"\\x27\\n]+)[\"\\x27]?', content, re.MULTILINE); print(m.group(1).strip()) if m else print('')" 2>/dev/null || echo "")
-        if [ -n "$YAML_VERSION" ] && [ "$YAML_VERSION" != "$PLUGIN_VERSION" ]; then
-            setup_warnings="$setup_warnings\n⚠️ Fragments may be stale. Run /edify:update"
+            YAML_VERSION=$(python3 -c "import re; content=open('$EDIFY_YAML').read(); m=re.search(r'^version:\s*[\"\\x27]?([^\"\\x27\\n]+)[\"\\x27]?', content, re.MULTILINE); print(m.group(1).strip()) if m else print('')" 2>/dev/null || echo "")
+            if [ -n "$YAML_VERSION" ] && [ "$YAML_VERSION" != "$PLUGIN_VERSION" ]; then
+                setup_warnings="$setup_warnings\n⚠️ Fragments may be stale. Run /edify:update"
+            fi
         fi
     fi
 

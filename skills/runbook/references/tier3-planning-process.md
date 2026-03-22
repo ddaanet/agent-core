@@ -21,16 +21,17 @@ If design document includes "Requirements" section:
 
 1. **Implementation recall (D+B anchor — tool call required):**
    1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it.
-   2. Batch-resolve: `claudeutils _recall resolve "when <trigger>" ...`
-   3. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
-   4. Factor known constraints into step design and model selection.
+   2. If `plans/<job>/recall-artifact.md` exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+   3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
+   4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
+   5. Factor known constraints into step design and model selection.
 
 2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
    - If artifact exists (design stage may have generated it via Pass 1): augment with implementation and testing learnings
      - Read `agents/decisions/implementation-notes.md` and `agents/decisions/testing.md`
      - Add entries relevant to the planned work -- planning-relevant only: model selection failures, phase typing decisions, checkpoint placement patterns, precommit gotchas
      - Do NOT add execution-level entries (mock patching, test structure details) -- those belong in step files, not recall
-   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, batch-resolve via `claudeutils _recall resolve`, write artifact -- same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
+   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, `claudeutils _recall resolve plans/<job>/recall-artifact.md` after writing, write artifact -- same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
    - Write augmented artifact back to `plans/<job>/recall-artifact.md`
    - For multi-session pipelines where design-time artifact may be stale, planner can regenerate from scratch
 

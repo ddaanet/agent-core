@@ -68,12 +68,9 @@ Read `plans/<job>/brief.md` if present (cross-tree context from other sessions).
 ### 2.3 Recall (D+B anchor — tool call required)
 
 1. Read `agents/memory-index.md` (skip if already in context). Select execution-domain triggers — patterns for implementing this, not classifying it.
-2. If `plans/<job>/recall-artifact.md` exists: also read it — pre-curated entries supplement memory-index selection.
-3. Batch-resolve:
-   ```bash
-   claudeutils _recall resolve "when <trigger-1>" "when <trigger-2>" ...
-   ```
-4. No relevant entries: `claudeutils _recall resolve null` — proves gate was reached.
+2. If `plans/<job>/recall-artifact.md` exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
+4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
 
 ### 2.4 Reference Loading
 

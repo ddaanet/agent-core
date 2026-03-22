@@ -102,13 +102,6 @@ def _match_python_uv(command: str) -> dict | None:
 
 def _match_tool_wrappers(command: str) -> dict | None:
     """Blocks for commands with project wrapper equivalents."""
-    if command == "ln" or command.startswith("ln "):
-        return _deny(
-            "Use just sync-to-parent — recipe encodes correct paths",
-            "Use `just sync-to-parent` — recipe encodes correct paths.",
-            "🚫 ln blocked — use just sync-to-parent",
-        )
-
     if command.startswith("git worktree "):
         return _deny(
             "Use claudeutils _worktree — wrapper manages session.md",

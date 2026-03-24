@@ -1,9 +1,10 @@
 ---
 name: brief
 description: >-
-  Transfer context (scope changes, decisions, conclusions) to a worktree task
-  via plans/<plan>/brief.md. Triggers: "brief a worktree", "write a brief",
-  "/brief <slug>", "transfer context to worktree".
+  Write a brief.md capturing context (scope changes, decisions, conclusions) for
+  a plan or task. General mechanism for any context transfer — most common use is
+  briefing a worktree task. Triggers: "brief this", "write a brief", "/brief
+  <slug>", "brief a worktree", "transfer context to worktree".
 allowed-tools:
   - Read
   - Write

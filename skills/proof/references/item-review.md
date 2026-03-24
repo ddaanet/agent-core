@@ -55,7 +55,7 @@ On terminal action "apply" after user confirms the verdict summary:
 - **kill (absorb)** — remove from source artifact, append to named target artifact
 - **skip** — no edit needed (item unchanged, explicitly deferred)
 
-Apply edits bottom-to-top within the file to avoid line-shift interference between edits. For multi-file composites (runbook phases), apply per-file independently.
+For multi-file composites (runbook phases), apply edits per-file independently.
 
 ## Cross-Item Outputs
 

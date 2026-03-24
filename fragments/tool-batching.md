@@ -5,12 +5,12 @@
 **Planning phase (before tool calls):**
 1. Identify ALL changes needed for current task
 2. Group by file: same-file edits sequential, different-file edits parallel
-3. For multi-edit files: list insertion points, plan bottom-to-top order (avoids line shifts)
+3. For multi-edit files: list all edit targets; edits with non-overlapping strings can run in parallel
 
 **Execution phase:**
 4. **Batch reads:** Read multiple files in one message when needed soon
 5. **Different files:** Edit in parallel when independent
-6. **Same file:** Edit sequentially, bottom-to-top when inserting
+6. **Same file:** Edit in parallel when strings don't overlap; sequentially when one edit's result is another's target
 7. **Refresh context:** If you plan to modify a file again in next iteration, Read it in the batch
 
 **Task tool parallelization:**

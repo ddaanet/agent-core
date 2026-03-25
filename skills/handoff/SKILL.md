@@ -24,7 +24,7 @@ Standard (Sonnet)
 
 - Review conversation for completed tasks, pending/remaining tasks, blockers
 - If reviewing a handoff-haiku session, process Session Notes for learnings
-- **Completed resets each handoff.** "Completed This Session" contains only work from this conversation. Prior-session content was committed with that session's handoff — git history preserves it. The CLI's committed detection (H-2) handles uncommitted prior handoffs; the skill always writes full state.
+- **Completed resets each handoff.** "Completed This Session" contains only work from this conversation. Prior-session content was committed with that session's handoff — git history preserves it. The CLI's committed detection (compares completed section against HEAD) handles uncommitted prior handoffs; the skill always writes full state.
 
 ### 2. Update session.md
 
@@ -143,7 +143,7 @@ Do NOT delete tasks completed in the current conversation, even if just committe
 
 ### 7. Precommit Gate
 
-Run `just precommit` after all writes (session.md, learnings.md, plan-archive.md). On failure: output the precommit result, STOP — fix issues and retry. On success: continue to STATUS display.
+Run `just precommit` after all writes (session.md, learnings.md, plan-archive.md). On failure: output the precommit result and STOP — wait for guidance. On success: continue to STATUS display.
 
 ### 8. Display STATUS
 

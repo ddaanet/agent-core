@@ -24,8 +24,7 @@ Standard (Sonnet)
 
 - Review conversation for completed tasks, pending/remaining tasks, blockers
 - If reviewing a handoff-haiku session, process Session Notes for learnings
-- **Uncommitted prior handoff:** Check `git diff HEAD -- agents/session.md`. Non-empty → inspect the diff content. If `## Completed This Session` section was modified → prior uncommitted handoff exists → merge incrementally in Step 2 (Edit, append Completed, mutate tasks). If only task entries changed (additions, slug markers, metadata mutations) → not a prior handoff, just current-session task edits → fresh write (Write). Empty → clean session.md → fresh write (Write)
-- **Fresh write resets Completed.** On both fresh-write paths above, "Completed This Session" contains only work from this conversation. Prior-session content was committed with that session's handoff — git history preserves it. Do not carry forward.
+- **Completed resets each handoff.** "Completed This Session" contains only work from this conversation. Prior-session content was committed with that session's handoff — git history preserves it. The CLI's committed detection (H-2) handles uncommitted prior handoffs; the skill always writes full state.
 
 ### 2. Update session.md
 
@@ -85,8 +84,6 @@ Write session.md following this structure:
 - **Note override:** If existing command differs from derived AND task Note explains routing (e.g. "Route to /inline not /runbook"), preserve existing command
 
 Non-plan tasks keep their static command. This prevents stale commands from persisting across handoffs.
-
-**Multiple handoffs before commit:** Merge incrementally via Edit (append to Completed, mutate In-tree/Worktree, append Blockers, replace Next Steps). Do NOT Write a fresh file discarding prior content.
 
 **NEVER reference commits as pending** in session.md — no "ready to commit" language.
 

@@ -1251,6 +1251,10 @@ def validate_file_references(sections, cycles=None, runbook_path=""):
             if re.search(create_pattern, content, re.IGNORECASE):
                 continue
 
+            # Skip paths whose parent directory doesn't exist (greenfield)
+            if not Path(ref).parent.exists():
+                continue
+
             # Check existence
             if not Path(ref).exists():
                 warnings.append(
@@ -1675,7 +1679,7 @@ def validate_and_create(
     try:
         agents_dir.touch(exist_ok=True)
         steps_dir.touch(exist_ok=True)
-    except (OSError, IsADirectoryError):
+    except OSError, IsADirectoryError:
         pass
 
     model = metadata.get("model")

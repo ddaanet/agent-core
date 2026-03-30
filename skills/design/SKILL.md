@@ -51,14 +51,13 @@ Before doing design work, assess whether design is actually needed.
 
 Load triage-relevant decisions before classifying. This tool call is the structural anchor — prevents classification from being skipped or rationalized.
 
-```bash
-claudeutils _recall resolve "when behavioral code" "when complexity" "when triage" "when <domain-keyword>" ...
+```
+/recall triage
 ```
 
-- Derive domain keywords from the task/problem description
-- Always include: behavioral code, complexity, triage
-- Add domain-specific keywords from the task context
 - Purpose: surface codified decisions that constrain classification before it happens
+- `/recall triage` reads memory-index, selects classification-relevant entries, resolves them
+- Pending: `/recall` does not yet support `triage` strategy — until centralize-recall lands, invoke `/recall` and specify triage scope in the prompt
 
 #### Classification Criteria
 

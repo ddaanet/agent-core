@@ -37,5 +37,5 @@ User interrupts orchestrator that continued past failed step.
 - Contributing factors: Common pattern across multiple runbooks
 - Classification: Systemic (needs fragment + memory index entry)
 - RCA report written to `plans/reflect-rca-success-criteria/rca.md`
-- Pending tasks: Create `agent-core/fragments/success-criteria.md`, update memory index
+- Pending tasks: Create `plugin/fragments/success-criteria.md`, update memory index
 - Append learning, return control to user

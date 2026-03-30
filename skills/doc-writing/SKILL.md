@@ -38,8 +38,8 @@ Draft the document applying these structural principles:
 
 **Motivation-first opener.** Lead with the problem the project solves, not a feature list. Reader testing consistently shows feature-list openers leave readers unable to articulate why the project exists.
 
-- Before: "agent-core is a framework providing skills, agents, fragments, and hooks for Claude Code"
-- After: "Claude Code agents drift — inconsistent decisions, forgotten context, repeated mistakes. agent-core is a pipeline and memory layer that fixes this."
+- Before: "plugin is a framework providing skills, agents, fragments, and hooks for Claude Code"
+- After: "Claude Code agents drift — inconsistent decisions, forgotten context, repeated mistakes. plugin is a pipeline and memory layer that fixes this."
 - The opener should make a reader who has the problem think "yes, that's my problem"
 
 **Audience-appropriate depth.** Match detail level to who reads this:
@@ -127,13 +127,13 @@ Delegate to `corrector` for quality review. The review catches mechanical issues
 
 ## Example
 
-**User:** "Write a README for agent-core"
+**User:** "Write a README for plugin"
 
 **Agent:**
 
-1. **Explore:** Use Glob to catalog agent-core components (skills, agents, fragments, hooks, scripts). Read existing README. Load style corpus from tmp/STYLE_CORPUS.md.
+1. **Explore:** Use Glob to catalog plugin components (skills, agents, fragments, hooks, scripts). Read existing README. Load style corpus from tmp/STYLE_CORPUS.md.
 
-2. **Write:** Draft README with motivation opener ("Claude Code agents drift — inconsistent decisions, forgotten context, repeated mistakes. agent-core is a pipeline and memory layer that fixes this."). Document all component categories with counts. Include installation and configuration.
+2. **Write:** Draft README with motivation opener ("Claude Code agents drift — inconsistent decisions, forgotten context, repeated mistakes. plugin is a pipeline and memory layer that fixes this."). Document all component categories with counts. Include installation and configuration.
 
 3. **Reader-test:** Spawn fresh agent with 10 questions. Agent correctly answers 7, flags 3 gaps: prerequisites unclear, memory file location not stated, skill vs agent distinction missing.
 

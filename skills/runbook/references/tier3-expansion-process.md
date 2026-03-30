@@ -6,7 +6,7 @@
 
 **Step 1: Run prepare-runbook.py** with sandbox bypass:
 ```bash
-agent-core/bin/prepare-runbook.py plans/{name}/runbook.md
+plugin/bin/prepare-runbook.py plans/{name}/runbook.md
 # MUST use dangerouslyDisableSandbox: true (writes to .claude/agents/)
 ```
 If script fails: STOP and report error.
@@ -134,13 +134,13 @@ For external services (databases, APIs, cloud services):
 
 Two orchestration patterns resolve recall differently:
 
-**Lightweight orchestration (Tier 2):** Orchestrator dispatches agents directly. Each agent runs `claudeutils _recall resolve` with keys from the recall artifact at execution time. Agent has Bash access and the artifact has pure keys. No preparation-time resolution needed.
+**Lightweight orchestration (Tier 2):** Orchestrator dispatches agents directly. Each agent runs `edify _recall resolve` with keys from the recall artifact at execution time. Agent has Bash access and the artifact has pure keys. No preparation-time resolution needed.
 
-**Full orchestration (Tier 3, prepare-runbook.py):** `prepare-runbook.py` reads `plans/<job>/recall-artifact.md` during assembly, resolves all entry keys via `claudeutils _recall resolve`, and injects resolved content into generated artifacts:
+**Full orchestration (Tier 3, prepare-runbook.py):** `prepare-runbook.py` reads `plans/<job>/recall-artifact.md` during assembly, resolves all entry keys via `edify _recall resolve`, and injects resolved content into generated artifacts:
 - Shared entries (no phase tag) → `## Resolved Recall` section appended to Common Context in agent definition
 - Phase-tagged entries (`(phase N)` suffix) → `## Phase Recall` section appended to phase preamble in step files and phase agent
 
-Step agents receive pre-resolved content. They do NOT run `claudeutils _recall resolve` themselves.
+Step agents receive pre-resolved content. They do NOT run `edify _recall resolve` themselves.
 
 **Recall artifact phase tags:**
 

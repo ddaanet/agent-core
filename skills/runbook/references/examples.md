@@ -247,12 +247,12 @@ ModuleNotFoundError: No module named 'auth.providers'
 **Objective**: Extract status taxonomy from corrector into standalone reference file to keep agent under 400-line threshold.
 
 **Prerequisites**:
-- Read `agent-core/agents/corrector.md` (understand current status handling and report format)
+- Read `plugin/agents/corrector.md` (understand current status handling and report format)
 - Read `agents/decisions/pipeline-contracts.md` (ODC classification context for taxonomy grounding)
 
 **Implementation**:
 
-Create `agent-core/agents/review-taxonomy.md`:
+Create `plugin/agents/review-taxonomy.md`:
 
 1. **Four-status definitions** with criteria and examples:
    - FIXED: Applied, no action needed
@@ -297,7 +297,7 @@ Create `agent-core/agents/review-taxonomy.md`:
 **Objective**: Remove obsolete Phase 1.4 (file size awareness) section, now redundant with outline-level enforcement.
 
 **Prerequisites**:
-- Read `agent-core/skills/runbook/SKILL.md` (locate Phase 1.4 section boundaries)
+- Read `plugin/skills/runbook/SKILL.md` (locate Phase 1.4 section boundaries)
 
 **Implementation**:
 
@@ -334,7 +334,7 @@ Create `agent-core/agents/review-taxonomy.md`:
 - Prerequisites scale with step type: creation needs investigation, transformation needs target read
 - Expected Outcome must be concrete and verifiable, not vague
 - Error Conditions map specific failures to recovery actions
-- Validation delegates to domain-appropriate reviewer (route per `agent-core/fragments/review-requirement.md`)
+- Validation delegates to domain-appropriate reviewer (route per `plugin/fragments/review-requirement.md`)
 
 **Creation vs transformation:**
 - Creation steps: 2+ prerequisite reads (pattern + context), investigation gate if cross-file

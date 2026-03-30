@@ -71,7 +71,7 @@ plans/design-workflow-enhancement/reports/explore-agent-patterns.md
 **Example failure return:**
 ```
 Error: Pattern "**/*.agent" matched no files
-Details: Searched in /Users/david/code/claudeutils
+Details: Searched in /Users/david/code/edify
 Recommendation: Check pattern syntax or search path
 ```
 

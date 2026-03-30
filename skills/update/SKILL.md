@@ -9,7 +9,7 @@ user-invocable: true
 
 Sync instruction fragments and `portable.just` from the edify plugin to the consumer project. Updates `.edify.yaml` version and content hashes.
 
-**This skill is for consumer projects only.** In dev mode (submodule), fragments are read directly via `@agent-core/fragments/` references -- update is a no-op.
+**This skill is for consumer projects only.** In dev mode (submodule), fragments are read directly via `@plugin/fragments/` references -- update is a no-op.
 
 ## Flags
 

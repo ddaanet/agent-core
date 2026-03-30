@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-from claudeutils.when.compress import compress_key, load_heading_corpus
+from edify.when.compress import compress_key, load_heading_corpus
 
 
 def main() -> None:
@@ -13,7 +13,9 @@ def main() -> None:
         sys.exit(1)
 
     heading = sys.argv[1]
-    decisions_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else Path.cwd() / "agents" / "decisions"
+    decisions_dir = (
+        Path(sys.argv[2]) if len(sys.argv) > 2 else Path.cwd() / "agents" / "decisions"
+    )
 
     corpus = load_heading_corpus(decisions_dir)
     result = compress_key(heading, corpus)

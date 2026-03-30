@@ -3,7 +3,7 @@
 The CLI supports a bare slug form for creating worktrees without session.md integration:
 
 ```bash
-claudeutils _worktree new <slug>
+edify _worktree new <slug>
 ```
 
 This creates the worktree but skips: slug derivation from task name, focused session generation, and session.md task movement. All session.md edits become manual.
@@ -17,7 +17,7 @@ Branch mode is for worktrees not tied to a tracked task in session.md. No establ
 For any task listed in session.md, always use:
 
 ```bash
-claudeutils _worktree new "<task name>"
+edify _worktree new "<task name>"
 ```
 
 The task name form automates all side effects. Using the bare slug form for tracked tasks forces manual session.md editing that is worse (no focused session), error-prone, and reimplements what the tool already does.

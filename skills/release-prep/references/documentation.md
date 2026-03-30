@@ -46,7 +46,7 @@ Agent documentation targets LLMs and automation. Different quality bar: precisio
 
 **What to update:**
 
-**Skill descriptions** (`agent-core/skills/*/SKILL.md` frontmatter):
+**Skill descriptions** (`plugin/skills/*/SKILL.md` frontmatter):
 - Verify trigger phrases match actual usage patterns observed during the development cycle
 - Add new trigger phrases discovered during hack sessions
 - Remove triggers for deprecated features

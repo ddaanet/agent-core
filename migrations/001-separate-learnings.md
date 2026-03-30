@@ -12,7 +12,7 @@
 
 ## Migration Checklist
 
-**Execution:** Project agents execute Steps 1-3 in project repo. Agent-core maintainers execute Step 4 in agent-core repo (can execute in parallel).
+**Execution:** Project agents execute Steps 1-3 in project repo. Agent-core maintainers execute Step 4 in plugin repo (can execute in parallel).
 
 Execute project steps sequentially:
 
@@ -22,7 +22,7 @@ Execute project steps sequentially:
 
 After completing project migration (steps 1-3):
 
-- [ ] **Step 4:** Update handoff skill in agent-core repo - modify "Include Recent Learnings" section to append learnings to `agents/learnings.md` instead of `session.md`
+- [ ] **Step 4:** Update handoff skill in plugin repo - modify "Include Recent Learnings" section to append learnings to `agents/learnings.md` instead of `session.md`
 
 ## Verification Checklist
 
@@ -32,8 +32,8 @@ After completing all steps:
 - [ ] `agents/learnings.md` contains all learnings from old `session.md`
 - [ ] `agents/session.md` has no `## Recent Learnings` section
 - [ ] CLAUDE.md `### Current Work` section includes `@agents/learnings.md` reference
-- [ ] Handoff skill SKILL.md (agent-core repo) updated to write learnings to `agents/learnings.md`
-- [ ] Git status shows 3 modified files + 1 new file in project repo (session.md, CLAUDE.md, learnings.md new); handoff skill modified in agent-core repo
+- [ ] Handoff skill SKILL.md (plugin repo) updated to write learnings to `agents/learnings.md`
+- [ ] Git status shows 3 modified files + 1 new file in project repo (session.md, CLAUDE.md, learnings.md new); handoff skill modified in plugin repo
 
 ## Standard Header for `agents/learnings.md`
 
@@ -42,7 +42,7 @@ After completing all steps:
 
 Institutional knowledge accumulated across sessions. Append new learnings at the bottom.
 
-**Soft limit: 80 lines.** When approaching this limit, use `/codify` to consolidate older learnings into permanent documentation (behavioral rules → `agent-core/fragments/*.md`, technical details → `agents/decisions/*.md` or `agents/decisions/implementation-notes.md`). Keep the 3-5 most recent learnings for continuity.
+**Soft limit: 80 lines.** When approaching this limit, use `/codify` to consolidate older learnings into permanent documentation (behavioral rules → `plugin/fragments/*.md`, technical details → `agents/decisions/*.md` or `agents/decisions/implementation-notes.md`). Keep the 3-5 most recent learnings for continuity.
 
 ---
 ```

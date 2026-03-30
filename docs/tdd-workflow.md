@@ -72,7 +72,7 @@ The TDD workflow follows this progression:
 
 **Skill:** `/runbook`
 **Model:** Sonnet
-**Documentation:** `agent-core/skills/runbook/SKILL.md`
+**Documentation:** `plugin/skills/runbook/SKILL.md`
 
 **Purpose:** Create TDD runbook with RED/GREEN/REFACTOR cycles from design document.
 
@@ -136,7 +136,7 @@ model: haiku
 
 **After /runbook (runbook reviewed and finalized), run prepare-runbook.py:**
 ```bash
-python3 agent-core/bin/prepare-runbook.py plans/<feature-name>/runbook.md
+python3 plugin/bin/prepare-runbook.py plans/<feature-name>/runbook.md
 ```
 
 This generates:
@@ -155,7 +155,7 @@ This generates:
 
 **Execution pattern:**
 1. `prepare-runbook.py` creates plan-specific agent from:
-   - `agent-core/agents/test-driver.md` (baseline protocol)
+   - `plugin/agents/test-driver.md` (baseline protocol)
    - Runbook common context (design decisions, paths)
 2. Orchestrator invokes plan-specific agent for each cycle
 3. Agent executes full RED/GREEN/REFACTOR protocol
@@ -202,7 +202,7 @@ This generates:
 - Identify process improvements
 - Produce recommendations
 
-**Future:** Uses claudeutils session extraction when available.
+**Future:** Uses edify session extraction when available.
 
 ---
 

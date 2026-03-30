@@ -4,7 +4,7 @@
 
 #### C.1. Create Design Document
 
-**Recall diff:** `Bash: claudeutils _recall diff <job-name>`
+**Recall diff:** `Bash: edify _recall diff <job-name>`
 
 Review the changed files list. Approach commitment, revised scope, or rejected alternatives change which implementation and testing entries are relevant. If files changed that affect which recall entries are relevant, update the artifact: add entries surfaced by the discussion, remove entries for approaches that were rejected. Write updated artifact back.
 

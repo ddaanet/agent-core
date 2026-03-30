@@ -24,9 +24,9 @@ Review implementation changes against design specification.
 
 **Recall context:**
 1. Read agents/memory-index.md (skip if already in context). Select review-relevant triggers.
-2. If plans/<job>/recall-artifact.md exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
-3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
-4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
+2. If plans/<job>/recall-artifact.md exists: `edify _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+3. Resolve additional triggers from memory-index not in artifact: `edify _recall resolve "when <trigger>" ...`
+4. No relevant entries (no artifact, no triggers selected): `edify _recall resolve null` — proves gate was reached.
 
 **Review criteria:**
 - Implementation matches design decisions

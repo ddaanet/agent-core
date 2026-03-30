@@ -14,7 +14,7 @@ Log the query for analysis, then resume the interrupted task.
 1. Run the logging script with the query argument:
 
 ```bash
-agent-core/bin/magic-query-log "$QUERY"
+plugin/bin/magic-query-log "$QUERY"
 ```
 
 2. Query complete. Continue what you were doing.

@@ -27,7 +27,7 @@ Read `agents/session.md` Pending Tasks section. Extract each task with:
 - Plan directory (if any)
 - Notes and context
 
-Run `claudeutils _worktree ls` for plan statuses. Output includes per-plan status (`requirements`, `outlined`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`) and next actions.
+Run `edify _worktree ls` for plan statuses. Output includes per-plan status (`requirements`, `outlined`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`) and next actions.
 
 ### 2. Score Each Task
 

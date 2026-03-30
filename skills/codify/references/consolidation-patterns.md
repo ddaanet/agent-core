@@ -31,17 +31,17 @@ Route learnings to appropriate documentation based on domain.
 
 **Format:** Append to skill's `references/learnings.md` (create if needed)
 
-### Agent-Specific → agent-core/agents/*.md
+### Agent-Specific → plugin/agents/*.md
 
 **Route when:** Learning is actionable for a specific agent role — execution pattern, stop condition, tool preference, error handling heuristic.
 
 **Pattern:** Append to matching agent definition's system prompt (after existing instructions, before `---` separator if present).
 
 **Example routing:**
-- "When haiku rationalizes test failures" → `agent-core/agents/test-driver.md`
-- "When step agents leave uncommitted files" → `agent-core/agents/artisan.md`
-- "When holistic review applies fixes" → `agent-core/agents/corrector.md`
-- "When outline review produces ungrounded corrections" → `agent-core/agents/outline-corrector.md`
+- "When haiku rationalizes test failures" → `plugin/agents/test-driver.md`
+- "When step agents leave uncommitted files" → `plugin/agents/artisan.md`
+- "When holistic review applies fixes" → `plugin/agents/corrector.md`
+- "When outline review produces ungrounded corrections" → `plugin/agents/outline-corrector.md`
 
 **Eligible agents (13):** artisan, brainstorm-name, corrector, design-corrector, hooks-tester, outline-corrector, refactor, runbook-corrector, runbook-outline-corrector, runbook-simplifier, scout, tdd-auditor, test-driver
 
@@ -103,7 +103,7 @@ Add `/when` or `/how` entry to `agents/memory-index.md` in the appropriate domai
 **CLAUDE.md @-reference:**
 - Use when: Learning applies regardless of which files are being edited
 - Examples: Communication rules, token economy, commit skill usage
-- Format: `@agent-core/fragments/file.md`
+- Format: `@plugin/fragments/file.md`
 
 **.claude/rules/ path-scoped entry:**
 - Use when: Learning only applies to specific file types or directories
@@ -118,7 +118,7 @@ Add `/when` or `/how` entry to `agents/memory-index.md` in the appropriate domai
 ---
 path:
   - .claude/skills/**/*.md
-  - agent-core/skills/**/*.md
+  - plugin/skills/**/*.md
 ---
 
 # Skill Development Patterns

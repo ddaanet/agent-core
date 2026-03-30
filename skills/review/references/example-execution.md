@@ -17,8 +17,8 @@
 *Runs git status and git diff HEAD*
 
 Found changes in 5 files:
-- agent-core/agents/artisan.md (new file)
-- agent-core/bin/prepare-runbook.py (new file)
+- plugin/agents/artisan.md (new file)
+- plugin/bin/prepare-runbook.py (new file)
 - CLAUDE.md (modified)
 - plans/general-workflow/design.md (modified)
 - .claude/agents/unification-task.md (new file)

@@ -93,7 +93,7 @@ Save agent ID for resume.
 
 **Step B — RED gate:**
 ```bash
-agent-core/skills/orchestrate/scripts/verify-red.sh <test_file_path>
+plugin/skills/orchestrate/scripts/verify-red.sh <test_file_path>
 ```
 - Exit 0 (test fails) → RED confirmed, proceed
 - Exit 1 (test passes) → resume tester to fix, or escalate
@@ -113,7 +113,7 @@ Save agent ID for resume.
 
 **Step E — GREEN gate:**
 ```bash
-just test && agent-core/skills/orchestrate/scripts/verify-step.sh
+just test && plugin/skills/orchestrate/scripts/verify-step.sh
 ```
 - Both pass → proceed
 - Test failure → resume implementer to fix, or escalate
@@ -127,7 +127,7 @@ Dispatch `<name>-impl-corrector` with changed files. Review implementation quali
 ### 3.3 Post-Step Verification
 
 ```bash
-agent-core/skills/orchestrate/scripts/verify-step.sh
+plugin/skills/orchestrate/scripts/verify-step.sh
 ```
 
 - Exit 0 (CLEAN) → proceed to phase boundary check (Section 3.5)
@@ -181,7 +181,7 @@ Task tool:
     - OUT: [from Phase Summaries section]
 
     **Design reference:** plans/<name>/design.md
-    **Review recall:** `Bash: claudeutils _recall resolve plans/<name>/recall-artifact.md` — if present, resolved content contains review-relevant entries. If absent or resolve fails: Read `memory-index.md`, identify review-relevant entries, batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`.
+    **Review recall:** `Bash: edify _recall resolve plans/<name>/recall-artifact.md` — if present, resolved content contains review-relevant entries. If absent or resolve fails: Read `memory-index.md`, identify review-relevant entries, batch-resolve via `edify _recall resolve "when <trigger>" ...`.
     **Changed files:** [git diff --name-only output]
 
     Fix all issues. Write report to: plans/<name>/reports/checkpoint-P-review.md
@@ -264,7 +264,7 @@ This skill is **cooperative** with the continuation passing system. After comple
 
 ## References
 
-- **Verification scripts:** `agent-core/skills/orchestrate/scripts/verify-step.sh`, `verify-red.sh`
+- **Verification scripts:** `plugin/skills/orchestrate/scripts/verify-step.sh`, `verify-red.sh`
 - **Common scenarios:** `references/common-scenarios.md`
 - **Progress tracking:** `references/progress-tracking.md`
 - **Continuation:** `references/continuation.md`

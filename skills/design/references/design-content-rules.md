@@ -35,7 +35,7 @@ When design specifies 5+ operations following the same pattern (e.g., "update fi
 ## Agent-Name Validation
 
 Before finalizing design, verify all referenced agent names exist on disk:
-- Glob `agent-core/agents/*.md`, `.claude/agents/*.md`, and `.claude/plugins/*/agents/*.md`
+- Glob `plugin/agents/*.md`, `.claude/agents/*.md`, and `.claude/plugins/*/agents/*.md`
 - Every agent name in the design must resolve to an actual file
 - If an agent name doesn't exist: flag as design error, not an implementation detail to defer
 - Prevention: catches naming mismatches (e.g., `outline-corrector` vs `runbook-outline-corrector`) before they propagate to planning and execution
@@ -118,7 +118,7 @@ Include this section specifying what the planner should read before starting:
 
 **Required reading (planner must load before starting):**
 - `agents/decisions/architecture.md` -- module patterns, path handling
-- `agent-core/fragments/delegation.md` -- quiet execution pattern
+- `plugin/fragments/delegation.md` -- quiet execution pattern
 - `plans/{job-name}/reports/explore-{topic}.md` -- exploration results
 
 **Context7 references:**
@@ -145,7 +145,7 @@ This ensures the planner has domain-specific guidance loaded before creating the
 
 ## Execution Model Directives
 
-When the design involves modifying workflow definitions (`agents/decisions/workflow-*.md`), skill files (`agent-core/skills/`), or agent procedures (`agent-core/agents/`), include an execution directive in "Next steps":
+When the design involves modifying workflow definitions (`agents/decisions/workflow-*.md`), skill files (`plugin/skills/`), or agent procedures (`plugin/agents/`), include an execution directive in "Next steps":
 - Workflow/skill/agent edits: opus required
 
 Ensures architectural artifacts get appropriate scrutiny during execution, not just planning.

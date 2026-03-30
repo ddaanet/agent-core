@@ -95,8 +95,8 @@ Assess work type alongside complexity — independent dimension (XP spike/story,
 
 | Destination | Paths | Quality Obligations |
 |------------|-------|-------------------|
-| **production** | `src/`, `agent-core/bin/`, `agent-core/lib/` | Tests, lint, module structure, review |
-| **agentic-prose** | `agent-core/skills/`, `agent-core/fragments/`, `agent-core/agents/`, `agents/` | Wording quality, behavioral verification |
+| **production** | `src/`, `plugin/bin/`, `plugin/lib/` | Tests, lint, module structure, review |
+| **agentic-prose** | `plugin/skills/`, `plugin/fragments/`, `plugin/agents/`, `agents/` | Wording quality, behavioral verification |
 | **exploration** | `plans/prototypes/`, `plans/spikes/` | Functional, documented purpose, no test mirrors |
 | **investigation** | `plans/reports/`, `agents/decisions/` | Accuracy, completeness, grounding |
 | **ephemeral** | `tmp/` | None |
@@ -132,7 +132,7 @@ Produce this classification block before routing (visible output, not internal r
 #### Routing
 
 - **Simple →** Lightweight recall-explore, then chain to `/inline`:
-  1. Recall: `claudeutils _recall resolve "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
+  1. Recall: `edify _recall resolve "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
   2. Explore: if affected files not already known, `Glob`/`Grep` to identify targets
   3. Execute: check for applicable skills and project recipes first, then implement directly
   4. Follow §Continuation (prepends `/inline plans/<job> execute`)

@@ -33,7 +33,7 @@ Before starting, gather:
 ### Phase 1: Inventory
 
 1. Read the design's Scope section (IN/OUT) to establish expected deliverables
-2. Run exact command: `agent-core/bin/deliverable-inventory.py` (no arguments, no pipes, no redirect). Outputs markdown tables: per-file diff stats and summary by type
+2. Run exact command: `plugin/bin/deliverable-inventory.py` (no arguments, no pipes, no redirect). Outputs markdown tables: per-file diff stats and summary by type
 3. Classify each deliverable by artifact type (script auto-classifies, verify):
 
 | Type | Pattern | Review axes |
@@ -95,7 +95,7 @@ Always runs in main session with full cross-project context.
 - Fragment convention compliance
 - Memory index pattern verification
 - Other skills' allowed-tools and frontmatter cross-reference validation
-- **Recall context:** `Bash: claudeutils _recall resolve plans/<plan>/recall-artifact.md` — if _recall resolve succeeds, its output contains resolved decision content (common review failures, quality anti-patterns). Supplements existing axes, does not replace them. If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, artifact-type conventions), batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields
+- **Recall context:** `Bash: edify _recall resolve plans/<plan>/recall-artifact.md` — if _recall resolve succeeds, its output contains resolved decision content (common review failures, quality anti-patterns). Supplements existing axes, does not replace them. If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, artifact-type conventions), batch-resolve via `edify _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields
 
 **Per-file review (when Layer 1 skipped):**
 - Read each deliverable and evaluate against type-specific axes

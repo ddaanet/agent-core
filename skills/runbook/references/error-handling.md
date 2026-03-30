@@ -32,7 +32,7 @@ Guidance for handling errors and edge cases during TDD runbook generation.
 | Error | Trigger | Action | Example |
 |-------|---------|--------|---------|
 | **Cannot write** | Permission/disk issues | Report path/error, check perms/space, suggest alternative, STOP | "Cannot write plans/auth/runbook.md: Permission denied. Check: ls -la plans/auth/" |
-| **prepare-runbook.py missing** | Script not found | Report expected path, provide manual guidance, WARNING (proceed) | "WARNING: agent-core/bin/prepare-runbook.py not found. Runbook created but needs manual processing." |
+| **prepare-runbook.py missing** | Script not found | Report expected path, provide manual guidance, WARNING (proceed) | "WARNING: plugin/bin/prepare-runbook.py not found. Runbook created but needs manual processing." |
 | **Validation failure** | Format invalid after generation | Report issue, show expected vs actual, offer regenerate | "Invalid cycle header. Expected: '## Cycle 1.2' (H2). Actual: '### Cycle 1.2' (H3). Regenerate?" |
 
 ---

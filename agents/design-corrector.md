@@ -89,10 +89,10 @@ Use Read tool to load the full design document.
 
 ### 1.5. Load Recall Context
 
-**Recall context:** `Bash: claudeutils _recall resolve plans/<job-name>/recall-artifact.md`
+**Recall context:** `Bash: edify _recall resolve plans/<job-name>/recall-artifact.md`
 
 If _recall resolve succeeds, its output contains resolved decision content — failure modes, quality anti-patterns augment reviewer awareness of project-specific patterns.
-If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, architectural conventions), batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields.
+If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, architectural conventions), batch-resolve via `edify _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields.
 
 Recall supplements the review criteria below.
 
@@ -142,7 +142,7 @@ Review the design document for:
 
 **Cross-Reference Validation:**
 
-Glob `agent-core/agents/` and `.claude/agents/` to verify all agent names referenced in the design resolve to actual files on disk.
+Glob `plugin/agents/` and `.claude/agents/` to verify all agent names referenced in the design resolve to actual files on disk.
 
 - Check deliverables tables, phase specifications, and any prose mentioning agents by name
 - Flag mismatches: agent referenced but file doesn't exist, or name is a near-miss typo (e.g., `outline-corrector` vs `runbook-outline-corrector` — two distinct agents)

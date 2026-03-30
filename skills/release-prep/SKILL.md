@@ -62,7 +62,7 @@ Read detailed guidance:
 
 ```
 # Load documentation update reference
-Read("agent-core/skills/release-prep/references/documentation.md")
+Read("plugin/skills/release-prep/references/documentation.md")
 ```
 
 Two audiences:

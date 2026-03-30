@@ -1,8 +1,8 @@
-# agent-core
+# plugin
 
 Workflow infrastructure for [Claude Code][claude-code] agents. Without
 structure, agent sessions drift: incomplete implementations, skipped reviews,
-scope creep, lost context between sessions. agent-core imposes a pipeline —
+scope creep, lost context between sessions. plugin imposes a pipeline —
 design, planning, TDD, orchestration, review, handoff — and a memory system
 that persists decisions across sessions.
 
@@ -17,13 +17,13 @@ Requires [just] for task running. Scripts in `bin/` use Python 3.
 ## Installation
 
 ```bash
-git submodule add <repo-url> agent-core
-cd agent-core && just sync-to-parent
+git submodule add <repo-url> plugin
+cd plugin && just sync-to-parent
 ```
 
 `just sync-to-parent` creates symlinks in the parent project's `.claude/`
 directory so Claude Code discovers skills, agents, and hooks. It also
-configures hooks in `.claude/settings.json`. Changes to agent-core are
+configures hooks in `.claude/settings.json`. Changes to plugin are
 reflected immediately without re-syncing.
 
 Set up your `CLAUDE.md` to reference fragments — use
@@ -31,8 +31,8 @@ Set up your `CLAUDE.md` to reference fragments — use
 an existing file:
 
 ```markdown
-@agent-core/fragments/communication.md
-@agent-core/fragments/execution-routing.md
+@plugin/fragments/communication.md
+@plugin/fragments/execution-routing.md
 ```
 
 These are loaded into every conversation as ambient context.
@@ -256,7 +256,7 @@ system prompt. Run `just sync-to-parent`. Restart Claude Code.
 
 ### Adding a Fragment
 
-Create `fragments/<name>.md`. Add an `@agent-core/fragments/<name>.md` reference
+Create `fragments/<name>.md`. Add an `@plugin/fragments/<name>.md` reference
 in the parent project's `CLAUDE.md`. No restart needed — fragments load on next
 conversation.
 

@@ -18,9 +18,9 @@ assemble_phase_files = _mod.assemble_phase_files
 extract_step_metadata = _mod.extract_step_metadata
 
 ARTIFACT_PREFIXES = (
-    "agent-core/skills/",
-    "agent-core/fragments/",
-    "agent-core/agents/",
+    "plugin/skills/",
+    "plugin/fragments/",
+    "plugin/agents/",
 )
 
 

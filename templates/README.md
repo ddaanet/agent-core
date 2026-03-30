@@ -1,16 +1,16 @@
-# agent-core Templates
+# plugin Templates
 
-Templates for new projects using agent-core as a submodule.
+Templates for new projects using plugin as a submodule.
 
 ## CLAUDE.md Template
 
-**Purpose:** Base CLAUDE.md file for new projects using agent-core fragments.
+**Purpose:** Base CLAUDE.md file for new projects using plugin fragments.
 
 **Usage:**
 
 1. **Copy template to your project root:**
    ```bash
-   cp agent-core/templates/CLAUDE.template.md CLAUDE.md
+   cp plugin/templates/CLAUDE.template.md CLAUDE.md
    ```
 
 2. **Customize project-specific sections:**
@@ -20,7 +20,7 @@ Templates for new projects using agent-core as a submodule.
    - Remove placeholder comments
 
 3. **Verify @file references resolve:**
-   - Ensure agent-core submodule is initialized
+   - Ensure plugin submodule is initialized
    - All @file paths should be relative to project root
 
 ## What's Included
@@ -69,14 +69,14 @@ The template includes @file references to these shared fragments:
 ## Example Projects
 
 See these projects for reference implementations:
-- **claudeutils** - Full CLI tool with custom skills
+- **edify** - Full CLI tool with custom skills
 - **pytest-md** - Python library with test integration
 
 ## Fragment Updates
 
-When agent-core fragments are updated:
-1. Pull latest agent-core: `git submodule update --remote agent-core`
+When plugin fragments are updated:
+1. Pull latest plugin: `git submodule update --remote plugin`
 2. Test changes with your project's CLAUDE.md
-3. Commit submodule update: `git add agent-core && git commit -m "Update agent-core"`
+3. Commit submodule update: `git add plugin && git commit -m "Update plugin"`
 
 Your project-specific content remains unchanged - only shared fragments update.

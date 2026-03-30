@@ -40,7 +40,7 @@
 
 **Root cause:** Familiarity with the primitive form suppresses discovery of the full-featured form. The simple form's visible output (worktree created) masks the missing side effects.
 
-**Same class as:** Primitive visibility (see execution-routing.md) and ad-hoc Python scripting (write `claudeutils _worktree ls` not `python3 -c "import..."`).
+**Same class as:** Primitive visibility (see execution-routing.md) and ad-hoc Python scripting (write `edify _worktree ls` not `python3 -c "import..."`).
 
 ### Rule Suppression by Procedure
 
@@ -48,7 +48,7 @@
 
 **Correct pattern:** The check-for-existing-tools rule applies even when a procedure names a specific function. Specific instructions must not suppress general operational rules.
 
-**Evidence:** execute-rule.md said "Call `list_plans()`" → agent wrote ad-hoc Python → 3 failed attempts guessing attributes → 6-turn guided diagnostic. CLI existed the whole time (`claudeutils _worktree ls`).
+**Evidence:** execute-rule.md said "Call `list_plans()`" → agent wrote ad-hoc Python → 3 failed attempts guessing attributes → 6-turn guided diagnostic. CLI existed the whole time (`edify _worktree ls`).
 
 ### Validation Output Integrity
 

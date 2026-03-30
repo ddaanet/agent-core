@@ -11,7 +11,7 @@ Review criteria for Claude Code plugin components. This skill is consumed by cor
 ## Scope
 
 **Artifact types covered:**
-- Skills (`.claude/skills/**/SKILL.md`, `agent-core/skills/**/SKILL.md`)
+- Skills (`.claude/skills/**/SKILL.md`, `plugin/skills/**/SKILL.md`)
 - Agents (`.claude/agents/*.md`)
 - Hooks (`.claude/hooks/*.{sh,py}`, `.claude/settings.json` hook configuration)
 - Commands (`.claude/commands/**/*`)
@@ -22,8 +22,8 @@ Review criteria for Claude Code plugin components. This skill is consumed by cor
 - `.claude/skills/**/*`
 - `.claude/agents/**/*`
 - `.claude/hooks/**/*`
-- `agent-core/skills/**/*`
-- `agent-core/agents/**/*`
+- `plugin/skills/**/*`
+- `plugin/agents/**/*`
 
 ---
 
@@ -282,7 +282,7 @@ See `references/examples-per-type.md` Plugin Structure section for good/bad exam
 
 1. **Planner detects domain:** Planning-time detection via rules files or design doc mentions
 2. **Planner writes review step:** Runbook review checkpoint includes reference to this skill + artifact type
-3. **Orchestrator delegates:** Task prompt includes: "Read and apply criteria from `agent-core/skills/plugin-dev-validation/SKILL.md` for artifact type: [skills|agents|hooks|commands|plugin-structure]"
+3. **Orchestrator delegates:** Task prompt includes: "Read and apply criteria from `plugin/skills/plugin-dev-validation/SKILL.md` for artifact type: [skills|agents|hooks|commands|plugin-structure]"
 4. **Corrector reads skill:** Loads criteria for specified artifact type
 5. **Corrector reviews:** Applies generic + alignment + domain criteria
 6. **Corrector fixes:** All fixable issues (critical, major, minor)

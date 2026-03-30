@@ -14,7 +14,7 @@ Transform session learnings into persistent, actionable documentation. Updates C
 ## Execution Protocol
 
 ### 1. Assess Learnings
-- Run `agent-core/bin/learning-ages.py` to get the ages report
+- Run `plugin/bin/learning-ages.py` to get the ages report
 - Entries ≥7 active days → eligible for consolidation
 - Entries <7 active days → keep in staging (do not consolidate)
 - Read the eligible entries in `agents/learnings.md` for context
@@ -24,18 +24,18 @@ Transform session learnings into persistent, actionable documentation. Updates C
 
 For each eligible learning, search candidate target files for related headings:
 ```bash
-Grep pattern="<keyword from learning>" path="agent-core/fragments/" glob="*.md"
+Grep pattern="<keyword from learning>" path="plugin/fragments/" glob="*.md"
 Grep pattern="<keyword from learning>" path="agents/decisions/" glob="*.md"
 ```
 
 Use Grep results to ground routing — match the learning to the file that already contains related content.
 
-**Behavioral rules** → `agent-core/fragments/*.md`: Workflow patterns • Anti-patterns • Directive conflicts • Agent behavior
+**Behavioral rules** → `plugin/fragments/*.md`: Workflow patterns • Anti-patterns • Directive conflicts • Agent behavior
 **Technical details** → `agents/decisions/*.md`: Architecture • Implementation patterns • Technology choices (consult `agents/decisions/README.md` for domain → file routing)
 **Implementation patterns** → `agents/decisions/implementation-notes.md`: Mock patterns • Python quirks • API details
 **agents/session.md**: Active tasks/decisions • Handoff info • Temporary state • Blockers
 **Skill references**: `.claude/skills/*/references/learnings.md` • Domain-specific patterns (progressive disclosure)
-**Agent templates** → `agent-core/agents/*.md`: Execution patterns • Tool usage • Error handling • Domain-specific guidance. Route when learning is actionable for a specific agent role (execution pattern, stop condition, tool preference, error handling heuristic). Eligible agents: artisan, brainstorm-name, corrector, design-corrector, hooks-tester, outline-corrector, refactor, runbook-corrector, runbook-outline-corrector, runbook-simplifier, scout, tdd-auditor, test-driver. Exclude plan-specific agents (generated per-runbook by prepare-runbook.py)
+**Agent templates** → `plugin/agents/*.md`: Execution patterns • Tool usage • Error handling • Domain-specific guidance. Route when learning is actionable for a specific agent role (execution pattern, stop condition, tool preference, error handling heuristic). Eligible agents: artisan, brainstorm-name, corrector, design-corrector, hooks-tester, outline-corrector, refactor, runbook-corrector, runbook-outline-corrector, runbook-simplifier, scout, tdd-auditor, test-driver. Exclude plan-specific agents (generated per-runbook by prepare-runbook.py)
 **Other**: Plan files (historical only)
 **Never**: `README.md` • Test files • Temp files
 
@@ -62,7 +62,7 @@ Use Grep results to ground routing — match the learning to the file that alrea
 - **Edit** for modifications • **Write** for new files only (Read first if exists)
 - Read updated section → Check formatting → Verify placement
 - **After consolidation**: Remove consolidated learnings from `agents/learnings.md`, but keep the 3-5 most recent learnings (at bottom of file) for continuity
-- **File splitting (if needed):** After Write/Edit to a decision file, check `wc -l`. If >400 lines, split by H2/H3 boundaries into 100-300 line sections. Run `agent-core/bin/validate-memory-index.py --fix` after split
+- **File splitting (if needed):** After Write/Edit to a decision file, check `wc -l`. If >400 lines, split by H2/H3 boundaries into 100-300 line sections. Run `plugin/bin/validate-memory-index.py --fix` after split
 
 **Step 4a: Update discovery mechanisms**
 
@@ -73,7 +73,7 @@ After consolidating a learning:
      - `## When X Y Z` → `/when x y z`
      - `## How to X Y` → `/how x y`
      - Title IS the trigger. Lowercase, preserve all words after operator prefix
-   - Use key compression tool (`agent-core/bin/compress-key.py`) to verify uniqueness
+   - Use key compression tool (`plugin/bin/compress-key.py`) to verify uniqueness
    - **Operator selection**:
      - `/when` for behavioral knowledge (when to do X, when X applies)
      - `/how` for procedural knowledge (how to do X, technique for X)

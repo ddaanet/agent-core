@@ -1,7 +1,7 @@
 ---
 name: handoff
 description: Save session state for the next agent. Triggers on "handoff", "h", "hc", session update, or agent switch requests. Writes session.md with completed tasks, pending work, blockers, and learnings. Not for Haiku orchestrators — use /handoff-haiku instead.
-allowed-tools: Read, Write, Edit, Bash(just:*,wc:*,git:*,claudeutils:*), Task, Skill
+allowed-tools: Read, Write, Edit, Bash(just:*,wc:*,git:*,edify:*), Task, Skill
 user-invocable: true
 continuation:
   cooperative: true
@@ -73,11 +73,11 @@ Write session.md following this structure:
 - **Worktree Tasks:** Has plan directory with behavioral changes, opus model tier, restart flag, or explicitly parallel scope. Tasks pre-classified as needing isolation.
 - Default to In-tree when uncertain. Classification is static — set at creation, no moves between sections.
 
-**Command derivation:** Run `Bash: claudeutils _worktree ls` to load current plan statuses. For tasks with a plan directory, derive the backtick command from the plan's lifecycle status:
+**Command derivation:** Run `Bash: edify _worktree ls` to load current plan statuses. For tasks with a plan directory, derive the backtick command from the plan's lifecycle status:
 - `requirements` → `/design plans/{name}/requirements.md`
 - `outlined` → `/runbook plans/{name}/outline.md`
 - `designed` → `/runbook plans/{name}/design.md`
-- `planned` → `agent-core/bin/prepare-runbook.py plans/{name}`
+- `planned` → `plugin/bin/prepare-runbook.py plans/{name}`
 - `ready` → `/orchestrate {name}`
 - `review-pending` → `/deliverable-review plans/{name}`
 - Unmapped statuses (`rework`, `reviewed`, `delivered`) → preserve existing command

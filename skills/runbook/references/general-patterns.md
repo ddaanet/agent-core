@@ -115,14 +115,14 @@ Some steps require codebase exploration before implementation can begin.
 
 **Validation**:
 1. Commit changes
-2. Delegate to [appropriate reviewer] (route by artifact type per `agent-core/fragments/review-requirement.md`)
+2. Delegate to [appropriate reviewer] (route by artifact type per `plugin/fragments/review-requirement.md`)
 3. Read review report
 4. If UNFIXABLE: STOP, escalate
 5. If all fixed: proceed
 
 **Report location**: plans/[plan-name]/reports/step-X.Y-review.md
 
-> **Orchestrator responsibility:** Review delegation in validation sections is executed by the orchestrator, not the execution agent. Sub-agents lack Task and Skill tools — they cannot delegate to any reviewer. All reviews must be delegated to prevent implementer bias. The execution agent commits; the orchestrator reads the validation section and delegates the review per `agent-core/fragments/review-requirement.md` routing table.
+> **Orchestrator responsibility:** Review delegation in validation sections is executed by the orchestrator, not the execution agent. Sub-agents lack Task and Skill tools — they cannot delegate to any reviewer. All reviews must be delegated to prevent implementer bias. The execution agent commits; the orchestrator reads the validation section and delegates the review per `plugin/fragments/review-requirement.md` routing table.
 ```
 
 ---

@@ -522,7 +522,7 @@ Git tracks all changes to runbook and artifacts.
 
 ## Script: `prepare-runbook.py`
 
-**Location:** `agent-core/bin/prepare-runbook.py`
+**Location:** `plugin/bin/prepare-runbook.py`
 
 **Purpose:** Transform runbook document into execution artifacts.
 

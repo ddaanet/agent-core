@@ -8,7 +8,7 @@ from pathlib import Path
 
 def main() -> None:
     repo_root = Path(__file__).parent.parent.parent
-    plugin_json_path = repo_root / "agent-core" / ".claude-plugin" / "plugin.json"
+    plugin_json_path = repo_root / "plugin" / ".claude-plugin" / "plugin.json"
     pyproject_path = repo_root / "pyproject.toml"
 
     # Read plugin.json version

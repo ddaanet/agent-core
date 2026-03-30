@@ -10,7 +10,7 @@ When evaluating proposals in discussion mode (`d:` directive — see execute-rul
 
 Load context before forming a position:
 - Read artifacts referenced in the proposal. Absent artifacts are a valid finding.
-- Resolve topic-relevant recall entries: read `memory-index.md` to identify relevant triggers, then run `claudeutils _recall resolve "when <trigger>" ...` for each. Do not speculate triggers without checking the index.
+- Resolve topic-relevant recall entries: read `memory-index.md` to identify relevant triggers, then run `edify _recall resolve "when <trigger>" ...` for each. Do not speculate triggers without checking the index.
 - Verify factual claims about project state via Glob/Grep/Read — both the user's claims AND your own. Do not assert facts about the codebase without checking.
 
 **2. State position**

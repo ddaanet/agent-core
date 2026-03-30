@@ -4,7 +4,7 @@ description: |
   Decompose a design into executable implementation steps. Triggers on /runbook or when
   a design needs step-by-step planning. Creates runbooks with per-phase typing
   (TDD cycles, general steps, or inline pass-through) for weak orchestrator execution.
-allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, agent-core/bin/prepare-runbook.py, claudeutils _recall diff:*, echo:*|pbcopy)
+allowed-tools: Task, Read, Write, Edit, Skill, Bash(mkdir:*, plugin/bin/prepare-runbook.py, edify _recall diff:*, echo:*|pbcopy)
 requires:
   - Design document from /design
   - CLAUDE.md for project conventions (if exists)
@@ -61,9 +61,9 @@ prepare-runbook.py auto-detects per-file via headers (`## Cycle X.Y:` vs `## Ste
 - **Opus:** Architecture, complex design decisions
 
 **Artifact-type override:** Steps editing architectural artifacts require opus regardless of task complexity:
-- Skills (`agent-core/skills/`)
-- Fragments (`agent-core/fragments/`)
-- Agent definitions (`agent-core/agents/`)
+- Skills (`plugin/skills/`)
+- Fragments (`plugin/fragments/`)
+- Agent definitions (`plugin/agents/`)
 - Workflow decisions (`agents/decisions/workflow-*.md`)
 
 These are prose instructions consumed by LLMs — wording directly determines downstream agent behavior. "Simple" edits to these files require nuanced understanding that haiku/sonnet cannot reliably provide.
@@ -100,7 +100,7 @@ Analyze the task and produce explicit assessment output:
 |-------------|-----------------|-------------------|
 | Production (`src/`) | Include test mirrors, lint, module split | Full TDD cycles |
 | Exploration (`plans/prototypes/`) | Script files only, no test mirrors | General steps (write, verify, iterate) |
-| Agentic-prose (`agent-core/skills/`, `agent-core/fragments/`, `agents/`) | Skill files + behavior verification | Prose review cycles |
+| Agentic-prose (`plugin/skills/`, `plugin/fragments/`, `agents/`) | Skill files + behavior verification | Prose review cycles |
 | Investigation (`plans/reports/`) | Report files only | General steps |
 
 A single-file prototype assessed against exploration conventions → minimal scope (Tier 2 may suffice). Same script assessed against production conventions → inflated count from test mirrors, lint setup, module structure.
@@ -118,9 +118,9 @@ When uncertain between tiers, prefer the lower tier (less overhead). Ask user on
 **Implementation recall (D+B anchor — tool call required):**
 
 1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it. Upstream triage recall (from /design) uses different triggers and does not satisfy this gate.
-2. If `plans/<job>/recall-artifact.md` exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
-3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
-4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
+2. If `plans/<job>/recall-artifact.md` exists: `edify _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+3. Resolve additional triggers from memory-index not in artifact: `edify _recall resolve "when <trigger>" ...`
+4. No relevant entries (no artifact, no triggers selected): `edify _recall resolve null` — proves gate was reached.
 
 Include relevant entries in each delegation prompt — format per consumer model tier (constraint format for haiku, rationale for sonnet/opus). Include review-relevant entries in corrector prompt.
 

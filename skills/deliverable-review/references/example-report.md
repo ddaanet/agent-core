@@ -10,14 +10,14 @@
 
 | Type | File | Lines |
 |------|------|-------|
-| Code | `src/claudeutils/worktree/cli.py` | 370 |
-| Code | `src/claudeutils/worktree/merge.py` | 290 |
-| Code | `src/claudeutils/worktree/utils.py` | 20 |
-| Code | `src/claudeutils/worktree/__init__.py` | 1 |
+| Code | `src/edify/worktree/cli.py` | 370 |
+| Code | `src/edify/worktree/merge.py` | 290 |
+| Code | `src/edify/worktree/utils.py` | 20 |
+| Code | `src/edify/worktree/__init__.py` | 1 |
 | Test | 12 test files | 2854 |
-| Agentic prose | `agent-core/skills/worktree/SKILL.md` | 123 |
+| Agentic prose | `plugin/skills/worktree/SKILL.md` | 123 |
 | Configuration | `justfile` (wt-* recipes) | ~200 |
-| Configuration | `agent-core/justfile` | ~20 |
+| Configuration | `plugin/justfile` | ~20 |
 
 **Design conformance:** All 8 design decisions (D1-D8) structurally satisfied. 4-phase merge ceremony complete. Exit codes match spec. 22/27 design test requirements covered.
 
@@ -28,7 +28,7 @@
 ### C1. `wt-ls` still calls Python CLI (D8 violation)
 - **Source:** Prose review #12
 - **File:** `justfile:140-141`
-- **Design:** D8 — "wt-ls: Replace `claudeutils _worktree ls` call with native bash"
+- **Design:** D8 — "wt-ls: Replace `edify _worktree ls` call with native bash"
 - **Impact:** Last remaining coupling between justfile and Python CLI
 
 ### C2. `wt-merge` lacks THEIRS clean tree check (D8 violation)
@@ -37,11 +37,11 @@
 - **Design:** D8 — "Both Python merge and justfile `wt-merge` must check both sides"
 - **Impact:** Uncommitted worktree changes silently lost on merge
 
-### C3. Missing `setup` recipe in agent-core justfile (D5 violation)
+### C3. Missing `setup` recipe in plugin justfile (D5 violation)
 - **Source:** Prose review #16
-- **File:** `agent-core/justfile`
-- **Design:** D5 — "add `setup` recipe to agent-core justfile"
-- **Impact:** Worktree env init silently fails for agent-core-only worktrees
+- **File:** `plugin/justfile`
+- **Design:** D5 — "add `setup` recipe to plugin justfile"
+- **Impact:** Worktree env init silently fails for plugin-only worktrees
 
 ### C4. No precommit failure test
 - **Source:** Test review F-01

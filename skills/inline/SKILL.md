@@ -58,7 +58,7 @@ Skip entirely when entry point is `execute` — caller has loaded all context.
 ### 2.1 Task Context Recovery
 
 ```bash
-agent-core/bin/task-context.sh '<task-name>'
+plugin/bin/task-context.sh '<task-name>'
 ```
 
 ### 2.2 Brief Check
@@ -68,13 +68,13 @@ Read `plans/<job>/brief.md` if present (cross-tree context from other sessions).
 ### 2.3 Recall (D+B anchor — tool call required)
 
 1. Read `agents/memory-index.md` (skip if already in context). Select execution-domain triggers — patterns for implementing this, not classifying it.
-2. If `plans/<job>/recall-artifact.md` exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
-3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
-4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
+2. If `plans/<job>/recall-artifact.md` exists: `edify _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+3. Resolve additional triggers from memory-index not in artifact: `edify _recall resolve "when <trigger>" ...`
+4. No relevant entries (no artifact, no triggers selected): `edify _recall resolve null` — proves gate was reached.
 
 ### 2.4 Reference Loading
 
-Load domain-relevant skills and reference files specified in the task description (e.g., `plugin-dev:skill-development` for skill work, `agent-core/fragments/continuation-passing.md` for cooperative skills).
+Load domain-relevant skills and reference files specified in the task description (e.g., `plugin-dev:skill-development` for skill work, `plugin/fragments/continuation-passing.md` for cooperative skills).
 
 ## Phase 3: Execute
 
@@ -88,7 +88,7 @@ Edits performed in current session. No delegation.
 
 When execution dispatches sub-agents (artisan, test-driver):
 
-**Sub-agent recall:** Curate subset of plan recall-artifact entries relevant to delegation target. Write separate artifact per type (e.g., `plans/<job>/tdd-recall-artifact.md`). Include in each prompt: "Read `plans/<job>/<type>-recall-artifact.md`, then batch-resolve via `claudeutils _recall resolve`."
+**Sub-agent recall:** Curate subset of plan recall-artifact entries relevant to delegation target. Write separate artifact per type (e.g., `plans/<job>/tdd-recall-artifact.md`). Include in each prompt: "Read `plans/<job>/<type>-recall-artifact.md`, then batch-resolve via `edify _recall resolve`."
 
 **Piecemeal TDD dispatch:** One cycle per invocation. Resume same agent between cycles (preserves context). Fresh agent when context nears 150k.
 
@@ -120,7 +120,7 @@ After each delegated step. Dirty tree or lint failure → diagnose before contin
 
 #### Path A: Review Dispatch (default)
 
-Route changed files to the appropriate reviewer per `agent-core/fragments/review-requirement.md` routing table.
+Route changed files to the appropriate reviewer per `plugin/fragments/review-requirement.md` routing table.
 
 **Dispatch process:**
 1. List changed files: `git diff --name-only $BASELINE`
@@ -167,7 +167,7 @@ Content must include: what was changed, why review adds no value for this specif
 ### 4b: Triage Feedback
 
 ```bash
-agent-core/bin/triage-feedback.sh plans/<job> $BASELINE
+plugin/bin/triage-feedback.sh plans/<job> $BASELINE
 ```
 
 Read script output. On divergence message → surface inline. On match or no-classification → proceed silently.

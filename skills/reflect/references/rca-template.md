@@ -95,7 +95,7 @@ Use this template for Exit Path 2 (RCA Complete, Handoff for Fixes) when creatin
 ### Systemic Fixes (If Applicable)
 
 **Fragment Creation:**
-- **Proposed file:** `agent-core/fragments/[name].md`
+- **Proposed file:** `plugin/fragments/[name].md`
 - **Purpose:** [What pattern this addresses]
 - **Scope:** [When this fragment should be loaded]
 

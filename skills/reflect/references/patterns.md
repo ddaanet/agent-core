@@ -16,7 +16,7 @@ Catalog of recurring agent deviation patterns with diagnostic heuristics and fix
 - Rule clearly says: "Stop at boundaries"
 
 **Diagnostic heuristic:**
-- Search for "Complete assigned task then stop" in `agent-core/fragments/communication.md`
+- Search for "Complete assigned task then stop" in `plugin/fragments/communication.md`
 - Check if agent added features/changes not in scope
 - Look for rationalization language: "also," "while we're at it," "makes sense to"
 
@@ -257,7 +257,7 @@ When analyzing a deviation:
 
 **Systemic pattern response:**
 
-1. Create fragment in `agent-core/fragments/` (if behavioral rule)
+1. Create fragment in `plugin/fragments/` (if behavioral rule)
 2. Create decision doc in `agents/decisions/` (if technical pattern)
 3. Add memory index entry pointing to fragment/doc
 4. Consider hookify rule if enforcement needed

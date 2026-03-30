@@ -104,16 +104,16 @@ def _match_tool_wrappers(command: str) -> dict | None:
     """Blocks for commands with project wrapper equivalents."""
     if command.startswith("git worktree "):
         return _deny(
-            "Use claudeutils _worktree — wrapper manages session.md",
-            "Use `claudeutils _worktree` — wrapper manages session.md.",
-            "🚫 git worktree — use claudeutils _worktree",
+            "Use edify _worktree — wrapper manages session.md",
+            "Use `edify _worktree` — wrapper manages session.md.",
+            "🚫 git worktree — use edify _worktree",
         )
 
     if command.startswith("git merge ") or command == "git merge":
         return _deny(
-            "Use claudeutils _worktree merge — wrapper manages session.md",
-            "Use `claudeutils _worktree merge` — wrapper manages session.md.",
-            "🚫 git merge — use claudeutils _worktree merge",
+            "Use edify _worktree merge — wrapper manages session.md",
+            "Use `edify _worktree merge` — wrapper manages session.md.",
+            "🚫 git merge — use edify _worktree merge",
         )
     return None
 

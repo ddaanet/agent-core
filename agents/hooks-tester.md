@@ -52,7 +52,7 @@ You are a hook testing agent specializing in validating Claude Code hook behavio
 - PostToolUse:Bash → submodule-safety.py (warns after cwd drift with restore command)
 - UserPromptSubmit → userpromptsubmit-shortcuts.py (expands shortcuts like `hc`)
 - PreToolUse:Write|Edit → pretooluse-block-tmp.sh (blocks /tmp writes)
-- PreToolUse:Write|Edit → pretooluse-symlink-redirect.sh (blocks writes to agent-core symlinks)
+- PreToolUse:Write|Edit → pretooluse-symlink-redirect.sh (blocks writes to plugin symlinks)
 
 ---
 
@@ -60,7 +60,7 @@ You are a hook testing agent specializing in validating Claude Code hook behavio
 
 Execute each test case sequentially. Record results in `tmp/hook-test-results-[timestamp].md`.
 
-**Total tests: 13** (added Test 12: Block symlink writes, Test 13: Allow Edit to agent-core direct path)
+**Total tests: 13** (added Test 12: Block symlink writes, Test 13: Allow Edit to plugin direct path)
 
 ### Test 1: Block /tmp writes
 
@@ -112,7 +112,7 @@ rm -f tmp/test-file.txt
 **Setup:**
 ```bash
 # Change directory to trigger blocking on next command
-cd agent-core
+cd plugin
 ```
 
 **Action:**
@@ -122,7 +122,7 @@ ls
 
 **Expected outcome:**
 - **Hook behavior:** Blocks operation (PreToolUse, exit code 2)
-- **Error message (stderr):** Contains "ERROR: Not in project root" and exact restore command like `cd /Users/david/code/claudeutils`
+- **Error message (stderr):** Contains "ERROR: Not in project root" and exact restore command like `cd /Users/david/code/edify`
 - **Tool execution:** Bash tool does NOT execute
 
 **Actual outcome:** [AGENT FILLS IN]
@@ -141,7 +141,7 @@ cd "$CLAUDE_PROJECT_DIR"
 **Setup:**
 ```bash
 # Change directory to trigger block
-cd agent-core
+cd plugin
 ```
 
 **Action:**
@@ -149,7 +149,7 @@ cd agent-core
 # First command should be blocked
 ls
 # Then use exact restore command from error message
-cd /Users/david/code/claudeutils
+cd /Users/david/code/edify
 # Next command should work
 ls
 ```
@@ -218,7 +218,7 @@ pwd  # Should show project root
 
 **Action:**
 ```bash
-(cd agent-core && ls) && pwd
+(cd plugin && ls) && pwd
 ```
 
 **Expected outcome:**
@@ -242,13 +242,13 @@ pwd
 
 **Action:**
 ```bash
-cd agent-core
+cd plugin
 ```
 
 **Expected outcome:**
 - **PreToolUse:** No block (command executes from project root, changing cwd is allowed)
 - **PostToolUse:** Warning with restore command in additionalContext
-- **Tool execution:** Command executes, cwd changes to agent-core
+- **Tool execution:** Command executes, cwd changes to plugin
 
 **Actual outcome:** [AGENT FILLS IN]
 
@@ -289,12 +289,12 @@ hc
 **Setup:**
 ```bash
 # Change directory to trigger block state
-cd agent-core
+cd plugin
 ```
 
 **Action:**
 ```bash
-cd /Users/david/code/claudeutils && rm -rf important-file
+cd /Users/david/code/edify && rm -rf important-file
 ```
 
 **Expected outcome:**
@@ -328,9 +328,9 @@ true
 
 ---
 
-### Test 12: Block symlink writes to agent-core
+### Test 12: Block symlink writes to plugin
 
-**Objective:** Verify pretooluse-symlink-redirect.sh blocks writes to symlinks pointing to agent-core
+**Objective:** Verify pretooluse-symlink-redirect.sh blocks writes to symlinks pointing to plugin
 
 **Action:**
 ```
@@ -340,20 +340,20 @@ Content: "This should be blocked - commit is a symlink"
 
 **Expected outcome:**
 - **Hook behavior:** Blocks operation (exit code 2)
-- **Error message (stderr):** Contains "🚫 **BLOCKED: Cannot write to symlink pointing to agent-core**" and shows correct path to write to instead
+- **Error message (stderr):** Contains "🚫 **BLOCKED: Cannot write to symlink pointing to plugin**" and shows correct path to write to instead
 - **Tool execution:** Write tool does NOT execute
 
 **Actual outcome:** [AGENT FILLS IN]
 
 ---
 
-### Test 13: Allow Edit to agent-core direct path
+### Test 13: Allow Edit to plugin direct path
 
-**Objective:** Verify pretooluse-symlink-redirect.sh allows edits to agent-core files when using direct path
+**Objective:** Verify pretooluse-symlink-redirect.sh allows edits to plugin files when using direct path
 
 **Action:**
 ```
-Edit tool: agent-core/hooks/pretooluse-block-tmp.sh
+Edit tool: plugin/hooks/pretooluse-block-tmp.sh
 old_string: "# Only check Write and Edit tools"
 new_string: "# Only check Write and Edit tools"
 ```
@@ -375,7 +375,7 @@ new_string: "# Only check Write and Edit tools"
 - **PostToolUse:Bash** → submodule-safety.py (warns after cwd drift)
 - **UserPromptSubmit** → userpromptsubmit-shortcuts.py (expands shortcuts)
 - **PreToolUse:Write|Edit** → pretooluse-block-tmp.sh (blocks /tmp writes)
-- **PreToolUse:Write|Edit** → pretooluse-symlink-redirect.sh (blocks writes to agent-core symlinks)
+- **PreToolUse:Write|Edit** → pretooluse-symlink-redirect.sh (blocks writes to plugin symlinks)
 
 **Hook interaction:** Write and Bash matchers are mutually exclusive. PreToolUse and PostToolUse on Bash both trigger submodule-safety.py but in different modes (event name passed as arg).
 

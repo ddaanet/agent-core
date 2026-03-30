@@ -75,7 +75,7 @@ Record the list of copied files and skipped files for the summary.
 
 **Case A — CLAUDE.md exists in project root:**
 - Read the existing CLAUDE.md
-- Find all `@agent-core/fragments/` references and rewrite them to `@agents/rules/` (the local copies created in Step 4)
+- Find all `@plugin/fragments/` references and rewrite them to `@agents/rules/` (the local copies created in Step 4)
 - Find all `@edify-plugin/fragments/` references and rewrite them to `@agents/rules/`
 - Do NOT modify any other content — preserve everything the user has written
 - Report which references were rewritten
@@ -126,7 +126,7 @@ Version: .edify.yaml [created at vX.Y.Z / already existed]
 Every operation checks before acting:
 - Directories: create only if missing
 - Files: write only if missing
-- CLAUDE.md refs: rewrite only if `@agent-core/fragments/` or `@edify-plugin/fragments/` patterns found
+- CLAUDE.md refs: rewrite only if `@plugin/fragments/` or `@edify-plugin/fragments/` patterns found
 - `.edify.yaml`: write only if missing
 
 Re-running `/edify:init` applies only missing pieces. It never destroys existing content.

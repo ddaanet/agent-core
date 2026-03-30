@@ -75,7 +75,7 @@ _DISCUSS_EXPANSION = (
     "[DISCUSS] Evaluate critically, do not execute.\n"
     "\n"
     "Ground first: Read artifacts referenced in claims before assessing.\n"
-    'Resolve topic-relevant recall: claudeutils _recall resolve "when <topic>" ...\n'
+    'Resolve topic-relevant recall: edify _recall resolve "when <topic>" ...\n'
     "\n"
     "Diverge before assessing: Generate 3+ alternative framings of the problem.\n"
     "At least one must reframe the problem (different conceptual frame), "
@@ -885,7 +885,7 @@ def _try_planstate_command(project_dir: str, plan_name: str) -> str | None:
     Returns the derived command if successful, None otherwise.
     """
     try:
-        from claudeutils.planstate.inference import infer_state
+        from edify.planstate.inference import infer_state
 
         plan_dir = Path(project_dir) / "plans" / plan_name
         state = infer_state(plan_dir)

@@ -2,4 +2,4 @@ watch_file .env
 [[ -f .venv/bin/activate ]] && source .venv/bin/activate
 dotenv_if_exists
 
-source agent-core/configs/claude-env.sh
+source plugin/configs/claude-env.sh

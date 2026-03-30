@@ -195,10 +195,10 @@ git diff HEAD <file1> <file2> ...
 
 ## Execution Context for Review Delegations
 
-When delegating to corrector, include scope context per `agent-core/fragments/review-requirement.md`:
+When delegating to corrector, include scope context per `plugin/fragments/review-requirement.md`:
 
 **Required:** Scope IN, Scope OUT, Changed files, Requirements summary
 **Optional:** Prior state, Design reference
 
-See `agent-core/fragments/review-requirement.md` for full template and rationale.
+See `plugin/fragments/review-requirement.md` for full template and rationale.
 

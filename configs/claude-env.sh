@@ -1,7 +1,7 @@
 # Claude Code environment setup — sourced by .envrc
-# Shared across all projects using agent-core
+# Shared across all projects using plugin
 
-# Load claude-env and model overrides (managed by claudeutils)
+# Load claude-env and model overrides (managed by edify)
 watch_file ~/.claude/claude-env
 dotenv_if_exists ~/.claude/claude-env
 watch_file ~/.claude/claude-model-overrides

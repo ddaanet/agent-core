@@ -50,7 +50,7 @@ Accept TDD, general, and inline artifacts:
 
 Runbook execution uses three context layers. Review criteria apply to step/cycle content — do NOT flag content present in a higher layer as missing.
 
-- **Baseline agent** (`agent-core/agents/artisan.md` or `test-driver.md`) — tool usage, execution protocol, error handling. Combined with all steps via prepare-runbook.py.
+- **Baseline agent** (`plugin/agents/artisan.md` or `test-driver.md`) — tool usage, execution protocol, error handling. Combined with all steps via prepare-runbook.py.
 - **Common Context** (`## Common Context` in runbook) — project paths, constraints, cross-step dependencies. Available to all steps.
 - **Step/cycle content** — step-specific instructions, validation, outcomes.
 
@@ -63,8 +63,8 @@ Runbook execution uses three context layers. Review criteria apply to step/cycle
 Before applying review criteria, load project-specific quality patterns:
 
 1. **Infer plan directory** from the reviewed file path — if reviewing `plans/foo/runbook-phase-1.md` or `plans/foo/runbook.md`, the plan directory is `plans/foo/`. If no `plans/` prefix, skip recall.
-2. **Recall context:** `Bash: claudeutils _recall resolve plans/<job>/recall-artifact.md` — if _recall resolve succeeds, its output contains resolved decision content (failure modes, quality anti-patterns). Caller-provided entries take precedence; skip if already provided in the delegation prompt.
-3. **If artifact absent or _recall resolve fails**: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, testing conventions), batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields.
+2. **Recall context:** `Bash: edify _recall resolve plans/<job>/recall-artifact.md` — if _recall resolve succeeds, its output contains resolved decision content (failure modes, quality anti-patterns). Caller-provided entries take precedence; skip if already provided in the delegation prompt.
+3. **If artifact absent or _recall resolve fails**: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, testing conventions), batch-resolve via `edify _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields.
 
 Recall supplements, does not replace, the review criteria below.
 
@@ -287,8 +287,8 @@ Five structural axes that cause execution failures. Apply regardless of phase ty
 **Check:** Model tag matches task complexity and artifact type.
 
 **Artifact-type override violations (advisory):**
-- Steps editing skills (`agent-core/skills/`), fragments (`agent-core/fragments/`),
-  agents (`agent-core/agents/`), or workflow decisions (`agents/decisions/workflow-*.md`)
+- Steps editing skills (`plugin/skills/`), fragments (`plugin/fragments/`),
+  agents (`plugin/agents/`), or workflow decisions (`agents/decisions/workflow-*.md`)
   assigned below opus → flag
 - Pattern: Check `File:` references in `Changes` section against override paths
 

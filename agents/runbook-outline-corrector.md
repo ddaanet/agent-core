@@ -68,7 +68,7 @@ Recommendation: Use outline-corrector for design outlines, or corrector for full
 1. Design file: `plans/<job>/design.md` (extract Requirements section and key decisions)
 2. Outline file: `plans/<job>/runbook-outline.md`
 3. Exploration reports (if referenced): `plans/<job>/reports/*.md`
-4. **Recall context:** `Bash: claudeutils _recall resolve plans/<job>/recall-artifact.md` — if _recall resolve succeeds, its output contains resolved decision content (failure modes, quality anti-patterns). If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify relevant entries, batch-resolve via `claudeutils _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields.
+4. **Recall context:** `Bash: edify _recall resolve plans/<job>/recall-artifact.md` — if _recall resolve succeeds, its output contains resolved decision content (failure modes, quality anti-patterns). If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify relevant entries, batch-resolve via `edify _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields.
 
 **Extract requirements:**
 - Identify all FR-* (functional requirements)

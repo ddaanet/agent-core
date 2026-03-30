@@ -1,7 +1,7 @@
 ---
 name: how
 description: Recall procedural knowledge from project decisions. Triggers on "how to do X", step-by-step techniques, or implementation guidance needs. Invoke with "/how <trigger>".
-allowed-tools: Bash(claudeutils _recall resolve:*)
+allowed-tools: Bash(edify _recall resolve:*)
 user-invocable: true
 ---
 
@@ -14,19 +14,19 @@ Resolve procedural triggers against the memory index. Returns decision file cont
 **Trigger mode** — fuzzy-match an index entry to a decision heading:
 
 ```bash
-claudeutils _recall resolve "how encode paths"
+edify _recall resolve "how encode paths"
 ```
 
 **Section mode** — look up a heading directly by name (dot prefix):
 
 ```bash
-claudeutils _recall resolve "how .Path Encoding Algorithm"
+edify _recall resolve "how .Path Encoding Algorithm"
 ```
 
 **File mode** — load an entire decision file (double-dot prefix, relative to `agents/decisions/`):
 
 ```bash
-claudeutils _recall resolve "how ..data-processing.md"
+edify _recall resolve "how ..data-processing.md"
 ```
 
 ## When to Use

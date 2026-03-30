@@ -97,7 +97,7 @@ tools: ["Read", "Write", "Bash", "Grep", "Glob"]
 **Script logic:**
 1. Parse arguments (plan name, input file, output directory)
 2. Validate inputs (plan file exists, readable)
-3. Read baseline agent template from `/Users/david/code/agent-core/agents/task-execute.md`
+3. Read baseline agent template from `/Users/david/code/plugin/agents/task-execute.md`
 4. Read plan file
 5. Generate YAML frontmatter with plan-specific metadata
 6. Combine: frontmatter + baseline + plan context
@@ -183,7 +183,7 @@ Return: Filename on success or error message on failure"
 
 **Use script to generate agent automatically:**
 
-Script: `agent-core/scripts/create-plan-agent.sh`
+Script: `plugin/scripts/create-plan-agent.sh`
 
 Usage:
 ./scripts/create-plan-agent.sh \
@@ -238,7 +238,7 @@ Orchestrator: Step N complete → Next step
 **Plan-specific agent creation:**
 
 ```bash
-cd /Users/david/code/claudeutils
+cd /Users/david/code/edify
 
 ./plans/unification/build-plan-agent.sh \
   phase2 \

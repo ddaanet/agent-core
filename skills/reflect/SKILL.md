@@ -32,7 +32,7 @@ Previous task suspended. Analyzing conversation for rule violations.
 2. **State the gap:** What happened vs what should have happened
 3. **Identify violated rule:**
    - Name the rule or constraint
-   - Reference file path and section (e.g., `agent-core/fragments/communication.md`, "Stop on unexpected results")
+   - Reference file path and section (e.g., `plugin/fragments/communication.md`, "Stop on unexpected results")
    - Quote the relevant directive
 
 **Output format:**
@@ -91,7 +91,7 @@ Based on RCA findings, classify the structural root cause:
 
 ### Phase 4.5: Diagnostic Checkpoint
 
-1. `claudeutils _recall resolve "when <trigger>" ...` — resolve entries matching (a) the deviation's pattern class and (b) design patterns for the artifact type being modified. Read `memory-index.md` first if triggers not known from context.
+1. `edify _recall resolve "when <trigger>" ...` — resolve entries matching (a) the deviation's pattern class and (b) design patterns for the artifact type being modified. Read `memory-index.md` first if triggers not known from context.
 
 2. Read the primary target file(s) identified for fixes — verify current state matches RCA assumptions. Read `agents/learnings.md` for line count.
 

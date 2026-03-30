@@ -136,11 +136,11 @@ def resolve_recall_entries(triggers):
     if not triggers:
         return ""
 
-    cmd = ["claudeutils", "_recall", "resolve"] + triggers
+    cmd = ["edify", "_recall", "resolve"] + triggers
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
     except FileNotFoundError:
-        print("WARNING: recall resolve: claudeutils not found", file=sys.stderr)
+        print("WARNING: recall resolve: edify not found", file=sys.stderr)
         return ""
     if result.returncode != 0:
         if result.stderr:
@@ -987,11 +987,11 @@ def read_baseline_agent(runbook_type="general"):
         Baseline agent body (without frontmatter)
     """
     if runbook_type == "tdd":
-        baseline_path = Path("agent-core/agents/test-driver.md")
+        baseline_path = Path("plugin/agents/test-driver.md")
     elif runbook_type == "corrector":
-        baseline_path = Path("agent-core/agents/corrector.md")
+        baseline_path = Path("plugin/agents/corrector.md")
     else:
-        baseline_path = Path("agent-core/agents/artisan.md")
+        baseline_path = Path("plugin/agents/artisan.md")
 
     if not baseline_path.exists():
         print(f"ERROR: Baseline agent not found: {baseline_path}", file=sys.stderr)

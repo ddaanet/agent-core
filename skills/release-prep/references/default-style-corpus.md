@@ -45,10 +45,10 @@ Every code example should work if copy-pasted. Show the command the user will ac
 **Good:**
 ```bash
 # Count tokens in a prompt file
-claudeutils tokens sonnet prompt.md
+edify tokens sonnet prompt.md
 
 # JSON output for scripting
-claudeutils tokens haiku prompt.md --json
+edify tokens haiku prompt.md --json
 ```
 
 **Bad:**
@@ -56,7 +56,7 @@ claudeutils tokens haiku prompt.md --json
 # You can use this tool to count tokens
 # First, make sure you have set up your environment
 # Then run the following command:
-claudeutils tokens <model> <file> [--json]
+edify tokens <model> <file> [--json]
 ```
 
 Show concrete values, not angle-bracket placeholders. Show 2-3 examples that cover the common cases. Add a comment only when the command isn't self-evident.

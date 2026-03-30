@@ -21,10 +21,10 @@ Both relative and absolute paths are supported. This can be mixed with regular m
 - `@docs/git-instructions.md` - Relative to the CLAUDE.md file's directory
 - `@../shared-rules.md` - Navigate up the directory tree
 - `@./local-config.md` - Explicit current directory reference
-- `@../../../agent-core/fragments/workflows.md` - Cross-project relative paths
+- `@../../../plugin/fragments/workflows.md` - Cross-project relative paths
 
 ### Absolute Paths
-- `@/Users/david/code/agent-core/fragments/workflows.md` - Full filesystem path
+- `@/Users/david/code/plugin/fragments/workflows.md` - Full filesystem path
 - `/path/to/file.md` - Works in all import contexts
 
 ### Home Directory Expansion
@@ -112,7 +112,7 @@ Imports don't require `.md` extension, but it's recommended:
 Keep shared fragments in a dedicated directory:
 
 ```
-agent-core/
+plugin/
 ├── fragments/
 │   ├── workflows-terminology.md
 │   ├── communication.md
@@ -144,11 +144,11 @@ Place imports in logical groups:
 # CLAUDE.md
 
 ## Core Rules
-@agent-core/fragments/communication.md
-@agent-core/fragments/token-economy.md
+@plugin/fragments/communication.md
+@plugin/fragments/token-economy.md
 
 ## Workflows
-@agent-core/fragments/workflows-terminology.md
+@plugin/fragments/workflows-terminology.md
 @agents/decisions/workflows.md
 
 ## Development
@@ -162,7 +162,7 @@ Don't import everything. Keep project-specific instructions inline:
 ```markdown
 # CLAUDE.md
 
-@agent-core/fragments/communication.md
+@plugin/fragments/communication.md
 
 ## This Project Specifics
 
@@ -180,12 +180,12 @@ Make paths work for all team members:
 
 ```markdown
 # Good (works for everyone)
-@../../agent-core/fragments/workflows.md
+@../../plugin/fragments/workflows.md
 @../shared-config.md
 @~/.claude/personal-rules.md
 
 # Problematic (hardcoded to one person)
-@/Users/alice/code/agent-core/fragments/workflows.md
+@/Users/alice/code/plugin/fragments/workflows.md
 ```
 
 ### 6. Verify Imports with /memory
@@ -219,7 +219,7 @@ CLAUDE.md → rules.md → api/rules.md → api/testing.md → api/testing/edge-
 
 ```
 my-organization/
-├── agent-core/
+├── plugin/
 │   └── fragments/
 │       ├── communication.md
 │       ├── token-economy.md
@@ -228,8 +228,8 @@ my-organization/
 ├── project-a/
 │   └── CLAUDE.md
 │       ```
-│       @../../agent-core/fragments/communication.md
-│       @../../agent-core/fragments/workflows-terminology.md
+│       @../../plugin/fragments/communication.md
+│       @../../plugin/fragments/workflows-terminology.md
 │
 │       # Project A Specifics
 │       - Tech stack: Node.js + TypeScript
@@ -238,8 +238,8 @@ my-organization/
 └── project-b/
     └── CLAUDE.md
         ```
-        @../../agent-core/fragments/communication.md
-        @../../agent-core/fragments/error-handling.md
+        @../../plugin/fragments/communication.md
+        @../../plugin/fragments/error-handling.md
 
         # Project B Specifics
         - Tech stack: Python + FastAPI

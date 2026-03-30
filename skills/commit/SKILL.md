@@ -1,7 +1,7 @@
 ---
 name: commit
 description: Create git commits for completed work with short, dense, structured messages. Use --context flag when you already know what changed from conversation.
-allowed-tools: Read, Edit, Skill, Bash(git add:*), Bash(git diff:*), Bash(git status:*), Bash(claudeutils _commit*), Bash(just precommit), Bash(just test), Bash(just lint)
+allowed-tools: Read, Edit, Skill, Bash(git add:*), Bash(git diff:*), Bash(git status:*), Bash(edify _commit*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
 continuation:
   cooperative: true
@@ -74,7 +74,7 @@ git status --porcelain
 ```
 ```bash
 # Grep changed file paths for production artifact prefixes
-git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5) | grep -E '^(agent-core/|plans/|src/|agents/|\.claude/)' || true
+git diff --name-only $(git merge-base HEAD @{u} 2>/dev/null || echo HEAD~5) | grep -E '^(plugin/|plans/|src/|agents/|\.claude/)' || true
 ```
 
 Classify using Grep output — production artifacts are files matching the artifact prefixes above.
@@ -100,10 +100,10 @@ ERROR if nothing to commit (no staged or unstaged changes). Note what's already 
 
 ### 1b. Submodule info gathering
 
-If `git status` shows modified submodules (e.g., `M agent-core`), gather info for CLI input:
+If `git status` shows modified submodules (e.g., `M plugin`), gather info for CLI input:
 
 ```bash
-git -C agent-core diff --name-only HEAD
+git -C plugin diff --name-only HEAD
 ```
 
 Note changed files and draft a submodule commit message. The CLI handles staging, committing, and pointer update via the `## Submodule` input section.
@@ -146,7 +146,7 @@ Read `references/gitmoji-index.txt` (~78 entries). Analyze commit semantics, sel
 Build structured markdown input and pipe to CLI:
 
 ```bash
-claudeutils _commit <<'EOF'
+edify _commit <<'EOF'
 ## Files
 - path/to/file1.py
 - path/to/file2.md
@@ -154,7 +154,7 @@ claudeutils _commit <<'EOF'
 ## Options
 - no-vet
 
-## Submodule agent-core
+## Submodule plugin
 > Submodule commit message
 
 ## Message

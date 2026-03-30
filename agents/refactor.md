@@ -158,7 +158,7 @@ Update all references to refactored code:
 
 4. **Regenerate step files** - If runbook.md changed
    ```bash
-   agent-core/bin/prepare-runbook.py plans/<runbook-name>/runbook.md
+   plugin/bin/prepare-runbook.py plans/<runbook-name>/runbook.md
    ```
 
 Verification:

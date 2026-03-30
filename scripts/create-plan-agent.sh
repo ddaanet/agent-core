@@ -109,7 +109,7 @@ if [ ! -f "$PLAN_FILE" ]; then
     exit 1
 fi
 
-# Resolve agent-core baseline path
+# Resolve plugin baseline path
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 AGENT_CORE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BASELINE_AGENT="$AGENT_CORE_ROOT/agents/task-execute.md"

@@ -62,7 +62,7 @@ def compose(fragments, output):
 
 **Good example:**
 ```markdown
-**Bootstrap:** Create `claudeutils/compose.py` with stub: `def compose(fragments, output): return None`. Do not commit.
+**Bootstrap:** Create `edify/compose.py` with stub: `def compose(fragments, output): return None`. Do not commit.
 
 **Expected failure:** `AssertionError` — `compose(fragments, output)` returns `None`, test expects composed content containing all fragments
 

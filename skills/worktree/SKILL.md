@@ -9,7 +9,7 @@ allowed-tools:
   - Read
   - Write
   - Edit
-  - Bash(claudeutils _worktree:*)
+  - Bash(edify _worktree:*)
   - Bash(just precommit)
   - Bash(git status:*)
   - Bash(git worktree:*)
@@ -35,7 +35,7 @@ Used when user specifies `wt <task-name>`.
 
 1. **Read `agents/session.md`** to locate task in Worktree Tasks. Extract full task block including name, command, model, and metadata.
 
-2. **Invoke: `claudeutils _worktree new "<task name>"`** (requires `dangerouslyDisableSandbox: true`) to create the worktree with focused session. The command derives the slug from the task name, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`. Use `--branch <slug>` to override the derived slug (e.g., when the derived slug exceeds 29 chars).
+2. **Invoke: `edify _worktree new "<task name>"`** (requires `dangerouslyDisableSandbox: true`) to create the worktree with focused session. The command derives the slug from the task name, generates a focused session.md (filtered to just this task's context), creates the worktree in the sibling container, and cleans up temp files. Output is tab-separated: `<slug>\t<path>`. Use `--branch <slug>` to override the derived slug (e.g., when the derived slug exceeds 29 chars).
 
 3. **Parse output** to extract slug and worktree path from the tab-separated line.
 
@@ -47,7 +47,7 @@ The `new` command with a task name automatically adds the `→ \`slug\`` marker 
 
 Used when the user invokes `wt` with no arguments. This mode detects a group of independent parallel tasks and creates multiple worktrees simultaneously, enabling concurrent work on independent tasks.
 
-1. **Read `agents/session.md`** and run `claudeutils _worktree ls` to identify all tasks and plan statuses. Extract task names, plan directories, and any blockers that might create dependencies.
+1. **Read `agents/session.md`** and run `edify _worktree ls` to identify all tasks and plan statuses. Extract task names, plan directories, and any blockers that might create dependencies.
 
 2. **Check for shared plan directories and dependencies.** For each task, extract the plan directory (if specified). Build a dependency map:
 
@@ -60,7 +60,7 @@ Used when the user invokes `wt` with no arguments. This mode detects a group of 
 3. **Check for parallel group existence.** If analysis found no independent group (all tasks have dependencies), **output message**: "No independent parallel group detected. All tasks have dependencies." Stop execution. Do not create any worktrees. Return to the user prompt.
 
 4. **If group found, for each task in the parallel group:**
-   - Invoke `claudeutils _worktree new "<task name>"` with `dangerouslyDisableSandbox: true` (captures `<slug>\t<path>` output)
+   - Invoke `edify _worktree new "<task name>"` with `dangerouslyDisableSandbox: true` (captures `<slug>\t<path>` output)
    - Parse slug and path from output
    - Collect launch commands
 
@@ -82,14 +82,14 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
 
 1. **Invoke `/handoff` then `/commit`** to ensure clean tree and session context committed. If handoff or commit fails, STOP — merge requires clean tree.
 
-2. **Use Bash to invoke: `claudeutils _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. All output goes to stdout; exit code carries the semantic signal.
+2. **Use Bash to invoke: `edify _worktree merge <slug>`** (requires `dangerouslyDisableSandbox: true`) to perform the three-phase merge: submodule resolution, parent repo merge, and precommit validation. All output goes to stdout; exit code carries the semantic signal.
 
 3. **Exit code 0 (success):** The merge completed successfully. Worktree preserved for bidirectional workflow — the user decides when to remove it. Output: "Merged <slug> successfully. Worktree preserved. To remove when ready: `wt-rm <slug>`"
 
 4. **Parse merge exit code 3** (conflicts, merge paused). Read stdout for conflict report. The report contains: conflicted file list with conflict type, per-file diff stats, branch divergence summary, and a hint command. Session files (`agents/session.md`, `agents/learnings.md`) auto-resolve using deterministic strategies — report as bug if they appear in the conflict list. For each conflicted source file:
      1. **Edit** the file to resolve conflict markers
      2. **Use Bash:** `git add <file>`
-     3. When all conflicts resolved, **re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` (idempotent — resumes from current state, skips already-completed phases)
+     3. When all conflicts resolved, **re-run:** `edify _worktree merge <slug>` with `dangerouslyDisableSandbox: true` (idempotent — resumes from current state, skips already-completed phases)
 
 5. **Parse merge exit code 1** (error: precommit failure or git error). Read stdout for error message. The merge commit already exists in git (do NOT re-merge).
      1. **Review** the failed precommit checks in stdout
@@ -97,14 +97,14 @@ Used when the user invokes `wt merge <slug>`. This mode orchestrates the merge c
      3. **Use Bash:** `git add <fixed-file>`
      4. **Use Bash:** `git commit --amend --no-edit`
      5. **Use Bash:** `just precommit` to verify
-     6. **Re-run:** `claudeutils _worktree merge <slug>` with `dangerouslyDisableSandbox: true` to resume cleanup phase
+     6. **Re-run:** `edify _worktree merge <slug>` with `dangerouslyDisableSandbox: true` to resume cleanup phase
 
 6. **Parse merge exit code 2** (fatal error). Read stdout for error message. Generic error handling: review error output for root cause. Common issues:
    - Submodule initialization failures: Check `git submodule status`, ensure parent repo internet connectivity
    - Git state corruption: Run `git status` to inspect tree. If lock file errors occur, stop and report to user.
    - Branch mismatch: Verify `git branch` shows correct upstream, check `git log` for expected commits
 
-   After resolving root cause, **retry:** `claudeutils _worktree merge <slug>` (same command, will resume from current state).
+   After resolving root cause, **retry:** `edify _worktree merge <slug>` (same command, will resume from current state).
 
 ## Mode D: Merge + Remove
 
@@ -112,7 +112,7 @@ Used when the user invokes `wt merge rm <slug>`. Chains Mode C (merge ceremony) 
 
 1. **Execute Mode C** (merge ceremony) in full. If merge fails at any step, stop — do not proceed to removal.
 
-2. **On successful merge (exit 0):** Invoke `claudeutils _worktree rm <slug>` with `dangerouslyDisableSandbox: true` to remove the worktree and branch.
+2. **On successful merge (exit 0):** Invoke `edify _worktree rm <slug>` with `dangerouslyDisableSandbox: true` to remove the worktree and branch.
 
 3. **Output:** "Merged and removed <slug>."
 
@@ -126,13 +126,13 @@ When diffing branches (for inspection, validation, or user questions — NOT a r
 
 ## Usage Notes
 
-- **CLI signature:** `claudeutils _worktree new [TASK_NAME] [--branch TEXT] [--base TEXT]`. Positional `TASK_NAME` is the task name from session.md (quoted). Use `--branch <slug>` to override the derived slug or to create a bare worktree without session integration. There is no `--task` flag — the task name is always positional.
+- **CLI signature:** `edify _worktree new [TASK_NAME] [--branch TEXT] [--base TEXT]`. Positional `TASK_NAME` is the task name from session.md (quoted). Use `--branch <slug>` to override the derived slug or to create a bare worktree without session integration. There is no `--task` flag — the task name is always positional.
 
-- **Sandbox bypass required for mutations:** All `claudeutils _worktree` mutation commands (`new`, `merge`, `rm`) must use `dangerouslyDisableSandbox: true`. These commands create/remove worktree directories outside project root and run environment setup (`uv sync`, `direnv allow`). Read-only git commands (`git status`, `git log`, `git worktree list`) do NOT need bypass.
+- **Sandbox bypass required for mutations:** All `edify _worktree` mutation commands (`new`, `merge`, `rm`) must use `dangerouslyDisableSandbox: true`. These commands create/remove worktree directories outside project root and run environment setup (`uv sync`, `direnv allow`). Read-only git commands (`git status`, `git log`, `git worktree list`) do NOT need bypass.
 
 - **Slug derivation is deterministic:** The transformation of task names to slugs is repeatable. The same task name will always produce the same slug. This ensures consistency across sessions and enables command reuse (e.g., `wt merge <slug>` always operates on the correct worktree).
 
-- **Merge is idempotent:** The `claudeutils _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. Fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
+- **Merge is idempotent:** The `edify _worktree merge <slug>` command can be safely re-run after manual fixes. It detects partial completion and resumes from the appropriate phase. Fix conflicts, stage, and re-invoke the merge command without risk of double-merging.
 
 - **Session.md markers are automated:** `new "<task name>"` adds the `→ \`slug\`` marker inline to the task in Worktree Tasks. `rm` removes the marker from the task (task stays in Worktree Tasks throughout — no section moves). No manual session.md editing required.
 
@@ -140,7 +140,7 @@ When diffing branches (for inspection, validation, or user questions — NOT a r
 
 - **Parallel execution requires individual merge:** When multiple worktrees exist via `wt` (Mode B), merge each back individually via `wt merge <slug1>`, `wt merge <slug2>`, etc. There is no batch merge command. Merge each worktree's branch when its task completes.
 
-- **Emergency `--force` flag:** `claudeutils _worktree rm --force <slug>` bypasses all safety checks (confirm, dirty tree, guard). Use only as emergency escape hatch when normal workflow is blocked.
+- **Emergency `--force` flag:** `edify _worktree rm --force <slug>` bypasses all safety checks (confirm, dirty tree, guard). Use only as emergency escape hatch when normal workflow is blocked.
 
 ## Continuation
 

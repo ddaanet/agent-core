@@ -12,7 +12,7 @@ Phases A.3-A.5 of the design process: external research, grounding, and outline 
 
 ## A.5. Produce Plan Outline
 
-**Recall diff:** `Bash: claudeutils _recall diff <job-name>`
+**Recall diff:** `Bash: edify _recall diff <job-name>`
 
 Review the changed files list. Codebase findings, external research, and Context7 results make different recall entries relevant than what A.1 selected from the initial problem description. If files changed that affect which recall entries are relevant, update the artifact: add entries surfaced by changes, remove entries that proved irrelevant. Write updated artifact back.
 

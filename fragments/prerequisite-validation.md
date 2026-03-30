@@ -80,7 +80,7 @@ test -w /path/to/dir  # True if directory is writable
 
 **Example validation:**
 ```
-Directory: /Users/david/code/agent-core/fragments/
+Directory: /Users/david/code/plugin/fragments/
 Expected: Directory exists and is writable for new fragments
 Validation: ✓ Directory exists, ✓ Writable, ✓ Contains 10 existing fragments
 Status: READY
@@ -151,10 +151,10 @@ test -f ~/.config/myapp/config.json || echo "✗ Config missing"
 ```
 Environment Variable: PROJECT_ROOT
 Validation: test -n "$PROJECT_ROOT" ✓
-Value: /Users/david/code/agent-core
+Value: /Users/david/code/plugin
 
 Working Directory: Must be project root
-Current: /Users/david/code/agent-core ✓
+Current: /Users/david/code/plugin ✓
 
 Configuration: .claude/settings.json
 Status: ✓ Exists and readable
@@ -187,7 +187,7 @@ When planning agent creates a plan:
 - File: /Users/david/code/pytest-md/AGENTS.md
   Verified: ✓ Read tool (152 lines)
 
-- Directory: /Users/david/code/agent-core/fragments/
+- Directory: /Users/david/code/plugin/fragments/
   Verified: ✓ Bash check (exists, writable)
 
 - External: Python 3.8+

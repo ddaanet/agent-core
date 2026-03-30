@@ -36,7 +36,7 @@ If no requirements.md exists:
 
 | Level | Source | How | When |
 |-------|--------|-----|------|
-| 1. Local knowledge | Execute `/recall all` protocol (deep + broad, topic-scoped). Covers memory-index, `agents/decisions/*.md`, `agents/plan-archive.md` when design overlaps with prior plans, `agent-core/fragments/*.md` when referenced. | `/recall all` | Always (core) |
+| 1. Local knowledge | Execute `/recall all` protocol (deep + broad, topic-scoped). Covers memory-index, `agents/decisions/*.md`, `agents/plan-archive.md` when design overlaps with prior plans, `plugin/fragments/*.md` when referenced. | `/recall all` | Always (core) |
 | 2. Key skills | `plugin-dev:*` skills | Skill invocation | When design touches plugin components (hooks, agents, skills, MCP) |
 | 3. Context7 | Library documentation via Context7 MCP tools | Designer calls directly from main session (MCP tools unavailable in sub-agents), writes results to report file | When design involves external libraries/frameworks |
 | 4. Local explore | Codebase exploration | Delegate to scout agent | Always for complex designs |
@@ -52,14 +52,14 @@ If no requirements.md exists:
 
 Documentation findings from A.1 exist only in the current context window — they do not survive to downstream pipeline stages (runbook planning, orchestration, execution, review). Persist them as a recall artifact so all downstream consumers resolve fresh content at consumption time.
 
-**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. Entry keys only — no excerpts, no summaries. Downstream consumers batch-resolve via `claudeutils _recall resolve` to get current content.
+**Process:** After documentation loading completes, write `plans/<job>/recall-artifact.md`. Entry keys only — no excerpts, no summaries. Downstream consumers batch-resolve via `edify _recall resolve` to get current content.
 
 **Artifact format:**
 
 ```markdown
 # Recall Artifact: <Job Name>
 
-Resolve entries via `claudeutils _recall resolve` — do not use inline summaries.
+Resolve entries via `edify _recall resolve` — do not use inline summaries.
 
 ## Entry Keys
 
@@ -67,7 +67,7 @@ Resolve entries via `claudeutils _recall resolve` — do not use inline summarie
 <trigger phrase> — <1-line relevance note>
 ```
 
-**Null artifact (no relevant entries):** Write `null — no relevant entries found` as the sole entry. Downstream consumers batch-resolve it via `claudeutils _recall resolve null` (silent exit) — the tool call anchors the gate without consumer-side empty-section handling. Augmenting consumers (/runbook Phase 0.5) remove the null entry when adding real ones.
+**Null artifact (no relevant entries):** Write `null — no relevant entries found` as the sole entry. Downstream consumers batch-resolve it via `edify _recall resolve null` (silent exit) — the tool call anchors the gate without consumer-side empty-section handling. Augmenting consumers (/runbook Phase 0.5) remove the null entry when adding real ones.
 
 **Selection criteria:** Include entries that informed design decisions or constrain implementation. Exclude entries read but proved irrelevant — the artifact is curated, not exhaustive.
 
@@ -84,8 +84,8 @@ For delegated exploration: Use Task tool with `subagent_type="scout"`. Specify r
 Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-scan memory-index (already in context from A.1) for entries relevant to domains discovered during exploration.
 
 **Gate anchor (D+B — tool call required):**
-- **New entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
-- **No new entries:** `claudeutils _recall resolve null` — proves gate was reached
+- **New entries found:** `edify _recall resolve "when <trigger>" ...` — resolve into context, then append entry keys to recall artifact via Edit if entries have forward value for downstream consumers (runbook planning, execution, review)
+- **No new entries:** `edify _recall resolve null` — proves gate was reached
 
 #### A.3-4. Research
 
@@ -95,7 +95,7 @@ Exploration surfaces codebase areas not caught by A.1's topic-based recall. Re-s
 
 **Research artifact (required when research conducted):** Write findings to `plans/<job>/reports/research-<topic>.md` — frameworks considered, findings per framework, gaps identified. This file is a cascading dependency: A.5 reads it, absence blocks outline generation.
 
-**Recall diff:** `Bash: claudeutils _recall diff <job-name>` — update artifact if codebase findings changed relevance.
+**Recall diff:** `Bash: edify _recall diff <job-name>` — update artifact if codebase findings changed relevance.
 
 #### A.5. Outline
 

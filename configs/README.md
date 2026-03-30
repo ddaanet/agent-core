@@ -20,7 +20,7 @@ These base files are organized and ready for use. Projects can reference them, b
 Justfiles can use the `import` or `mod` directive to include base recipes:
 
 ```just
-import "agent-core/configs/justfile-base.just"
+import "plugin/configs/justfile-base.just"
 
 # Project-specific recipes here
 ```

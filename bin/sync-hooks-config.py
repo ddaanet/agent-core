@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge agent-core/hooks/hooks.json into .claude/settings.json.
+"""Merge plugin/hooks/hooks.json into .claude/settings.json.
 
 Idempotent: deduplicates by command string. Preserves existing hooks.
 """
@@ -21,7 +21,7 @@ def find_settings_path():
 
 
 def find_hooks_path():
-    """Find agent-core/hooks/hooks.json."""
+    """Find plugin/hooks/hooks.json."""
     script_dir = Path(__file__).parent
     return script_dir.parent / "hooks" / "hooks.json"
 
@@ -50,7 +50,7 @@ def normalize_command(cmd):
     """Normalize hook command to base script path for dedup comparison.
 
     Strips interpreter prefixes (python3, bash) and $CLAUDE_PROJECT_DIR/ so that
-    'python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/foo.py' matches 'agent-
+    'python3 $CLAUDE_PROJECT_DIR/plugin/hooks/foo.py' matches 'agent-
     core/hooks/foo.py'.
     """
     if cmd is None:
@@ -68,8 +68,8 @@ def normalize_command(cmd):
 def _merge_hook_entries(existing_entry, new_entry):
     """Merge new hooks into existing entry, replacing old-form commands.
 
-    Uses normalized comparison so 'agent-core/hooks/foo.py' is recognized as
-    equivalent to 'python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/foo.py'. When
+    Uses normalized comparison so 'plugin/hooks/foo.py' is recognized as
+    equivalent to 'python3 $CLAUDE_PROJECT_DIR/plugin/hooks/foo.py'. When
     matched, the old-form entry is replaced with the new-form entry.
     """
     existing_hooks = existing_entry.get("hooks", [])

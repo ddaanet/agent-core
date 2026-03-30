@@ -21,9 +21,9 @@ If design document includes "Requirements" section:
 
 1. **Implementation recall (D+B anchor — tool call required):**
    1. Read `agents/memory-index.md` (skip if already in context). Select implementation-domain triggers — patterns for building this, not classifying it.
-   2. If `plans/<job>/recall-artifact.md` exists: `claudeutils _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
-   3. Resolve additional triggers from memory-index not in artifact: `claudeutils _recall resolve "when <trigger>" ...`
-   4. No relevant entries (no artifact, no triggers selected): `claudeutils _recall resolve null` — proves gate was reached.
+   2. If `plans/<job>/recall-artifact.md` exists: `edify _recall resolve plans/<job>/recall-artifact.md` — artifact mode resolves all entry keys in one call.
+   3. Resolve additional triggers from memory-index not in artifact: `edify _recall resolve "when <trigger>" ...`
+   4. No relevant entries (no artifact, no triggers selected): `edify _recall resolve null` — proves gate was reached.
    5. Factor known constraints into step design and model selection.
 
 2. **Augment recall artifact** (`plans/<job>/recall-artifact.md`):
@@ -31,7 +31,7 @@ If design document includes "Requirements" section:
      - Read `agents/decisions/implementation-notes.md` and `agents/decisions/testing.md`
      - Add entries relevant to the planned work -- planning-relevant only: model selection failures, phase typing decisions, checkpoint placement patterns, precommit gotchas
      - Do NOT add execution-level entries (mock patching, test structure details) -- those belong in step files, not recall
-   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, `claudeutils _recall resolve plans/<job>/recall-artifact.md` after writing, write artifact -- same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
+   - If artifact absent: generate initial artifact (Read `memory-index.md`, select entries by problem-domain matching, `edify _recall resolve plans/<job>/recall-artifact.md` after writing, write artifact -- same process as `/design` skill's Recall Artifact Generation section, but with implementation focus)
    - Write augmented artifact back to `plans/<job>/recall-artifact.md`
    - For multi-session pipelines where design-time artifact may be stale, planner can regenerate from scratch
 
@@ -47,14 +47,14 @@ If design document includes "Requirements" section:
    Step 3's Glob/Grep verification discovers actual file locations and module structures — may reveal domains not anticipated during step 1 recall. Re-scan memory-index (already in context) for entries relevant to discovered areas.
 
    **Gate anchor (D+B — tool call required):**
-   - **New entries found:** `claudeutils _recall resolve "when <trigger>" ...` — resolve into context, augment recall artifact with new entry keys
-   - **No new entries:** `claudeutils _recall resolve null` — proves gate was reached
+   - **New entries found:** `edify _recall resolve "when <trigger>" ...` — resolve into context, augment recall artifact with new entry keys
+   - **No new entries:** `edify _recall resolve null` — proves gate was reached
 
 ---
 
 ## Phase 0.75: Generate Runbook Outline
 
-**Recall diff:** `Bash: claudeutils _recall diff <job-name>`
+**Recall diff:** `Bash: edify _recall diff <job-name>`
 
 Review the changed files list. File locations, existing patterns, and structural constraints make different implementation learnings relevant than what Phase 0.5 initially selected. If files changed that affect which recall entries are relevant, update the artifact: add entries revealed by discovery (e.g., testing patterns for the discovered module structure), remove entries for patterns that don't apply to the actual codebase. Write updated artifact back.
 
@@ -313,11 +313,11 @@ If outline contains `## Execution Model` section with dispatch protocol:
 
    **Domain Validation:**
 
-   When writing review checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the review step:
+   When writing review checkpoint steps, check if a domain validation skill exists at `plugin/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include domain validation in the review step:
 
    ```
    - **Domain validation:** Read and apply criteria from
-     `agent-core/skills/<domain>-validation/SKILL.md`
+     `plugin/skills/<domain>-validation/SKILL.md`
      for artifact type: [skills|agents|hooks|commands|plugin-structure]
    ```
 
@@ -468,10 +468,10 @@ Delegate to `runbook-corrector` (fix-all mode) for cross-phase consistency:
 
 1. **Run validation checks:**
    ```bash
-   agent-core/bin/validate-runbook.py model-tags plans/<job>/
-   agent-core/bin/validate-runbook.py lifecycle plans/<job>/
-   agent-core/bin/validate-runbook.py test-counts plans/<job>/
-   agent-core/bin/validate-runbook.py red-plausibility plans/<job>/
+   plugin/bin/validate-runbook.py model-tags plans/<job>/
+   plugin/bin/validate-runbook.py lifecycle plans/<job>/
+   plugin/bin/validate-runbook.py test-counts plans/<job>/
+   plugin/bin/validate-runbook.py red-plausibility plans/<job>/
    ```
 
    Each subcommand writes a report to `plans/<job>/reports/validation-{subcommand}.md`.

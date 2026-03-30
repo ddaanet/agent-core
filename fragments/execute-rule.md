@@ -68,11 +68,11 @@ Strict resume: continue in-progress task only. Error if no in-progress task exis
 - `wt <task-name>` — branch off single named task
 
 **Behavior:**
-Set up worktrees for parallel or single-task execution. See `agent-core/skills/worktree/SKILL.md` for implementation details.
+Set up worktrees for parallel or single-task execution. See `plugin/skills/worktree/SKILL.md` for implementation details.
 
 ### Task Pickup: Context Recovery
 
-**Rule:** Before starting a pending task, run `agent-core/bin/task-context.sh '<task-name>'` to recover the session.md where it was introduced.
+**Rule:** Before starting a pending task, run `plugin/bin/task-context.sh '<task-name>'` to recover the session.md where it was introduced.
 
 The task name serves as the lookup key. The script uses `git log -S` to find the commit where the task was first introduced and outputs the full session.md from that commit.
 

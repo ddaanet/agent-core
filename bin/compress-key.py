@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-from edify.when.compress import compress_key, load_heading_corpus
+from claudeutils.when.compress import compress_key, load_heading_corpus
 
 
 def main() -> None:

@@ -81,7 +81,7 @@ run-pytest() {
     local current_hash
     current_hash=$( {
         python3 --version 2>&1
-        git ls-files -z src/ tests/ agent-core/hooks/ agent-core/bin/ | sort -z | xargs -0 cat
+        git ls-files -z src/ tests/ plugin/hooks/ plugin/bin/ | sort -z | xargs -0 cat
         cat pyproject.toml
     } | cksum )
     if [ -f "$sentinel" ] && [ "$(cat "$sentinel")" = "$current_hash" ]; then
@@ -114,13 +114,13 @@ report-end-safe() {
 [no-exit-message]
 claude:
     #!{{ bash_prolog }}
-    exec claude --plugin-dir ./agent-core
+    exec claude --plugin-dir ./plugin
 
 # Launch Claude Code with plugin and empty system prompt (clean-slate workflow)
 [no-exit-message]
 claude0:
     #!{{ bash_prolog }}
-    exec claude --plugin-dir ./agent-core --system-prompt ""
+    exec claude --plugin-dir ./plugin --system-prompt ""
 
 # Run all checks
 [no-exit-message]
@@ -133,7 +133,7 @@ precommit:
     report "validate planstate" claudeutils validate planstate
     report "validate session-structure" claudeutils validate session-structure
     run-checks
-    report "version consistency" python3 agent-core/bin/check-version-consistency.py
+    report "version consistency" python3 plugin/bin/check-version-consistency.py
     run-pytest
     run-line-limits
     report-end-safe "Precommit"
@@ -241,13 +241,13 @@ wt-new name base="HEAD" session="":
     fi
     # Submodule: create worktree (shared object store) instead of --reference clone
     submodule_branch_exists=false
-    if git -C agent-core rev-parse --verify "$branch" >/dev/null 2>&1; then
+    if git -C plugin rev-parse --verify "$branch" >/dev/null 2>&1; then
         submodule_branch_exists=true
     fi
     if [ "$submodule_branch_exists" = true ]; then
-        visible git -C agent-core worktree add "$wt_dir/agent-core" "$branch"
+        visible git -C plugin worktree add "$wt_dir/plugin" "$branch"
     else
-        visible git -C agent-core worktree add "$wt_dir/agent-core" -b "$branch"
+        visible git -C plugin worktree add "$wt_dir/plugin" -b "$branch"
     fi
     # Register container directory in sandbox permissions
     wt_container="$(dirname "$wt_dir")"
@@ -310,13 +310,13 @@ wt-rm name:
 
         # Probe: is submodule worktree registered?
         submodule_registered=false
-        if [ -d "$wt_dir/agent-core" ] && git -C agent-core worktree list | grep -q "$wt_dir/agent-core"; then
+        if [ -d "$wt_dir/plugin" ] && git -C plugin worktree list | grep -q "$wt_dir/plugin"; then
             submodule_registered=true
         fi
 
         # Remove submodule worktree first (git refuses parent removal while submodule worktree exists)
-        if [ "$submodule_registered" = true ] && [ -d "$wt_dir/agent-core" ]; then
-            visible git -C agent-core worktree remove --force "$wt_dir/agent-core"
+        if [ "$submodule_registered" = true ] && [ -d "$wt_dir/plugin" ]; then
+            visible git -C plugin worktree remove --force "$wt_dir/plugin"
         fi
         if [ "$parent_registered" = true ]; then
             visible git worktree remove --force "$wt_dir"
@@ -365,9 +365,9 @@ wt-merge name:
         echo "$dirty" >&2
         fail "Clean tree required for merge"
     fi
-    submodule_dirty=$(git -C agent-core status --porcelain | grep -vE "^.. ($(echo "$session_exempt" | tr ' ' '|'))$" || true)
+    submodule_dirty=$(git -C plugin status --porcelain | grep -vE "^.. ($(echo "$session_exempt" | tr ' ' '|'))$" || true)
     if [ -n "$submodule_dirty" ]; then
-        echo "${RED}Dirty agent-core submodule:${NORMAL}" >&2
+        echo "${RED}Dirty plugin submodule:${NORMAL}" >&2
         echo "$submodule_dirty" >&2
         fail "Clean tree required for merge"
     fi
@@ -387,25 +387,25 @@ wt-merge name:
     fi
 
     # Phase 2: Submodule Resolution
-    wt_commit=$(git ls-tree "$branch" -- agent-core | awk '{print $3}')
-    local_commit=$(git -C agent-core rev-parse HEAD)
+    wt_commit=$(git ls-tree "$branch" -- plugin | awk '{print $3}')
+    local_commit=$(git -C plugin rev-parse HEAD)
     if [ "$wt_commit" != "$local_commit" ]; then
         # Check ancestry
-        if ! git -C agent-core merge-base --is-ancestor "$wt_commit" "$local_commit" 2>/dev/null; then
+        if ! git -C plugin merge-base --is-ancestor "$wt_commit" "$local_commit" 2>/dev/null; then
             # Fetch submodule commits if not already reachable (no-op for worktree-based submodules)
-            if ! git -C agent-core cat-file -e "$wt_commit" 2>/dev/null; then
-                if [ -d "$wt_dir/agent-core" ]; then
-                    visible git -C agent-core fetch "$wt_dir/agent-core" HEAD
+            if ! git -C plugin cat-file -e "$wt_commit" 2>/dev/null; then
+                if [ -d "$wt_dir/plugin" ]; then
+                    visible git -C plugin fetch "$wt_dir/plugin" HEAD
                 fi
             fi
             # Merge
-            if ! visible git -C agent-core merge --no-edit "$wt_commit"; then
-                echo "${RED}Submodule merge conflict in agent-core${NORMAL}" >&2
-                fail "Resolve in agent-core/, commit, then re-run: just wt-merge $slug"
+            if ! visible git -C plugin merge --no-edit "$wt_commit"; then
+                echo "${RED}Submodule merge conflict in plugin${NORMAL}" >&2
+                fail "Resolve in plugin/, commit, then re-run: just wt-merge $slug"
             fi
             # Stage and commit
-            visible git add agent-core
-            git diff --quiet --cached || visible git commit -m "🔀 Merge agent-core from $slug"
+            visible git add plugin
+            git diff --quiet --cached || visible git commit -m "🔀 Merge plugin from $slug"
         fi
     fi
 
@@ -413,10 +413,10 @@ wt-merge name:
     if ! git merge --no-commit --no-ff "$branch" 2>&1; then
         conflicts=$(git diff --name-only --diff-filter=U)
 
-        # agent-core: keep ours (already merged in Phase 2)
-        if echo "$conflicts" | grep -q "^agent-core$"; then
-            visible git checkout --ours agent-core
-            visible git add agent-core
+        # plugin: keep ours (already merged in Phase 2)
+        if echo "$conflicts" | grep -q "^plugin$"; then
+            visible git checkout --ours plugin
+            visible git add plugin
         fi
 
         # Session files: extract tasks from theirs before keeping ours

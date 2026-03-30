@@ -1,7 +1,7 @@
 ---
 name: commit
 description: Create git commits for completed work with short, dense, structured messages. Use --context flag when you already know what changed from conversation.
-allowed-tools: Read, Edit, Skill, Bash(git add:*), Bash(git diff:*), Bash(git status:*), Bash(git commit:*), Bash(just precommit), Bash(just test), Bash(just lint)
+allowed-tools: Read, Edit, Skill, Bash(git add:*), Bash(git diff:*), Bash(git status:*), Bash(claudeutils _commit*), Bash(just precommit), Bash(just test), Bash(just lint)
 user-invocable: true
 continuation:
   cooperative: true
@@ -59,7 +59,7 @@ Add #load rule and replace AGENTS.md references with CLAUDE.md
 
 ## Execution Steps
 
-**Allowlist constraint:** Run each git/just command as a separate Bash call. Do NOT chain commands (`git add && git commit`) or wrap in `exec 2>&1` — these fail allowlist matching.
+**Allowlist constraint:** Run each git/just command as a separate Bash call. Do NOT chain commands (`git add && git diff`) or wrap in `exec 2>&1` — these fail allowlist matching.
 
 ### 1. Pre-commit validation + discovery
 
@@ -98,34 +98,15 @@ Context mode:
 
 ERROR if nothing to commit (no staged or unstaged changes). Note what's already staged vs unstaged.
 
-### 1b. Submodule handling
+### 1b. Submodule info gathering
 
-If `git status` shows modified submodules (e.g., `M agent-core`), commit submodule first.
+If `git status` shows modified submodules (e.g., `M agent-core`), gather info for CLI input:
 
-**CWD rule:** The `submodule-safety` hook blocks commands when cwd ≠ project root. Never run `cd agent-core` as a standalone Bash call — it persists the cwd change and blocks all subsequent calls.
-
-**Two safe patterns for agent-core operations:**
-
-Git commands — use `-C` flag (no cwd change):
-```
-git -C agent-core status
-git -C agent-core add <files>
-git -C agent-core commit -m "..."
+```bash
+git -C agent-core diff --name-only HEAD
 ```
 
-Non-git commands needing agent-core cwd — subshell (cwd not persisted):
-```
-( cd agent-core && <cmd> )
-```
-
-Steps:
-1. `git -C agent-core status`
-2. `git -C agent-core add <files>`
-3. `git -C agent-core commit -m "$(cat <<'EOF'` ... `EOF` `)")`
-4. `git add agent-core` — stage pointer in parent
-5. Continue with parent commit
-
-One command per Bash call.
+Note changed files and draft a submodule commit message. The CLI handles staging, committing, and pointer update via the `## Submodule` input section.
 
 ### 1c. Settings triage
 
@@ -160,22 +141,46 @@ Based on discovery output or conversation context. Follow format above. Do NOT r
 
 Read `references/gitmoji-index.txt` (~78 entries). Analyze commit semantics, select most specific match. Prefix title with emoji. Skip if `--no-gitmoji`.
 
-### 4. Stage, commit, verify
+### 4. Compose and commit via CLI
 
-Separate Bash calls:
-1. `git add <specific files>` — not `git add -A`. Include session.md, plans/, submodule pointers if changed. Preserve already-staged files.
-2. `git commit -m "$(cat <<'EOF'` ... `EOF` `)"` — heredoc for multiline
-3. `git status` — verify clean
+Build structured markdown input and pipe to CLI:
 
-## Post-Commit: Display STATUS
+```bash
+claudeutils _commit <<'EOF'
+## Files
+- path/to/file1.py
+- path/to/file2.md
 
-After successful commit:
+## Options
+- no-vet
+
+## Submodule agent-core
+> Submodule commit message
+
+## Message
+🔧 Parent commit message
+EOF
+```
+
+**Sections:**
+- `## Files` — specific files from git status (not `git add -A`). Include session.md, plans/, submodule pointers if changed.
+- `## Options` — from flags: `--test` or `--lint` → `just-lint`, `--no-vet` or trivial classification → `no-vet`. Omit section if no options.
+- `## Submodule <path>` — if submodule changes detected (Step 1b), include submodule commit message as blockquote. Omit if no submodule changes.
+- `## Message` — drafted message with gitmoji prefix from Steps 2-3.
+
+**Exit codes:** 0 = success. 1 = validation failure (surface CLI output). 2 = parse error (fix input).
+
+## Post-Commit
+
+After successful commit, output:
 
 ```
 Committed: <commit subject line>
+
+Status.
 ```
 
-Then display STATUS per execute-rule.md MODE 1. Copy first pending task command to clipboard (`dangerouslyDisableSandbox: true`). No pending tasks → "No pending tasks." and suggest `/next`.
+Stop hook renders via `_status` CLI.
 
 ## Continuation
 

@@ -147,7 +147,7 @@ Run `just precommit` after all writes (session.md, learnings.md, plan-archive.md
 
 ### 8. Display STATUS
 
-Display STATUS per execute-rule.md MODE 1.
+Output `Status.` — Stop hook renders via `_status` CLI.
 
 ## Continuation
 

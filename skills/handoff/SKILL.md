@@ -1,7 +1,7 @@
 ---
 name: handoff
 description: Save session state for the next agent. Triggers on "handoff", "h", "hc", session update, or agent switch requests. Writes session.md with completed tasks, pending work, blockers, and learnings. Not for Haiku orchestrators — use /handoff-haiku instead.
-allowed-tools: Read, Write, Edit, Bash(wc:*), Task, Skill
+allowed-tools: Read, Write, Edit, Bash(just:*,wc:*,git:*,claudeutils:*), Task, Skill
 user-invocable: true
 continuation:
   cooperative: true
@@ -24,8 +24,7 @@ Standard (Sonnet)
 
 - Review conversation for completed tasks, pending/remaining tasks, blockers
 - If reviewing a handoff-haiku session, process Session Notes for learnings
-- **Uncommitted prior handoff:** Check `git diff HEAD -- agents/session.md`. Non-empty → inspect the diff content. If `## Completed This Session` section was modified → prior uncommitted handoff exists → merge incrementally in Step 2 (Edit, append Completed, mutate tasks). If only task entries changed (additions, slug markers, metadata mutations) → not a prior handoff, just current-session task edits → fresh write (Write). Empty → clean session.md → fresh write (Write)
-- **Fresh write resets Completed.** On both fresh-write paths above, "Completed This Session" contains only work from this conversation. Prior-session content was committed with that session's handoff — git history preserves it. Do not carry forward.
+- **Completed resets each handoff.** "Completed This Session" contains only work from this conversation. Prior-session content was committed with that session's handoff — git history preserves it. The CLI's committed detection (compares completed section against HEAD) handles uncommitted prior handoffs; the skill always writes full state.
 
 ### 2. Update session.md
 
@@ -86,8 +85,6 @@ Write session.md following this structure:
 
 Non-plan tasks keep their static command. This prevents stale commands from persisting across handoffs.
 
-**Multiple handoffs before commit:** Merge incrementally via Edit (append to Completed, mutate In-tree/Worktree, append Blockers, replace Next Steps). Do NOT Write a fresh file discarding prior content.
-
 **NEVER reference commits as pending** in session.md — no "ready to commit" language.
 
 **Worktree-terminal state:** If no `[ ]` pending tasks AND in a worktree (`git rev-parse --git-dir` ≠ `.git`), Next Steps = "Branch work complete." No merge-to-main instructions — the merge is tracked on main's session.md and performed from main.
@@ -144,9 +141,13 @@ Delete completed tasks only if BOTH: (1) completed before this conversation, AND
 
 Do NOT delete tasks completed in the current conversation, even if just committed.
 
-### 7. Display STATUS
+### 7. Precommit Gate
 
-Display STATUS per execute-rule.md MODE 1.
+Run `just precommit` after all writes (session.md, learnings.md, plan-archive.md). On failure: output the precommit result and STOP — wait for guidance. On success: continue to STATUS display.
+
+### 8. Display STATUS
+
+Output `Status.` — Stop hook renders via `_status` CLI.
 
 ## Continuation
 

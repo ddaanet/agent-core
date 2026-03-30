@@ -12,50 +12,7 @@ Four session modes define agent behavior on startup or when prompted with workfl
 **Behavior:**
 Display pending tasks with metadata, then wait for instruction.
 
-**STATUS display format:**
-
-```
-Session: uncommitted changes — `/handoff`, `/commit`
-
-Next: <first in-tree task name>
-  `<command to start it>`
-  Model: <recommended model> | Restart: <yes/no>
-
-In-tree:
-- <task 2 name> (<model if non-default>)
-  - Plan: <plan-directory> | Status: <status> | Notes: <notes>
-- <task 3 name>
-  - Plan: <plan-directory> | Status: <status>
-- ...
-
-Worktree:
-- <task name> (<model if non-default>)
-- <task name 2> → <slug> (active worktree)
-
-Unscheduled Plans:
-- <plan-name> — <status>
-- ...
-```
-
-**In-tree list format:**
-- First line: task name with model if non-default
-- Nested line: plan directory, status from planstate, notes if present
-- Omit nested line if task has no associated plan
-
-**Worktree section:**
-- Only shown when worktree tasks exist in session.md
-- Tasks with active worktrees show `→ slug` (from `_worktree ls`, filesystem state)
-- Tasks without active worktrees shown without slug (pre-classified, awaiting `wt` setup)
-
-**Unscheduled Plans:** Plans with no associated pending task.
-- Call `list_plans(Path('plans'))` for all plans
-- Exclude plans that appear in any pending task's plan directory
-- Exclude plans with status `delivered` (terminal — no action needed)
-- **Format:** `<plan-name> — <status>`
-- **Status values:** `requirements`, `outlined`, `designed`, `planned`, `ready`, `review-pending`, `rework`, `reviewed`, `delivered`
-- **Sorting:** Alphabetical by plan name
-
-**Status source:** `claudeutils _worktree ls` for plan states and tree status; `session.md` for task notes. The CLI wraps `list_plans()` + `format_rich_ls()` — do not call these via ad-hoc Python.
+**Rendering:** Output `Status.` as final line — Stop hook renders via `_status` CLI.
 
 **Planstate-derived commands:**
 - For tasks with an associated plan directory, derive the command from planstate (shown in CLI output as `→ <command>`)
@@ -67,23 +24,6 @@ Unscheduled Plans:
 - Shows the natural next steps: `` `/handoff`, `/commit` ``
 - If any plan-associated task has status `review-pending`, append: `` `/deliverable-review plans/<name>` ``
 - Omit entirely when tree is clean
-
-**Parallel task detection:**
-
-After listing in-tree and worktree tasks, analyze for parallelizable groups:
-- No shared plan directory between tasks
-- No logical dependency (check Blockers/Gotchas section)
-
-If a group of 2+ independent tasks exists, append:
-
-```
-Parallel (N tasks, independent):
-  - task name 1
-  - task name 2
-  `wt` to set up worktrees
-```
-
-Show largest independent group only. Omit section if no parallelism detected.
 
 **Next task when in-tree blocked:**
 When all in-tree tasks are blocked and the first actionable work is a worktree task, "Next" should point to worktree setup (`wt <task-name>` or `wt` for parallel group), not the worktree task's execution command. The execution command belongs inside the worktree session.
@@ -111,7 +51,7 @@ Smart execute: resume in-progress task if exists, otherwise start first in-tree 
 Execute task to completion, then chain:
 1. `/handoff` updates session.md
 2. Tail-calls `/commit` which commits changes
-3. `/commit` displays STATUS showing next pending task
+3. `/commit` outputs `Status.`
 
 ### MODE 4: RESUME
 

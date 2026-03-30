@@ -132,7 +132,7 @@ Produce this classification block before routing (visible output, not internal r
 
 #### Routing
 
-- **Simple →** Lightweight recall-explore-execute:
+- **Simple →** Lightweight recall-explore, then chain to `/inline`:
   1. Recall: `claudeutils _recall resolve "when <domain-keyword>" ...` — resolve domain-relevant entries (single call, triggers from task context)
   2. Explore: if affected files not already known, `Glob`/`Grep` to identify targets
   3. Execute: check for applicable skills and project recipes first, then implement directly

@@ -29,7 +29,7 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
                 || setup_warnings="$setup_warnings\n⚠️ CLI install failed: could not create venv"
         fi
         if [ -d "$VENV_DIR" ]; then
-            uv pip install --quiet --python "$VENV_DIR/bin/python" "edify==$EDIFY_VERSION" > /dev/null 2>&1 \
+            uv pip install --quiet --python "$VENV_DIR/bin/python" "edify-cli==$EDIFY_VERSION" > /dev/null 2>&1 \
                 || setup_warnings="$setup_warnings\n⚠️ CLI install failed: uv pip install error"
         fi
     elif command -v python3 > /dev/null 2>&1; then
@@ -38,7 +38,7 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
                 || setup_warnings="$setup_warnings\n⚠️ CLI install failed: could not create venv"
         fi
         if [ -d "$VENV_DIR" ] && [ -f "$VENV_DIR/bin/pip" ]; then
-            "$VENV_DIR/bin/pip" install --quiet "edify==$EDIFY_VERSION" > /dev/null 2>&1 \
+            "$VENV_DIR/bin/pip" install --quiet "edify-cli==$EDIFY_VERSION" > /dev/null 2>&1 \
                 || setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip install error"
         elif [ -d "$VENV_DIR" ]; then
             setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip not available in venv (ensurepip missing?)"

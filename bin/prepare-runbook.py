@@ -136,11 +136,11 @@ def resolve_recall_entries(triggers):
     if not triggers:
         return ""
 
-    cmd = ["claudeutils", "_recall", "resolve"] + triggers
+    cmd = ["edify", "_recall", "resolve"] + triggers
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
     except FileNotFoundError:
-        print("WARNING: recall resolve: claudeutils not found", file=sys.stderr)
+        print("WARNING: recall resolve: edify not found", file=sys.stderr)
         return ""
     if result.returncode != 0:
         if result.stderr:

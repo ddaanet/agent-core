@@ -4,7 +4,7 @@
 Usage: when-resolve.py "when <query>" ["how <query>" ...]
 """
 
-from claudeutils.when.cli import when_cmd
+from edify.when.cli import when_cmd
 
 if __name__ == "__main__":
     when_cmd()

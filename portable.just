@@ -127,11 +127,11 @@ claude0:
 precommit:
     #!{{ bash_prolog }}
     sync
-    report "validate memory-index" claudeutils validate memory-index
-    report "validate learnings" claudeutils validate learnings
-    report "validate tasks" claudeutils validate tasks
-    report "validate planstate" claudeutils validate planstate
-    report "validate session-structure" claudeutils validate session-structure
+    report "validate memory-index" edify validate memory-index
+    report "validate learnings" edify validate learnings
+    report "validate tasks" edify validate tasks
+    report "validate planstate" edify validate planstate
+    report "validate session-structure" edify validate session-structure
     run-checks
     report "version consistency" python3 plugin/bin/check-version-consistency.py
     run-pytest
@@ -143,11 +143,11 @@ precommit:
 precommit-base:
     #!{{ bash_prolog }}
     sync
-    report "validate memory-index" claudeutils validate memory-index
-    report "validate learnings" claudeutils validate learnings
-    report "validate tasks" claudeutils validate tasks
-    report "validate planstate" claudeutils validate planstate
-    report "validate session-structure" claudeutils validate session-structure
+    report "validate memory-index" edify validate memory-index
+    report "validate learnings" edify validate learnings
+    report "validate tasks" edify validate tasks
+    report "validate planstate" edify validate planstate
+    report "validate session-structure" edify validate session-structure
     report-end-safe "Precommit-base"
 
 # Run test suite

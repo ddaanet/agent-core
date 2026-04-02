@@ -21,33 +21,42 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     fi
 
     # 2. Install edify CLI into plugin-local venv
-    EDIFY_VERSION="0.0.2"  # Updated with each plugin release
-    VENV_DIR="$CLAUDE_PLUGIN_ROOT/.venv"
-    if command -v uv > /dev/null 2>&1; then
-        if [ ! -d "$VENV_DIR" ]; then
-            uv venv "$VENV_DIR" > /dev/null 2>&1 \
-                || setup_warnings="$setup_warnings\n⚠️ CLI install failed: could not create venv"
-        fi
-        if [ -d "$VENV_DIR" ]; then
-            uv pip install --quiet --python "$VENV_DIR/bin/python" "edify-cli==$EDIFY_VERSION" > /dev/null 2>&1 \
-                || setup_warnings="$setup_warnings\n⚠️ CLI install failed: uv pip install error"
+    #    Uses .edify-venv (not .venv) to avoid colliding with dev venv in submodule mode
+    EDIFY_PKG="edify-cli @ git+https://github.com/ddaanet/edify.git"
+    VENV_DIR="$CLAUDE_PLUGIN_ROOT/.edify-venv"
+    INSTALL_LOG="$CLAUDE_PLUGIN_ROOT/.edify-install.log"
+    if [ -f "$VENV_DIR/bin/edify" ]; then
+        : # Already installed
+    elif command -v uv > /dev/null 2>&1; then
+        if ! uv venv "$VENV_DIR" > "$INSTALL_LOG" 2>&1; then
+            setup_warnings="$setup_warnings\n⚠️ CLI venv failed (see .edify-install.log)"
+        elif ! uv pip install --python "$VENV_DIR/bin/python" "$EDIFY_PKG" >> "$INSTALL_LOG" 2>&1; then
+            setup_warnings="$setup_warnings\n⚠️ CLI install failed (see .edify-install.log)"
+        else
+            rm -f "$INSTALL_LOG"
         fi
     elif command -v python3 > /dev/null 2>&1; then
-        if [ ! -d "$VENV_DIR" ]; then
-            python3 -m venv "$VENV_DIR" > /dev/null 2>&1 \
-                || setup_warnings="$setup_warnings\n⚠️ CLI install failed: could not create venv"
-        fi
-        if [ -d "$VENV_DIR" ] && [ -f "$VENV_DIR/bin/pip" ]; then
-            "$VENV_DIR/bin/pip" install --quiet "edify-cli==$EDIFY_VERSION" > /dev/null 2>&1 \
-                || setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip install error"
-        elif [ -d "$VENV_DIR" ]; then
-            setup_warnings="$setup_warnings\n⚠️ CLI install failed: pip not available in venv (ensurepip missing?)"
+        if ! python3 -m venv "$VENV_DIR" > "$INSTALL_LOG" 2>&1; then
+            setup_warnings="$setup_warnings\n⚠️ CLI venv failed (see .edify-install.log)"
+        elif ! "$VENV_DIR/bin/pip" install "$EDIFY_PKG" >> "$INSTALL_LOG" 2>&1; then
+            setup_warnings="$setup_warnings\n⚠️ CLI install failed (see .edify-install.log)"
+        else
+            rm -f "$INSTALL_LOG"
         fi
     else
         setup_warnings="$setup_warnings\n⚠️ CLI install failed: neither uv nor python3 found"
     fi
 
-    # 3. Staleness check (FR-5)
+    # 3. Add shim dir to PATH so bare `edify` resolves to the plugin venv binary
+    #    without exposing the venv's python3/pip (which would shadow system python3)
+    if [ -n "${CLAUDE_ENV_FILE:-}" ] && [ -f "$VENV_DIR/bin/edify" ]; then
+        SHIM_DIR="$CLAUDE_PLUGIN_ROOT/.bin"
+        mkdir -p "$SHIM_DIR"
+        ln -sf "$VENV_DIR/bin/edify" "$SHIM_DIR/edify"
+        echo "PATH=$SHIM_DIR:\$PATH" >> "$CLAUDE_ENV_FILE"
+    fi
+
+    # 4. Staleness check (FR-5)
     # .edify.yaml version is written by /edify:init (creation) and /edify:update (sync).
     # Hook only reads and compares — writing here would defeat the staleness nag.
     PLUGIN_VERSION=""
